@@ -4,6 +4,31 @@
 
 ## 🟢 Active
 
+### ⭐ McpIndex — Hackathon Flagship (NEW, LIVE)
+- **Goal:** Curated, scored, searchable MCP server discovery — "the npmjs.com for Model Context Protocol"
+- **Status:** LIVE in production, 8 Day milestones done in 2 calendar days
+- **Live URL:** https://mcpindex-nu.vercel.app
+- **Project dir:** `/home/ujjwal/Documents/mcp-hub/` (separate from Jarvis, own git repo)
+- **Hackathon:** DevNetwork AI+ML 2026 — deadline 2026-05-28 10:00 AM PT
+- **Started:** 2026-05-11
+- **Stack:** Next.js 16 + Tailwind 4 + shadcn + Neon Postgres + pgvector + Gemini Flash/embedding + Vercel
+- **Stats:** 1,532 MCP servers indexed, 6-dim quality scoring, hybrid semantic+keyword search
+- **Chosen problem (Concept criterion):** "20K MCP servers exist, 90% broken, 140K devs/month with zero quality signal." See `/home/ujjwal/Documents/mcp-hub/HACKATHON-PROBLEM.md` for full breakdown.
+- **Sponsor strategy:** Primary = Overall Grand Prize ($12.5K). Skip Perfect Corp (wrong vertical). TrueFoundry $1.5K = optional 2-3 day adapter.
+- **Remaining work:** `pnpm db:embed --resume` (483 servers tomorrow when quota resets) → record 90s demo → paste DEVPOST.md → submit
+- **Files of interest:**
+  - mcp-hub/SPEC.md
+  - mcp-hub/HACKATHON-PROBLEM.md ⭐ (problem analysis, judging mapping, sponsor fit, judge Q&A prep)
+  - mcp-hub/DEVPOST.md (submission writeup)
+  - mcp-hub/DEMO-SCRIPT.md (90s narrator script)
+  - mcp-hub/ARCHITECTURE.md
+  - mcp-hub/DEPLOY.md
+- **Cross-references in Jarvis:**
+  - `data/notes/hackathon-developerweek-research-2026-05-11.md` (DevNetwork format)
+  - `data/notes/hackathon-winning-patterns-2026-05-11.md` (2026 winners)
+  - `data/notes/hackathon-ideas-research-2026-05-11.md` (idea menu)
+  - `data/notes/devnetwork-sponsor-challenges-2026-05-12.md` (live sponsor enumeration + fit matrix)
+
 ### 1. Jarvis — Personal AI Agent
 - **Goal:** Build a personal AI assistant on Claude Code + subagents + MCP that handles email, calendar, research, learning, code, tasks
 - **Status:** Foundation setup in progress (memory files being filled)
