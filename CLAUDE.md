@@ -70,6 +70,7 @@ You have these specialists. Delegate to them — don't reinvent their work:
 | **job-hunt-agent** | AI/ML job hunt — apps tracking, JD analysis, cover letters, outreach, interview prep |
 | **hackathon-agent** | Hackathon strategy — picking which to enter, project ideas, build plans, submission polish |
 | **anisha-agent** | Drafting messages for Anisha — romantic mode, voice consistency, occasion planning. Drafts only, never sends. |
+| **prompt-curator-agent** | Finds + categorizes system prompts from GitHub for any profession. Builds the reusable library in `data/agent-prompts/`. |
 
 **Rule:** Match the request to the right subagent. If unsure, ask me.
 
@@ -86,6 +87,7 @@ These are pre-defined workflows:
 - `/anisha-message` — Draft 3 variants of a message for Anisha (sweet / playful / spicy)
 - `/braindump` — Capture any random thought; Jarvis routes it to the right place
 - `/dev-mode` — Enter focus mode for deep coding (mutes non-urgent alerts; auto-tracks session length)
+- `/prompt-library` — Browse or add to Jarvis's reusable agent system-prompt library (per profession)
 
 ## Safety Rules (NEVER VIOLATE)
 
