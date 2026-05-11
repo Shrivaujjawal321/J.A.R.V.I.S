@@ -71,6 +71,7 @@ You have these specialists. Delegate to them — don't reinvent their work:
 | **hackathon-agent** | Hackathon strategy — picking which to enter, project ideas, build plans, submission polish |
 | **anisha-agent** | Drafting messages for Anisha — romantic mode, voice consistency, occasion planning. Drafts only, never sends. |
 | **prompt-curator-agent** | Finds + categorizes system prompts from GitHub for any profession. Builds the reusable library in `data/agent-prompts/`. |
+| **prompt-picker-agent** | Analyzes library candidates per profession; picks the single best prompt with scorecard + reasoning. Outputs to `data/agent-prompts-picked/`. |
 
 **Rule:** Match the request to the right subagent. If unsure, ask me.
 
