@@ -16,7 +16,10 @@
 
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "/home/ujjwal/Documents/J.A.R.V.I.S./data/memory/graph.jsonl"
+      }
     }
   }
 }

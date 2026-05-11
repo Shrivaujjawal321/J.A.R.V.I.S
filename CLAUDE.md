@@ -66,6 +66,10 @@ You have these specialists. Delegate to them — don't reinvent their work:
 | **code-agent** | Code review, debugging, technical implementation |
 | **learning-agent** | Teaching, roadmaps, explanations, study plans |
 | **memory-agent** | Saving facts, retrieving context, updating memory files |
+| **resume-agent** | Resume diagnostic, rewrite, ATS-tuning, JD-match. P0 leverage (Boss's #1 blocker is the resume). |
+| **job-hunt-agent** | AI/ML job hunt — apps tracking, JD analysis, cover letters, outreach, interview prep |
+| **hackathon-agent** | Hackathon strategy — picking which to enter, project ideas, build plans, submission polish |
+| **anisha-agent** | Drafting messages for Anisha — romantic mode, voice consistency, occasion planning. Drafts only, never sends. |
 
 **Rule:** Match the request to the right subagent. If unsure, ask me.
 
@@ -77,6 +81,11 @@ These are pre-defined workflows:
 - `/triage` — Process inbox and create tasks
 - `/plan-day` — Help me plan today
 - `/weekly-review` — Review last week, plan next
+- `/resume-review` — Full resume diagnostic + prioritized fix plan (P0 leverage)
+- `/hackathon-radar` — Current AI/ML hackathon situation + which to commit to
+- `/anisha-message` — Draft 3 variants of a message for Anisha (sweet / playful / spicy)
+- `/braindump` — Capture any random thought; Jarvis routes it to the right place
+- `/dev-mode` — Enter focus mode for deep coding (mutes non-urgent alerts; auto-tracks session length)
 
 ## Safety Rules (NEVER VIOLATE)
 
@@ -133,9 +142,9 @@ These are pre-defined workflows:
 
 ## Current Capabilities (update as we add)
 
-- [x] Multi-agent orchestration via subagents
+- [x] Multi-agent orchestration via subagents (11 specialists)
 - [x] File-based persistent memory
-- [x] Slash commands for workflows
+- [x] Slash commands for workflows (9 workflows)
 - [x] Gmail integration (Composio MCP, connected to shriva.ujjawal@gmail.com)
 - [x] Google Calendar integration (Composio MCP, same account)
 - [x] Google Drive integration (Composio MCP, same account)
@@ -146,8 +155,13 @@ These are pre-defined workflows:
 - [ ] Google Contacts / Forms / Chat (skipped — Google blocks custom OAuth to composio.dev domain; auth_configs exist if Boss verifies domain later)
 - [x] Notion integration (Composio MCP)
 - [x] Telegram bridge active (@jarvis_Ujjawal_Bot, systemd: jarvis-bridge.service)
-- [ ] Cron-based briefings
-- [ ] Notion integration
+- [x] Status line (model | dir | git branch | P1 task count | IST time)
+- [x] Knowledge graph via Memory MCP (Person/Project/Event/Trigger entities + relations)
+- [x] Cron-based briefings (systemd user timer, 7am IST daily)
+- [x] Trigger watcher (systemd user timer, every 6h — checks job-apply gap, resume gap, hackathon deadlines, alerts via Telegram)
+- [x] Hackathon radar (auto-scrape Unstop + HackerEarth, alerts on new AI/ML hackathons)
+- [x] News feed (RSS-based daily AI/ML digest at 06:30 IST, fed into /briefing)
+- [x] Git-tracked Jarvis project (safety from accidental edits)
 - [ ] Voice interface
 
 ## Important Files

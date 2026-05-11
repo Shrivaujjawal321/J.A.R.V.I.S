@@ -14,6 +14,10 @@
       "mcp__gemini__*"
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /home/ujjwal/Documents/J.A.R.V.I.S./.claude/statusline.sh"
+  },
   "hooks": {
     "SubagentStop": [
       {
@@ -40,6 +44,42 @@
           {
             "type": "command",
             "command": "echo 'Memory updated.'"
+          }
+        ]
+      },
+      {
+        "matcher": "resume-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Resume agent done. If a fix was applied, run: touch /home/ujjwal/Documents/J.A.R.V.I.S./data/markers/resume_last_updated (kills the weekly nag).'"
+          }
+        ]
+      },
+      {
+        "matcher": "job-hunt-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Job-hunt agent done. If an application was logged, run: touch /home/ujjwal/Documents/J.A.R.V.I.S./data/markers/last_job_apply (resets the 2-day apply gap nag).'"
+          }
+        ]
+      },
+      {
+        "matcher": "anisha-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Anisha draft ready. NEVER auto-send. Boss reviews and sends himself.'"
+          }
+        ]
+      },
+      {
+        "matcher": "hackathon-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Hackathon agent done. If Boss commits to registering, update data/tasks.md and confirm registration link.'"
           }
         ]
       }
