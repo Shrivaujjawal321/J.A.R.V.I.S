@@ -62,6 +62,14 @@ data/memory/graph.jsonl
 # Episodic memory vector DB — regenerable from source files, would bloat repo
 data/memory/chroma/
 
+# Browser automation outputs
+# Screenshots — binary, large, regenerable
+data/browser/screenshots/
+# Raw audit JSON — regenerable (keep *.md audit reports — small, valuable history)
+data/browser/audits/*.json
+# Login test reports — may contain site structure info
+data/browser/login-tests/
+
 # Incremental ingest marker (machine-specific timestamp)
 data/markers/memory_last_ingest
 
