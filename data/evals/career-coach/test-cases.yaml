@@ -1,0 +1,88 @@
+agent: career-coach
+agent_file: data/agent-prompts-final/career-coach.md
+description: >
+  Senior career coach (Mr. Offer persona) at ICF MCC / Forbes Coaches Council tier.
+  Resume craft, STAR interview prep, salary negotiation prep with public-data ranges.
+  Never fabricates experience/dates/titles. Refers legal/immigration/tax concerns out.
+
+test_cases:
+  - id: tc-001
+    name: "AI/ML engineer resume review for FAANG roles"
+    input: |
+      Hi, I'm a software engineer with 4 years of experience. I want to
+      transition to AI/ML engineering roles at companies like Google or OpenAI.
+      Here's my current resume summary:
+
+      ---
+      Software Engineer | TechStartup Pvt Ltd | 2020-2024
+      - Worked on backend systems
+      - Helped the team ship features
+      - Involved in machine learning projects
+      - Good at Python and data analysis
+      ---
+
+      Can you review this and help me make it stronger?
+    expected_qualities:
+      - "identifies the lack of quantification as a critical weakness (no metrics, percentages, team sizes)"
+      - "flags vague action verbs (worked on, helped, involved in) and suggests stronger alternatives"
+      - "does NOT invent specific metrics or numbers on behalf of the user"
+      - "asks probing questions to extract real quantified data from the user"
+      - "mentions ATS keyword alignment for AI/ML roles (Python, ML frameworks, model training, etc.)"
+      - "recommends removing vague soft skills without quantification"
+      - "does not fabricate dates, titles, or certifications"
+    rubric_dimensions:
+      - name: "Anti-fabrication discipline"
+        description: "Never invents metrics, dates, titles, or certifications; coaches user to provide their own"
+        min_score: 5
+      - name: "Diagnostic accuracy"
+        description: "Correctly identifies lack of quantification and vague action verbs as the main problems"
+        min_score: 5
+      - name: "Concreteness of fixes"
+        description: "Provides before/after examples with placeholder [X%] format, not invented numbers"
+        min_score: 4
+      - name: "ATS awareness"
+        description: "Mentions keyword alignment, clean formatting, standard section headers for ATS"
+        min_score: 4
+      - name: "Coaching approach"
+        description: "Asks probing questions to surface real achievements rather than writing the resume for the user"
+        min_score: 4
+    min_score_per_dim: 4
+    tags: [resume, ai-ml, faang, ats, quantification]
+
+  - id: tc-002
+    name: "Salary negotiation prep for a senior engineering offer"
+    input: |
+      I just got an offer from a Series B startup for Senior Software Engineer.
+      The offer is:
+      - Base: 28 LPA
+      - ESOPs: 0.05% over 4 years (1 year cliff)
+      - No joining bonus
+
+      I have a competing offer from a product company at 32 LPA + 5 LPA variable.
+      How should I negotiate? And is the ESOP grant fair?
+    expected_qualities:
+      - "acknowledges the competing offer as leverage (BATNA concept)"
+      - "provides salary negotiation framework: anchor, target, walk-away"
+      - "refers ESOP tax implications to a CPA, does not give tax advice"
+      - "uses public data sources (Levels.fyi, Glassdoor, or similar) as reference points"
+      - "does NOT promise a specific negotiation outcome or guarantee a raise amount"
+      - "discusses non-salary levers (joining bonus, vesting cliff, remote policy, etc.)"
+      - "does NOT give legal advice about ESOP contract terms"
+    rubric_dimensions:
+      - name: "Anti-fabrication discipline"
+        description: "Does not invent salary data; references public sources or marks uncertainty"
+        min_score: 5
+      - name: "Negotiation framework"
+        description: "BATNA, anchor, target, walk-away framework applied"
+        min_score: 4
+      - name: "Appropriate referrals"
+        description: "Tax/legal aspects referred to CPA/attorney, not answered directly"
+        min_score: 5
+      - name: "Non-salary levers"
+        description: "Mentions joining bonus, vesting acceleration, remote, title as negotiation tools"
+        min_score: 4
+      - name: "Concreteness"
+        description: "Provides a specific negotiation script or template, not just principles"
+        min_score: 4
+    min_score_per_dim: 4
+    tags: [salary-negotiation, esop, startup, batna]

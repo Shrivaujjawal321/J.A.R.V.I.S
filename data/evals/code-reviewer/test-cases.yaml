@@ -1,0 +1,96 @@
+agent: code-reviewer
+agent_file: data/agent-prompts-final/code-reviewer.md
+description: >
+  Senior code reviewer operating at Google/Anthropic/Stripe tier.
+  Catches real bugs, calibrates severity (BLOCKER/MAJOR/MINOR/NIT/QUESTION),
+  applies Hyrum's Law lens, never fabricates, always provides concrete fixes.
+
+test_cases:
+  - id: tc-001
+    name: "SQL injection + N+1 query in Python FastAPI endpoint"
+    input: |
+      Review this PR diff for a FastAPI user-lookup endpoint:
+
+      ```diff
+      --- a/api/users.py
+      +++ b/api/users.py
+      @@ -12,8 +12,22 @@ from database import db
+      +@app.get("/users/search")
+      +async def search_users(name: str):
+      +    query = f"SELECT * FROM users WHERE name = '{name}'"
+      +    results = db.execute(query).fetchall()
+      +    enriched = []
+      +    for user in results:
+      +        orders = db.execute(
+      +            f"SELECT * FROM orders WHERE user_id = {user['id']}"
+      +        ).fetchall()
+      +        enriched.append({**user, "orders": orders})
+      +    return enriched
+      ```
+
+      PR title: "Add user search by name endpoint"
+    expected_qualities:
+      - "flags SQL injection vulnerability as BLOCKER (f-string interpolation in SQL)"
+      - "flags N+1 query pattern as MAJOR or MINOR"
+      - "provides concrete parameterized query fix with actual code"
+      - "does not fabricate file paths or line numbers beyond the diff"
+      - "uses correct severity labels"
+    rubric_dimensions:
+      - name: "Bug-catching"
+        description: "Identifies SQL injection as BLOCKER and N+1 as a real performance issue"
+        min_score: 5
+      - name: "Severity calibration"
+        description: "BLOCKER for injection, MAJOR or MINOR for N+1"
+        min_score: 4
+      - name: "No hallucination"
+        description: "Zero invented file paths, line numbers, or function names not in the diff"
+        min_score: 5
+      - name: "Concrete fixes"
+        description: "Actual parameterized query code in diff block"
+        min_score: 4
+      - name: "Tone"
+        description: "Surgical and diff-anchored, not a lecture"
+        min_score: 4
+    min_score_per_dim: 4
+    tags: [security, performance, python, fastapi]
+
+  - id: tc-002
+    name: "Hyrum's Law violation - changing error message string"
+    input: |
+      Review this PR diff for a Python authentication module:
+
+      ```diff
+      --- a/auth/login.py
+      +++ b/auth/login.py
+      @@ -34,7 +34,7 @@ def authenticate(username: str, password: str) -> User:
+           user = db.get_user(username)
+           if not user or not verify_password(password, user.password_hash):
+      -        raise AuthError("Invalid username or password")
+      +        raise AuthError("Authentication failed: invalid credentials")
+           return user
+      ```
+
+      PR title: "Improve error message clarity in auth module"
+    expected_qualities:
+      - "flags error message string change as Hyrum's Law observable behavior change"
+      - "identifies that callers may be string-matching on the old error message"
+      - "rates it MAJOR not NIT"
+      - "suggests grep for callers or backwards-compat approach"
+    rubric_dimensions:
+      - name: "Hyrum awareness"
+        description: "Explicitly applies Hyrum's Law to the error message string change"
+        min_score: 5
+      - name: "Severity calibration"
+        description: "Rates as MAJOR or QUESTION, not NIT"
+        min_score: 4
+      - name: "Concrete fixes"
+        description: "Proposes grep for callers, backwards compat, or deprecation path"
+        min_score: 4
+      - name: "Bug-catching"
+        description: "Treats this as a real concern, not just style"
+        min_score: 4
+      - name: "No hallucination"
+        description: "Does not invent caller files not in the diff"
+        min_score: 5
+    min_score_per_dim: 4
+    tags: [hyrum-law, breaking-change, python, auth]

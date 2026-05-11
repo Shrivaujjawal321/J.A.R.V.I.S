@@ -90,6 +90,7 @@ These are pre-defined workflows:
 - `/braindump` — Capture any random thought; Jarvis routes it to the right place
 - `/dev-mode` — Enter focus mode for deep coding (mutes non-urgent alerts; auto-tracks session length)
 - `/prompt-library` — Browse or add to Jarvis's reusable agent system-prompt library (per profession)
+- `/feedback` — Rate Jarvis's most recent output (thumbs up/down + note). Feeds into weekly self-review.
 
 ## Safety Rules (NEVER VIOLATE)
 
@@ -166,7 +167,13 @@ These are pre-defined workflows:
 - [x] Hackathon radar (auto-scrape Unstop + HackerEarth, alerts on new AI/ML hackathons)
 - [x] News feed (RSS-based daily AI/ML digest at 06:30 IST, fed into /briefing)
 - [x] Git-tracked Jarvis project (safety from accidental edits)
-- [ ] Voice interface
+- [x] Prompt library: 79 professions, 361 candidates, 79 picked, 79 max-potential (`data/agent-prompts*/`)
+- [x] Observability: agent-invocation logger + viewer + weekly Telegram summary
+- [x] Eval framework: per-agent test cases + regression runner
+- [x] Weekly self-review cron: every Sunday 19:00 IST → Telegram
+- [x] Feedback collection: `/feedback` slash command + jsonl logger
+- [ ] Voice interface (Whisper + ElevenLabs)
+- [ ] Vector DB for episodic memory (pgvector/Qdrant)
 
 ## Important Files
 

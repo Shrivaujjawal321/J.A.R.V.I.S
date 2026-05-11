@@ -1,0 +1,306 @@
+"""Automated weekly review runner — invokes /weekly-review via Claude headless and delivers results to Telegram.
+
+## Headless Claude Code verdict
+
+`claude -p "/weekly-review"` IS supported. Slash commands ("skills") resolve fine in
+headless mode — confirmed by test run that correctly began the workflow (file reads,
+calendar delegation, etc.) before hitting max-turns. The full workflow needs ~25-35
+turns to complete (read memory -> read tasks -> read briefings -> calendar agent ->
+synthesize -> save), so this script sets --max-turns 40 and a 15-min timeout.
+
+## Mode
+
+FULL AUTOMATION — Claude runs the complete /weekly-review workflow headlessly,
+captures the markdown output, saves to data/reviews/, and sends a Telegram digest.
+
+## Fallback
+
+If Claude exits non-zero OR returns empty output, script falls back to MANUAL-PROMPT
+mode: assembles the full weekly-review prompt text, saves it as a dated .md file,
+and sends a Telegram notification with the file path so Boss can paste it manually.
+
+## Schedule
+
+Invoked every Sunday at 19:00 IST (13:30 UTC) by jarvis-weekly-review.timer.
+"""
+
+import json
+import os
+import subprocess
+import sys
+import textwrap
+import time
+import urllib.parse
+import urllib.request
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+# -- paths ---------------------------------------------------------------------
+ROOT = Path(__file__).resolve().parents[1]
+BRIDGE_ENV = ROOT / "bridge" / ".env"
+LOGS_DIR = ROOT / "data" / "logs"
+REVIEWS_DIR = ROOT / "data" / "reviews"
+CONVS_DIR = ROOT / "data" / "conversations"
+
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+CONVS_DIR.mkdir(parents=True, exist_ok=True)
+
+WEEKLY_REVIEW_LOG = LOGS_DIR / "weekly_review.jsonl"
+
+# -- config --------------------------------------------------------------------
+MAX_TURNS = int(os.getenv("WEEKLY_REVIEW_MAX_TURNS", "40"))
+TIMEOUT_SECS = int(os.getenv("WEEKLY_REVIEW_TIMEOUT", "900"))   # 15 min
+TELEGRAM_MAX_CHARS = 3800   # leave headroom below 4096 hard limit
+
+
+# -- env helpers ---------------------------------------------------------------
+def load_env(path):
+    env = {}
+    if not path.exists():
+        return env
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        env[k.strip()] = v.strip()
+    return env
+
+
+env = load_env(BRIDGE_ENV)
+token = env.get("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
+allowed_ids = (env.get("ALLOWED_USER_IDS") or os.getenv("ALLOWED_USER_IDS") or "").split(",")
+chat_id = next((x.strip() for x in allowed_ids if x.strip()), None)
+
+if not token or not chat_id:
+    print("ERROR: TELEGRAM_BOT_TOKEN / ALLOWED_USER_IDS not configured", file=sys.stderr)
+    sys.exit(1)
+
+
+# -- IST datetime --------------------------------------------------------------
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def now_ist():
+    return datetime.now(IST)
+
+
+def week_start_ist():
+    """Return YYYY-MM-DD of the most recent Monday in IST."""
+    today = now_ist().date()
+    monday = today - timedelta(days=today.weekday())
+    return str(monday)
+
+
+# -- telegram ------------------------------------------------------------------
+def tg_send(text, parse_mode="Markdown"):
+    """Send text to Telegram, chunking if needed."""
+    chunks = textwrap.wrap(
+        text, TELEGRAM_MAX_CHARS, replace_whitespace=False, drop_whitespace=False
+    ) or [text]
+    for chunk in chunks:
+        data = urllib.parse.urlencode({
+            "chat_id": chat_id,
+            "text": chunk,
+            "parse_mode": parse_mode,
+        }).encode()
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=data,
+            method="POST",
+        )
+        try:
+            urllib.request.urlopen(req, timeout=20).read()
+        except Exception as exc:
+            print(f"telegram send failed: {exc}", file=sys.stderr)
+
+
+# -- logging -------------------------------------------------------------------
+def log_event(event):
+    with WEEKLY_REVIEW_LOG.open("a") as fh:
+        fh.write(json.dumps(event) + "\n")
+
+
+# -- fallback prompt builder ---------------------------------------------------
+def build_fallback_prompt(date_str):
+    """Assemble the full weekly-review workflow text for manual use."""
+    workflow_file = ROOT / ".claude" / "commands" / "weekly-review.md"
+    workflow_text = (
+        workflow_file.read_text() if workflow_file.exists()
+        else "(weekly-review.md not found)"
+    )
+
+    tasks_file = ROOT / "data" / "tasks.md"
+    tasks_text = tasks_file.read_text()[:2000] if tasks_file.exists() else "(tasks.md not found)"
+
+    return (
+        f"# Weekly Review Prompt - {date_str}\n\n"
+        f"> Auto-generated by weekly_review_to_telegram.py (manual-prompt fallback mode)\n"
+        f"> Paste this entire file into Claude Code as a prompt.\n\n"
+        f"---\n\n"
+        f"## Instruction\n\n"
+        f"Run the weekly review workflow below. Today is {date_str}. "
+        f"This is cron mode (Sunday evening) - save output to "
+        f"`data/reviews/{week_start_ist()}.md` without asking follow-up questions.\n\n"
+        f"---\n\n"
+        f"## Workflow\n\n{workflow_text}\n\n"
+        f"---\n\n"
+        f"## Current Tasks (snapshot)\n\n```\n{tasks_text}\n```\n"
+    )
+
+
+# -- format telegram digest ----------------------------------------------------
+def format_digest(full_text, week_label, elapsed):
+    """Trim full review to a Telegram-friendly digest."""
+    header = f"*Weekly Review - {week_label}*\n_Generated in {elapsed}s_\n\n"
+    budget = TELEGRAM_MAX_CHARS - len(header) - 100  # safety margin
+
+    if len(full_text) <= budget:
+        body = full_text
+    else:
+        truncated = full_text[:budget]
+        last_nl = truncated.rfind("\n")
+        body = (
+            (truncated[:last_nl] if last_nl > 0 else truncated)
+            + "\n\n_...[truncated - full review saved to data/reviews/]_"
+        )
+
+    return header + body
+
+
+# -- main ----------------------------------------------------------------------
+def main():
+    run_ts = now_ist().isoformat()
+    date_str = now_ist().strftime("%Y-%m-%d")
+    week_label = f"Week of {week_start_ist()}"
+
+    log_event({"event": "start", "ts": run_ts, "date": date_str})
+    tg_send(f"Weekly review generating... (`{date_str}`) - this takes up to 15 min.")
+
+    start = time.time()
+
+    # -- Run claude headless ---------------------------------------------------
+    try:
+        proc = subprocess.run(
+            [
+                "claude",
+                "-p", "/weekly-review",
+                "--output-format", "json",
+                "--max-turns", str(MAX_TURNS),
+                "--dangerously-skip-permissions",
+            ],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=TIMEOUT_SECS,
+        )
+    except subprocess.TimeoutExpired:
+        elapsed = int(time.time() - start)
+        log_event({"event": "timeout", "ts": now_ist().isoformat(), "elapsed_s": elapsed})
+        tg_send(
+            f"Weekly review timed out after {elapsed // 60}m. "
+            "Switching to manual-prompt mode."
+        )
+        _send_fallback(date_str)
+        sys.exit(1)
+
+    elapsed = int(time.time() - start)
+
+    # -- Parse output ----------------------------------------------------------
+    review_text = ""
+    claude_cost = None
+
+    if proc.returncode != 0:
+        err_snippet = proc.stderr[:800] if proc.stderr else "(no stderr)"
+        log_event({
+            "event": "claude_error",
+            "ts": now_ist().isoformat(),
+            "returncode": proc.returncode,
+            "elapsed_s": elapsed,
+            "stderr_snippet": err_snippet,
+        })
+        tg_send(
+            f"Claude exited {proc.returncode} after {elapsed}s. "
+            "Falling back to manual-prompt mode.\n"
+            f"```\n{err_snippet[:400]}\n```"
+        )
+        _send_fallback(date_str)
+        sys.exit(1)
+
+    try:
+        data = json.loads(proc.stdout)
+        review_text = data.get("result") or data.get("response") or ""
+        claude_cost = data.get("total_cost_usd")
+
+        # max_turns subtype: no result produced
+        if not review_text and data.get("subtype") == "error_max_turns":
+            log_event({
+                "event": "max_turns_no_result",
+                "ts": now_ist().isoformat(),
+                "elapsed_s": elapsed,
+                "cost_usd": claude_cost,
+            })
+            tg_send(
+                "Weekly review hit max-turns without producing output. "
+                "Try raising WEEKLY_REVIEW_MAX_TURNS. Switching to manual-prompt mode."
+            )
+            _send_fallback(date_str)
+            sys.exit(1)
+
+    except json.JSONDecodeError:
+        review_text = proc.stdout  # plain text fallback
+
+    if not review_text or not review_text.strip():
+        log_event({"event": "empty_result", "ts": now_ist().isoformat(), "elapsed_s": elapsed})
+        tg_send("Weekly review completed but output was empty. Switching to manual-prompt mode.")
+        _send_fallback(date_str)
+        sys.exit(1)
+
+    # -- Save full review ------------------------------------------------------
+    review_file = REVIEWS_DIR / f"{week_start_ist()}.md"
+    conv_file = CONVS_DIR / f"weekly-review-{date_str}.md"
+
+    review_file.write_text(review_text)
+    conv_file.write_text(review_text)
+
+    log_event({
+        "event": "success",
+        "ts": now_ist().isoformat(),
+        "date": date_str,
+        "week": week_start_ist(),
+        "elapsed_s": elapsed,
+        "cost_usd": claude_cost,
+        "review_chars": len(review_text),
+        "saved_to": str(review_file),
+    })
+
+    # -- Send digest to Telegram -----------------------------------------------
+    digest = format_digest(review_text, week_label, elapsed)
+    tg_send(digest)
+
+    cost_note = f" (cost: ${claude_cost:.4f})" if claude_cost else ""
+    tg_send(f"Full review saved: `{review_file}`{cost_note}")
+
+
+def _send_fallback(date_str):
+    """Generate manual-prompt file and notify Telegram."""
+    prompt_text = build_fallback_prompt(date_str)
+    prompt_file = CONVS_DIR / f"weekly-review-prompt-{date_str}.md"
+    prompt_file.write_text(prompt_text)
+
+    log_event({
+        "event": "fallback_sent",
+        "ts": now_ist().isoformat(),
+        "prompt_file": str(prompt_file),
+    })
+
+    tg_send(
+        f"*Weekly Review - Manual Prompt Ready*\n\n"
+        f"Auto-run had issues. Paste this file into Claude Code to run manually:\n"
+        f"`{prompt_file}`"
+    )
+
+
+if __name__ == "__main__":
+    main()

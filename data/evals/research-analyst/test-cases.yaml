@@ -1,0 +1,76 @@
+agent: research-analyst
+agent_file: data/agent-prompts-final/research-analyst.md
+description: >
+  Senior research analyst operating at McKinsey Global Institute / a16z tier.
+  Delivers industry overviews with TAM/growth/structure, competitive landscape
+  with moat analysis, peer comps, thematic ideas, and citation discipline.
+  Every claim cited or marked [UNSOURCED].
+
+test_cases:
+  - id: tc-001
+    name: "AI infrastructure sector primer request"
+    input: |
+      Give me a research note on the AI infrastructure sector —
+      specifically GPU cloud providers and AI compute. Focus on
+      2025-2026 market dynamics, key players, and 2-3 thematic ideas.
+    expected_qualities:
+      - "produces a structured research note with Executive Summary, Industry Overview, Competitive Landscape, Peer Comps, Thematic Ideas sections"
+      - "includes TAM or market size estimate with a cited source or marks [UNSOURCED]"
+      - "names specific players (e.g., CoreWeave, Lambda Labs, AWS, Azure, Google Cloud, Oracle) with business model description"
+      - "includes at least one moat hypothesis per major player"
+      - "includes a peer comps table with EV/Revenue or similar multiples (or marks [UNSOURCED] where data unavailable)"
+      - "closes with the mandatory line: Draft research note for review. Not investment advice."
+      - "does NOT recommend buy/sell/hold on any security"
+      - "at least one counter-view paragraph or section"
+    rubric_dimensions:
+      - name: "Citation discipline"
+        description: "Market size figures cited with source+date+URL or marked [UNSOURCED]. No bare claims."
+        min_score: 4
+      - name: "Framework rigor"
+        description: "TAM/growth/moat/comps all present and applied correctly"
+        min_score: 4
+      - name: "Counter-view"
+        description: "Steel-manned counter-argument section present and substantive"
+        min_score: 4
+      - name: "Decision relevance"
+        description: "Output maps to a capital/strategy decision, not just description"
+        min_score: 3
+      - name: "Hallucination risk"
+        description: "Zero invented companies, executives, or financial figures presented as fact"
+        min_score: 5
+    min_score_per_dim: 3
+    tags: [ai-infrastructure, sector-research, comps]
+
+  - id: tc-002
+    name: "India SaaS sector competitive landscape"
+    input: |
+      I need a competitive landscape analysis for India-headquartered B2B SaaS companies.
+      Focus on: who the top 10 players are, their revenue ranges (FY2025 estimates),
+      moat hypotheses, and 2-3 thematic ideas for an investor building a watchlist.
+      Time window: 2025-2026.
+    expected_qualities:
+      - "names at least 6-8 India-HQ B2B SaaS companies (e.g., Zoho, Freshworks, Postman, Chargebee, Clevertap, Uniphore, BrowserStack)"
+      - "provides revenue ranges or marks [UNSOURCED] where not public"
+      - "identifies at least one moat type per player (switching costs, network effects, scale, IP)"
+      - "distinguishes listed (Freshworks: NASDAQ) from private companies clearly"
+      - "does NOT fabricate analyst ratings or undisclosed revenue figures as facts"
+      - "generates 2-3 thematic investment ideas with thesis + catalyst + risk for each"
+      - "asks ONE clarifying question if peer set is ambiguous, or states assumptions explicitly"
+    rubric_dimensions:
+      - name: "Citation discipline"
+        description: "Revenue figures cited or [UNSOURCED]; no invented numbers"
+        min_score: 5
+      - name: "Framework rigor"
+        description: "Moat taxonomy applied (network effects/switching costs/scale/IP) per player"
+        min_score: 4
+      - name: "Counter-view"
+        description: "Bull vs bear framing present for the sector thesis"
+        min_score: 3
+      - name: "Decision relevance"
+        description: "Thematic ideas are actionable with thesis+catalyst+risk"
+        min_score: 4
+      - name: "Hallucination risk"
+        description: "No fabricated companies, revenue figures, or exec quotes"
+        min_score: 5
+    min_score_per_dim: 3
+    tags: [india-saas, competitive-landscape, b2b]

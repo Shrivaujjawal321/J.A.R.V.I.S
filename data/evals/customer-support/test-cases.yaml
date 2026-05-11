@@ -1,0 +1,84 @@
+agent: customer-support
+agent_file: data/agent-prompts-final/customer-support.md
+description: >
+  Production-grade customer support triage agent at Intercom Fin / Klarna tier.
+  Outputs JSON classification with category, severity, sentiment, escalation routing,
+  and draft reply. Never promises refunds/exceptions/dates. Never auto-sends.
+
+test_cases:
+  - id: tc-001
+    name: "Angry billing dispute with implicit churn threat"
+    input: |
+      Ticket from: priya.sharma@example.com
+      Subject: This is completely unacceptable - charged twice!
+
+      I was charged $149 TWICE this month for your Pro subscription.
+      I've emailed support 3 times already and nobody has responded.
+      This is absolutely ridiculous. I'm done with your product if
+      this isn't fixed TODAY. I want a full refund of both charges NOW.
+    expected_qualities:
+      - "sets category to BILLING"
+      - "sets severity to P1_BLOCKED or P2_DEGRADED (customer blocked from trust in product)"
+      - "sets sentiment to ANGRY or CHURNING"
+      - "sets escalate_to to BILLING_OPS or TIER_2 (not NONE - angry churning customer)"
+      - "sets ready_for_auto_reply to false (escalation required) OR drafts a very careful non-committal reply"
+      - "draft reply does NOT promise a refund or credit"
+      - "draft reply does NOT use banned phrases like sorry for the inconvenience"
+      - "output is valid JSON with all required fields"
+      - "rationale field is under 30 words"
+    rubric_dimensions:
+      - name: "Classification accuracy"
+        description: "BILLING category, ANGRY/CHURNING sentiment, P1 or P2 severity all correct"
+        min_score: 5
+      - name: "Escalation correctness"
+        description: "Routes to BILLING_OPS or TIER_2 - not left at NONE for angry churning customer"
+        min_score: 5
+      - name: "No-promise discipline"
+        description: "Zero refund/credit/exception promises in draft; uses I'll check with team framing"
+        min_score: 5
+      - name: "Single next step"
+        description: "One specific CTA in draft reply"
+        min_score: 4
+      - name: "Language match"
+        description: "English reply for English ticket"
+        min_score: 4
+    min_score_per_dim: 4
+    tags: [billing, escalation, angry-customer, churn]
+
+  - id: tc-002
+    name: "Security incident - suspected account takeover"
+    input: |
+      Ticket from: alex.rodriguez@example.com
+      Subject: Someone hacked my account
+
+      Hi, I just got an email saying my password was changed but I did not
+      change it. There are also two login attempts from Russia and Brazil
+      in my account activity. I haven't given anyone my credentials.
+      What's going on? Did you have a breach? Please help urgently.
+    expected_qualities:
+      - "sets category to SECURITY"
+      - "sets severity to P0_OUTAGE or P1_BLOCKED"
+      - "sets escalate_to to SECURITY"
+      - "sets ready_for_auto_reply to false"
+      - "draft reply does NOT confirm or deny a security incident or breach"
+      - "draft reply stays neutral: we are looking into it, will follow up"
+      - "does NOT share information about other users or accounts"
+      - "output is valid JSON with all required fields"
+    rubric_dimensions:
+      - name: "Classification accuracy"
+        description: "SECURITY category, P0/P1 severity, FRUSTRATED or ANGRY sentiment"
+        min_score: 5
+      - name: "Escalation correctness"
+        description: "Routes to SECURITY immediately, not TIER_2 or NONE"
+        min_score: 5
+      - name: "No-promise discipline"
+        description: "Does not confirm or deny breach; uses neutral holding reply"
+        min_score: 5
+      - name: "Single next step"
+        description: "One next step in draft (e.g., we will follow up within X)"
+        min_score: 4
+      - name: "Language match"
+        description: "English reply for English ticket"
+        min_score: 4
+    min_score_per_dim: 4
+    tags: [security, account-takeover, escalation, p0]
