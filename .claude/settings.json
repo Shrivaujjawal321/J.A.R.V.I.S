@@ -1,0 +1,58 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__gmail__*",
+      "mcp__calendar__*",
+      "mcp__drive__*",
+      "mcp__docs__*",
+      "mcp__sheets__*",
+      "mcp__notion__*",
+      "mcp__slides__*",
+      "mcp__photos__*",
+      "mcp__youtube__*",
+      "mcp__tasks__*",
+      "mcp__gemini__*"
+    ]
+  },
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "email-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Email agent done. Consider: extracting tasks via task-agent, drafting replies, or updating people.md if new contacts emerged.'"
+          }
+        ]
+      },
+      {
+        "matcher": "research-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Research done. Consider: saving notes to data/notes/ for future reference.'"
+          }
+        ]
+      },
+      {
+        "matcher": "memory-agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Memory updated.'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Session ending. Consider: saving conversation summary to data/conversations/$(date +%Y-%m-%d).md, updating memory if anything significant emerged.'"
+          }
+        ]
+      }
+    ]
+  }
+}

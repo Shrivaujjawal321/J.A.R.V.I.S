@@ -1,0 +1,59 @@
+# Secrets — NEVER commit
+.env
+credentials.json
+*token*.json
+*_token.json
+*.key
+*.pem
+
+# Personal data — your private info
+data/conversations/
+data/briefings/
+data/triages/
+data/logs/
+data/notes/
+data/plans/
+data/reviews/
+
+# Keep memory templates in repo, but you may want to gitignore real data:
+# Uncomment if you don't want to commit your personal memory files:
+# data/memory/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Bridge env
+bridge/.env
+
+# Backups
+*.bak
+*.bak.md
+data/memory/backup/
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db

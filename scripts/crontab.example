@@ -1,0 +1,59 @@
+# Jarvis Cron Jobs
+# 
+# Install: crontab -e, then paste the lines below (uncomment what you want)
+# Edit the path to match your installation
+#
+# Time format: minute hour day month day-of-week
+# 
+# Useful: https://crontab.guru/ to test cron expressions
+
+JARVIS_PATH=/Users/YOUR_USERNAME/projects/jarvis
+CLAUDE_BIN=/usr/local/bin/claude
+
+# === Morning Briefing — 7:00 AM every weekday ===
+# 0 7 * * 1-5 cd $JARVIS_PATH && $CLAUDE_BIN -p "/briefing" --output-format json --max-turns 20 >> $JARVIS_PATH/data/logs/briefing.log 2>&1
+
+# === Email Triage — every 30 minutes during work hours ===
+# */30 9-18 * * 1-5 cd $JARVIS_PATH && $CLAUDE_BIN -p "/triage" --max-turns 15 >> $JARVIS_PATH/data/logs/triage.log 2>&1
+
+# === Weekly Review — Sunday 7 PM ===
+# 0 19 * * 0 cd $JARVIS_PATH && $CLAUDE_BIN -p "/weekly-review" --max-turns 25 >> $JARVIS_PATH/data/logs/weekly.log 2>&1
+
+# === Daily Plan Reminder — 9 AM weekdays (after first coffee) ===
+# 0 9 * * 1-5 cd $JARVIS_PATH && $CLAUDE_BIN -p "/plan-day" --max-turns 15 >> $JARVIS_PATH/data/logs/plan.log 2>&1
+
+# === Evening wind-down summary — 9 PM weekdays ===
+# 0 21 * * 1-5 cd $JARVIS_PATH && $CLAUDE_BIN -p "Quick summary of what got done today, what's pending, what to tackle first tomorrow" --max-turns 10 >> $JARVIS_PATH/data/logs/evening.log 2>&1
+
+# === Memory consolidation — Daily 2 AM (low usage time) ===
+# Reviews recent conversations, extracts new facts, updates memory files
+# 0 2 * * * cd $JARVIS_PATH && $CLAUDE_BIN -p "Use memory-agent to review the last 24 hours of conversations in data/conversations/ and extract any new important facts to memory files. Be conservative — only capture things clearly stated as facts." --max-turns 10 >> $JARVIS_PATH/data/logs/memory.log 2>&1
+
+# === Birthday/anniversary check — Daily 8 AM ===
+# Surface upcoming birthdays from people.md
+# 0 8 * * * cd $JARVIS_PATH && $CLAUDE_BIN -p "Check data/memory/people.md for any birthdays or anniversaries in the next 7 days. If found, send reminder via Telegram." --max-turns 8 >> $JARVIS_PATH/data/logs/birthdays.log 2>&1
+
+# === Setup Steps ===
+# 1. Edit JARVIS_PATH above to your actual path
+# 2. Find your claude binary: which claude
+# 3. Update CLAUDE_BIN to that path
+# 4. Create logs directory: mkdir -p $JARVIS_PATH/data/logs
+# 5. Uncomment the jobs you want
+# 6. Install: crontab -e, then paste
+# 7. Verify: crontab -l
+# 8. Watch logs: tail -f $JARVIS_PATH/data/logs/*.log
+
+# === Tips ===
+# - Start with just /briefing — verify it works before adding more
+# - Use crontab.guru to test time expressions
+# - Logs help debug — check them when something doesn't work
+# - macOS: cron may need Full Disk Access in System Preferences > Security
+# - For results pushed to Telegram, the bridge service must be running
+
+# === Alternative: launchd (macOS) ===
+# For more reliability on macOS, use launchd plists instead of cron.
+# See scripts/launchd/ folder for example plists.
+
+# === Alternative: systemd (Linux) ===
+# Use systemd timers for better logging and control.
+# See scripts/systemd/ for example unit files.
