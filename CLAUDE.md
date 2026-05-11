@@ -73,6 +73,8 @@ You have these specialists. Delegate to them — don't reinvent their work:
 | **prompt-curator-agent** | Finds + categorizes system prompts from GitHub for any profession. Builds the reusable library in `data/agent-prompts/`. |
 | **prompt-picker-agent** | Analyzes library candidates per profession; picks the single best prompt with scorecard + reasoning. Outputs to `data/agent-prompts-picked/`. |
 | **prompt-enhancer-agent** | Elevates picked prompts to 15-30 year senior-expert max-potential versions with 2026 tech + agentic patterns + rubrics. Outputs to `data/agent-prompts-final/`. |
+| **browser-agent** | Safety-first browser automation — audit sites, screenshots, login flow testing, scraping. Uses `scripts/browser/*` utilities + playwright-skill. |
+| **voice-agent** | Voice interface — Whisper STT + Piper TTS + voice loop + Telegram voice messages. Respects `/dev-mode` mute state. |
 
 **Rule:** Match the request to the right subagent. If unsure, ask me.
 
@@ -91,6 +93,9 @@ These are pre-defined workflows:
 - `/dev-mode` — Enter focus mode for deep coding (mutes non-urgent alerts; auto-tracks session length)
 - `/prompt-library` — Browse or add to Jarvis's reusable agent system-prompt library (per profession)
 - `/feedback` — Rate Jarvis's most recent output (thumbs up/down + note). Feeds into weekly self-review.
+- `/recall` — Semantic memory recall — natural-language search across conversations, memory files, notes, briefings (Chroma vector DB).
+- `/audit-site` — Browser audit of a URL — health + perf + mobile screenshot + top issues report.
+- `/voice` — Voice interface — status / on / off / test (Whisper STT + Piper TTS).
 
 ## Safety Rules (NEVER VIOLATE)
 
@@ -172,8 +177,9 @@ These are pre-defined workflows:
 - [x] Eval framework: per-agent test cases + regression runner
 - [x] Weekly self-review cron: every Sunday 19:00 IST → Telegram
 - [x] Feedback collection: `/feedback` slash command + jsonl logger
-- [ ] Voice interface (Whisper + ElevenLabs)
-- [ ] Vector DB for episodic memory (pgvector/Qdrant)
+- [x] Vector DB for episodic memory: Chroma + sentence-transformers, 155 chunks bootstrap, daily incremental cron
+- [x] Browser automation: Playwright + 5 utility scripts + browser-agent + `/audit-site`
+- [x] Voice interface: Whisper STT + Piper TTS + voice loop + Telegram voice handler
 
 ## Important Files
 
