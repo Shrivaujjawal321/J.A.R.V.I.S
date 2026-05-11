@@ -84,3 +84,12 @@ data/evals/*/reports/
 
 # Weekly reviews — may contain private context
 data/reviews/
+
+# Voice interface — audio files are large + may contain private speech
+data/voice/recordings/
+data/voice/transcripts/
+data/voice/test/smoke_record.wav
+# Voice models are downloaded on first use — don't commit 61MB ONNX
+data/voice/models/
+# Whisper model cache is in ~/.cache/whisper/ — user-level, not in repo
+# Piper downloads go to data/voice/models/ — excluded above
