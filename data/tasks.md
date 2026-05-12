@@ -4,6 +4,31 @@
 
 ## Active
 
+### 🏗️ Current Build — MCP Hub
+
+- [x] **[P0]** MCP Hub spec written — *due: 2026-05-11* #mcp-hub #spec
+- [ ] **[P0]** Day 1: GitHub scraper spike for 10 MCP repos — *due: 2026-05-12* #mcp-hub
+- [ ] **[P0]** Day 2: Quality scoring algorithm + validate on 100 repos — *due: 2026-05-13* #mcp-hub
+- [ ] **[P0]** Day 3: DB schema (Postgres) + ChromaDB integration — *due: 2026-05-14* #mcp-hub
+- [ ] **[P0]** Day 4: Seed 500 MCP servers in DB — *due: 2026-05-15* #mcp-hub
+- [ ] **[P1]** Day 5-6: UI design system + landing page + hero search — *due: 2026-05-17* #mcp-hub
+- [ ] **[P1]** Day 7: Search backend + frontend wiring — *due: 2026-05-18* #mcp-hub
+- [ ] **[P1]** Day 8: Browse + filter + categories — *due: 2026-05-19* #mcp-hub
+- [ ] **[P1]** Day 9: Server detail page + copy-paste install config — *due: 2026-05-20* #mcp-hub
+- [ ] **[P2]** Day 10: Weekly digest email (Resend) — *due: 2026-05-21* #mcp-hub
+- [ ] **[P0]** Day 11-12: E2E test + polish — *due: 2026-05-23* #mcp-hub
+- [ ] **[P0]** Day 13-14: Demo rehearsals + landing page polish — *due: 2026-05-25* #mcp-hub
+- [ ] **[P0]** Day 15: Pre-record demo video (fallback MP4) — *due: 2026-05-26* #mcp-hub #demo
+- [ ] **[P0]** Day 16: DevPost writeup + README + arch diagram — *due: 2026-05-27* #mcp-hub #submission
+- [ ] **[P0]** Day 17: Submit DevNetwork AI 2026 by 10:00 AM PT — *due: 2026-05-28* #mcp-hub #submission ⏰
+- [ ] **[P0]** 🔒 Rotate ALL leaked credentials immediately after DevNetwork submission — *due: 2026-05-28* #mcp-hub #security
+  Notes: Four credentials shared in chat (Boss's pragmatic call — rotate post-launch).
+  1. GitHub PAT → revoke at github.com/settings/personal-access-tokens, regen
+  2. Gemini API key → revoke at aistudio.google.com/app/apikey, regen
+  3. Neon Postgres password → rotate at console.neon.tech (database settings)
+  4. Vercel token → revoke at vercel.com/account/tokens (token name: mcpindex-deploy)
+  Update all in .env.local LOCALLY (terminal, never chat). Re-set Vercel env vars after rotation.
+
 ### Hackathons
 
 - [ ] **[P1]** Register for ET GenAI Hackathon 2026 — *due: 2026-05-15* #hackathon #genai #urgent
