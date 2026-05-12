@@ -1,6 +1,34 @@
-# Jarvis — Personal AI Agent (Claude Code Subagents Edition)
+# Jarvis — Personal AI Agent System
 
-Subscription-only setup. No API keys needed. Built on Claude Code + subagents + MCP.
+Multi-agent AI assistant I've built over ~6 weeks. Runs on Claude Max subscription (no developer API key) via Claude Agent SDK + Claude Code subagents + MCP servers. Live on my laptop as a 24/7 daemon + Telegram bot.
+
+## Latest Builds (May 2026)
+
+- 🎯 **Autonomous overnight goal pursuit (Phase 3)** — declare a plain-English goal via Telegram; daemon decomposes via JSON-schema-validated planner, spawns parallel Claude Code workers, gates Tier-3 actions for morning approval, sends 06:30 IST digest. Per-goal budget caps + duration limits + decomposer depth limits enforce safety. End-to-end smoke-tested. [`jarvis_core/`](jarvis_core/)
+- ⚡ **Super-agent orchestrator daemon (Phase 1)** — long-running FastAPI service on `127.0.0.1:8765` using Claude Agent SDK on Max-subscription OAuth (`CLAUDE_CODE_OAUTH_TOKEN` — no API key). Spawns parallel workers via `asyncio.gather`. Persistent conversation + task state with 5-min disk sync + atomic writes. Multi-turn session resumption verified. [`jarvis_core/daemon.py`](jarvis_core/daemon.py)
+- 🌐 **Browser autopilot skill (Phase 2)** — drives Chrome via Chrome DevTools MCP. Scout-then-fill pattern uses ARIA accessibility tree (survives DOM cosmetic changes). Workflows for LinkedIn Easy Apply, Naukri quick-apply, generic form fill, login with TOTP 2FA via `pyotp` + OS keychain. Tier-3 confirm on every submit. Daily caps + session warmup + CAPTCHA pause + cool-down enforcement. [`.claude/skills/browser-autopilot/`](.claude/skills/browser-autopilot/)
+- 🔐 **Tiered trust framework** — 4-tier model (auto / auto+log / confirm / refused) with mode switcher (manual / autopilot / fullauto) and append-only JSONL audit log per action. Irreversible operations gate even in fullauto. [`.claude/skills/auto-mode/`](.claude/skills/auto-mode/)
+- 🧠 **93 specialist subagents** — 10 hand-crafted (ml-engineer, security-engineer, product-manager, devops-sre, technical-writer, ...) + 67 wrapped from a 79-profession prompt library (curated from GitHub, evaluated, picked, enhanced to max-potential by a 6-parallel-instance enhancer agent). + 16 Jarvis-native (resume, hackathon, voice, browser, ...). [`.claude/agents/`](.claude/agents/)
+- 🎙️ **Voice loop** — Whisper STT + Piper TTS, full duplex over Telegram voice messages. [`bridge/voice_handler.py`](bridge/voice_handler.py)
+- 📚 **Episodic memory** — Chroma vector DB + sentence-transformers, 155-chunk bootstrap, daily incremental ingest. `/recall` slash command for semantic memory search. [`scripts/episodic_memory.py`](scripts/episodic_memory.py)
+- 📱 **Telegram bridge (live, systemd)** — `@jarvis_Ujjawal_Bot` — text + voice + slash commands. Falls back to direct subprocess if daemon is down. [`bridge/telegram_bridge.py`](bridge/telegram_bridge.py)
+
+## How it works at runtime
+
+```
+You ──Telegram──> bridge ──HTTP──> jarvis-core daemon ──Claude Agent SDK──> N parallel Claude Code workers
+                                          │                                          │
+                                          ▼                                          ▼
+                                  Persistent state                       Subagents + MCP servers
+                                  (5-min disk sync)                      (Gmail, Calendar, Notion,
+                                                                          Chrome DevTools, ...)
+```
+
+Stack: **Python 3.12 · FastAPI · Pydantic v2 · asyncio · Claude Agent SDK · Chroma · sentence-transformers · Whisper · Piper · Playwright · Telegram Bot API · systemd**
+
+## Original setup guide (build your own)
+
+The original starter-pack section that follows shows how someone else can clone + customize this for their own use.
 
 ## Architecture
 
