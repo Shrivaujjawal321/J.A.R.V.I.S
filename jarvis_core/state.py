@@ -17,8 +17,13 @@ from datetime import datetime
 from pathlib import Path
 
 from .models import (
+    ApprovalDecision,
+    ApprovalRequest,
     ConversationState,
+    GoalRecord,
+    GoalStatus,
     JarvisStateSnapshot,
+    SubTaskRecord,
     TaskRecord,
     TaskStatus,
     WorkerResult,
@@ -36,6 +41,8 @@ class JarvisState:
         self._lock = asyncio.Lock()
         self._conversations: dict[str, ConversationState] = {}
         self._tasks: dict[str, TaskRecord] = {}
+        self._goals: dict[str, GoalRecord] = {}
+        self._approvals: dict[str, ApprovalRequest] = {}
         self._sync_task: asyncio.Task | None = None
         self._stopped = False
 
@@ -51,17 +58,27 @@ class JarvisState:
             snapshot = JarvisStateSnapshot.model_validate(raw)
             self._conversations = snapshot.conversations
             self._tasks = snapshot.tasks
+            self._goals = snapshot.goals
+            self._approvals = snapshot.approvals
             # On restart, any RUNNING tasks are actually orphaned — mark failed
             for task in self._tasks.values():
                 if task.status == TaskStatus.RUNNING:
                     task.status = TaskStatus.FAILED
                     task.error = "Daemon restarted while task was running"
                     task.updated_at = datetime.utcnow()
+            # Similarly, any RUNNING/PLANNING goals are orphaned — re-queue them
+            # (idempotent: scheduler picks them up on next tick)
+            for goal in self._goals.values():
+                if goal.status in (GoalStatus.RUNNING, GoalStatus.PLANNING):
+                    goal.status = GoalStatus.QUEUED
+                    goal.updated_at = datetime.utcnow()
             log.info(
-                "Restored state from %s (%d conversations, %d tasks)",
+                "Restored state from %s (%d conversations, %d tasks, %d goals, %d approvals)",
                 self.state_path,
                 len(self._conversations),
                 len(self._tasks),
+                len(self._goals),
+                len(self._approvals),
             )
         except Exception as e:
             log.exception("Failed to load state from %s: %s — starting fresh", self.state_path, e)
@@ -99,6 +116,8 @@ class JarvisState:
             snapshot = JarvisStateSnapshot(
                 conversations=self._conversations,
                 tasks=self._tasks,
+                goals=self._goals,
+                approvals=self._approvals,
             )
         try:
             self.state_path.parent.mkdir(parents=True, exist_ok=True)
@@ -186,6 +205,121 @@ class JarvisState:
             tasks = sorted(self._tasks.values(), key=lambda t: t.updated_at, reverse=True)
             return tasks[:limit]
 
+    # === Goal accessors (Phase 3) ===
+
+    async def add_goal(self, goal: GoalRecord) -> GoalRecord:
+        async with self._lock:
+            if not goal.goal_id:
+                goal.goal_id = uuid.uuid4().hex[:12]
+            self._goals[goal.goal_id] = goal
+            return goal
+
+    async def get_goal(self, goal_id: str) -> GoalRecord | None:
+        async with self._lock:
+            return self._goals.get(goal_id)
+
+    async def list_goals(
+        self,
+        *,
+        status: GoalStatus | None = None,
+        limit: int = 50,
+    ) -> list[GoalRecord]:
+        async with self._lock:
+            goals = list(self._goals.values())
+        if status is not None:
+            goals = [g for g in goals if g.status == status]
+        goals.sort(key=lambda g: g.updated_at, reverse=True)
+        return goals[:limit]
+
+    async def update_goal(
+        self,
+        goal_id: str,
+        *,
+        status: GoalStatus | None = None,
+        sub_tasks: list[SubTaskRecord] | None = None,
+        sub_task_update: SubTaskRecord | None = None,
+        plan_summary: str | None = None,
+        final_output: str | None = None,
+        error: str | None = None,
+        cost_delta: float = 0.0,
+        started_at: datetime | None = None,
+        completed_at: datetime | None = None,
+    ) -> GoalRecord | None:
+        async with self._lock:
+            goal = self._goals.get(goal_id)
+            if goal is None:
+                return None
+            if status is not None:
+                goal.status = status
+            if sub_tasks is not None:
+                goal.sub_tasks = sub_tasks
+            if sub_task_update is not None:
+                # Replace the sub-task with matching sub_id (or append)
+                replaced = False
+                for i, s in enumerate(goal.sub_tasks):
+                    if s.sub_id == sub_task_update.sub_id:
+                        goal.sub_tasks[i] = sub_task_update
+                        replaced = True
+                        break
+                if not replaced:
+                    goal.sub_tasks.append(sub_task_update)
+            if plan_summary is not None:
+                goal.plan_summary = plan_summary
+            if final_output is not None:
+                goal.final_output = final_output
+            if error is not None:
+                goal.error = error
+            goal.cost_usd_total += cost_delta
+            if started_at is not None:
+                goal.started_at = started_at
+            if completed_at is not None:
+                goal.completed_at = completed_at
+            goal.updated_at = datetime.utcnow()
+            return goal
+
+    async def cancel_goal(self, goal_id: str, reason: str | None = None) -> GoalRecord | None:
+        return await self.update_goal(
+            goal_id,
+            status=GoalStatus.CANCELLED,
+            error=reason or "Cancelled by Boss",
+            completed_at=datetime.utcnow(),
+        )
+
+    # === Approval accessors ===
+
+    async def add_approval(self, approval: ApprovalRequest) -> ApprovalRequest:
+        async with self._lock:
+            if not approval.approval_id:
+                approval.approval_id = uuid.uuid4().hex[:12]
+            self._approvals[approval.approval_id] = approval
+            return approval
+
+    async def get_approval(self, approval_id: str) -> ApprovalRequest | None:
+        async with self._lock:
+            return self._approvals.get(approval_id)
+
+    async def list_pending_approvals(self) -> list[ApprovalRequest]:
+        async with self._lock:
+            return [a for a in self._approvals.values() if a.decision == ApprovalDecision.PENDING]
+
+    async def decide_approval(
+        self,
+        approval_id: str,
+        decision: ApprovalDecision,
+        *,
+        boss_note: str | None = None,
+        decided_by: str = "ujjwal",
+    ) -> ApprovalRequest | None:
+        async with self._lock:
+            approval = self._approvals.get(approval_id)
+            if approval is None:
+                return None
+            approval.decision = decision
+            approval.decided_at = datetime.utcnow()
+            approval.decided_by = decided_by
+            approval.boss_note = boss_note
+            return approval
+
     # === Debug / introspection ===
 
     async def stats(self) -> dict[str, int | float]:
@@ -194,5 +328,18 @@ class JarvisState:
                 "conversations": len(self._conversations),
                 "tasks_total": len(self._tasks),
                 "tasks_running": sum(1 for t in self._tasks.values() if t.status == TaskStatus.RUNNING),
-                "cost_usd_total": sum(c.cost_usd_total for c in self._conversations.values()),
+                "goals_total": len(self._goals),
+                "goals_active": sum(
+                    1
+                    for g in self._goals.values()
+                    if g.status in (GoalStatus.QUEUED, GoalStatus.PLANNING, GoalStatus.RUNNING)
+                ),
+                "goals_awaiting_approval": sum(
+                    1 for g in self._goals.values() if g.status == GoalStatus.AWAITING_APPROVAL
+                ),
+                "approvals_pending": sum(
+                    1 for a in self._approvals.values() if a.decision == ApprovalDecision.PENDING
+                ),
+                "cost_usd_total": sum(c.cost_usd_total for c in self._conversations.values())
+                + sum(g.cost_usd_total for g in self._goals.values()),
             }

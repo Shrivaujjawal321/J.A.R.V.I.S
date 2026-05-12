@@ -118,6 +118,11 @@ These are pre-defined workflows:
 - `/audit-site` — Browser audit of a URL — health + perf + mobile screenshot + top issues report.
 - `/voice` — Voice interface — status / on / off / test (Whisper STT + Piper TTS).
 - `/auto-mode` — Switch trust/autonomy mode (manual / autopilot / fullauto). Default: autopilot.
+- `/goal_add <description>` — Queue an autonomous goal for jarvis-core to pursue overnight
+- `/goals` — List recent autonomous goals + statuses
+- `/goal_status <id>` — Detail view of one goal (sub-tasks, costs, approvals needed)
+- `/goal_approve <approval_id>` / `/goal_reject <approval_id>` — Decide queued Tier-3 actions
+- `/digest_now` — On-demand morning digest (vs the 06:30 IST cron one)
 
 ## Safety Rules — Tiered Trust Model (active since 2026-05-12)
 
@@ -230,6 +235,25 @@ File create/edit in Jarvis repo · browser form FILL (not submit) · calendar ev
 - [x] **Super-agent orchestrator (Phase 1):** `jarvis-core` FastAPI daemon using Claude Agent SDK on Max-subscription OAuth (no API key). Spawns parallel Claude Code workers via `asyncio.gather`. Persistent conversation + task state with 5-min disk sync. Telegram bridge migrated; voice + cron stay on legacy subprocess path until Phase 2.
 - [x] **Browser autopilot skill (`.claude/skills/browser-autopilot/`):** Drives Chrome via Chrome DevTools MCP. Scout-then-fill pattern (ARIA-tree-based, survives DOM changes). Workflows for LinkedIn Easy Apply, Naukri quick-apply, generic form fill, login with TOTP 2FA. Tier-3 confirm on every SUBMIT. Daily caps (25/platform). Ethical pacing + session warmup + CAPTCHA-pause. Replaces need for per-platform API integrations.
 - [x] **Tiered auto-mode (`.claude/skills/auto-mode/`):** 4-tier trust model. Default `autopilot` = Tier 1+2 auto, Tier 3 (irreversible) still confirms. Slash command `/auto-mode` switches modes. Audit log at `data/audits/YYYY-MM-DD.jsonl` for every Tier-2/3 action.
+- [x] **Autonomous overnight Jarvis (Phase 3):** Boss declares goals via `/goal_add <desc>` → daemon decomposes via planner (single-level, JSON-validated) → background scheduler runs Tier-1/2 sub-tasks in parallel → Tier-3 sub-tasks queue as ApprovalRequest for morning nod → morning digest at 06:30 IST summarizes completed/failed/awaiting. Per-goal budget cap ($5 default) + duration cap (2h default). State persists across daemon restarts. Smoke-tested end-to-end: arithmetic goal queued → planned → executed → output verified (142, 46788) → digest rendered.
+
+## Autonomous goal lifecycle (Phase 3)
+
+`/goal_add <description>` via Telegram → daemon stores `GoalRecord` (status=QUEUED) → scheduler picks up within 60s → `decompose_goal()` calls Claude with planning prompt → returns `DecompositionPlan` (JSON-schema validated) with N sub-tasks each labeled Tier 1/2/3 → Tier-1+2 sub-tasks execute via `asyncio.gather` (parallel) → Tier-3 sub-tasks create `ApprovalRequest` entries and pause goal at AWAITING_APPROVAL → morning digest (06:30 IST cron) sends Boss a Telegram summary with the approval queue → Boss replies `/goal_approve <id>` or `/goal_reject <id>` → daemon resumes goal, executes the approved Tier-3 action → marks goal COMPLETED.
+
+**Safety rails:**
+- Per-goal `max_budget_usd` ($5 default) — exhausted → goal FAILS, no more workers spawn
+- Per-goal `max_duration_seconds` (2h default) — exceeded → goal FAILS
+- Decomposer single-level only (no recursive sub-goals; max fan-out 8)
+- Tier-3 actions NEVER auto-execute overnight, even in `fullauto`
+- Tier-4 refusals hold absolutely (the decomposer can return `REFUSED: <reason>` for malformed/unsafe goals)
+- Orphan goals (daemon restart while RUNNING/PLANNING) re-queue cleanly
+
+**Endpoints (jarvis-core daemon):**
+`POST /goal` · `GET /goals` · `GET /goal/{id}` · `GET /goal/{id}/output` · `POST /goal/{id}/cancel` · `GET /approvals/pending` · `POST /approval/{id}/decide` · `GET /digest`
+
+**Telegram commands (bridge):**
+`/goal_add <description>` · `/goals` · `/goal_status <id>` · `/goal_approve <approval_id> [note]` · `/goal_reject <approval_id> [reason]` · `/digest_now`
 
 ## jarvis-core — Super-Agent Daemon
 

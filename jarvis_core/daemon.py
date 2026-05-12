@@ -35,16 +35,24 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 
+from pydantic import BaseModel, Field
+
 from . import __version__
 from .models import (
+    ApprovalDecision,
+    ApprovalRequest,
     ChatRequest,
     ChatResponse,
+    GoalRecord,
+    GoalStateView,
+    GoalStatus,
     TaskRecord,
     TaskRequest,
     TaskStateView,
     TaskStatus,
 )
 from .orchestrator import aggregate_results, run_parallel_workers, run_worker
+from .scheduler import GoalScheduler, resume_goal_after_approval
 from .state import JarvisState
 
 # === Bootstrap ===
@@ -70,6 +78,15 @@ SYNC_INTERVAL = int(os.getenv("JARVIS_STATE_SYNC_SECONDS", "300"))
 
 state = JarvisState(state_path=STATE_PATH, sync_interval_seconds=SYNC_INTERVAL)
 
+GOAL_POLL_INTERVAL = int(os.getenv("JARVIS_GOAL_POLL_SECONDS", "60"))
+GOAL_MAX_CONCURRENT = int(os.getenv("JARVIS_GOAL_MAX_CONCURRENT", "1"))
+scheduler = GoalScheduler(
+    state=state,
+    project_root=PROJECT_ROOT,
+    poll_interval_seconds=GOAL_POLL_INTERVAL,
+    max_concurrent_goals=GOAL_MAX_CONCURRENT,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa: D401 — FastAPI lifespan signature
@@ -82,10 +99,13 @@ async def lifespan(app: FastAPI):  # noqa: D401 — FastAPI lifespan signature
     log.info("jarvis-core %s starting | project=%s state=%s", __version__, PROJECT_ROOT, STATE_PATH)
     state.load_from_disk()
     await state.start_background_sync()
+    await scheduler.start()
+    log.info("Goal scheduler online (poll=%ds, concurrent=%d)", GOAL_POLL_INTERVAL, GOAL_MAX_CONCURRENT)
     try:
         yield
     finally:
-        log.info("jarvis-core shutting down — final state sync")
+        log.info("jarvis-core shutting down — stopping scheduler + final state sync")
+        await scheduler.stop()
         await state.stop()
 
 
@@ -199,6 +219,168 @@ async def get_task(task_id: str) -> TaskStateView:
 async def list_tasks(limit: int = 20) -> list[TaskStateView]:
     tasks = await state.list_recent_tasks(limit=limit)
     return [t.to_view() for t in tasks]
+
+
+# === Phase 3: Autonomous goal endpoints ===
+
+
+class GoalCreateRequest(BaseModel):
+    user_id: str = "ujjwal"
+    description: str = Field(..., min_length=5, max_length=4000)
+    max_budget_usd: float = Field(default=5.0, ge=0.1, le=50.0)
+    max_duration_seconds: int = Field(default=7200, ge=60, le=86_400)
+    context: dict | None = None
+
+
+class ApprovalDecisionRequest(BaseModel):
+    decision: ApprovalDecision
+    boss_note: str | None = None
+    decided_by: str = "ujjwal"
+
+
+@app.post("/goal", response_model=GoalStateView)
+async def create_goal(req: GoalCreateRequest) -> GoalStateView:
+    """Boss adds an autonomous goal. Scheduler picks it up on next tick."""
+    import uuid as _uuid
+
+    goal = GoalRecord(
+        goal_id=_uuid.uuid4().hex[:12],
+        user_id=req.user_id,
+        description=req.description,
+        max_budget_usd=req.max_budget_usd,
+        max_duration_seconds=req.max_duration_seconds,
+        context=req.context or {},
+    )
+    await state.add_goal(goal)
+    log.info("Goal created id=%s user=%s budget=$%.2f", goal.goal_id, req.user_id, req.max_budget_usd)
+    return goal.to_view()
+
+
+@app.get("/goals", response_model=list[GoalStateView])
+async def list_goals(status: GoalStatus | None = None, limit: int = 50) -> list[GoalStateView]:
+    goals = await state.list_goals(status=status, limit=limit)
+    return [g.to_view() for g in goals]
+
+
+@app.get("/goal/{goal_id}", response_model=GoalStateView)
+async def get_goal(goal_id: str) -> GoalStateView:
+    goal = await state.get_goal(goal_id)
+    if goal is None:
+        raise HTTPException(404, "goal not found")
+    return goal.to_view()
+
+
+@app.get("/goal/{goal_id}/output")
+async def get_goal_output(goal_id: str) -> dict:
+    goal = await state.get_goal(goal_id)
+    if goal is None:
+        raise HTTPException(404, "goal not found")
+    return {
+        "goal_id": goal_id,
+        "status": goal.status,
+        "plan_summary": goal.plan_summary,
+        "final_output": goal.final_output,
+        "sub_tasks": [
+            {
+                "label": s.label,
+                "tier": s.tier,
+                "output": s.output,
+                "error": s.error,
+                "cost_usd": s.cost_usd,
+                "approval_id": s.approval_id,
+            }
+            for s in goal.sub_tasks
+        ],
+        "cost_usd_total": goal.cost_usd_total,
+        "error": goal.error,
+    }
+
+
+@app.post("/goal/{goal_id}/cancel", response_model=GoalStateView)
+async def cancel_goal(goal_id: str, reason: str | None = None) -> GoalStateView:
+    goal = await state.cancel_goal(goal_id, reason=reason)
+    if goal is None:
+        raise HTTPException(404, "goal not found")
+    return goal.to_view()
+
+
+@app.get("/approvals/pending")
+async def list_pending_approvals() -> list[dict]:
+    approvals = await state.list_pending_approvals()
+    return [
+        {
+            "approval_id": a.approval_id,
+            "goal_id": a.goal_id,
+            "sub_id": a.sub_id,
+            "action_summary": a.action_summary,
+            "risk_notes": a.risk_notes,
+            "requested_at": a.requested_at.isoformat(),
+        }
+        for a in approvals
+    ]
+
+
+@app.post("/approval/{approval_id}/decide")
+async def decide_approval(approval_id: str, req: ApprovalDecisionRequest) -> dict:
+    approval = await state.decide_approval(
+        approval_id,
+        decision=req.decision,
+        boss_note=req.boss_note,
+        decided_by=req.decided_by,
+    )
+    if approval is None:
+        raise HTTPException(404, "approval not found")
+    # Resume the goal (executes Tier-3 if approved, marks rejected if not)
+    ok, err = await resume_goal_after_approval(state, scheduler, approval_id)
+    return {
+        "approval_id": approval_id,
+        "decision": req.decision,
+        "resumed": ok,
+        "error": err,
+    }
+
+
+@app.get("/digest")
+async def digest(hours: int = 24) -> dict:
+    """Morning-digest data: recent goal activity + pending approvals."""
+    from datetime import timedelta
+
+    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    all_goals = await state.list_goals(limit=200)
+    recent = [g for g in all_goals if g.updated_at >= cutoff]
+
+    by_status: dict[str, list[dict]] = {}
+    for g in recent:
+        by_status.setdefault(g.status.value, []).append(
+            {
+                "goal_id": g.goal_id,
+                "description": g.description[:200],
+                "cost_usd": g.cost_usd_total,
+                "sub_task_count": len(g.sub_tasks),
+                "plan_summary": g.plan_summary,
+                "error": g.error,
+            }
+        )
+
+    pending = await state.list_pending_approvals()
+    return {
+        "window_hours": hours,
+        "as_of": datetime.utcnow().isoformat(),
+        "by_status": by_status,
+        "pending_approvals": [
+            {
+                "approval_id": a.approval_id,
+                "goal_id": a.goal_id,
+                "action_summary": a.action_summary,
+                "risk_notes": a.risk_notes,
+            }
+            for a in pending
+        ],
+        "totals": {
+            "goals_in_window": len(recent),
+            "cost_usd": sum(g.cost_usd_total for g in recent),
+        },
+    }
 
 
 # === Background task runner ===

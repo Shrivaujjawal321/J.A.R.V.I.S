@@ -80,6 +80,9 @@ data/markers/*.json
 # jarvis-core daemon runtime state (conversation history, session ids, task records)
 data/state/
 
+# Morning digest archive — daily snapshots, regenerable from daemon state
+data/digests/
+
 # Auto-mode audit log + screenshots (contain URLs Boss visited, action history)
 data/audits/
 # But DO keep the directory in repo as a placeholder for new clones

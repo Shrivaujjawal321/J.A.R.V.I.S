@@ -205,6 +205,189 @@ def chunks(text: str, size: int):
         yield text[i : i + size]
 
 
+# === Phase 3: Autonomous goal commands ===
+# Telegram /goal_add, /goals, /goal_status, /goal_approve, /goal_reject, /digest_now
+
+
+async def _post_json(path: str, payload: dict) -> dict:
+    async with httpx.AsyncClient(timeout=CLAUDE_TIMEOUT) as client:
+        r = await client.post(f"{JARVIS_CORE_URL}{path}", json=payload)
+        r.raise_for_status()
+        return r.json()
+
+
+async def _get_json(path: str, params: dict | None = None) -> dict:
+    async with httpx.AsyncClient(timeout=CLAUDE_TIMEOUT) as client:
+        r = await client.get(f"{JARVIS_CORE_URL}{path}", params=params or {})
+        r.raise_for_status()
+        return r.json()
+
+
+async def cmd_goal_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        return
+    description = (update.message.text or "").split(maxsplit=1)
+    if len(description) < 2:
+        await update.message.reply_text(
+            "Usage: `/goal_add <description>`\n"
+            "Example: `/goal_add research 3 papers on prompt caching, summarize each in 5 bullets`",
+            parse_mode="Markdown",
+        )
+        return
+    try:
+        result = await _post_json(
+            "/goal",
+            {
+                "user_id": str(update.effective_user.id),
+                "description": description[1].strip(),
+            },
+        )
+        await update.message.reply_text(
+            f"🎯 Goal queued: `{result['goal_id']}`\n"
+            f"Status: `{result['status']}`\n"
+            f"Scheduler will pick it up within 60s. Track with `/goal_status {result['goal_id']}`.",
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not create goal: {e}")
+
+
+async def cmd_goals(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        return
+    try:
+        goals = await _get_json("/goals", {"limit": 20})
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not list goals: {e}")
+        return
+    if not goals:
+        await update.message.reply_text("No goals yet. Use `/goal_add <description>` to start.")
+        return
+    lines = ["📋 *Recent goals* (most recent first)"]
+    for g in goals[:15]:
+        emoji = {
+            "queued": "🕒",
+            "planning": "🧩",
+            "running": "🏃",
+            "awaiting_approval": "🔐",
+            "completed": "✅",
+            "failed": "⚠️",
+            "cancelled": "❌",
+        }.get(g["status"], "•")
+        desc = (g["description"][:80] + "…") if len(g["description"]) > 80 else g["description"]
+        lines.append(f"{emoji} `{g['goal_id']}` · _{g['status']}_ · {desc}")
+    await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
+
+
+async def cmd_goal_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        return
+    parts = (update.message.text or "").split()
+    if len(parts) < 2:
+        await update.message.reply_text("Usage: `/goal_status <goal_id>`", parse_mode="Markdown")
+        return
+    goal_id = parts[1]
+    try:
+        out = await _get_json(f"/goal/{goal_id}/output")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not fetch goal: {e}")
+        return
+    lines = [f"🎯 *Goal `{out['goal_id']}`* — `{out['status']}`"]
+    if out.get("plan_summary"):
+        lines.append(f"_{out['plan_summary']}_")
+    lines.append(f"💰 ${out.get('cost_usd_total', 0):.4f}")
+    lines.append("")
+    for s in out.get("sub_tasks", []):
+        tier_mark = ["", "🟢T1", "🟡T2", "🔴T3"][s.get("tier", 1)]
+        lines.append(f"  • {tier_mark} *{s['label']}*")
+        if s.get("error"):
+            lines.append(f"    ⚠️ {s['error'][:200]}")
+        elif s.get("output"):
+            preview = s["output"][:300].replace("\n", " ")
+            lines.append(f"    _{preview}…_" if len(s["output"]) > 300 else f"    _{preview}_")
+        if s.get("approval_id"):
+            lines.append(f"    🔐 needs approval: `{s['approval_id']}`")
+    if out.get("error"):
+        lines.append(f"\n⚠️ Goal error: {out['error']}")
+    if out.get("final_output"):
+        lines.append("\n*Final output saved* — full text via daemon /goal/{id}/output")
+    await update.message.reply_text("\n".join(lines)[:3900], parse_mode="Markdown")
+
+
+async def cmd_goal_approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        return
+    parts = (update.message.text or "").split(maxsplit=2)
+    if len(parts) < 2:
+        await update.message.reply_text(
+            "Usage: `/goal_approve <approval_id> [note]`", parse_mode="Markdown"
+        )
+        return
+    approval_id = parts[1]
+    note = parts[2] if len(parts) >= 3 else None
+    try:
+        result = await _post_json(
+            f"/approval/{approval_id}/decide",
+            {
+                "decision": "approved",
+                "boss_note": note,
+                "decided_by": str(update.effective_user.id),
+            },
+        )
+        await update.message.reply_text(
+            f"✅ Approved `{approval_id}` — resumed={result.get('resumed', False)}",
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not approve: {e}")
+
+
+async def cmd_goal_reject(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update.effective_user.id):
+        return
+    parts = (update.message.text or "").split(maxsplit=2)
+    if len(parts) < 2:
+        await update.message.reply_text(
+            "Usage: `/goal_reject <approval_id> [reason]`", parse_mode="Markdown"
+        )
+        return
+    approval_id = parts[1]
+    note = parts[2] if len(parts) >= 3 else None
+    try:
+        result = await _post_json(
+            f"/approval/{approval_id}/decide",
+            {
+                "decision": "rejected",
+                "boss_note": note,
+                "decided_by": str(update.effective_user.id),
+            },
+        )
+        await update.message.reply_text(
+            f"❌ Rejected `{approval_id}` — resumed={result.get('resumed', False)}",
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not reject: {e}")
+
+
+async def cmd_digest_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """On-demand digest (vs the cron one at 06:30 IST)."""
+    if not is_authorized(update.effective_user.id):
+        return
+    try:
+        import subprocess
+        result = subprocess.run(
+            [".venv/bin/python", "scripts/morning_digest.py", "--stdout", "--hours", "24"],
+            cwd=JARVIS_PROJECT_PATH,
+            capture_output=True, text=True, timeout=20,
+        )
+        text = result.stdout or result.stderr or "(no output)"
+        for chunk in chunks(text, 4000):
+            await update.message.reply_text(chunk, parse_mode="Markdown")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Could not render digest: {e}")
+
+
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle incoming voice messages — parallel branch, does not touch text flow."""
     if not is_authorized(update.effective_user.id):
@@ -235,6 +418,14 @@ def main():
     # Built-in commands
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+
+    # Phase 3: autonomous goal commands (direct daemon HTTP, not Claude)
+    app.add_handler(CommandHandler("goal_add", cmd_goal_add))
+    app.add_handler(CommandHandler("goals", cmd_goals))
+    app.add_handler(CommandHandler("goal_status", cmd_goal_status))
+    app.add_handler(CommandHandler("goal_approve", cmd_goal_approve))
+    app.add_handler(CommandHandler("goal_reject", cmd_goal_reject))
+    app.add_handler(CommandHandler("digest_now", cmd_digest_now))
 
     # Jarvis slash commands — forward to Claude Code
     for cmd in SLASH_ALIASES.keys():

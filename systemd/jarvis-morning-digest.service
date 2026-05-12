@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Morning Digest — overnight goal activity summary
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./CLAUDE.md
+After=network-online.target jarvis-core.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/python /home/ujjwal/Documents/J.A.R.V.I.S./scripts/morning_digest.py --telegram --hours 24
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/morning-digest.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/morning-digest.log
+Environment=PYTHONUNBUFFERED=1
