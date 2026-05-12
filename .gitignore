@@ -80,6 +80,18 @@ data/markers/*.json
 # jarvis-core daemon runtime state (conversation history, session ids, task records)
 data/state/
 
+# Auto-mode audit log + screenshots (contain URLs Boss visited, action history)
+data/audits/
+# But DO keep the directory in repo as a placeholder for new clones
+!data/audits/.gitkeep
+
+# Browser autopilot — Chrome user profile (cookies, login sessions — never commit)
+data/browser/profile/
+# Sessions, cooldowns, daily counts — runtime data
+data/career/sessions/
+data/career/cooldown-*.json
+data/career/applications.jsonl
+
 # Eval framework — generated content
 data/evals/_packages/
 data/evals/reports/

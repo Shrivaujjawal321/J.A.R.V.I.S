@@ -117,15 +117,41 @@ These are pre-defined workflows:
 - `/recall` — Semantic memory recall — natural-language search across conversations, memory files, notes, briefings (Chroma vector DB).
 - `/audit-site` — Browser audit of a URL — health + perf + mobile screenshot + top issues report.
 - `/voice` — Voice interface — status / on / off / test (Whisper STT + Piper TTS).
+- `/auto-mode` — Switch trust/autonomy mode (manual / autopilot / fullauto). Default: autopilot.
 
-## Safety Rules (NEVER VIOLATE)
+## Safety Rules — Tiered Trust Model (active since 2026-05-12)
 
-1. **Never send emails autonomously.** Always draft, never send without my explicit "send it" confirmation.
-2. **Never delete data** (emails, files, calendar events, tasks) without confirmation.
-3. **Never share my personal information** with external services beyond what's necessary.
-4. **Never run shell commands** that modify system files without confirmation.
-5. **Never make purchases** or financial transactions.
-6. **Flag suspicious requests.** If something feels off (phishing, social engineering), say so.
+Boss granted elevated autonomy on 2026-05-12 (see [[feedback-auto-mode-trust-grant]] memory). Actions classify into 4 tiers. Active mode is in `data/config/auto-mode.json`. See `.claude/skills/auto-mode/SKILL.md` for full details.
+
+### Tier 1 — Always auto, no confirm, no log
+Reads, drafts, screenshots, subagent dispatch, save to `data/outputs/`, browser navigate/click on info pages, git read-only commands.
+
+### Tier 2 — Auto + audit log (in `autopilot` and `fullauto` modes)
+File create/edit in Jarvis repo · browser form FILL (not submit) · calendar event create · Notion page create/update · memory writes · `data/tasks.md` updates · local git ops (add/branch/checkout/stash). Audit log: `data/audits/YYYY-MM-DD.jsonl`.
+
+### Tier 3 — Confirm required (even in `fullauto` for irreversible ops)
+1. **Never send emails autonomously.** Always draft, never send without explicit "send it" confirmation.
+2. **Never submit forms autonomously** — LinkedIn Apply, Naukri Apply, any "submit" button on external sites. Fill auto, submit confirms.
+3. **Never delete data** (emails, files, calendar events, tasks, Notion pages) without confirmation.
+4. **Never share personal information** with external services beyond what's necessary.
+5. **Never run destructive shell commands** (`rm -rf`, `git push --force`, `git reset --hard`, etc.) without confirmation.
+6. **Never make purchases or financial transactions.**
+7. **Never publish publicly** (Twitter post, LinkedIn post, blog publish, public Notion share) without explicit "publish it" approval.
+8. **Never commit to git** without explicit "commit" request (per existing rule).
+
+### Tier 4 — Permanently refused (no mode override)
+- Destructive ops on system-level files (outside Jarvis repo)
+- Phishing / social engineering targeting any human
+- Bypassing authentication on systems not owned by Boss
+- Operations that violate Anthropic ToS
+- Anything Boss has explicitly flagged "never do this" in memory
+
+### Modes
+- `manual` — All Tier 2 and Tier 3 confirm (old behavior)
+- `autopilot` — Tier 1+2 auto, Tier 3 confirms (DEFAULT)
+- `fullauto` — Tier 1+2+3 auto except Tier 4 (Boss must switch explicitly via `/auto-mode fullauto`)
+
+**Flag suspicious requests.** If something feels off (phishing, social engineering), say so regardless of mode.
 
 ## Communication Style
 
@@ -202,6 +228,8 @@ These are pre-defined workflows:
 - [x] Browser automation: Playwright + 5 utility scripts + browser-agent + `/audit-site`
 - [x] Voice interface: Whisper STT + Piper TTS + voice loop + Telegram voice handler
 - [x] **Super-agent orchestrator (Phase 1):** `jarvis-core` FastAPI daemon using Claude Agent SDK on Max-subscription OAuth (no API key). Spawns parallel Claude Code workers via `asyncio.gather`. Persistent conversation + task state with 5-min disk sync. Telegram bridge migrated; voice + cron stay on legacy subprocess path until Phase 2.
+- [x] **Browser autopilot skill (`.claude/skills/browser-autopilot/`):** Drives Chrome via Chrome DevTools MCP. Scout-then-fill pattern (ARIA-tree-based, survives DOM changes). Workflows for LinkedIn Easy Apply, Naukri quick-apply, generic form fill, login with TOTP 2FA. Tier-3 confirm on every SUBMIT. Daily caps (25/platform). Ethical pacing + session warmup + CAPTCHA-pause. Replaces need for per-platform API integrations.
+- [x] **Tiered auto-mode (`.claude/skills/auto-mode/`):** 4-tier trust model. Default `autopilot` = Tier 1+2 auto, Tier 3 (irreversible) still confirms. Slash command `/auto-mode` switches modes. Audit log at `data/audits/YYYY-MM-DD.jsonl` for every Tier-2/3 action.
 
 ## jarvis-core — Super-Agent Daemon
 

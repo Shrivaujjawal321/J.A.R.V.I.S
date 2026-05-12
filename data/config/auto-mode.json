@@ -1,0 +1,6 @@
+{
+  "mode": "autopilot",
+  "_comment": "Modes: manual | autopilot | fullauto. See .claude/skills/auto-mode/SKILL.md for tier definitions.",
+  "_set_at": "2026-05-12T00:00:00Z",
+  "_set_by": "initial-build"
+}
