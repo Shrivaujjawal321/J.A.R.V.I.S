@@ -77,6 +77,9 @@ data/markers/memory_last_ingest
 data/hackathons/*.json
 data/markers/*.json
 
+# jarvis-core daemon runtime state (conversation history, session ids, task records)
+data/state/
+
 # Eval framework — generated content
 data/evals/_packages/
 data/evals/reports/

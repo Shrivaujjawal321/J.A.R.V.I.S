@@ -201,6 +201,37 @@ These are pre-defined workflows:
 - [x] Vector DB for episodic memory: Chroma + sentence-transformers, 155 chunks bootstrap, daily incremental cron
 - [x] Browser automation: Playwright + 5 utility scripts + browser-agent + `/audit-site`
 - [x] Voice interface: Whisper STT + Piper TTS + voice loop + Telegram voice handler
+- [x] **Super-agent orchestrator (Phase 1):** `jarvis-core` FastAPI daemon using Claude Agent SDK on Max-subscription OAuth (no API key). Spawns parallel Claude Code workers via `asyncio.gather`. Persistent conversation + task state with 5-min disk sync. Telegram bridge migrated; voice + cron stay on legacy subprocess path until Phase 2.
+
+## jarvis-core — Super-Agent Daemon
+
+Long-running FastAPI service (`jarvis_core/daemon.py`) that dispatches Claude Code workers via Claude Agent SDK. Authenticates via `CLAUDE_CODE_OAUTH_TOKEN` (Max subscription) — no developer API key. Provides:
+
+- `POST /chat` — sync single-worker chat with per-user session resumption
+- `POST /task` — async parallel fan-out (N workers, optional aggregator)
+- `GET /task/{id}` — poll task status
+- `GET /health`, `GET /state`, `POST /session/clear`
+
+State persists to `data/state/jarvis-state.json` (5-min sync + on-shutdown). Telegram bridge calls daemon on `http://127.0.0.1:8765/chat` with subprocess fallback if daemon down.
+
+**Start manually (test):**
+```bash
+.venv/bin/python -m jarvis_core.daemon
+```
+
+**Enable as systemd user service:**
+```bash
+systemctl --user enable --now jarvis-core
+systemctl --user restart jarvis-bridge   # so bridge picks up daemon path
+```
+
+**Disable (revert to legacy subprocess path):**
+```bash
+systemctl --user disable --now jarvis-core
+# In .env, set: JARVIS_USE_DAEMON=0
+```
+
+Phase 2 (later): migrate voice loop + cron-driven briefings to hit daemon, add streaming endpoint for real-time Telegram UX, optional web UI.
 
 ## Important Files
 

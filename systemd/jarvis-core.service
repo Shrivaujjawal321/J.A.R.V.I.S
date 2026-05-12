@@ -1,0 +1,24 @@
+[Unit]
+Description=Jarvis Super-Agent Orchestrator (Claude Agent SDK daemon)
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./CLAUDE.md
+After=network-online.target
+Wants=network-online.target
+# Telegram bridge depends on this — start core first
+Before=jarvis-bridge.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/python -m jarvis_core.daemon
+Restart=on-failure
+RestartSec=5
+# Daemon shutdown should flush state to disk — give it time
+TimeoutStopSec=30
+KillSignal=SIGTERM
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/jarvis-core.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/jarvis-core.log
+Environment=PYTHONUNBUFFERED=1
+# Daemon reads .env itself via python-dotenv — no need to duplicate env vars here
+
+[Install]
+WantedBy=default.target

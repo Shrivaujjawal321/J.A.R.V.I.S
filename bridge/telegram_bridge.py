@@ -19,6 +19,7 @@ import os
 import subprocess
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (
@@ -29,6 +30,13 @@ from telegram.ext import (
     filters,
 )
 
+# Voice message support (parallel branch — does not affect text handling)
+try:
+    from voice_handler import handle_voice_message as _handle_voice_message
+    VOICE_ENABLED = True
+except ImportError:
+    VOICE_ENABLED = False
+
 load_dotenv()
 
 # === Configuration ===
@@ -38,6 +46,10 @@ ALLOWED_USER_IDS = [int(x) for x in os.getenv("ALLOWED_USER_IDS", "").split(",")
 CLAUDE_TIMEOUT = int(os.getenv("CLAUDE_TIMEOUT", "180"))  # seconds
 MAX_TURNS = int(os.getenv("MAX_TURNS", "15"))
 
+# jarvis-core daemon (Phase 1: text via super-agent orchestrator)
+JARVIS_CORE_URL = os.getenv("JARVIS_CORE_URL", "http://127.0.0.1:8765")
+USE_DAEMON = os.getenv("JARVIS_USE_DAEMON", "1") != "0"
+
 
 def is_authorized(user_id: int) -> bool:
     """Only allow specific Telegram user IDs to use this bot."""
@@ -46,16 +58,14 @@ def is_authorized(user_id: int) -> bool:
     return user_id in ALLOWED_USER_IDS
 
 
-async def call_claude(prompt: str) -> str:
-    """Spawn Claude Code in headless mode with the given prompt."""
-
+async def _call_via_subprocess(prompt: str) -> str:
+    """Legacy fallback: spawn `claude` CLI directly. Used when daemon is down."""
     cmd = [
         "claude",
         "-p", prompt,
         "--output-format", "json",
         "--max-turns", str(MAX_TURNS),
     ]
-
     try:
         process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -63,30 +73,54 @@ async def call_claude(prompt: str) -> str:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-
         stdout, stderr = await asyncio.wait_for(
-            process.communicate(),
-            timeout=CLAUDE_TIMEOUT,
+            process.communicate(), timeout=CLAUDE_TIMEOUT
         )
-
         if process.returncode != 0:
             return f"⚠️ Jarvis error: {stderr.decode()[:500]}"
-
-        # Parse Claude's JSON output
         try:
             data = json.loads(stdout.decode())
-            # Extract the final response text
             if isinstance(data, dict):
                 return data.get("result") or data.get("response") or str(data)[:2000]
             return str(data)[:2000]
         except json.JSONDecodeError:
-            # Fallback to raw output
             return stdout.decode()[:2000]
-
     except asyncio.TimeoutError:
-        return "⏱️ Jarvis took too long. Try a simpler request or run `claude` interactively."
+        return "⏱️ Jarvis took too long. Try a simpler request."
     except Exception as e:
-        return f"❌ Error reaching Jarvis: {e}"
+        return f"❌ Error reaching Jarvis (fallback): {e}"
+
+
+async def _call_via_daemon(prompt: str, user_id: int) -> str:
+    """Phase 1 path: send to jarvis-core daemon over HTTP."""
+    try:
+        async with httpx.AsyncClient(timeout=CLAUDE_TIMEOUT) as client:
+            response = await client.post(
+                f"{JARVIS_CORE_URL}/chat",
+                json={
+                    "user_id": str(user_id),
+                    "message": prompt,
+                    "resume_session": True,
+                    "max_turns": MAX_TURNS,
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            reply = data.get("reply") or "(empty reply from jarvis-core)"
+            return reply
+    except (httpx.ConnectError, httpx.ReadTimeout) as e:
+        # Daemon down / slow — fall back to direct subprocess
+        print(f"⚠️  jarvis-core unreachable ({type(e).__name__}), falling back to subprocess")
+        return await _call_via_subprocess(prompt)
+    except Exception as e:
+        return f"❌ jarvis-core error: {type(e).__name__}: {e}"
+
+
+async def call_claude(prompt: str, user_id: int = 0) -> str:
+    """Dispatch to jarvis-core daemon if enabled, else direct subprocess."""
+    if USE_DAEMON:
+        return await _call_via_daemon(prompt, user_id=user_id)
+    return await _call_via_subprocess(prompt)
 
 
 # === Telegram Handlers ===
@@ -129,8 +163,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         action="typing",
     )
 
-    # Call Claude Code
-    response = await call_claude(user_message)
+    # Call Claude Code via jarvis-core daemon (Phase 1) or subprocess fallback
+    response = await call_claude(user_message, user_id=update.effective_user.id)
 
     # Telegram message limit is 4096 chars — split if needed
     for chunk in chunks(response, 4000):
@@ -159,7 +193,7 @@ async def handle_slash(update: Update, context: ContextTypes.DEFAULT_TYPE):
         action="typing",
     )
 
-    response = await call_claude(cmd)
+    response = await call_claude(cmd, user_id=update.effective_user.id)
 
     for chunk in chunks(response, 4000):
         await update.message.reply_text(chunk, parse_mode="Markdown")
@@ -169,6 +203,25 @@ def chunks(text: str, size: int):
     """Yield successive chunks of given size."""
     for i in range(0, len(text), size):
         yield text[i : i + size]
+
+
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle incoming voice messages — parallel branch, does not touch text flow."""
+    if not is_authorized(update.effective_user.id):
+        return
+
+    if not VOICE_ENABLED:
+        await update.message.reply_text(
+            "Voice messages not supported (voice_handler not loaded)."
+        )
+        return
+
+    await _handle_voice_message(
+        update,
+        context,
+        call_claude_fn=call_claude,
+        send_voice_reply=True,
+    )
 
 
 # === Main ===
@@ -189,6 +242,13 @@ def main():
 
     # All other text messages
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Voice messages (parallel branch — does not affect text handling)
+    if VOICE_ENABLED:
+        app.add_handler(MessageHandler(filters.VOICE, handle_voice))
+        print("   Voice messages: ENABLED (Whisper STT + Piper TTS)")
+    else:
+        print("   Voice messages: DISABLED (voice_handler import failed)")
 
     print("🤖 Jarvis Telegram bridge starting...")
     print(f"   Project: {JARVIS_PROJECT_PATH}")
