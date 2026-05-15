@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import _telegram_notify
+from . import _auto_mode, _telegram_notify
 
 JARVIS_ROOT = Path(__file__).resolve().parents[2]
 DRAFTS_DIR = JARVIS_ROOT / "data" / "linkedin" / "drafts"
@@ -150,11 +150,19 @@ def send_morning_batch(
 
     parts.append("")
     parts.append("─" * 18)
-    parts.append("*Reply to act:*")
-    parts.append("`/lp_approve_all` — send everything as drafted")
-    parts.append("`/lp_reject c0,c2,m4` — reject specific items, rest still pending")
-    parts.append("`/lp_approve c0,c1,m0,p1` — approve only listed items")
-    parts.append("`/lp_status` — see what's pending")
+
+    if _auto_mode.is_fullauto():
+        # Auto-approve the entire batch; Telegram is informational only.
+        record_decision("approve_all")
+        parts.append("🤖 *fullauto mode — auto-approved entire batch.*")
+        parts.append("Execute scheduled for 10:00 IST. To veto, reply:")
+        parts.append("`/lp_reject c0,c2,m4` before then (also accepts f# / p1 ids)")
+    else:
+        parts.append("*Reply to act:*")
+        parts.append("`/lp_approve_all` — send everything as drafted")
+        parts.append("`/lp_reject c0,c2,m4` — reject specific items, rest still pending")
+        parts.append("`/lp_approve c0,c1,m0,p1` — approve only listed items")
+        parts.append("`/lp_status` — see what's pending")
 
     full_text = "\n".join(parts)
     _telegram_notify.send(full_text)

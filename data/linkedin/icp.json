@@ -12,6 +12,7 @@
     "follows": 50,
     "connection_requests": 20,
     "messages_first_degree": 0,
+    "intro_dms": 10,
     "inmails_per_day": 0,
     "inmails_per_month_budget": 5,
     "posts": 1,

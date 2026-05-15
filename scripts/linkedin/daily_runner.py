@@ -27,6 +27,7 @@ from . import (
     connection_drafter,
     executor,
     icp_search,
+    intro_messager,
     message_drafter,
     post_generator,
     preflight,
@@ -56,14 +57,16 @@ def cmd_morning(args) -> None:
     if getattr(args, "small", False):
         n_follow = 3
         n_conn = 2
+        n_msg = 2
     else:
         n_follow = targets.get("follows", 50)
         n_conn = targets["connection_requests"]
+        n_msg = targets.get("intro_dms", 10)
 
     flavor = " (DRY-RUN small)" if getattr(args, "small", False) else ""
     _telegram_notify.safe_send(
         f"LinkedIn morning batch starting{flavor} — searching ICP "
-        f"for {n_follow} follows + {n_conn} connections...",
+        f"for {n_follow} follows + {n_conn} connections + {n_msg} Jarvis-intro DMs...",
         parse_mode=None,
     )
 
@@ -92,18 +95,25 @@ def cmd_morning(args) -> None:
         conn_profiles = []
     conn_drafts = connection_drafter.draft_batch(conn_profiles) if conn_profiles else []
 
-    # 3. Draft today's post
+    # 3. Draft Jarvis-intro DMs to 1st-degree recruiters/founders
+    try:
+        msg_drafts = intro_messager.draft_intros(n=n_msg)
+    except Exception as e:
+        _telegram_notify.safe_send(f"⚠️ Intro-DM drafting failed: {e}. Skipping DMs.")
+        msg_drafts = []
+
+    # 4. Draft today's post
     try:
         post = post_generator.generate_today()
     except Exception as e:
         _telegram_notify.safe_send(f"⚠️ Post drafting failed: {e}.")
         post = None
 
-    # 4. Send to Telegram for approval — NO MESSAGES per Boss's directive
+    # 5. Send to Telegram for approval (fullauto auto-approves; autopilot waits for /lp_approve_all)
     batch_id = telegram_approval.send_morning_batch(
         follows=follows,
         connections=conn_drafts,
-        messages=[],
+        messages=msg_drafts,
         post=post,
     )
     print(f"Batch sent: {batch_id}")
