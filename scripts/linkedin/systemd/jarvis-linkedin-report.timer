@@ -1,0 +1,10 @@
+[Unit]
+Description=Jarvis LinkedIn — nightly report at 21:00 IST
+
+[Timer]
+OnCalendar=*-*-* 15:30:00 UTC
+Persistent=true
+Unit=jarvis-linkedin-report.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Jarvis LinkedIn — afternoon mini-batch (5 conns + 10 msgs)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/J.A.R.V.I.S.
+ExecStart=%h/Documents/J.A.R.V.I.S./.venv/bin/python -m scripts.linkedin.daily_runner afternoon
+StandardOutput=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-afternoon.log
+StandardError=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-afternoon.log
+TimeoutStartSec=20min
+
+[Install]
+WantedBy=default.target

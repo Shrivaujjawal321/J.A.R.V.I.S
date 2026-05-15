@@ -1,0 +1,14 @@
+[Unit]
+Description=Jarvis LinkedIn — nightly report to Telegram
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/J.A.R.V.I.S.
+ExecStart=%h/Documents/J.A.R.V.I.S./.venv/bin/python -m scripts.linkedin.reporter
+StandardOutput=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-report.log
+StandardError=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-report.log
+TimeoutStartSec=2min
+
+[Install]
+WantedBy=default.target

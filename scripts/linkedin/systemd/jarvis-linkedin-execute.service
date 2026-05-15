@@ -1,0 +1,14 @@
+[Unit]
+Description=Jarvis LinkedIn — execute approved morning batch via browser-autopilot
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/J.A.R.V.I.S.
+ExecStart=%h/Documents/J.A.R.V.I.S./.venv/bin/python -m scripts.linkedin.daily_runner execute
+StandardOutput=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-execute.log
+StandardError=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-execute.log
+TimeoutStartSec=45min
+
+[Install]
+WantedBy=default.target

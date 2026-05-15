@@ -111,3 +111,10 @@ data/voice/test/smoke_record.wav
 data/voice/models/
 # Whisper model cache is in ~/.cache/whisper/ — user-level, not in repo
 # Piper downloads go to data/voice/models/ — excluded above
+
+# LinkedIn pipeline — runtime artifacts (drafts, posts, contacted log, raw agent dumps, runtime counters)
+data/linkedin/_debug/
+data/linkedin/drafts/
+data/linkedin/posts/
+data/linkedin/contacted.jsonl
+data/linkedin/state.json

@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "tier": "career",
+    "monthly_credits": 5,
+    "reset_day": 1,
+    "comment": "Premium Career = 5 InMails/month. Reserve for top dream targets only — not bulk."
+  },
+  "current_period": {
+    "month": "2026-05",
+    "credits_remaining": 5,
+    "used": []
+  },
+  "history": [],
+  "rules": {
+    "min_priority_for_inmail": "tier-1-only",
+    "require_jarvis_approval_score": 8,
+    "comment": "Boss must score the prospect 8+/10 in approval flow for InMail to be sent. Otherwise, send connection request instead."
+  }
+}

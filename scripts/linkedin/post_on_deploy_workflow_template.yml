@@ -1,0 +1,79 @@
+# GitHub Actions workflow TEMPLATE — drop a copy of this into each project repo at
+#   .github/workflows/post-on-deploy.yml
+#
+# What it does:
+#   On a successful Vercel deployment to production, calls Boss's Jarvis machine
+#   to queue a LinkedIn project-showcase post for tomorrow's morning batch.
+#
+# Setup:
+#   1. In the project repo, set these GitHub repository secrets:
+#        - JARVIS_WEBHOOK_URL   (e.g. https://jarvis.boss.dev/hooks/linkedin-deploy
+#                                 OR  http://your-tunneled-url for ngrok/cloudflared)
+#        - JARVIS_WEBHOOK_TOKEN (a long random string — checked server-side)
+#   2. Make sure the project's vercel.json has a deployment hook OR use the
+#      Vercel GitHub integration's "Deployment Successful" event.
+#
+# Note: This workflow does NOT publish to LinkedIn directly. It calls Jarvis on
+# Boss's laptop, which DRAFTS the post, queues it, and notifies Boss via Telegram.
+# Boss approves in the morning batch flow before any actual LinkedIn publish.
+
+name: Post Deployment to LinkedIn (via Jarvis)
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: "Project name shown in the LinkedIn post"
+        required: true
+      live_url:
+        description: "Live URL (Vercel deployment)"
+        required: true
+
+jobs:
+  notify-jarvis:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production')
+    steps:
+      - name: Checkout (for README)
+        uses: actions/checkout@v4
+
+      - name: Read README
+        id: readme
+        run: |
+          if [ -f README.md ]; then
+            README_B64=$(base64 -w0 README.md)
+          else
+            README_B64=$(echo "(no README.md)" | base64 -w0)
+          fi
+          echo "readme_b64=$README_B64" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve project name + URL
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ github.event.inputs.project_name }}" >> "$GITHUB_OUTPUT"
+            echo "url=${{ github.event.inputs.live_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
+            echo "url=${{ github.event.deployment_status.target_url }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Jarvis
+        env:
+          JARVIS_WEBHOOK_URL: ${{ secrets.JARVIS_WEBHOOK_URL }}
+          JARVIS_WEBHOOK_TOKEN: ${{ secrets.JARVIS_WEBHOOK_TOKEN }}
+        run: |
+          curl -fsS -X POST "$JARVIS_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $JARVIS_WEBHOOK_TOKEN" \
+            -d @- <<EOF
+          {
+            "kind": "deploy",
+            "project_name": "${{ steps.vars.outputs.name }}",
+            "vercel_url": "${{ steps.vars.outputs.url }}",
+            "repo": "${{ github.repository }}",
+            "commit_sha": "${{ github.sha }}",
+            "readme_b64": "${{ steps.readme.outputs.readme_b64 }}"
+          }
+          EOF

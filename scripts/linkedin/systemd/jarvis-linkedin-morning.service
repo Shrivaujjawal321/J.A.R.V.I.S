@@ -1,0 +1,14 @@
+[Unit]
+Description=Jarvis LinkedIn — morning batch (search + draft + Telegram approval)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/J.A.R.V.I.S.
+ExecStart=%h/Documents/J.A.R.V.I.S./.venv/bin/python -m scripts.linkedin.daily_runner morning
+StandardOutput=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-morning.log
+StandardError=append:%h/Documents/J.A.R.V.I.S./data/logs/linkedin-morning.log
+TimeoutStartSec=20min
+
+[Install]
+WantedBy=default.target

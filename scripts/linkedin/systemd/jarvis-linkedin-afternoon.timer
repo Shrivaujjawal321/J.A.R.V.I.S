@@ -1,0 +1,11 @@
+[Unit]
+Description=Jarvis LinkedIn — afternoon mini-batch at 18:00 IST daily
+
+[Timer]
+OnCalendar=*-*-* 12:30:00 UTC
+Persistent=true
+RandomizedDelaySec=600
+Unit=jarvis-linkedin-afternoon.service
+
+[Install]
+WantedBy=timers.target

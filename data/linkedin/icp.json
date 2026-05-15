@@ -1,0 +1,164 @@
+{
+  "_meta": {
+    "version": 1,
+    "owner": "Ujjawal Shrivastav",
+    "linkedin_url": "https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/",
+    "premium_tier": "career",
+    "inmail_credits_per_month": 5,
+    "geo_priority": ["India", "Global-remote", "United States"],
+    "last_updated": "2026-05-13"
+  },
+  "daily_targets": {
+    "follows": 50,
+    "connection_requests": 20,
+    "messages_first_degree": 0,
+    "inmails_per_day": 0,
+    "inmails_per_month_budget": 5,
+    "posts": 1,
+    "engagement_comments": 10
+  },
+  "weekly_caps": {
+    "max_follows": 250,
+    "max_connection_invites": 150,
+    "max_inmails": 2
+  },
+  "categories": [
+    {
+      "id": "A",
+      "name": "AI/ML Engineering Managers + Senior Devs",
+      "priority": 1,
+      "target_titles": [
+        "engineering manager", "em ai", "ml engineering manager",
+        "senior machine learning engineer", "staff ml engineer",
+        "principal ai engineer", "lead ai engineer", "ai infrastructure lead",
+        "applied scientist", "research engineer"
+      ],
+      "target_companies": [
+        "OpenAI", "Anthropic", "Google DeepMind", "Meta AI", "Microsoft AI",
+        "NVIDIA", "Hugging Face", "Cohere", "Mistral", "Together AI",
+        "Sarvam AI", "Krutrim", "TechMahindra AI", "Ola Krutrim",
+        "Razorpay AI", "Swiggy ML", "Zomato Data", "Flipkart AI"
+      ],
+      "industries": ["Software Development", "Computer Software", "Internet", "AI/ML"],
+      "value_offer": "AI/ML practitioner sharing OSS work + open to mentorship"
+    },
+    {
+      "id": "B",
+      "name": "Tech Recruiters / HR (FAANG, unicorns, well-funded startups)",
+      "priority": 1,
+      "target_titles": [
+        "technical recruiter", "engineering recruiter", "ai recruiter",
+        "ml recruiter", "talent acquisition", "head of talent",
+        "campus recruiter", "early careers recruiter", "recruiter india",
+        "talent partner"
+      ],
+      "target_companies": [
+        "Google", "Microsoft", "Amazon", "Meta", "Apple", "Netflix",
+        "Stripe", "Cloudflare", "Anthropic", "OpenAI", "Databricks",
+        "Snowflake", "Razorpay", "CRED", "Zerodha", "PhonePe",
+        "Postman", "Atlassian", "Adobe", "Salesforce", "ServiceNow",
+        "Deepmind", "Hugging Face", "Replicate"
+      ],
+      "industries": ["Staffing and Recruiting", "Software Development", "Technology"],
+      "value_offer": "Fresh AI/ML grad with shipped projects — open to opportunities"
+    },
+    {
+      "id": "C",
+      "name": "Founders / CEOs of AI startups",
+      "priority": 2,
+      "target_titles": [
+        "founder", "co-founder", "ceo", "cto", "founding engineer",
+        "founding ai engineer", "founding ml engineer"
+      ],
+      "target_companies_keyword_hints": [
+        "AI startup", "AI agent", "LLM", "applied AI", "AI infrastructure",
+        "vector DB", "RAG", "AI for ___"
+      ],
+      "industries": ["Computer Software", "Information Technology", "Venture Capital"],
+      "value_offer": "Building Jarvis (multi-agent AI assistant) — would love to learn from your journey"
+    },
+    {
+      "id": "D",
+      "name": "Hackathon Organizers + AI Community Builders",
+      "priority": 3,
+      "target_titles": [
+        "developer relations", "devrel", "developer advocate",
+        "community manager", "hackathon organizer", "head of community",
+        "developer experience", "community lead"
+      ],
+      "target_companies": [
+        "Devfolio", "Unstop", "MLH", "HackerEarth", "Lablab.ai",
+        "DevPost", "EncodeClub", "buildspace", "Pieces", "Vercel",
+        "Replit", "GitHub", "Hugging Face", "LangChain"
+      ],
+      "industries": ["Internet", "Computer Software", "Events Services"],
+      "value_offer": "Active hackathon participant — would love to join the community + give feedback"
+    },
+    {
+      "id": "E",
+      "name": "Senior devs at Indian unicorns",
+      "priority": 2,
+      "target_titles": [
+        "senior software engineer", "staff software engineer",
+        "principal engineer", "tech lead", "engineering lead",
+        "sde 3", "sde iv", "sde 4"
+      ],
+      "target_companies": [
+        "Razorpay", "CRED", "Zerodha", "Zomato", "Swiggy", "Flipkart",
+        "Myntra", "PhonePe", "Paytm", "Nykaa", "Meesho", "Groww",
+        "InMobi", "Postman", "Freshworks", "Zoho", "BrowserStack",
+        "Atlan", "Hasura", "Hippo Video"
+      ],
+      "industries": ["Internet", "Computer Software", "Financial Services"],
+      "value_offer": "Building in AI/ML space — would love to learn from your engineering journey"
+    },
+    {
+      "id": "F",
+      "name": "International AI/ML researchers / OSS maintainers",
+      "priority": 3,
+      "target_titles": [
+        "research scientist", "research engineer", "phd researcher",
+        "open source maintainer", "core contributor", "creator of"
+      ],
+      "target_companies": [
+        "Hugging Face", "Anthropic", "OpenAI", "DeepMind",
+        "FAIR (Meta)", "Google Research", "Allen Institute",
+        "Stanford", "MIT CSAIL", "CMU", "Berkeley AI Research"
+      ],
+      "industries": ["Research", "Higher Education", "Computer Software"],
+      "value_offer": "Inspired by your work — sharing my OSS / asking for feedback"
+    },
+    {
+      "id": "G",
+      "name": "VC partners / Angels in AI space",
+      "priority": 4,
+      "target_titles": [
+        "partner", "general partner", "investor", "venture partner",
+        "angel investor", "principal", "investment associate"
+      ],
+      "target_companies": [
+        "a16z", "Sequoia India (Peak XV)", "Accel", "Lightspeed",
+        "Matrix Partners", "Nexus Venture Partners", "Blume Ventures",
+        "Z47", "Stellaris VP", "Together Fund", "Speciale Invest",
+        "All In Capital", "100x.vc"
+      ],
+      "industries": ["Venture Capital", "Investment Management", "Private Equity"],
+      "value_offer": "Building in AI agents — sharing journey + open to advice"
+    }
+  ],
+  "exclusions": {
+    "exclude_titles": [
+      "intern", "student", "fresher", "looking for opportunities",
+      "open to work", "btech student", "freshman", "sophomore"
+    ],
+    "exclude_companies": [],
+    "exclude_keywords_in_headline": ["MLM", "crypto guru", "drop shipping"]
+  },
+  "personalization_signals": {
+    "use_recent_post": true,
+    "use_recent_promotion": true,
+    "use_shared_school": true,
+    "use_shared_company_alum": true,
+    "use_mutual_connections": true
+  }
+}
