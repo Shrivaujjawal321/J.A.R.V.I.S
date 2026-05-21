@@ -1,0 +1,12 @@
+OOF macro-F1 : 0.9046
+Val macro-F1 : 0.9133
+Per-fold     : [0.8972067626427421, 0.9108438581171084, 0.921631511551941, 0.9063373508458952, 0.8850575220691052]
+Classes      : 25
+Train        : 5454
+Val          : 2324
+Top-5 confusion pairs:
+  Water spot -> Inclusion  (11)
+  Oil spot -> Inclusion  (9)
+  Iron sheet ash -> Oil spot  (6)
+  Inclusion -> Water spot  (6)
+  Iron scale compression -> Inclusion  (5)

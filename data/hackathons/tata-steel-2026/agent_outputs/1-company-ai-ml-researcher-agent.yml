@@ -1,0 +1,123 @@
+Here is the verbatim YAML output from the **company-ai-ml-researcher-agent** for Tata Steel:
+
+---
+
+```yaml
+agent_id: company-ai-ml-researcher
+phase: 1
+summary: >
+  Tata Steel runs one of the most advanced industrial AI programs among global manufacturers.
+  As of FY2024-25 the company has 588 confirmed AI/ML models in production (up from 550 in
+  Feb 2025; goal tracking toward 800+ [unverified exact number]), with ~75% targeting
+  manufacturing excellence and ~20% customer experience. The data moat is exceptional —
+  11.2 petabytes of operational data from several lakh sensors. The infrastructure backbone
+  is iROC, a 24/7 Jamshedpur command center running 250+ digital twin models across 15+
+  global plants. In April 2026 Tata Steel announced 300+ specialised AI agents deployed via
+  Zen AI (Google Cloud ADK + BigQuery), making it one of the first industrial companies to
+  run enterprise-scale agentic AI. Primary cloud partner is Google Cloud; parent Tata Group
+  also holds a foundational partnership with OpenAI via TCS. Research output exists (peer-
+  reviewed IEEE/Springer papers on HSM ML, predictive maintenance at Shotton) but no
+  presence on Hugging Face or major ML conference tracks (NeurIPS/ICML). No ML-specific
+  acquisitions found — capability is built internally and via partner integrations. AI
+  governance is safety-performance framed (zero-harm 2030), not a published responsible-AI
+  policy document.
+
+findings:
+  - claim: "Tata Steel has 588 AI/ML models in production as of FY2024-25 annual report, with ~75% in manufacturing and ~20% in customer experience."
+    evidence: "https://www.tatasteel.com/investors/integrated-report-2024-25/intellectual-capital.html"
+    confidence: 0.95
+
+  - claim: "Tata Steel has accumulated 11.2 petabytes of proprietary operational data through extensive sensor and systems investments — the core data moat."
+    evidence: "https://www.tatasteel.com/investors/integrated-report-2024-25/intellectual-capital.html"
+    confidence: 0.95
+
+  - claim: "iROC (Integrated Remote Operations Centre) in Jamshedpur is a 24/7 command center running 250+ digital twin models across 15+ global plants with 90%+ first-time success rate on process changes."
+    evidence: "https://ifactory.jrsinnovation.com/blog/tata-steel-digital-twin-savings-case-study"
+    confidence: 0.82
+
+  - claim: "Tata Steel and Google Cloud announced deployment of 300+ specialised AI agents in 9 months (April 2026), built on Google Cloud ADK, BigQuery, and Cloud Storage through internal platform Zen AI."
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.97
+
+  - claim: "Zen AI is Tata Steel's internal low-code platform enabling non-data-scientist employees to build, test, and deploy AI agents; it accesses 200+ models via Google Cloud AI Agent Platform."
+    evidence: "https://www.googlecloudpresscorner.com/2026-04-22-Tata-Steel-Partners-with-Google-Cloud-To-Deploy-a-Unified-agentic-AI-Across-its-Global-Value-Chain"
+    confidence: 0.95
+
+  - claim: "Safety EyeQ is a deployed computer vision agent (using Google Gemini and PaliGemma VLMs) analyzing live video in high-risk shop-floor zones for SOP adherence, PPE detection, and hazard proximity — with real-time alerts."
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.93
+
+  - claim: "Tata Steel Digital Assistant (TDA) is a deployed internal portal querying three domains (public data, enterprise systems, proprietary user data) for integrated decision-making; reduced customer complaint turnaround by 50%."
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.93
+
+  - claim: "Xomnia partnership delivered a production anomaly detection + fault classification ML system on the hot strip mill, capable of detecting up to 80% of stalling and transmission failures before they cause downtime."
+    evidence: "https://xomnia.com/tata-steel-predicts-manufacturing-problems-with-machine-learning/"
+    confidence: 0.88
+
+  - claim: "Tata Steel published peer-reviewed ML research on bearing wear prediction using PLSR, ANN, and Random Forest at Shotton site, published in Expert Systems with Applications (2021)."
+    evidence: "https://www.sciencedirect.com/science/article/pii/S0957417421010836"
+    confidence: 0.90
+
+  - claim: "ML research published on hot strip rolling mill at Port Talbot in IEEE conference proceedings (2024), demonstrating academic-grade applied ML output from operations teams."
+    evidence: "https://ieeexplore.ieee.org/document/10560883/"
+    confidence: 0.88
+
+  - claim: "Tata Group (parent) signed foundational partnership with OpenAI and TCS: enterprise ChatGPT access for Tata employees and industry-specific agentic AI solution development — likely to flow into Tata Steel use cases."
+    evidence: "https://www.tata.com/newsroom/business/tata-openai-partnership"
+    confidence: 0.85
+
+  - claim: "Tata Steel AI digital transformation delivered $1.4 billion in total savings (2015-2020) and 775% ROI on $144M invested, validating production-grade deployment scale — not aspirational PR."
+    evidence: "https://ifactory.jrsinnovation.com/blog/tata-steel-digital-twin-savings-case-study"
+    confidence: 0.75
+
+  - claim: "No evidence found of Tata Steel publishing models on Hugging Face or submitting papers to NeurIPS, ICML, or KDD. Research output is application-focused (IEEE, Springer, Expert Systems with Applications) not foundational ML research."
+    evidence: "[unverified — exhaustive search returned no results]"
+    confidence: 0.80
+
+  - claim: "Tata Steel has no confirmed dedicated responsible-AI governance policy document; safety governance is framed via worldsteel Safety and Health Excellence Recognition and Zero Harm 2030 program, not a standalone AI ethics framework."
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2025/tata-steel-awarded-worldsteel-safety-and-health-excellence-recognition-2025-for-process-safety-management/"
+    confidence: 0.72
+
+  - claim: "Tata Steel HPC cluster consists of 1,208 CPU cores, 14 GPU cores, and 576 TB storage supporting CFD, FEM, and AI/ML workloads — indicating on-premise compute alongside cloud."
+    evidence: "https://www.tatasteel.com/investors/integrated-report-2024-25/intellectual-capital.html"
+    confidence: 0.92
+
+open_questions:
+  - "Exact model breakdown by domain (blast furnace, rolling, casting, logistics, customer) — 588 total is known but sub-domain split beyond 75/20 not publicly confirmed."
+  - "Which specific OpenAI models (GPT-4o, o3, Codex) are being used in Tata Steel workflows vs. purely TCS-level deployment?"
+  - "Does Zen AI allow export/deployment of custom fine-tuned models or only prompt-based agents on Google's 200+ model catalogue?"
+  - "What is the state of the DataDrivenSteel initiative at IJmuiden Netherlands — any published ML datasets or open collaborations with TU Delft or Eindhoven?"
+  - "14 GPU cores on HPC cluster is extremely small for serious ML training — are production model training workloads purely cloud-based (Google Cloud / AWS / IBM) or is on-premise GPU capacity understated?"
+
+assumptions:
+  - "The '$1.4 billion savings' figure cited across case studies refers to cumulative digital transformation savings (2015-2020) and not specifically AI/ML ROI — conflation risk exists in third-party sources."
+  - "The 800+ AI models figure mentioned in hackathon prompt likely extrapolates from the 588 FY25 figure + organic growth trend; not confirmed in any official Tata Steel statement found."
+  - "Safety EyeQ uses Gemini and PaliGemma as confirmed in Google Cloud press release — this is a Google Cloud Vertex AI hosted inference, not a self-trained Tata Steel model."
+
+recommendations:
+  - "Build a real-time multi-modal defect classification agent that combines Safety EyeQ-style video streams with sensor time-series (vibration, temperature, pressure) using a lightweight vision-language model fine-tuned on steel surface defect imagery — this directly extends Tata Steel's demonstrated investment in Safety EyeQ + Xomnia anomaly detection, with a clear production path through Zen AI."
+  - "Design a Zen AI agent workflow for blast furnace process optimization: natural-language operator querying over digital twin model outputs + real-time process parameter recommendations — this aligns with the 250+ digital twin models already in iROC and Tata Steel's stated goal of moving from monitoring to decision automation."
+  - "Build an AI-powered root cause analysis system for quality escapes that links surface defect signatures back to upstream process parameters (using the 11.2 PB historical dataset logic) — a clear gap identified in the Springer paper 'Tool to Combine Expert Knowledge and ML for Defect Detection and Root Cause Analysis in Hot Strip Mill' (2023), suggesting this is an active unsolved problem at Tata Steel."
+
+handoff_to:
+  - product-manager-agent
+  - ml-engineer-agent
+
+blockers: []
+```
+
+---
+
+**Key intel highlights for War Room:**
+
+| Signal | Detail |
+|---|---|
+| **Production scale** | 588 confirmed models in prod (FY25); 75% manufacturing |
+| **Data moat** | 11.2 PB operational data — massive training surface |
+| **Agentic AI live** | 300+ Zen AI agents on Google Cloud ADK (April 2026) |
+| **Active gaps** | Root cause analysis for quality escapes — published as unsolved |
+| **VLMs in prod** | Gemini + PaliGemma via Safety EyeQ — computer vision is live |
+| **Research gap** | No Hugging Face presence, no NeurIPS/ICML papers — pure applied output |
+
+Teen strongest build directions agent ne suggest kiye: (1) multi-modal defect classification, (2) blast furnace NL-to-decision agent, (3) RCA for quality escapes. Phase 2 mein product-manager-agent inhe score karega.

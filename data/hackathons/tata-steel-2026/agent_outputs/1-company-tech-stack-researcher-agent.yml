@@ -1,0 +1,141 @@
+Yeh raha Phase 1 ka Tech Stack Research YAML — verbatim agent output:
+
+---
+
+```yaml
+agent_id: company-tech-stack-researcher
+phase: 1
+summary: >
+  Tata Steel operates a mature, GCP-primary industrial cloud stack built on a 7-layer
+  Industry 4.0 architecture. The data backbone runs Google Cloud BigQuery + Google Cloud
+  Manufacturing Data Engine (MDE) as the OT data lake, with Litmus edge agents and
+  ClearBlade IoT Core (replacing deprecated Google Cloud IoT Core) bridging PLC/SCADA
+  telemetry to the cloud. The AI orchestration layer is Google Cloud Run (serverless,
+  scale-to-zero) hosting 300+ specialized agents built via Google Cloud ADK on an
+  internal low-code platform called Zen AI (launched April 2026). Supply-chain planning
+  runs on Anaplan (S&OP, demand forecasting). IT operations for the European entity are
+  automated via TCS ignio (cognitive AIOps). The ERP backbone is SAP, with SAP BODS
+  used for batch IT-data staging into BigQuery. Databricks Lakehouse for Manufacturing
+  is confirmed as a partner/user (2023 announcement). Stack is predominantly buy-not-build
+  at the platform layer, with in-house development concentrated on industrial ML models,
+  in-house smart sensors (LoRaWAN), and the Zen AI low-code agent framework. No public
+  APIs or developer-facing SDK surfaces found. GitHub presence exists but is organizationally
+  private. Security posture has no confirmed public bug-bounty program for Tata Steel
+  specifically.
+
+findings:
+  - claim: "Primary cloud provider is Google Cloud Platform (GCP); Tata Steel signed an expanded strategic partnership with Google Cloud in April 2026 for enterprise-wide agentic AI."
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.97
+
+  - claim: "300+ specialized AI agents deployed on Google Cloud Run (serverless, scale-to-zero) in nine months as of April 2026; agents orchestrated via Google Cloud Agent Development Kit (ADK)."
+    evidence: "https://www.googlecloudpresscorner.com/2026-04-22-Tata-Steel-Partners-with-Google-Cloud-To-Deploy-a-Unified-Agentic-AI-Across-its-Global-Value-Chain"
+    confidence: 0.95
+
+  - claim: "Internal low-code agent-builder platform 'Zen AI' built on Google Cloud ADK, integrated with BigQuery and Google Cloud Storage; targets non-data-scientist employees."
+    evidence: "https://www.googlecloudpresscorner.com/2026-04-22-Tata-Steel-Partners-with-Google-Cloud-To-Deploy-a-Unified-Agentic-AI-Across-its-Global-Value-Chain"
+    confidence: 0.95
+
+  - claim: "OT Data Lake architected on Google Cloud Manufacturing Data Engine (MDE) + BigQuery; provides decoupled storage/compute for scalable OT analytics."
+    evidence: "https://cloud.google.com/blog/topics/manufacturing/tata-steel-enhances-equipment-and-operations-monitoring-with-google-cloud"
+    confidence: 0.93
+
+  - claim: "Edge-to-cloud OT data pipeline uses Litmus Manufacturing Connect Edge (PLC data) and ClearBlade IoT Core for crane and plant sensor ingestion."
+    evidence: "https://cloud.google.com/blog/topics/manufacturing/tata-steel-enhances-equipment-and-operations-monitoring-with-google-cloud"
+    confidence: 0.92
+
+  - claim: "In-house smart sensors using LoRaWAN and Web APIs deployed at Jamshedpur plant; SAP BODS used for batch IT-data staging into BigQuery."
+    evidence: "https://cloud.google.com/blog/topics/manufacturing/tata-steel-enhances-equipment-and-operations-monitoring-with-google-cloud"
+    confidence: 0.90
+
+  - claim: "ERP backbone is SAP; integrated into Google Cloud via Manufacturing Data Engine and SAP ABAP SDK for manufacturing."
+    evidence: "https://cloud.google.com/blog/products/sap-google-cloud/using-manufacturing-data-engine-and-abap-sdk-for-manufacturing/"
+    confidence: 0.85
+
+  - claim: "Tata Steel Europe uses TCS ignio for IT operations automation; 83% of incidents handled autonomously, 98% reduction in fulfillment lead time."
+    evidence: "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-ignio-powers-it-transformation-tata-steel-europe"
+    confidence: 0.90
+
+  - claim: "Supply-chain S&OP and demand forecasting runs on Anaplan Connected Planning platform (Tata Steel Europe); ML-driven forecasting up to three years ahead."
+    evidence: "https://www.anaplan.com/blog/tata-steel-europe-sop-digital-transformation/"
+    confidence: 0.88
+
+  - claim: "Databricks Lakehouse for Manufacturing confirmed as a platform partner/user (announced 2023); use cases include predictive maintenance, supply chain optimization, real-time IoT analytics."
+    evidence: "https://www.databricks.com/blog/2022/08/02/how-tata-steel-is-shifting-global-manufacturing-and-production-toward-sustainability.html"
+    confidence: 0.82
+
+  - claim: "Architecture follows a 7-layer Industry 4.0 framework; data generation runs at 100 TB/month."
+    evidence: "https://ssfglobal.in/dare-to-dream-digital-steel-making-by-2025scripting-the-digital-journey-of-tata-steel/"
+    confidence: 0.82
+
+  - claim: "Internal 'Tata Steel Digital Assistant (TDA)' synthesizes global public data, enterprise systems (operational APIs, SOPs, financial records), and proprietary user data into a unified decision interface."
+    evidence: "https://www.googlecloudpresscorner.com/2026-04-22-Tata-Steel-Partners-with-Google-Cloud-To-Deploy-a-Unified-Agentic-AI-Across-its-Global-Value-Chain"
+    confidence: 0.90
+
+  - claim: "GitHub organizations TataSteel and TataSteelEurope exist but have no public repositories or visible public members; OSS footprint is effectively zero."
+    evidence: "https://github.com/TataSteel"
+    confidence: 0.85
+
+  - claim: "No public-facing developer API, public SDK, or external developer portal exists; TDA and Zen AI are internal platforms only."
+    evidence: "[unverified — exhaustive search found no public API docs, StackShare listing, or developer portal for tatasteel.com]"
+    confidence: 0.80
+
+  - claim: "Tata Steel Industrial Consulting (TSIC) commercializes internal automation IP as consulting services, not as a public software/API product."
+    evidence: "https://consulting.tatasteel.com/digital-and-automation-solutions/"
+    confidence: 0.85
+
+  - claim: "No confirmed public bug-bounty program for Tata Steel; Tata group entities with HackerOne programs are TCS and Tata Motors only."
+    evidence: "https://hackerone.com/tcsnews ; https://hackerone.com/tatamotors"
+    confidence: 0.78
+
+  - claim: "Tata Steel AI Hackathon 2026 (May 22-31, 2026) is a talent-discovery initiative; problem domains are defect detection, predictive maintenance, process optimization."
+    evidence: "https://www.talentd.in/articles/tata-steel-ai-hackathon-2026"
+    confidence: 0.92
+
+  - claim: "Microsoft Azure used as secondary cloud by a 'leading steel manufacturer'; direct attribution to Tata Steel Ltd. is probable but unconfirmed. [low-confidence]"
+    evidence: "https://www.tatatelebusiness.com/case-studies/leading-steel-manufacturer-optimizes-cloud-economics-by-building-a-future-ready-it-infrastructure-on-microsoft-azure/ [low-confidence attribution]"
+    confidence: 0.52
+
+open_questions:
+  - "Programming languages/frameworks used in Zen AI agent development (Python? Go? Java?) — not disclosed in press releases."
+  - "Whether Databricks runs on GCP or Azure at Tata Steel — unconfirmed."
+  - "Whether OSIsoft PI or GE Proficy Historian is deployed at plant level below the MDE/BigQuery stack — no public source confirms."
+  - "Specific observability/APM stack (Datadog? Google Cloud Monitoring? Dynatrace?) — not found in job postings or blogs."
+  - "Kubernetes usage: Cloud Run confirmed for agents; broader K8s cluster for batch ML workloads is unconfirmed."
+  - "Compliance certifications specific to Tata Steel Ltd. (ISO 27001, SOC 2, IEC 62443 for OT) — not confirmed in public sources."
+  - "Whether Azure secondary cloud use is confirmed for Tata Steel Ltd. or a subsidiary/JV."
+  - "Specific model registry or MLOps platform underlying the 800+ AI model fleet — Vertex AI? MLflow on Databricks? Not confirmed."
+
+assumptions: []
+
+recommendations:
+  - "Build on Zen AI's low-code gap: Zen AI likely lacks robust evaluation, drift-monitoring, and rollback tooling for production agents. A hackathon project proposing an agent quality-gate layer (automated eval + confidence scoring + human-in-the-loop escalation) on top of Google Cloud ADK/Cloud Run is technically credible and architecturally aligned."
+  - "Bridge the OT-edge latency gap: The Litmus + ClearBlade + MDE pipeline implies multi-hop latency from PLC to BigQuery before AI inference acts. A real-time anomaly-detection layer at the Litmus edge node (before cloud upload) for high-velocity sensor streams (e.g., hot-strip mill vibration) solves a genuine gap — buildable in Python/ONNX at the edge."
+  - "Operationalize TDA for external-facing decision loops: A scoped external data-sharing API (B2B, OAuth2-secured) exposing aggregated quality/delivery signals to downstream automotive/construction customers is feasible on existing Cloud Run + BigQuery stack and aligns with Tata Steel's digital differentiation narrative."
+
+handoff_to:
+  - product-manager-agent
+  - hackathon-intel-researcher-agent
+
+blockers: []
+```
+
+---
+
+**Key intel summary (Boss ke liye TL;DR):**
+
+| Layer | What Tata Steel Uses |
+|-------|---------------------|
+| **Primary Cloud** | GCP (April 2026 expanded partnership — most credible claim, 0.97) |
+| **Agent Orchestration** | Google Cloud ADK + Cloud Run — 300+ agents live |
+| **Internal Dev Platform** | **Zen AI** (low-code agent builder on ADK) |
+| **OT Data Lake** | Google Cloud Manufacturing Data Engine + BigQuery |
+| **Edge Layer** | Litmus Manufacturing Connect + ClearBlade IoT Core |
+| **ERP** | SAP (BODS for staging → BigQuery) |
+| **ML Platform** | Databricks Lakehouse (confirmed 2023), Vertex AI likely [unverified] |
+| **Supply Chain** | Anaplan (Europe) |
+| **IT AIOps** | TCS ignio (Europe) |
+| **Public APIs/SDK** | **None** — zero external developer surface |
+| **OSS** | **Near-zero** — GitHub orgs exist but private |
+
+**Hackathon ke liye key insight:** Stack is GCP-native. Agar solution Cloud Run + BigQuery + Vertex AI pe build karo, to judges ko instantly credible lagega — Tata Steel ki apni production stack se align hoga.

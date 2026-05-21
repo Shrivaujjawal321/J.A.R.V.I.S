@@ -51,7 +51,10 @@ from .models import (
     TaskStateView,
     TaskStatus,
 )
+from .critic import Critic
+from .intent import IntentClassifier
 from .orchestrator import aggregate_results, run_parallel_workers, run_worker
+from .recall import Recaller
 from .scheduler import GoalScheduler, resume_goal_after_approval
 from .state import JarvisState
 
@@ -86,6 +89,25 @@ scheduler = GoalScheduler(
     poll_interval_seconds=GOAL_POLL_INTERVAL,
     max_concurrent_goals=GOAL_MAX_CONCURRENT,
 )
+
+# Self-growth singletons — Phase A (recall) + Phase B (critic) + intent classifier. See specs/.
+recaller = Recaller(project_root=PROJECT_ROOT)
+critic = Critic(project_root=PROJECT_ROOT)
+intent_classifier = IntentClassifier(project_root=PROJECT_ROOT)
+
+# Phase C — conversation log written here, consumed by scripts/auto_capture.py
+CONVERSATION_LOG = PROJECT_ROOT / "data" / "logs" / "conversations.jsonl"
+
+
+def _append_conversation_log(entry: dict) -> None:
+    """Best-effort append of one chat turn to the conversation log."""
+    try:
+        CONVERSATION_LOG.parent.mkdir(parents=True, exist_ok=True)
+        import json as _json
+        with CONVERSATION_LOG.open("a") as fh:
+            fh.write(_json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        log.warning("conversation log append failed: %s", exc)
 
 
 @asynccontextmanager
@@ -139,7 +161,16 @@ async def get_state() -> dict[str, int | float]:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest) -> ChatResponse:
-    """Sync single-worker chat. Reuses prior session if resume_session=True."""
+    """Sync single-worker chat. Reuses prior session if resume_session=True.
+
+    Pipeline (see specs/intent-classifier.spec.md + recall.spec.md + critic.spec.md):
+      1. Intent — classify the message (task/question/feedback/…). Cheap Haiku.
+      2. Recall — pull relevant memory chunks, build <jarvis_memory_context> block.
+      3. Worker — Claude Code session with augmented prompt.
+      4. Critic — silent reviewer; revises once if verdict=revise.
+    """
+    import asyncio as _asyncio  # local import keeps top-level deps unchanged
+
     conv = await state.get_or_create_conversation(req.user_id)
     resume_id = conv.last_session_id if req.resume_session else None
 
@@ -150,8 +181,36 @@ async def chat(req: ChatRequest) -> ChatResponse:
         req.message[:80],
     )
 
+    # ── 1. Intent classification + Recall (run in parallel — independent layers) ─
+    intent_task = _asyncio.create_task(
+        intent_classifier.classify(req.message, req.user_id)
+    )
+    recall_result = await _asyncio.to_thread(recaller.gather, req.message, req.user_id)
+    intent_result = await intent_task
+
+    memory_context = recall_result.context
+
+    # Build augmented prompt. Intent block always present (even synthetic) — gives
+    # the worker a stable header it can branch on.
+    intent_block = intent_result.to_block()
+    if memory_context:
+        augmented_prompt = (
+            intent_block
+            + "\n"
+            + memory_context
+            + "\n\n---\n\nUSER MESSAGE:\n"
+            + req.message
+        )
+    else:
+        augmented_prompt = (
+            intent_block
+            + "\n\n---\n\nUSER MESSAGE:\n"
+            + req.message
+        )
+
+    # ── 2. Primary worker ─────────────────────────────────────────────────────
     outcome = await run_worker(
-        req.message,
+        augmented_prompt,
         project_root=PROJECT_ROOT,
         resume_session_id=resume_id,
         max_turns=req.max_turns,
@@ -162,7 +221,28 @@ async def chat(req: ChatRequest) -> ChatResponse:
             reply=f"⚠️ Worker error: {outcome.error}",
             error=outcome.error,
             duration_ms=outcome.duration_ms,
+            memory_hits=recall_result.n_chunks,
+            intent=intent_result.category,
+            priority=intent_result.priority,
         )
+
+    # ── 3. Critic (verify + optional revise) ──────────────────────────────────
+    try:
+        critique_outcome = await critic.evaluate(
+            user_message=req.message,
+            jarvis_reply=outcome.text,
+            memory_context=memory_context,
+            user_id=req.user_id,
+        )
+        final_reply = critique_outcome.final_reply
+        confidence = critique_outcome.confidence
+        revised = critique_outcome.revised
+    except Exception as exc:
+        # Critic must never break the response path
+        log.warning("critic pipeline failed: %s — shipping original reply", exc)
+        final_reply = outcome.text
+        confidence = "unverified"
+        revised = False
 
     await state.update_conversation(
         req.user_id,
@@ -170,11 +250,31 @@ async def chat(req: ChatRequest) -> ChatResponse:
         cost_delta=outcome.cost_usd or 0.0,
     )
 
+    # Phase C — append this turn to the conversation log for auto_capture.py
+    _append_conversation_log({
+        "ts": datetime.utcnow().isoformat(),
+        "user_id": req.user_id,
+        "user_msg": req.message,
+        "reply": final_reply,
+        "confidence": confidence,
+        "memory_hits": recall_result.n_chunks,
+        "revised": revised,
+        "intent": intent_result.category,
+        "priority": intent_result.priority,
+        "duration_ms": outcome.duration_ms,
+        "cost_usd": outcome.cost_usd,
+    })
+
     return ChatResponse(
-        reply=outcome.text,
+        reply=final_reply,
         session_id=outcome.session_id,
         cost_usd=outcome.cost_usd,
         duration_ms=outcome.duration_ms,
+        confidence=confidence,
+        memory_hits=recall_result.n_chunks,
+        revised=revised,
+        intent=intent_result.category,
+        priority=intent_result.priority,
     )
 
 

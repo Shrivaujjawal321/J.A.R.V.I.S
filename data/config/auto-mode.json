@@ -1,6 +1,7 @@
 {
-  "mode": "autopilot",
+  "mode": "fullauto",
   "_comment": "Modes: manual | autopilot | fullauto. See .claude/skills/auto-mode/SKILL.md for tier definitions.",
-  "_set_at": "2026-05-12T00:00:00Z",
-  "_set_by": "initial-build"
+  "_set_at": "2026-05-14T00:00:00Z",
+  "_set_by": "boss-rag-decathlon-mandate",
+  "_scope_note": "Boss authorised fullauto explicitly for the RAG Decathlon mission (10 production RAG projects). Tier-4 refusals still absolute."
 }

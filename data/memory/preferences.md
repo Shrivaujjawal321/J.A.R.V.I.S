@@ -1,6 +1,14 @@
+---
+type: principle
+zone: cold
+last_reviewed: 2026-05-15
+---
+
 # My Preferences
 
 > How I like things. Jarvis adapts behavior based on this.
+> **Memory type**: `principle` — rules of engagement, high-value, slow-decay.
+> **Zone**: `cold` — load at every session start.
 
 ## Communication
 

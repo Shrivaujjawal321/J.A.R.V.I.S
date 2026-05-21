@@ -69,11 +69,16 @@ async def run_worker(
     max_turns: int = 15,
     allowed_tools: list[str] | None = None,
     timeout_seconds: int = 300,
+    model: str | None = None,
 ) -> WorkerOutcome:
     """Run a single Claude Code worker via the Agent SDK.
 
     Collects streaming output into a single text response. Captures session_id
     (for resumability) and total_cost_usd (for quota tracking).
+
+    `model` (optional) selects a specific Claude model — e.g. Haiku for the critic
+    layer. If the installed Agent SDK build doesn't accept a `model` kwarg, it is
+    silently dropped (Claude picks the default).
     """
     options_kwargs: dict = {
         "cwd": str(project_root),
@@ -83,8 +88,19 @@ async def run_worker(
         options_kwargs["resume"] = resume_session_id
     if allowed_tools is not None:
         options_kwargs["allowed_tools"] = allowed_tools
+    if model:
+        options_kwargs["model"] = model
 
-    options = ClaudeAgentOptions(**options_kwargs)
+    try:
+        options = ClaudeAgentOptions(**options_kwargs)
+    except TypeError as exc:
+        # SDK build may not support `model` — retry without it
+        if model and "model" in str(exc):
+            log.debug("ClaudeAgentOptions rejected model=%r, retrying without", model)
+            options_kwargs.pop("model", None)
+            options = ClaudeAgentOptions(**options_kwargs)
+        else:
+            raise
 
     started = time.perf_counter()
     text_parts: list[str] = []

@@ -1,0 +1,68 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+// design-note: masonry built with CSS columns — robust, no JS, scales well.
+// images are Unsplash hotlinks; replace with real club photography before launch.
+const images = [
+  {
+    src: 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=1000&q=80',
+    alt: 'Close-up of a snooker triangle and reds, freshly racked on green felt',
+    span: 'tall',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1611404432790-3eaf2bbed09e?auto=format&fit=crop&w=1000&q=80',
+    alt: 'Wide view of a billiards hall with brass pendant lighting and walnut walls',
+    span: 'wide',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1604066867775-43f48e3957d8?auto=format&fit=crop&w=900&q=80',
+    alt: 'A cue resting against a pool table, dim ambient light',
+    span: 'tall',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?auto=format&fit=crop&w=900&q=80',
+    alt: 'A pool player lining up a long shot in low light',
+    span: 'wide',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80',
+    alt: 'A coach demonstrating cue technique to a student',
+    span: 'tall',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1626176239319-d4a8d3fbd5b9?auto=format&fit=crop&w=900&q=80',
+    alt: 'Whisky glasses and amber bottles arranged on a backlit bar shelf',
+    span: 'wide',
+  },
+];
+---
+
+<section id="gallery" class="relative py-32 md:py-40 bg-ink-soft">
+  <div class="container-cp">
+    <div class="hairline mb-20"></div>
+
+    <SectionHeader
+      eyebrow="The Room"
+      title="A few quiet evenings, in pictures."
+      accent="quiet evenings"
+      align="center"
+    />
+
+    <div class="mt-16 columns-1 sm:columns-2 lg:columns-3 gap-5 reveal-stagger">
+      {
+        images.map((img, i) => (
+          <figure class="mb-5 break-inside-avoid group relative overflow-hidden rounded-sm" style={`--i: ${i}`}>
+            <img
+              src={img.src}
+              alt={img.alt}
+              class="w-full h-auto block transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</section>

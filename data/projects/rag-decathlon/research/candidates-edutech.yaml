@@ -1,0 +1,278 @@
+# RAG Decathlon — Education & Tutoring Domain
+# Scout: research-agent | Date: 2026-05-14
+
+- name: ncert-concept-tutor — NCERT Concept-Dependency GraphRAG Tutor
+  problem_statement: >
+    JEE/NEET/CBSE students hit walls on concepts (e.g., electrochemical cells) and get
+    flat explanations. No tool tells them WHY they're stuck — which prerequisite from
+    Chapter 2 or Class 10 they never internalised. This tool builds a directed concept-
+    dependency graph over NCERT Class 9–12 PDFs, then uses GraphRAG to trace failure paths.
+  target_user: >
+    JEE Advanced / NEET aspirants, Class 11–12 CBSE students, repeaters consuming coaching
+    content but hitting persistent conceptual blocks.
+  why_now_2026: >
+    GraphRAG (Microsoft open-sourced, maturing) + FSRS-6 spaced repetition default in Anki.
+    KnowLP / EDU-GraphRAG (AAAI 2026 paper, arxiv 2506.22303) validated prerequisite-relation
+    graph approach. NCERT PDFs fully open-access. No JEE tool does prerequisite graph tracing.
+  current_pain: >
+    78% of JEE toppers in 2026 used AI tools — all flat explainers (PhysicsWallah AI,
+    Doubtnut, jee-neet-solver.in). Answer to "why can't I understand X" is always
+    re-explanation of X, never diagnosis of missing prerequisite.
+  data_sources:
+    - "NCERT Class 9–12 PDFs (ncert.nic.in — fully free)"
+    - "CBSE/JEE/NEET syllabus structure (public, official)"
+    - "Manually seeded prerequisite-edge list for ~200 core concepts (LLM-extracted)"
+  rag_technique: GraphRAG
+  rag_technique_why: >
+    Flat vector RAG gives semantically similar chunk — always the concept itself. GraphRAG's
+    multi-hop traversal is the ONLY technique that naturally expresses "you need A before
+    B before C." Pedagogically correct mapping to Bloom's taxonomy + Ausubel's meaningful
+    learning theory. EDU-GraphRAG (AAAI 2026) validates this with measurable improvement.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    Combines GraphRAG (2026 hot technique), educational AI (booming vertical), India-
+    specific dataset. Demonstrates: graph construction, entity extraction, multi-hop
+    retrieval, structured remediation output, FSRS integration.
+  recruiter_pitch: >
+    "GraphRAG over NCERT's 200+ concept graph — diagnoses WHY you're stuck in JEE prep
+    by tracing prerequisite gaps, not re-explaining the same chapter."
+  unique_angle: >
+    No competitor combines prerequisite-graph tracing with NCERT open corpus. First tool
+    that answers "why am I stuck" instead of "what is the answer."
+  reference_competitors:
+    - name: PhysicsWallah AI Doubt Solver
+      url: https://www.pw.live/
+      why_we_differ: Flat LLM explanation. No graph, no prerequisite tracing.
+    - name: jee-neet-solver.in
+      url: https://jee-neet-solver.in/
+      why_we_differ: OCR + LLM Q&A over photos. No concept graph.
+    - name: EDU-GraphRAG (AAAI 2026)
+      url: https://arxiv.org/abs/2506.22303
+      why_we_differ: Academic paper with no public product or India dataset.
+
+- name: upsc-rag-grader — UPSC Mains Answer Grader with RAG-Grounded Fact Verification
+  problem_statement: >
+    UPSC Mains answer writing has the hardest feedback loop in Indian exams. Existing
+    AI graders (CollectorBabu, SuperKalam, Dalvoy) score structure and keywords but
+    CANNOT verify factual claims against authoritative sources. This adds a RAG layer:
+    every factual claim retrieved against PIB press releases, Yojana, NCERT, government
+    reports — grader BOTH scores AND flags incorrect facts with cited corrections.
+  target_user: >
+    UPSC CSE Mains aspirants (~0.5M annually), especially self-study aspirants who cannot
+    afford Rs. 10,000+/month premium coaching mentor feedback.
+  why_now_2026: >
+    Agentic RAG (survey: arXiv 2501.09136) + entity-linking RAG (arXiv 2512.05967) mature
+    enough to ground claim verification. PIB and The Hindu publicly scrapeable. NO existing
+    UPSC AI tool does source-grounded fact verification — all use pure LLM evaluation.
+  current_pain: >
+    Aspirants mix real facts, half-remembered stats, invented committee names. No current
+    tool catches this. AI graders give confidence boosts on factually wrong answers.
+    Reddit r/UPSC: "AI evaluation rewards sounding confident, not being correct."
+  data_sources:
+    - "PIB (Press Information Bureau) press releases — free RSS feed"
+    - "Insights IAS daily current affairs archive"
+    - "NCERT political science, history, geography PDFs"
+    - "Yojana magazine PDF archive (yojana.gov.in — government)"
+    - "Ministry websites annual reports (free PDFs)"
+    - "UPSC previous year question papers"
+  rag_technique: agentic+hybrid
+  rag_technique_why: >
+    (1) Answer Segmentation — split user answer into atomic claims via structured LLM output.
+    (2) Claim-level RAG — each hits hybrid retriever (BM25 + dense, Vercel-deployed via
+    Upstash Vector/Supabase pgvector). Claims tagged [VERIFIED | UNVERIFIED | CONTRADICTED].
+    Hybrid retrieval essential — UPSC facts involve proper nouns and specific numbers where
+    keyword matching outperforms pure semantic.
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 10
+  portfolio_leverage_why: >
+    P0 portfolio piece. Hybrid retrieval, claim extraction, agentic parallel verification,
+    graded UI. India's most competitive exam (~12M registered over years). Any Indian
+    edtech or AI recruiter immediately understands market size.
+  recruiter_pitch: >
+    "RAG-grounded UPSC answer evaluator — verifies every factual claim against PIB, NCERT,
+    government reports — not just keyword matching. Catches wrong facts LLM graders miss."
+  unique_angle: >
+    No existing UPSC AI tool does source-grounded verification. All (CollectorBabu,
+    SuperKalam, Dalvoy, EduMind) are pure LLM evaluators. First with fact-check layer.
+  reference_competitors:
+    - name: CollectorBabu
+      url: https://collectorbabu.com/
+      why_we_differ: 55K+ evaluated answers, zero RAG grounding. Cannot detect factual errors.
+    - name: SuperKalam
+      url: https://superkalam.com/
+      why_we_differ: Premium Rs.475/month. No source citation for corrections.
+    - name: Prayas.ai
+      url: https://prayas.ai/
+      why_we_differ: Pure LLM rubric scoring. No corpus retrieval.
+
+- name: arxiv-feynman-explainer — Multimodal arXiv Paper Explainer with Figures + Equations
+  problem_statement: >
+    ML/AI researchers use ExplainPaper, SciSpace, Elicit — explain text well but BLIND to
+    most important parts: LaTeX equations, architecture diagrams, result graphs, pseudocode.
+    "Attention Is All You Need" is 40% figures and equations. Multimodal RAG: PDFs parsed
+    to extract text + rendered equation images + figure crops. Users ask "what does Figure 3
+    show?" or "explain equation 4 as if I'm a high schooler" at 5 Feynman depth levels.
+  target_user: >
+    AI/ML students and researchers globally; Indian M.Tech/PhD applicants reading papers
+    for first time; undergrads reading SOTA papers for hackathons/thesis. Strong overlap
+    with Boss's peer group.
+  why_now_2026: >
+    Multimodal RAG now feasible at low cost: GPT-4o-mini/Gemini Flash 2.0 accept images at
+    ~$0.001/image. pymupdf extracts page images. UniDoc-Bench (arXiv 2510.03663) and
+    MegaRAG (arXiv 2512.20626) validated multimodal document RAG. FeynmanBench
+    (arXiv 2604.03893, Apr 2026) shows diagrammatic reasoning frontier. ExplainPaper
+    stagnating — no multimodal update since 2023.
+  current_pain: >
+    ExplainPaper highlights text; SciSpace explains paragraphs; both skip figures entirely.
+    "What does the ablation in Table 2 show?" — they hallucinate or refuse. Reddit
+    r/MachineLearning and r/learnmachinelearning flag this as #1 frustration.
+  data_sources:
+    - "arXiv open access PDFs (arxiv.org — fully free)"
+    - "arXiv abstract + metadata API"
+    - "Semantic Scholar Open Research Corpus (free tier)"
+    - "User-uploaded PDF (no copyright issue)"
+  rag_technique: multimodal
+  rag_technique_why: >
+    (1) PDF ingestion via pymupdf — extract text chunks per section + render each page as PNG.
+    (2) Figure/equation detection: layout parser. (3) Dual-index: text chunks → vector store;
+    figure crops → second index with vision-LLM-generated descriptions + raw image. (4)
+    Route to text or image index based on query type. (5) 5-level Feynman output via
+    structured Pydantic model. HM-RAG (arXiv 2504.12330) hierarchical multi-agent pattern.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    AI/ML recruiters all read papers. Tool that explains figures and equations gets
+    immediate personal use + credibility. Demonstrates multimodal RAG, vision-LLM, dual-
+    index architecture. "Explain this figure" demo immediately compelling.
+  recruiter_pitch: >
+    "Multimodal RAG paper explainer — unlike ExplainPaper/SciSpace, actually reads the
+    figures, equations, tables. Ask 'explain Figure 3' at 5 Feynman depth levels."
+  unique_angle: >
+    No existing explainer handles figures/equations with RAG grounding. All text-only.
+    First multimodal one. Feynman-level personalisation has no direct competitor.
+  reference_competitors:
+    - name: ExplainPaper
+      url: https://www.explainpaper.com/
+      why_we_differ: Text-only. Cannot see figures, equations, tables. Last update 2023.
+    - name: SciSpace (Typeset)
+      url: https://typeset.io/
+      why_we_differ: Limited figure support, no equation OCR.
+    - name: Elicit
+      url: https://elicit.com/
+      why_we_differ: Literature review tool, not single-paper explainer.
+
+- name: gate-pyq-variant-engine — GATE PYQ Variant-Detection Engine
+  problem_statement: >
+    GATE CSE/DA aspirants grind PYQs topic-by-topic but miss cross-year variant patterns.
+    A 2024 OS scheduling question is a disguised variant of 2018 algorithm question.
+    No tool surfaces this. Students re-derive same insight from scratch. This indexes
+    15 years of PYQs semantically — when you attempt a question, tells you: "Variant of
+    GATE 2019 Q47 (OS Scheduling). Your approach was X. Delta here is Y."
+  target_user: >
+    GATE CSE/DA aspirants (~200K registered annually). Especially 2nd/3rd attempt students
+    who have seen PYQs but lack system to exploit pattern memory.
+  why_now_2026: >
+    Dense passage retrieval + cross-encoder reranking (2026 standard) make semantic
+    similarity over math/CS questions highly accurate. GATE PYQ PDFs publicly free.
+    GATE Overflow has community-tagged solutions but no semantic variant detection.
+  current_pain: >
+    GATE Overflow is topic-tag search only. GeeksforGeeks topic-indexed. No tool says
+    "you've solved this exact variant before — recall that solution." Students maintain
+    cross-reference notebooks manually — error-prone, doesn't scale.
+  data_sources:
+    - "GATE CSE + DA official papers 2010–2026 (IIT/IISC, free PDFs)"
+    - "GATE Overflow solution threads (public, scrapeable)"
+    - "GeeksforGeeks GATE topic solutions"
+    - "MADE EASY solution PDFs (where freely available)"
+  rag_technique: hybrid+rerank
+  rag_technique_why: >
+    Hybrid with cross-encoder reranking: (1) Per-question chunks with year/subject/marks/
+    topic metadata. (2) Dense via sentence-transformers (BAAI/bge-small-en-v1.5 math-aware).
+    (3) BM25 for formula/keyword (critical for CS/math notation). (4) Cross-encoder
+    reranker (ms-marco-MiniLM-L-6-v2). (5) HDBSCAN clustering offline + LLM-labeled
+    archetypes. Cross-encoder reranker critical for mathematical reasoning quality.
+  buildable_in_hours: 7
+  complexity_score: 7
+  portfolio_leverage_score: 8
+  portfolio_leverage_why: >
+    Demonstrates PDF parsing, hybrid retrieval, cross-encoder reranking (key 2026 RAG skill),
+    unsupervised clustering + LLM labelling. GATE is India's most prestigious engineering
+    entrance.
+  recruiter_pitch: >
+    "GATE PYQ variant-detection engine — semantic RAG over 15 years of CSE questions
+    surfaces the exact past problem you've solved sharing the same underlying reasoning."
+  unique_angle: >
+    First tool to do archetype clustering over GATE PYQs and surface cross-year variants.
+    Automates what GATE toppers build manually in their heads.
+  reference_competitors:
+    - name: GATE Overflow
+      url: https://gateoverflow.in/
+      why_we_differ: Topic-tag search only. No semantic similarity, no variant detection.
+    - name: GeeksforGeeks GATE Section
+      url: https://www.geeksforgeeks.org/gate-cs-notes-gq/
+      why_we_differ: Topic-wise static articles. No search-by-similarity.
+
+- name: ocw-nptel-path-builder — Agentic OCW + NPTEL Learning Path Builder
+  problem_statement: >
+    Developer wants to learn "LLM fine-tuning" or student wants to "understand transformer
+    architecture before reading Attention Is All You Need." Searching MIT OCW, Stanford SEE,
+    NPTEL, fast.ai, YouTube independently takes hours and produces unordered pile with gaps.
+    No tool takes a learning goal, queries across OCW, identifies prerequisite gaps in
+    user's background, orders dependency-respecting, produces week-by-week plan with
+    verified lecture links.
+  target_user: >
+    Self-taught engineers, Indian CS/ECE students preparing for US MS or deep-tech jobs,
+    professionals upskilling in AI/ML who cannot afford MOOCs. Strong overlap with Boss's
+    LinkedIn ICP (ML engineers, fresh grads, career switchers).
+  why_now_2026: >
+    Agentic RAG (arXiv 2501.09136, Jan 2026 survey) deployable, not just research. MIT OCW
+    sitemap usable. NPTEL (nptel.ac.in) IIT lecture archive fully free, structured.
+    GraphRAG-induced dual knowledge structure (AAAI 2026) addresses learning path
+    optimisation. No consumer product has shipped agentic multi-source curriculum builder.
+  current_pain: >
+    roadmap.sh is static. ChatGPT generates hallucinated course links. Perplexity doesn't
+    verify URLs or order by dependency. Students waste time on broken links. r/learnmachine
+    learning, r/cscareerquestions, r/Indian_Academia: "every roadmap tool hallucinated."
+  data_sources:
+    - "MIT OpenCourseWare (ocw.mit.edu) — sitemap-accessible"
+    - "NPTEL course list (nptel.ac.in — India IIT lectures, fully free)"
+    - "fast.ai course materials (openly licensed)"
+    - "arXiv CS.LG/CS.AI course-companion papers"
+    - "Stanford Engineering Everywhere SEE (free)"
+    - "freeCodeCamp curriculum (GitHub-hosted)"
+  rag_technique: agentic
+  rag_technique_why: >
+    4-agent pipeline: (1) PLANNER decomposes goal into sub-skills with prerequisite edges.
+    (2) RETRIEVER hybrid BM25+dense search per sub-skill over indexed OCW/NPTEL/fast.ai
+    syllabi, returns ranked lecture URLs. (3) GAP-DETECTOR compares user background against
+    retrieved chain. (4) SEQUENCER topological sort + week-by-week wrap. LangGraph/asyncio
+    (Vercel-friendly). Single-agent RAG produces unordered list.
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 10
+  portfolio_leverage_why: >
+    Agentic RAG is THE hottest interview topic for AI engineer roles in 2026. This is
+    a live demo of the concept. Universal personal pain — every recruiter wants to try.
+    NPTEL integration makes it India-specific and relatable.
+  recruiter_pitch: >
+    "Agentic RAG curriculum builder — 4-agent pipeline (planner, retriever, gap-detector,
+    sequencer) produces personalised week-by-week path from MIT OCW + NPTEL + fast.ai
+    with real verified links, ordered by concept dependency."
+  unique_angle: >
+    No existing tool combines: agentic multi-source retrieval, prerequisite gap detection
+    against user background, topological sort, verified lecture URLs. roadmap.sh static,
+    ChatGPT hallucinates. This grounds every recommendation in a real retrieved document.
+  reference_competitors:
+    - name: roadmap.sh
+      url: https://roadmap.sh/
+      why_we_differ: Static manually-curated. Not personalised. No OCW integration.
+    - name: Coursera Learning Paths
+      url: https://www.coursera.org/
+      why_we_differ: Paid, single-platform, not goal-decomposed.
+    - name: Perplexity / ChatGPT learning plans
+      url: https://www.perplexity.ai/
+      why_we_differ: Hallucinated course links, no RAG grounding, no dependency ordering.

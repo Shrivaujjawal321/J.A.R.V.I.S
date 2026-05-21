@@ -1,0 +1,248 @@
+Here is the mandatory-tech-deep-dive agent's Phase 1 YAML output verbatim:
+
+---
+
+```yaml
+agent_id: mandatory-tech-deep-dive
+phase: 1
+summary: >
+  required_tech is "none" — Tata Steel AI Hackathon 2026 imposes no mandatory SDK, API, or
+  platform. However, three high-leverage angles exist. (1) ROUND 1 domain intelligence:
+  steel defect detection and predictive maintenance are well-benchmarked verticals; the
+  winning pattern is gradient-boosted ensembles (LightGBM/XGBoost/CatBoost) with domain
+  feature engineering, Optuna HPO, and SHAP explainability — not deep learning, because
+  HackerEarth tabular challenges consistently reward GBM stacks. (2) Platform mechanics:
+  HackerEarth uses public/private leaderboard splits and accepts unlimited submissions;
+  strict local CV alignment to avoid public-LB overfitting is the differentiator. (3) ROUND
+  2 alignment signal: Tata Steel publicly announced a 300+ AI-agent fleet built on Google
+  Cloud ADK + LangGraph-style state machines in April 2026 — building Round 2's agentic
+  system with explicit alignment to their Zen AI / TDA architecture vocabulary will
+  maximally impress sponsor judges.
+
+findings:
+  - claim: >
+      required_tech is none — any language, framework, or ML library is permitted.
+      External datasets are explicitly prohibited in Round 1.
+    evidence: "HACKATHON input contract (aggregator-sourced) [unverified — primary HackerEarth page JS-gated]"
+    confidence: 0.8
+
+  - claim: >
+      HackerEarth ML challenges use a public/private leaderboard split. Submissions are
+      evaluated instantly against a public test subset; final ranking uses the full private
+      test set after deadline. Best score across all submissions is used.
+    evidence: "https://help.hackerearth.com/hc/en-us/articles/360002712873-Machine-Learning-ML-"
+    confidence: 0.9
+
+  - claim: >
+      HackerEarth ML challenges require both a prediction CSV and uploaded source code
+      plus a text explanation of approach. Judges score code functionality and
+      problem-solving approach in addition to leaderboard rank.
+    evidence: "https://help.hackerearth.com/hc/en-us/articles/360002712873-Machine-Learning-ML-"
+    confidence: 0.85
+
+  - claim: >
+      Gradient boosting algorithms (XGBoost, LightGBM, CatBoost) win most HackerEarth
+      tabular ML challenges. Ensembling 3-5 GBM models with diverse hyperparameters is the
+      documented winning pattern.
+    evidence: "https://www.hackerearth.com/practice/machine-learning/advanced-techniques/winning-tips-machine-learning-competitions-kazanova-current-kaggle-3/tutorial/"
+    confidence: 0.92
+
+  - claim: >
+      LightGBM trains approximately 7x faster than XGBoost and 2x faster than CatBoost,
+      making it the preferred base model for rapid iteration in 10-day competitions.
+      CatBoost outperforms LightGBM when categorical features dominate.
+    evidence: "https://createbytes.com/insights/xgboost-lightgbm-catboost-gradient-boosting"
+    confidence: 0.9
+
+  - claim: >
+      Feature engineering is documented as the highest-leverage activity in HackerEarth
+      ML competitions — outweighs model selection. For sensor/process data, rolling
+      statistics (mean, std, min, max over windows), lag features, and Fourier-transform
+      features are the critical additions.
+    evidence: "https://www.hackerearth.com/practice/machine-learning/challenges-winning-approach/machine-learning-challenge-one/tutorial/"
+    confidence: 0.88
+
+  - claim: >
+      Optuna with TPESampler finds near-optimal hyperparameters for LightGBM/XGBoost in
+      ~100 trials (5-10 minutes wall time). Cross-validation alignment to public leaderboard
+      score is the overfitting guard; 5-fold stratified CV is standard.
+    evidence: "https://optuna.readthedocs.io/"
+    confidence: 0.92
+
+  - claim: >
+      AutoGluon 1.5 (tabular) with preset best_quality runs multi-layer stack ensembling
+      automatically and ranked #1 in OpenML AutoML Benchmark 2023 (avg rank 1.95 vs
+      FLAML's 5.33). For a 10-day solo competition, AutoGluon as a baseline beats manual
+      single-model baselines immediately.
+    evidence: "https://auto.gluon.ai/stable/tutorials/tabular/tabular-quick-start.html"
+    confidence: 0.85
+
+  - claim: >
+      Steel surface defect detection on the NEU-DET benchmark: EfficientNetB3 achieves
+      0.981 accuracy; improved YOLOv9/YOLOv10 variants are SOTA for detection/segmentation.
+      For tabular defect classification (non-image), SMOTE + XGBoost achieves ~0.99
+      accuracy on the Kaggle steel-plate defects dataset.
+    evidence: "https://link.springer.com/article/10.1007/s11665-025-11136-2"
+    confidence: 0.82
+
+  - claim: >
+      Severstal Kaggle 2019 (closest public proxy to Tata Steel Round 1): winning approach
+      used two-stage pipeline — classifier first (defect present/absent), then
+      segmentation only on positive samples. FPN with SE-ResNext50 encoder outperformed
+      UNet. Ensembling with TTA (h-flip, v-flip) gave final lift. This pattern applies
+      directly if Round 1 is an image segmentation task.
+    evidence: "https://diyago.github.io/2019/11/20/kaggle-severstal.html"
+    confidence: 0.75
+
+  - claim: >
+      For predictive maintenance tabular challenges (sensor time series), the
+      scientifically benchmarked winning stack is: Random Forest + LightGBM + XGBoost
+      ensemble with rolling-window statistical features + anomaly score from Isolation
+      Forest as a meta-feature. Deep learning (LSTM, Transformer) loses on small tabular
+      sensor datasets due to data volume constraints.
+    evidence: "https://www.nature.com/articles/s41598-025-08515-z"
+    confidence: 0.85
+
+  - claim: >
+      Class imbalance is highly likely in defect detection datasets (rare defect classes).
+      SMOTE + XGBoost stack achieves near-perfect accuracy (0.9915) on steel plate
+      classification. SMOTE-ENN and SMOTE-TOMEK (combined oversampling + cleaning) are
+      superior to plain SMOTE for manufacturing defect data.
+    evidence: "https://link.springer.com/article/10.1007/s11665-025-11136-2"
+    confidence: 0.87
+
+  - claim: >
+      SHAP (SHapley Additive exPlanations) used as a visualization layer in the submitted
+      code directly addresses the "problem-solving approach" judging criterion and signals
+      industrial AI maturity. Tata Steel's own published AI systems emphasize
+      explainability for shop-floor operator trust.
+    evidence: "https://shap.readthedocs.io/en/latest/"
+    confidence: 0.88
+
+  - claim: >
+      Tata Steel deployed 300+ specialized AI agents in 9 months (April 2026 announcement)
+      using Google Cloud ADK, BigQuery, and Cloud Run. Their internal platforms are named
+      Zen AI (low-code agent builder) and TDA (Tata Steel Digital Assistant). Round 2
+      judges are almost certainly from this team.
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.95
+
+  - claim: >
+      Tata Steel's agentic deployment includes Safety EyeQ (live video hazard detection via
+      Gemini vision-language models), Asset Sphere Agents (predictive maintenance), and
+      customer complaint agents that reduced turnaround by 50%. Round 2 agentic project
+      should mirror these use-case categories to align with evaluator vocabulary.
+    evidence: "https://www.tatasteel.com/newsroom/press-releases/india/2026/tata-steel-partners-with-google-cloud-to-deploy-a-unified-agentic-ai-across-its-global-value-chain/"
+    confidence: 0.93
+
+  - claim: >
+      Tata Steel has built 550+ AI models over 5-6 years; their own reports cite 20%
+      reduction in unplanned downtime from predictive maintenance AI. Any Round 1 model
+      should beat this baseline to be presentation-worthy.
+    evidence: "https://themachinemaker.com/news/tata-steel-embraces-ai-with-550-models-to-boost-efficiency-and-quality/"
+    confidence: 0.88
+
+  - claim: >
+      LangGraph is the production standard for stateful agentic workflows requiring
+      auditability and deterministic control — the exact requirements for industrial
+      manufacturing AI agents. CrewAI is faster to prototype but loses on production
+      credibility. LangGraph + checkpointer pattern maps directly to Tata Steel's
+      described architecture.
+    evidence: "https://www.langchain.com/langgraph"
+    confidence: 0.87
+
+  - claim: >
+      For Round 2, a supervisor-orchestrator + specialist worker pattern (hierarchical
+      delegation) with LangGraph's interrupt/human-in-the-loop for Tier-3 decisions
+      directly mirrors Tata Steel's Zen AI governance model. Demoing this pattern with a
+      manufacturing anomaly detection use case is the top-1% angle.
+    evidence: "https://www.langchain.com/langgraph"
+    confidence: 0.82
+
+  - claim: >
+      HackerEarth tabular ML challenges historically use metrics such as F1-score (for
+      imbalanced classification), RMSE/MAE (for regression/prediction tasks), and accuracy.
+      Defect detection will almost certainly be F1 or macro-F1; process optimization
+      targets (yield, energy) will be RMSE/MAE. [unverified for this specific challenge —
+      metric locked until 2026-05-22]
+    evidence: "[unverified — metric released at problem unlock 2026-05-22 18:00 IST]"
+    confidence: 0.5
+
+  - claim: >
+      AutoGluon 1.5.1 is the latest stable release (as of May 2026). Its
+      TabularPredictor with presets='best_quality' trains stacked ensembles automatically,
+      computes permutation-based feature importance, and supports custom evaluation metrics
+      via eval_metric parameter. Single-line fit for competition baseline.
+    evidence: "https://auto.gluon.ai/stable/tutorials/tabular/tabular-quick-start.html"
+    confidence: 0.88
+
+  - claim: >
+      Gradient boosting with physics-informed features for steel (Koistinen-Marburger
+      martensite kinetics, Grossmann hardenability theory) achieves domain-expert
+      differentiation that pure data-driven models cannot match in judge presentation.
+      Published 2026 paper demonstrates this on 8 AISI steel grades.
+    evidence: "https://www.mdpi.com/2073-4352/16/1/61"
+    confidence: 0.78
+
+  - claim: >
+      Public-LB overfitting is the #1 failure mode in 10-day HackerEarth challenges.
+      Correct mitigation: set up stratified K-fold CV before first submission; track local
+      CV score vs public LB score; submit only when CV and LB are within 0.5% of each
+      other. Divergence indicates distribution shift or target leakage.
+    evidence: "https://www.hackerearth.com/practice/machine-learning/advanced-techniques/winning-tips-machine-learning-competitions-kazanova-current-kaggle-3/tutorial/"
+    confidence: 0.9
+
+  - claim: >
+      Gradient Boosting Reinforcement Learning (GBRL, ICML 2025) outperforms neural
+      networks in domains with structured/categorical observations — directly applicable
+      to process optimization with categorical process parameters. [low-confidence — novel
+      technique, limited industrial validation]
+    evidence: "https://icml.cc/virtual/2025/poster/45118"
+    confidence: 0.5
+
+open_questions:
+  - "Exact evaluation metric for Round 1 is locked until 2026-05-22 18:00 IST — F1 vs RMSE vs custom metric will determine whether classification or regression pipeline should be primary."
+  - "Whether Round 1 dataset is tabular sensor data, image data, or both — changes the primary model architecture (GBM vs CNN/YOLO)."
+  - "Whether Round 1 has a single target variable or multi-output (e.g., defect type + severity simultaneously)."
+  - "Round 2 problem statement is also locked — need to confirm if it requires integration of Round 1 model into the agentic workflow or is a standalone agentic build."
+  - "HackerEarth daily submission limit for this specific challenge is unknown — typically 5-10 per day on past challenges [unverified for this event]."
+
+assumptions:
+  - "Round 1 is most likely a tabular ML challenge given 'dataset-provided' framing and 10-day window — not a real-time deployment task."
+  - "Defect detection in Round 1 is likely binary or multi-class classification (defect type), not segmentation — HackerEarth platform is not optimized for image submission pipelines."
+  - "Judge panel for Round 2 and Round 3 includes Tata Steel AI/data team members given PPI offer structure — alignment with their published tech vocabulary (Zen AI, TDA, ADK) is strategically valuable."
+  - "External pre-trained models (e.g., scikit-learn, XGBoost, PyTorch) are permitted; 'external datasets' prohibition refers to additional training data, not pre-trained weights. [unverified]"
+
+recommendations:
+  - >
+    ROUND 1 CORE STACK: LightGBM + XGBoost + CatBoost stacked ensemble with Optuna HPO
+    (300 trials, TPESampler), SMOTE-ENN for class imbalance, rolling-window + lag feature
+    engineering for any time-series columns, SHAP summary plots in the submitted code.
+    Use AutoGluon best_quality as a Day-1 baseline to anchor CV score immediately.
+  - >
+    ROUND 1 DIFFERENTIATOR: Add physics-informed features derived from steel metallurgy
+    domain knowledge (temperature thresholds, carbon equivalent formulas, Grossmann
+    hardenability correlations). This directly addresses the "problem-solving approach"
+    judging criterion and signals domain expertise beyond pure ML skill.
+  - >
+    ROUND 2 ARCHITECTURE: LangGraph stateful supervisor-worker graph with explicit
+    human-in-the-loop interrupt nodes (mirrors Tata Steel's Zen AI governance model).
+    Wrap Round 1 model as a Tool node. Build specialist agents for anomaly-alert,
+    root-cause-analysis, and maintenance-schedule recommendation. Name the system
+    architecture in alignment with their published vocabulary — "unified agentic workflow"
+    with a "command center" visualization.
+  - >
+    PLATFORM DISCIPLINE: Establish stratified 5-fold CV on Day 1 after dataset unlock.
+    Never submit a model whose local CV score diverges from public LB by more than 0.5%.
+    Reserve final 2 submission slots for ensemble models only. Keep a local experiment
+    log tracking CV score, public LB score, and model description for every submission.
+
+handoff_to:
+  - backend-engineer-agent
+  - ml-engineer-agent
+  - frontend-engineer-agent
+
+blockers:
+  - "Round 1 dataset and evaluation metric locked until 2026-05-22 18:00 IST — no model architecture can be finalized before unlock. Preparation work: build feature engineering pipeline templates for both tabular-classification and tabular-regression. Have both GBM and CNN pipelines scaffolded and ready to switch."
+  - "HackerEarth challenge page is JS-gated — full submission rules (daily limit, allowed file types, source code format requirements) cannot be confirmed without registration. Must register and read the problem page on 2026-05-22."
+```

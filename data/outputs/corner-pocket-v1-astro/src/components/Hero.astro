@@ -1,0 +1,92 @@
+---
+// Hero — full-bleed snooker felt close-up, gold serif wordmark, dual CTA
+// Tagline options (pick one for production; current pick is #1):
+//   1. "Where the city racks up after dark."    ← punchy, locality, double-meaning on 'racks'
+//   2. "Cue lights. Velvet felt. No clock."     ← editorial, sensory triplet, hints at "lose track of time"
+//   3. "A house for the perfect break."         ← double-meaning on 'break' (shot + escape)
+// design-note: shipping #1 — strongest verb, place-anchored, and "after dark" sets the premium-bar mood without saying it.
+---
+
+<section id="top" class="relative min-h-[100svh] w-full overflow-hidden bg-ink">
+  <!-- Felt close-up — Unsplash hotlink, replace with brand photo before launch -->
+  <div class="absolute inset-0">
+    <img
+      src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=2400&q=80"
+      alt=""
+      role="presentation"
+      class="h-full w-full object-cover object-center opacity-50"
+      fetchpriority="high"
+      decoding="async"
+    />
+    <!-- Layered gradient — protects type contrast over any photo -->
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/60 to-ink"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-ink/40"></div>
+    <!-- Subtle felt ambient glow -->
+    <div class="felt-ambient"></div>
+  </div>
+
+  <!-- Decorative brass hairline at top of content area -->
+  <div class="absolute left-0 right-0 top-32 h-px bg-brass-line opacity-40"></div>
+
+  <div class="container-cp relative flex min-h-[100svh] flex-col justify-center pt-32 pb-20">
+    <div class="max-w-3xl reveal">
+      <p class="eyebrow mb-6">
+        <span class="inline-block h-px w-8 align-middle bg-gold mr-3"></span>
+        Est. 2019 — Bandra West, Mumbai
+      </p>
+
+      <h1 class="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.02] tracking-tightest text-cream mb-8">
+        Where the city
+        <span class="block italic font-normal text-gold">racks up</span>
+        <span class="block">after dark.</span>
+      </h1>
+
+      <p class="max-w-xl text-lg sm:text-xl text-cream-muted leading-relaxed mb-10 font-serif font-normal">
+        Tournament-grade snooker. A walnut-and-brass lounge bar. Coaching with a former
+        national champion. A members' club for people who take a clean break seriously.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="#booking" class="btn-gold">
+          Book a Table
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M1 7h12M8 2l5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+        <a href="#membership" class="btn-outline">Become a Member</a>
+      </div>
+    </div>
+
+    <!-- Stats / proof bar — anchors the empty bottom -->
+    <div class="mt-20 lg:mt-28 grid grid-cols-2 sm:grid-cols-4 gap-px bg-walnut-light/30 border border-walnut-light/30 rounded-sm overflow-hidden max-w-3xl reveal">
+      {
+        [
+          { v: '6', l: 'Snooker tables', sub: 'Tournament-grade' },
+          { v: '4', l: 'Pool tables', sub: 'American 9-ball' },
+          { v: '1', l: 'Lounge bar', sub: 'Single-malt led' },
+          { v: '24/7', l: 'For members', sub: 'Private room' },
+        ].map((s) => (
+          <div class="bg-ink/80 backdrop-blur-sm p-5 sm:p-6">
+            <div class="font-display text-3xl text-gold leading-none mb-1.5">{s.v}</div>
+            <div class="text-xs uppercase tracking-widest text-cream font-medium">{s.l}</div>
+            <div class="text-[0.7rem] text-cream-dim mt-0.5">{s.sub}</div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <!-- Scroll cue -->
+  <div
+    class="absolute bottom-6 left-1/2 -translate-x-1/2 text-cream-dim animate-shimmer"
+    aria-hidden="true"
+  >
+    <div class="flex flex-col items-center gap-2">
+      <span class="text-[0.65rem] uppercase tracking-widest">Scroll</span>
+      <svg width="14" height="20" viewBox="0 0 14 20" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="13" height="19" rx="6.5" />
+        <line x1="7" y1="5" x2="7" y2="9" stroke-linecap="round" />
+      </svg>
+    </div>
+  </div>
+</section>

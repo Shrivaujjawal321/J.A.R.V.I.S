@@ -1,0 +1,7 @@
+seed: 42
+n_folds: 5
+n_trials: 50
+timeout_optuna_sec: 1800
+metric_classification: f1_macro
+metric_regression: rmse
+metric_segmentation: dice

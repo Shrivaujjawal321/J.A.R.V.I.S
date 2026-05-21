@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "slug": "tata-steel-2026",
+  "started_at": "2026-05-13T09:30:00+00:00",
+  "updated_at": "2026-05-13T19:00:50.640487+00:00",
+  "current_phase": "done",
+  "current_checkpoint": null,
+  "input_contract": {
+    "COMPANY": {
+      "name": "Tata Steel Limited",
+      "url": "https://www.tatasteel.com",
+      "focus": "Industrial AI / Manufacturing AI — defect detection, predictive maintenance, process optimization, decision automation across steel manufacturing operations. Tata Steel runs 800+ AI models in production (confirmed via case studies)."
+    },
+    "HACKATHON": {
+      "url": "https://www.hackerearth.com/community/challenges/competitive/tata-steel-ai-hackathon/",
+      "problem_statements": "Multi-round AI/ML hackathon with three stages:\n\nROUND 1 — Machine Learning Challenge (2026-05-22 to 2026-05-31): Participants develop ML models on Tata Steel-provided datasets. Evaluation: model accuracy (leaderboard score) + code functionality + problem-solving approach. Domain areas confirmed: defect detection in steel products, predictive maintenance, process optimization, decision automation in manufacturing. EXACT problem statement, dataset description, target variable, and evaluation metric are LOCKED behind HackerEarth login — unlock at 2026-05-22 18:00 IST.\n\nROUND 2 — Agentic AI Challenge (2026-06-05 to 2026-06-15): For Round 1 shortlisted candidates. Focus on autonomous AI systems, intelligent workflows, real-world decision-making models. Agent-based workflows and autonomous decision-making approaches.\n\nROUND 3 — Final Interview / PPI (2026-06-22 to 2026-06-26): Technical interviews and business problem-solving evaluations.\n\n[unverified — sourced via 4 cross-referenced aggregators; primary HackerEarth page is JS-gated until registration]",
+      "deadline": "2026-05-31T23:59 IST (Round 1 close — initial submission). Full process ends 2026-06-26 (PPI finals).",
+      "team_size": "1 (individual participation only — multiple submissions allowed in Round 1, best leaderboard score counts)",
+      "required_tech": "none — any language, framework, ML library permitted. External datasets PROHIBITED in Round 1.",
+      "judging_rubric": "ROUND 1: model accuracy (primary, leaderboard) + code functionality + problem-solving approach. ROUND 2: innovation + technical design + real-world applicability + business impact. ROUND 3: technical knowledge + model-building skills + analytical thinking + business problem-solving. [unverified — aggregator-sourced, official T&Cs locked until registration]"
+    },
+    "TEAM": {
+      "roles": "Solo — Boss (Ujjawal) as Individual Contributor",
+      "skill_levels": "Boss: AI-native developer, senior-mid AI/ML profile. Strong in: LLM orchestration, prompt engineering, Python, fine-tuning workflows, RAG, agentic systems, Claude/OpenAI APIs. Hackathon-experienced.",
+      "time_budget_hours": 60,
+      "domain_experience": "None in steel manufacturing / metallurgy. Boss is generalist AI/ML dev; this is a cold domain. Will need fast ramp on industrial defect-detection / time-series-maintenance patterns."
+    },
+    "CONSTRAINTS": {
+      "budget": "none (free-tier only, no spend authorisation)",
+      "cloud_credits": "Boss to confirm — assume free tier (Kaggle GPU 30h/week, Colab free, GCP/AWS free tier). Round 1 mostly tabular ML — CPU sufficient. Round 2 LLM calls = Anthropic Max subscription (jarvis-core OAuth).",
+      "ip_rules": "[unverified] IP transfers to organisers (HackerEarth + Tata Steel) IF Boss wins and accepts prize. Other participants retain ownership. Must read official T&Cs post-registration on 2026-05-22 to confirm."
+    }
+  },
+  "phase_outputs": {
+    "1": {
+      "agents_dispatched": 7,
+      "agents_ok": 6,
+      "agents_failed": 1,
+      "duration_s": 607,
+      "company_report": "data/hackathons/tata-steel-2026/phase_1_research/company_intelligence_report.md",
+      "hackathon_report": "data/hackathons/tata-steel-2026/phase_1_research/hackathon_intelligence_report.md",
+      "completed_at": "2026-05-13T16:16:16.833113+00:00"
+    },
+    "2": {
+      "report": "data/hackathons/tata-steel-2026/phase_2_problems.md",
+      "duration_s": 906,
+      "completed_at": "2026-05-13T16:44:00.876511+00:00",
+      "method": "daemon_synthesis_after_worker_timeout"
+    },
+    "3": {
+      "method": "daemon_synthesis_after_worker_hang",
+      "per_problem": {
+        "surface-defect-vlm-rca": {
+          "report": "data/hackathons/tata-steel-2026/phase_3_solutions/problem_surface-defect-vlm-rca.md",
+          "composite_reassessed": 8.40
+        },
+        "eaf-electrode-pdm": {
+          "report": "data/hackathons/tata-steel-2026/phase_3_solutions/problem_eaf-electrode-pdm.md",
+          "composite_reassessed": 8.35
+        },
+        "quality-escape-rca": {
+          "report": "data/hackathons/tata-steel-2026/phase_3_solutions/problem_quality-escape-rca.md",
+          "composite_reassessed": 8.30
+        }
+      },
+      "completed_at": "2026-05-14T00:30:00+00:00"
+    }
+  },
+  "shortlisted_problem_ids": [
+    "surface-defect-vlm-rca",
+    "eaf-electrode-pdm",
+    "quality-escape-rca"
+  ],
+  "selected_problem_id": ["surface-defect-vlm-rca", "eaf-electrode-pdm", "quality-escape-rca"],
+  "portfolio_mode": true,
+  "war_room_document_path": "data/hackathons/tata-steel-2026/war_room.md",
+  "phase_4_verdict": "approve_with_changes",
+  "portfolio_composite": 7.83,
+  "scoring_weights": {
+    "innovation": 0.2,
+    "judge_appeal": 0.25,
+    "feasibility": 0.25,
+    "technical_depth": 0.15,
+    "business_potential": 0.15
+  },
+  "decisions": [
+    {
+      "ts": "2026-05-13T09:30:00+00:00",
+      "phase": 0,
+      "action": "input_contract_auto_filled_via_research_agents",
+      "note": "Boss requested research-agent dispatch. Two parallel research agents cross-confirmed hackathon details. Most fields auto-filled. 2 fields await Boss confirm: TEAM.time_budget_hours, CONSTRAINTS.cloud_credits."
+    },
+    {
+      "ts": "2026-05-13T16:28:03.399414+00:00",
+      "checkpoint": "1",
+      "decision": "approve"
+    },
+    {
+      "ts": "2026-05-13T19:00:38.423266+00:00",
+      "checkpoint": "2",
+      "decision": "pick",
+      "ids": [
+        "surface-defect-vlm-rca",
+        "eaf-electrode-pdm",
+        "quality-escape-rca"
+      ]
+    }
+  ],
+  "errors": [],
+  "telegram_chat_id": null,
+  "war_room_document_path": null,
+  "research_notes": {
+    "primary_sources": [
+      "https://www.hackerearth.com/community/challenges/competitive/tata-steel-ai-hackathon/",
+      "https://www.hackerearth.com/hackathon/explore/field/machine-learning/",
+      "https://www.tatasteel.com/corporate/our-organisation/innovation/",
+      "https://aiexpert.network/case-study-tata-steels-ai-transformation/"
+    ],
+    "secondary_sources_aggregators": [
+      "https://frontlinesmedia.in/tata-steel-ai-hackathon-2026-registration-eligibility-rounds-prizes-hiring-opportunities/",
+      "https://www.talentd.in/articles/tata-steel-ai-hackathon-2026",
+      "https://coursejoiner.com/hackathon/tata-steel-ai-hackathon-2026-for/"
+    ],
+    "overall_confidence": 0.72,
+    "gap_blockers": [
+      "Exact Round 1 problem statement (locked until 2026-05-22 18:00 IST)",
+      "Exact dataset spec / target variable / evaluation metric (locked)",
+      "Exact Round 2 task (revealed only to Round 1 shortlist)",
+      "Official T&Cs / IP clause full text (locked until registration)"
+    ],
+    "tata_steel_known_ai_deployments": [
+      "800+ AI models + intelligent agents (across defect detection, predictive maintenance, process optimization, decision automation)",
+      "Computer vision for surface defect detection at rolling mills",
+      "ML-driven predictive maintenance — 15% reduction in unplanned downtime",
+      "Industry 4.0 lighthouse plants with digital twin + AI optimisation"
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-05-13T09:02:01.194123+00:00",
+  "agents": {
+    "career-coach": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "code-reviewer": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "critic": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "customer-support": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "prompt-engineer": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "recall": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    },
+    "research-analyst": {
+      "status": "no_report",
+      "passed": 0,
+      "failed": 0,
+      "pending": 0,
+      "total": 0,
+      "pass_rate": 0.0,
+      "report_path": null
+    }
+  }
+}

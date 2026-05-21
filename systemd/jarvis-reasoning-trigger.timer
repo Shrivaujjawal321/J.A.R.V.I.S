@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Reasoning Trigger — every 4 hours
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./specs/reasoning-trigger.spec.md
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=4h
+Persistent=true
+RandomizedDelaySec=180
+Unit=jarvis-reasoning-trigger.service
+
+[Install]
+WantedBy=timers.target

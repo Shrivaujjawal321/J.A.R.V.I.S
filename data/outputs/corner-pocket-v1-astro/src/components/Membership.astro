@@ -1,0 +1,135 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+const tiers = [
+  {
+    name: 'Casual',
+    pitch: 'For the curious and the occasional.',
+    priceMonthly: '₹2,000',
+    annualSaving: '',
+    perks: [
+      'Booking access up to 5 days ahead',
+      'Off-peak rates Mon–Thu',
+      'Two guest passes per quarter',
+      'Lounge bar at member pricing',
+      'Quarterly newsletter & event invites',
+    ],
+    ctaLabel: 'Enquire',
+    featured: false,
+  },
+  {
+    name: 'Regular',
+    pitch: 'The home tier — for most of the room.',
+    priceMonthly: '₹8,000',
+    annualSaving: 'Save ₹12k annually',
+    perks: [
+      'Booking access 14 days ahead',
+      'Unlimited play, all hours',
+      'Six guest passes per quarter',
+      '10% off coaching & private hire',
+      'Entry to all monthly tournaments',
+      'Locker with personal cue storage',
+    ],
+    ctaLabel: 'Join the Regulars',
+    featured: true,
+  },
+  {
+    name: 'Elite',
+    pitch: 'For those who treat the room as a second home.',
+    priceMonthly: '₹25,000',
+    annualSaving: 'Save ₹45k annually',
+    perks: [
+      'Booking access 30 days ahead — priority resolution',
+      'Unlimited play & guest privileges',
+      'Two coaching hours per month, included',
+      'Annual invitational entry confirmed',
+      'Private room — four bookings per year',
+      'Concierge: bar tab, late hours, special requests',
+    ],
+    ctaLabel: 'Apply for Elite',
+    featured: false,
+  },
+];
+---
+
+<section id="membership" class="relative py-32 md:py-40">
+  <div class="container-cp">
+    <SectionHeader
+      eyebrow="The Roll"
+      title="Three ways in."
+      accent="Three"
+      intro="Membership is annual, billed monthly. All tiers include access to the floor, the bar, and the room's standards. Choose the one that fits how often you'd like to be here."
+    />
+
+    <div class="mt-16 grid md:grid-cols-3 gap-6 lg:gap-8 items-stretch reveal-stagger">
+      {
+        tiers.map((tier, i) => (
+          <article
+            class={`relative flex flex-col p-8 lg:p-10 rounded-sm border transition-all duration-500
+              ${
+                tier.featured
+                  ? 'bg-walnut/50 border-gold/40 shadow-gold-glow lg:-translate-y-4'
+                  : 'bg-walnut/30 border-walnut-light/40 hover:border-brass/40'
+              }`}
+            style={`--i: ${i}`}
+          >
+            {tier.featured && (
+              <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-ink text-[0.65rem] uppercase tracking-widest font-medium px-3 py-1 rounded-sm">
+                Most Chosen
+              </span>
+            )}
+
+            <header class="mb-8">
+              <h3 class="font-display text-3xl text-cream mb-2">{tier.name}</h3>
+              <p class="text-sm text-cream-muted font-serif italic">{tier.pitch}</p>
+            </header>
+
+            <div class="mb-8 pb-8 border-b border-walnut-light/30">
+              <div class="flex items-baseline gap-2">
+                <span class={`font-display text-5xl leading-none ${tier.featured ? 'text-gold' : 'text-cream'}`}>
+                  {tier.priceMonthly}
+                </span>
+                <span class="text-xs uppercase tracking-widest text-cream-dim">/ month</span>
+              </div>
+              {tier.annualSaving && (
+                <p class="mt-2 text-xs text-brass">{tier.annualSaving}</p>
+              )}
+            </div>
+
+            <ul class="space-y-3.5 mb-10 flex-1">
+              {tier.perks.map((perk) => (
+                <li class="flex items-start gap-3 text-sm text-cream-muted leading-relaxed">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke={tier.featured ? '#d4af37' : '#b08d57'}
+                    stroke-width="1.5"
+                    class="flex-shrink-0 mt-1"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 7l3 3 7-7" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span>{perk}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a
+              href="#booking"
+              class={tier.featured ? 'btn-gold w-full justify-center' : 'btn-outline w-full justify-center'}
+            >
+              {tier.ctaLabel}
+            </a>
+          </article>
+        ))
+      }
+    </div>
+
+    <p class="mt-12 text-center text-xs text-cream-dim font-sans tracking-wide max-w-xl mx-auto">
+      Membership applications are reviewed weekly. A one-time joining fee of ₹15,000
+      applies to Regular and Elite tiers. Day passes available for non-members at the door.
+    </p>
+  </div>
+</section>

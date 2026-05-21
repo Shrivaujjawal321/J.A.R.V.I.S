@@ -1,0 +1,280 @@
+# RAG Decathlon — Healthcare & Wellness Domain
+# Scout: research-agent
+# Date: 2026-05-14
+
+- name: glp1-nutrition-copilot — GLP-1 Nutrition Gap Advisor
+  problem_statement: >
+    GLP-1 users (Ozempic, Wegovy, Mounjaro) lose 20–50% lean mass from muscle if they
+    don't hit protein/micronutrient targets — yet 2026 clinical studies confirm >60% consume
+    below requirements for calcium and iron and average only 20% of recommended Vitamin D.
+    No structured nutrition-guidance tool exists at the point of need; patients are googling
+    "what to eat on Ozempic" and getting SEO blog spam.
+  target_user: >
+    The ~15M US adults currently on GLP-1 agonists (market growing 40% YoY). Especially
+    the majority without dietitian access. Secondary: obesity medicine clinicians wanting
+    a patient handout tool.
+  why_now_2026: >
+    Feb 2026 ScienceDaily/Nature IJO paper names the "nutrition guidance gap" for GLP-1
+    therapy. 2026 Wiley Clinical Obesity review catalogued specific micronutrient deficiencies.
+    FDA approved 3 new GLP-1 variants late 2025, expanding user base.
+  current_pain: >
+    Reddit r/Ozempic, r/loseit users get contradictory bro-science replies. Only structured
+    resource is a $200/session RD visit. Drugs.com/Mayo Clinic pages are generic.
+    Source: https://www.nature.com/articles/s41366-025-01952-w
+    Source: https://onlinelibrary.wiley.com/doi/10.1111/cob.70070
+  data_sources:
+    - "PubMed/PMC open-access via NCBI E-utilities API (free): https://www.ncbi.nlm.nih.gov/home/develop/api/"
+    - "USDA FoodData Central API (free): https://fdc.nal.usda.gov/api-guide.html"
+    - "NIH Office of Dietary Supplements fact sheets: https://ods.od.nih.gov/factsheets/"
+    - "American Society for Nutrition 2026 GLP-1 priorities (open access)"
+    - "ASMBS bariatric post-op guidelines (public PDF)"
+  rag_technique: hybrid+rerank
+  rag_technique_why: >
+    User asks conversational food/supplement questions; needs both keyword match
+    (specific nutrient names) AND semantic understanding ("will I lose muscle?").
+    Two-stage hybrid BM25 + dense + Voyage rerank-2.5 gives Recall@5 ~0.82.
+  buildable_in_hours: 7
+  complexity_score: 5
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    Demonstrably 2026-grounded (paper citations in UI), addresses documented public-health
+    gap, shows applied ML engineering on real clinical literature — not toy corpus.
+  recruiter_pitch: >
+    "RAG-powered nutrition advisor for GLP-1 users — retrieves from 200+ peer-reviewed
+    papers and USDA data to fill the documented micronutrient-guidance gap."
+  unique_angle: >
+    All existing tools (MyFitnessPal, Cronometer) track calories — none trained on the
+    specific GLP-1 muscle-loss + micronutrient literature.
+  safety_notes: >
+    - Hard disclaimer: "Not a substitute for a registered dietitian."
+    - Every response includes 1-3 cited PubMed abstracts (with PMID links).
+    - Refusal pattern: questions containing "dose", "stop taking" → "Please discuss with
+      your prescribing physician."
+    - Nutrient amounts stated as ranges from literature, never personalised dosing.
+  reference_competitors:
+    - name: MyFitnessPal
+      url: https://www.myfitnesspal.com
+      why_we_differ: Tracks calories but no GLP-1 muscle-preservation guidance or RAG over literature.
+    - name: Mayo Clinic GLP-1 Nutrition Page
+      url: https://store.mayoclinic.com/education/glp-1-medications-and-muscle-loss-what-to-know-about-nutrition-and-supplements/
+      why_we_differ: Static article, not queryable.
+
+- name: polypharmacy-explainer — Safe Medication Overlap Educator for Seniors
+  problem_statement: >
+    Elderly patients on 5+ medications have a 5% annual hospitalization rate from drug
+    interactions — yet pharmacy apps give walls of FDA jargon or "consult your doctor."
+    A RAG system over DrugBank, openFDA labels, and PubMed interaction meta-analyses
+    can explain mechanism and risk in plain English, citing sources.
+  target_user: >
+    Adults 65+ managing chronic polypharmacy (US: ~40% of adults 65+ take 5+ medications).
+    Family caregivers managing parent's medication list. Secondary: pharmacists.
+  why_now_2026: >
+    2024 PMC study of 287 hospitalizations (median age 78) found 5% caused by polypharmacy
+    side effects. 2025 NLM update of free DDI dataset (DrugBank-backed) in JSON.
+    OpenFDA Adverse Events API returns structured JSON from >18M FAERS reports.
+  current_pain: >
+    r/AskDocs flooded with "my mom takes lisinopril + ibuprofen + metformin + Eliquis,
+    is this safe?" posts. drugs.com gives severity tags ("Major") with no mechanism explanation.
+    NSAIDs + anticoagulants are #1 combination in FAERS adverse-event deaths for seniors.
+    Source: https://pmc.ncbi.nlm.nih.gov/articles/PMC6534631/
+  data_sources:
+    - "NLM DrugBank DDI dataset (free JSON, monthly updates)"
+    - "openFDA Drug Adverse Events API: https://open.fda.gov/apis/drug/"
+    - "openFDA Drug Label API"
+    - "RxNorm API (NIH)"
+    - "PubMed abstracts via NCBI E-utilities"
+  rag_technique: structured+hybrid
+  rag_technique_why: >
+    Interaction data is structured (severity, mechanism, management fields in DrugBank JSON).
+    PubMed abstracts add semantic depth. Hybrid with BM25 on drug names + dense on
+    symptom/mechanism queries ensures correct drug-pair match every time.
+  buildable_in_hours: 8
+  complexity_score: 6
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    Multi-source data engineering (FDA + NIH + DrugBank wired into coherent RAG) — exactly
+    the multi-source skill healthcare AI companies interview for (Verily, Tempus, Flatiron).
+  recruiter_pitch: >
+    "Plain-English drug interaction explainer for seniors — retrieves from openFDA adverse
+    events (18M+ reports), NLM DrugBank, PubMed, every claim cited."
+  unique_angle: >
+    drugs.com gives severity label with no explanation. We give mechanism, red-flag symptoms,
+    and the PMC paper establishing the interaction — in 3 readable sentences.
+  safety_notes: >
+    - "Educational only. Never adjust doses or stop medications without physician/pharmacist."
+    - Refuses "should I stop", "is my doctor right", "what dose should I switch to".
+    - All FAERS figures population-level, not personal risk. No patient health history collected.
+  reference_competitors:
+    - name: Drugs.com Interaction Checker
+      url: https://www.drugs.com/drug_interactions.html
+      why_we_differ: Severity tags only; no mechanism, no source paper, no symptom watch-list.
+    - name: Epocrates
+      url: https://www.epocrates.com
+      why_we_differ: Clinician-facing, subscription-gated, clinical jargon.
+
+- name: longhauler-navigator — Long COVID Evidence Tracker
+  problem_statement: >
+    ~65M people live with Long COVID; NICE NG188 guidelines vague; 2026 clinical protocols
+    fragmented across NICE, NIH RECOVER, WHO, 400+ preprints. A RAG system retrieving
+    current best-evidence per symptom cluster — or honestly saying it doesn't exist yet —
+    is exactly what r/covidlonghaulers asks for.
+  target_user: >
+    65M global Long COVID patients with complex symptom clusters (PEM, POTS, brain fog).
+    Advocates and patient-support volunteers needing citeable evidence summaries.
+  why_now_2026: >
+    2025 validated biomarker panels (85% diagnostic accuracy) — new wave of newly-diagnosed
+    patients. NIH RECOVER published updated 2025 management protocols. Research base hit
+    critical mass (~10K+ papers since 2020) but fragmented.
+  current_pain: >
+    27,216 Reddit posts from r/covidlonghaulers: #1 complaint is "healthcare providers not
+    understanding." Patients Google symptoms → land on 2021 preprints → no way to know
+    current consensus.
+    Source: https://pmc.ncbi.nlm.nih.gov/articles/PMC10470115/
+  data_sources:
+    - "PubMed/PMC Long COVID corpus via NCBI E-utilities (~500 top-cited post-2022)"
+    - "NICE NG188 guideline (public HTML)"
+    - "NIH RECOVER Initiative publications"
+    - "WHO Post-COVID-19 condition technical brief"
+    - "CDC Long COVID resources"
+  rag_technique: agentic
+  rag_technique_why: >
+    Multi-hop questions: "what does evidence say about pacing for PEM, does it differ from
+    ME/CFS guidance?" Requires agent to identify cluster, retrieve PEM papers, retrieve
+    ME/CFS comparison, synthesise. Single-shot retrieval misses comparative reasoning.
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    Agentic RAG with live PubMed API calls is genuine 2026-SOTA demo. Honest-uncertainty
+    design demonstrates ML engineering maturity.
+  recruiter_pitch: >
+    "Agentic RAG navigator for Long COVID — live-retrieves from PubMed, NICE, WHO, NIH
+    RECOVER; synthesises current best-evidence per symptom cluster; flags evidence gaps."
+  unique_angle: >
+    ChatGPT/Perplexity hallucinate Long COVID treatment claims. This cites every claim with
+    year+PMID and explicitly surfaces 'evidence gap' cards when literature insufficient.
+  safety_notes: >
+    - "Evidence summary tool only. Not a diagnosis."
+    - Refusal on "should I take X", "stop my current medication".
+    - 'Evidence gap' card prominent when retrieval returns <3 papers above 0.6 similarity.
+    - All PMID links rendered so users can show their GP.
+    - Stateless session architecture; no health data stored.
+  reference_competitors:
+    - name: NICE NG188 Guideline Page
+      url: https://www.nice.org.uk/guidance/ng188
+      why_we_differ: Static, no symptom-specific navigation, written for clinicians.
+    - name: Perplexity Health
+      url: https://www.perplexity.ai
+      why_we_differ: General-purpose; no Long COVID corpus focus; no 'evidence gap' honesty.
+
+- name: training-load-critic — Evidence-Based Endurance Training Plan Auditor
+  problem_statement: >
+    Runna (2M users, Strava-owned) was documented Feb 2026 to be injuring runners at rates
+    PTs call "a weekly pattern." Core problem: AI training apps generate plans without
+    retrieving from sports-science literature on safe loading, HRV recovery, overtraining.
+  target_user: >
+    Amateur endurance athletes (~50M recreational runners globally) using Runna/TrainAsONE/
+    AI-generated plans. Running coaches needing literature citations for athlete-clients.
+  why_now_2026: >
+    The5kRunner.com (Feb 2026) and TechRadar published investigative pieces on Runna-linked
+    injuries, quoting PTs seeing multiple cases weekly. PMC 2025 AI Endurance paper
+    confirmed no major app uses sports-science RAG for load validation.
+    Source: https://the5krunner.com/2026/02/21/runna-ai-marathon-training-injury/
+  current_pain: >
+    Users post training weeks to r/running asking "too much?" — get anecdote replies.
+    No tool cross-references weekly load against published overtraining thresholds
+    (Meeusen 2013 consensus, ACWR >1.5 literature, HRV suppression studies).
+  data_sources:
+    - "PubMed sports-science corpus via NCBI E-utilities (~300 papers)"
+    - "Physiopedia Overtraining Syndrome page"
+    - "PMC AI in Endurance Sports 2025 review"
+    - "NASM Overtraining article (evidence-cited)"
+    - "Sports Psychiatry journal overtraining 2025 (open access)"
+  rag_technique: hybrid+rerank
+  rag_technique_why: >
+    User pastes structured training week + plain-English questions. Hybrid BM25 on exact
+    sports terms (ACWR, TSS, RPE) + dense semantic on load description + Voyage rerank-2.5
+    ensures top-3 chunks are specific overtraining literature relevant to volume/intensity.
+  buildable_in_hours: 7
+  complexity_score: 5
+  portfolio_leverage_score: 8
+  portfolio_leverage_why: >
+    Directly addresses 2026 investigative news story (Runna injuries) — building at leading
+    edge of real public conversation.
+  recruiter_pitch: >
+    "Evidence-based training-plan auditor — user pastes endurance week, RAG retrieves from
+    300+ sports-science papers on overtraining, outputs literature-cited risk assessment."
+  unique_angle: >
+    Runna/TrainAsONE are plan generators with no citation layer. First tool that says
+    "your ACWR this week is 1.6, exceeds 1.5 threshold per [Hulin 2016, PMID: 26758784]."
+  safety_notes: >
+    - "Not a substitute for a sports medicine doctor or certified coach."
+    - Refuses "I have knee pain, is it from training?" (symptom = medical, route to GP/PT)
+    - Risk thresholds cited with paper (author, year, PMID).
+    - Output framed as "literature-based flags for you to discuss" not "your plan is dangerous."
+  reference_competitors:
+    - name: Runna
+      url: https://www.runna.com
+      why_we_differ: Generates plans, no literature audit, no citation layer.
+    - name: TrainAsONE
+      url: https://www.trainasone.com
+      why_we_differ: Adaptive AI but proprietary algorithm, no source citations.
+
+- name: cbt-dbt-compass — Evidence-Based Therapy Technique Matcher
+  problem_statement: >
+    People on therapy waitlists (UK NHS 18-week avg; US 3-6 month) use journaling to
+    self-manage but have no evidence-based guidance on which CBT/DBT/ACT technique to
+    apply to logged emotional state. RAG over published workbooks + RCT outcome papers
+    matching journal entry to evidence-supported technique with PMID citation.
+  target_user: >
+    Adults on therapy waitlists, between sessions, self-managing anxiety/depression/BPD
+    traits. Jan 2026 Reddit study (arxiv 2601.20747) of 5,126 mental health posts confirms
+    users already using AI for emotional support.
+  why_now_2026: >
+    Early 2026: Myflourish.ai first RCT showing AI mental health app efficacy. arxiv
+    2601.20747 documented 5,126 active AI-for-mental-health Reddit posts. Memory-augmented
+    RAG (personalising across sessions) is 2026-SOTA and unshipped in consumer apps.
+  current_pain: >
+    Rosebud AI gives generic prompts without technique names or paper citations. Woebot
+    uses scripted CBT flows that feel robotic. Reddit users complain AI therapy apps
+    "feel like chatbots that don't know what CBT actually is."
+  data_sources:
+    - "NHS-licensed CBT worksheets (getselfhelp.co.uk — public, reusable)"
+    - "PubMed RCT corpus: ~150 CBT/DBT/ACT outcome trials, post-2010, open access"
+    - "DBT self-help public worksheets (dbtselfhelp.com)"
+    - "ACT Matrix public resources (Hayes, contextualscience.org)"
+    - "NICE Depression guideline NG222"
+  rag_technique: memory-augmented+hybrid
+  rag_technique_why: >
+    User journals over multiple sessions — memory-augmented RAG maintains rolling
+    embedding-summary of emotional patterns used as additional retrieval context.
+    Technique suggestions improve across sessions without storing raw journal text.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 10
+  portfolio_leverage_why: >
+    Memory-augmented RAG is genuine 2026-SOTA architectural pattern. Mental health is
+    highest-engagement consumer AI vertical. RCT-citation + session-memory personalisation
+    demonstrates clinical-AI engineering maturity. Stand-out project.
+  recruiter_pitch: >
+    "Memory-augmented RAG therapy-technique matcher — retrieves best-evidence CBT/DBT/ACT
+    technique from 150+ RCT papers, adapts across sessions via rolling emotional-pattern
+    memory — cited, not scripted."
+  unique_angle: >
+    Woebot/Wysa use scripted flows — no citations, no technique names. This names the
+    technique, links PMID, explains WHY it matches user's logged state, personalises
+    across sessions via rolling memory summary.
+  safety_notes: >
+    - "This provides evidence-based psychoeducation, not therapy. Cannot replace a
+       licensed mental health professional."
+    - Crisis detection: self-harm/suicidality keywords → immediate redirect to 988
+      Lifeline (US) / Samaritans (UK) with zero LLM response generated.
+    - No DSM diagnosis terms; no "you have X disorder" framing.
+    - Journal text never stored; only embedding summary (anonymised, user-deletable).
+  reference_competitors:
+    - name: Woebot
+      url: https://woebothealth.com
+      why_we_differ: Scripted CBT chatbot, no literature retrieval, no memory across sessions.
+    - name: Wysa
+      url: https://www.wysa.com
+      why_we_differ: Proprietary and non-citeable; technique selection rule-based not RAG-grounded.

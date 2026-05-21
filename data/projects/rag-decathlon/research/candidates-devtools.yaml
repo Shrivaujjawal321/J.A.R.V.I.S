@@ -1,0 +1,368 @@
+# RAG Decathlon — Developer Tooling & DevX Domain
+# Scout: research-agent
+# Date: 2026-05-14
+
+- name: mcp-sentinel — MCP Server Supply-Chain Risk Auditor
+  problem_statement: >
+    Developers installing MCP servers from registries (mcp.so, Smithery, Glama) have
+    no reliable way to verify a server's safety before granting it filesystem, shell,
+    or DB access. Static YARA scanners (Cisco mcp-scanner) catch pattern-level issues
+    but miss semantic tool-poisoning and rug-pull risks; no tool cross-references a
+    server's declared tool descriptions against known CVE semantics and past incident
+    patterns.
+  target_user: >
+    Platform engineers and AI-native developers who build or operate Claude Code /
+    Cursor / Windsurf setups with multiple MCP servers; also teams evaluating
+    third-party MCP servers before enterprise rollout.
+  why_now_2026: >
+    April–May 2026: OX Security disclosed a systemic MCP RCE affecting 150M+
+    downloads and 200k servers. The Register (2026-05-13) reported three unpatched
+    MCP database flaws. CVE-2026-30623 (CVSS 9.8 NGINX MCP), CVE-2026-23744
+    (MCPJam Inspector RCE), and 30+ additional MCP CVEs filed in Jan–Feb 2026 alone.
+    Anthropic declined to patch the STDIO architectural flaw, pushing responsibility
+    to developers — who currently have no semantic-aware audit tooling.
+  current_pain: >
+    Teams do one of: (a) manual code review of MCP server source — takes hours per
+    server; (b) run Cisco mcp-scanner (YARA patterns only, pre-deploy, no semantic
+    understanding); (c) skip auditing entirely and accept the risk. No tool
+    cross-references a server's tool descriptions against the CVE corpus or surfaces
+    "this tool claim pattern matches known prompt-injection payloads."
+    Source: https://www.theregister.com/security/2026/05/13/bug-hunter-tracks-down-three-serious-mcp-database-flaws-one-left-unpatched/5238916
+    Source: https://appsecsanta.com/research/mcp-server-security-audit-2026
+  data_sources:
+    - "NVD CVE feed (free JSON API): https://nvd.nist.gov/developers/vulnerabilities"
+    - "OSV database (Google open-source vuln): https://osv.dev/list"
+    - "GitHub Advisory Database (GraphQL API, free): https://github.com/advisories"
+    - "MCP server registries (public JSON): mcp.so, Smithery API, Glama catalog"
+    - "Cisco mcp-scanner known findings corpus (open-source, MIT): https://github.com/cisco-ai-defense/mcp-scanner"
+    - "VulnerableMCP project: https://vulnerablemcp.info"
+    - "Arxiv paper on over-privileged MCP tool audit: https://arxiv.org/html/2603.21641v1"
+  rag_technique: hybrid+rerank
+  rag_technique_why: >
+    Keyword search handles CVE ID/package-name exact matches; dense vector search
+    handles semantic similarity between tool descriptions and known attack patterns
+    (prompt injection, SSRF, path traversal). Reranker (Cohere rerank-v3 or
+    bge-reranker-v2) surfaces the most dangerous matches first. Pure vector search
+    alone misses CVE ID literals; pure BM25 misses semantic tool-poisoning patterns.
+  buildable_in_hours: 7
+  complexity_score: 7
+  portfolio_leverage_score: 10
+  portfolio_leverage_why: >
+    Directly targets Anthropic's own protocol; signals deep understanding of the
+    2026 MCP security landscape that is actively on Anthropic engineers' radar.
+    Shows hybrid RAG + security domain knowledge — rare combination.
+  recruiter_pitch: >
+    Built MCP-Sentinel: hybrid RAG (BM25 + dense + rerank) over CVE/OSV/GitHub
+    Advisory corpora that audits MCP server tool descriptions for supply-chain
+    poisoning and known CVE patterns — addressing the systemic 2026 MCP security
+    gap affecting 200k servers.
+  unique_angle: >
+    Unlike Cisco mcp-scanner (YARA patterns, no CVE cross-reference) or Enkrypt AI
+    MCP Scan (static code analysis only), MCP-Sentinel embeds a server's tool
+    *descriptions and capability claims*, cross-references them against the CVE
+    corpus and past incident narratives, and flags semantic risk (e.g., "this tool
+    description closely resembles known tool-poisoning payload from CVE-2026-22688").
+    Runtime rug-pull simulation via diff-on-tool-manifest is a stretch goal no
+    competitor addresses.
+  reference_competitors:
+    - name: Cisco AI Defense mcp-scanner
+      url: https://github.com/cisco-ai-defense/mcp-scanner
+      why_we_differ: >
+        YARA-only, pre-deploy, no CVE corpus retrieval, no semantic tool-description
+        risk scoring — purely syntactic pattern matching.
+    - name: Enkrypt AI MCP Scan
+      url: https://www.enkryptai.com/mcp-scan
+      why_we_differ: >
+        Static code analysis of server implementation; does not retrieve against
+        CVE/advisory databases or reason about tool description semantics.
+
+- name: changelog-copilot — Agentic Dependency Upgrade Intelligence
+  problem_statement: >
+    When a developer runs `npm outdated` or `pip list --outdated` and sees 30 stale
+    packages, deciding which to upgrade first — and what will break — requires reading
+    dozens of changelogs, GitHub release notes, and migration guides manually. No tool
+    retrieves, semantically chunks, and reasons across the full upgrade path
+    (CHANGELOG.md + GitHub releases + breaking-change issues) to produce a ranked,
+    effort-scored upgrade plan specific to your codebase.
+  target_user: >
+    Full-stack and backend developers maintaining production Node.js / Python
+    projects; freelancers doing paid dependency audits; AI-native devs whose
+    codebases accumulate stale deps rapidly due to AI-generated code.
+  why_now_2026: >
+    GitHub Copilot Modernization (announced March 12 2026) covers .NET-to-.NET
+    upgrades inside Visual Studio but leaves the polyglot open-source npm/PyPI
+    ecosystem completely unaddressed. Spring Boot 4 and React 19 breaking changes
+    (early 2026) created fresh backlogs. AI-generated code accelerates the rate
+    at which teams accumulate deps — and the breakage is invisible until CI fails.
+    Source: https://blog.mikehacker.net/p/upgrade-legacy-.net-apps-from-anywhere-the-github-copilot-modernize-dotnet-agent/
+  current_pain: >
+    Developers open 30 changelog pages in tabs, skim manually, copy error snippets
+    into ChatGPT, and still miss cross-package interaction breakages. Dependabot /
+    Renovate auto-opens PRs but provides zero understanding of *why* something will
+    break. The upgrade decision latency is measured in hours to days per major version
+    bump.
+  data_sources:
+    - "GitHub Releases API (free, public repos): https://docs.github.com/en/rest/releases"
+    - "GitHub raw CHANGELOG.md files via raw.githubusercontent.com"
+    - "npm registry JSON API (package metadata + GitHub repo link)"
+    - "PyPI release metadata: https://pypi.org/pypi/{pkg}/json"
+    - "GitHub Issues API filtered by label:breaking-change"
+    - "User's own package.json / requirements.txt (uploaded)"
+  rag_technique: agentic
+  rag_technique_why: >
+    Multi-step: (1) dependency parser extracts stale packages, (2) retrieval agent
+    fetches changelogs/release notes per package, (3) reasoning agent cross-references
+    retrieved breaking changes against the user's actual import surface in their
+    codebase, (4) planner produces a sequenced upgrade plan with effort scores. A
+    single-pass RAG cannot do cross-package interaction reasoning — the agent loop
+    is load-bearing.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 8
+  portfolio_leverage_why: >
+    Demonstrates agentic RAG orchestration (multi-tool, multi-source, multi-step
+    reasoning) on a universal developer pain point — signals product instinct +
+    agentic system design, valued at Stripe / Cohere.
+  recruiter_pitch: >
+    Built Changelog Copilot: agentic RAG system that ingests a project's dependency
+    manifest, retrieves and chunks changelogs/release notes/breaking-change issues
+    across GitHub + npm/PyPI, then produces a codebase-aware, effort-scored upgrade
+    plan — going beyond Dependabot's zero-context PR approach.
+  unique_angle: >
+    Dependabot/Renovate open PRs with no semantic understanding of breakage.
+    GitHub Copilot Modernization is .NET-only, VS-locked, ignores npm/PyPI.
+    Changelog Copilot: (a) retrieves real 2026 release notes not stale training
+    data, (b) reasons against the user's actual import surface, (c) produces
+    cross-package sequencing to avoid upgrade-order conflicts.
+  reference_competitors:
+    - name: Dependabot (GitHub)
+      url: https://docs.github.com/en/code-security/dependabot
+      why_we_differ: >
+        Opens PRs with no changelog understanding; does not reason about breaking
+        changes in the context of the user's actual codebase.
+    - name: GitHub Copilot Modernization
+      url: https://learn.microsoft.com/en-us/dotnet/core/porting/github-copilot-app-modernization/overview
+      why_we_differ: >
+        .NET-only, Visual Studio-locked; does not cover npm/PyPI open-source ecosystem.
+
+- name: graphblast — GraphRAG PR Blast-Radius Analyzer for Monorepos
+  problem_statement: >
+    In a monorepo, a change to one shared utility can silently break 15 downstream
+    packages; human reviewers cannot reliably trace multi-hop dependency chains at
+    review time. Existing AI code-review tools use flat vector retrieval and miss
+    structural blast radius. GraphRAG over the repo's AST-derived dependency graph
+    enables precise "what tests could break and why" answers per PR diff.
+  target_user: >
+    Platform/infra engineers and tech leads at companies running Nx/Turborepo/Bazel
+    monorepos; senior devs who own shared libraries; AI-native devs whose AI
+    generates frequent cross-package changes that overwhelm reviewers.
+  why_now_2026: >
+    Spectro Cloud (Jan 2026) reported AI coding tools are turning 2026 into "the
+    year of the monorepo" — AI-generated code creates high-frequency cross-package
+    changes. A Jan 2026 arxiv paper (2601.08773) compared AST-derived code graphs
+    vs LLM-extracted KGs for reliability; a March 2026 paper (TDAD, 2603.17973)
+    showed graph-based impact analysis reduced test regressions by 70% in agentic
+    dev workflows. The production tooling lags the research.
+    Source: https://www.spectrocloud.com/blog/will-ai-turn-2026-into-the-year-of-the-monorepo
+    Source: https://arxiv.org/html/2601.08773v1
+    Source: https://arxiv.org/html/2603.17973v1
+  current_pain: >
+    Developers use `nx affected` or `turbo --filter` for build scoping, but these
+    output package lists — not human-readable risk explanations. Reviewers still
+    manually trace "if I change utils/format.ts, which consumers break and which
+    tests cover them?" AI PR summaries (GitHub Copilot) use flat diff context with
+    no graph traversal.
+  data_sources:
+    - "User's own monorepo (local files or GitHub API: https://docs.github.com/en/rest)"
+    - "GitHub REST API v3 — PR diff, file tree"
+    - "AST parsing: tree-sitter (open-source): https://tree-sitter.github.io"
+    - "FalkorDB free tier (graph DB): https://www.falkordb.com"
+    - "Reference: CodeGraph: https://github.com/xpushkal/CodeGraph"
+    - "Reference: code-review-graph: https://github.com/tirth8205/code-review-graph"
+  rag_technique: GraphRAG
+  rag_technique_why: >
+    Flat vector retrieval treats source files as documents and misses the structural
+    "A calls B which calls C in package D" chain that is the definition of blast
+    radius. GraphRAG over an AST-derived import/call graph enables multi-hop
+    traversal: changed node → all callers → their dependents → tests covering those
+    dependents. The graph structure is load-bearing, not optional.
+  buildable_in_hours: 9
+  complexity_score: 9
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    GraphRAG is a 2026 SOTA technique with very few production devtools demos. AST-
+    to-graph pipeline signals genuine ML engineering depth aligned with current arxiv
+    research. Strong signal for Anthropic/OpenAI/Cohere hiring committees.
+  recruiter_pitch: >
+    Built GraphBlast: GraphRAG system that constructs an AST-derived call/import
+    graph over a monorepo, performs multi-hop traversal on a PR diff to compute
+    blast radius, and generates a human-readable risk report citing affected packages,
+    transitive dependents, and uncovered test paths — reducing silent monorepo
+    breakage.
+  unique_angle: >
+    `nx affected` gives a package list; GraphBlast tells you *why* each is at risk,
+    which callers are on the critical path, and which test gaps exist — grounded in
+    actual graph traversal, not LLM hallucination. Unlike code-review-graph (a
+    context-window optimization tool), GraphBlast is PR-review-native and produces
+    a shareable, cited report.
+  reference_competitors:
+    - name: code-review-graph (tirth8205)
+      url: https://github.com/tirth8205/code-review-graph
+      why_we_differ: >
+        Optimizes Claude's context window; no PR blast-radius reports, no
+        multi-hop dep-chain traversal for human-readable risk.
+    - name: Nx Affected
+      url: https://nx.dev/ci/features/affected
+      why_we_differ: >
+        Outputs affected package lists only — no risk explanation, no call-graph
+        traversal, no test-coverage gap analysis.
+
+- name: promptwatch — CI-Native Prompt Regression Guard
+  problem_statement: >
+    LLM-powered products ship prompt changes the same way teams ship config files —
+    with no regression gate. A three-word edit silently breaks a revenue pipeline;
+    a provider-side model update drifts outputs without any code change. No
+    lightweight, CI-native tool retrieves semantically similar past prompt/response
+    pairs from a golden-set corpus, diffs expected vs actual behavior, and blocks
+    the merge if regression confidence exceeds threshold.
+  target_user: >
+    AI-native product engineers and solo builders who ship LLM features with
+    iterating prompts; QA/ML engineers at teams that have graduated from vibe-checking
+    to automated eval gates; any team using Claude / GPT-4o / Gemini in production.
+  why_now_2026: >
+    A February 2026 longitudinal study confirmed "meaningful behavioral drift across
+    deployed transformer services" over a ten-week period. Martin Fowler published
+    Structured-Prompt-Driven Development (SPDD) in 2026 treating prompts as
+    first-class software artifacts requiring CI gates. The gap: promptfoo and
+    DeepEval are powerful eval frameworks but require 2h+ setup — no zero-friction
+    GitHub Action with a golden-set RAG retrieval core exists.
+    Source: https://tianpan.co/blog/2026-03-13-prompt-versioning-change-management-production
+    Source: https://martinfowler.com/articles/structured-prompt-driven/
+    Source: https://agenta.ai/blog/prompt-drift
+  current_pain: >
+    Teams either vibe-check prompt changes manually (misses edge cases), maintain
+    hand-written eval scripts in pytest (high maintenance), or use promptfoo/DeepEval
+    (~2h setup per project). A lightweight GitHub Action that retrieves the closest
+    golden examples, runs them, and posts a regression diff to the PR does not exist
+    as a one-command install.
+  data_sources:
+    - "User's own golden test set (JSONL: prompt, expected_output, metadata)"
+    - "Prompt version history (git-tracked prompts.yaml / .txt files in repo)"
+    - "Claude API / OpenAI API (user-provided key for eval inference)"
+    - "Chroma or LanceDB (embedded vector store, zero-infra, Vercel-compatible)"
+    - "RAGAS metrics (open-source): https://github.com/explodinggradients/ragas"
+    - "promptfoo golden-set schema (compatible import): https://github.com/promptfoo/promptfoo"
+  rag_technique: memory-augmented
+  rag_technique_why: >
+    The golden test set is a memory corpus — each past (prompt, expected_output,
+    model_version) triple is an episodic memory chunk. When a new prompt version
+    arrives, retrieval surfaces the most semantically similar past cases (not just
+    identical strings), runs them against the new prompt, and computes behavioral
+    drift. This is memory-augmented RAG: the "memory" is the team's past
+    prompt-behavior history.
+  buildable_in_hours: 6
+  complexity_score: 6
+  portfolio_leverage_score: 8
+  portfolio_leverage_why: >
+    Addresses the toolchain gap between writing LLM prompts and shipping reliable
+    features. Memory-augmented RAG + CI integration pattern is a canonical 2026
+    production AI engineering signal, valued directly at Anthropic / Cohere /
+    Braintrust-tier employers.
+  recruiter_pitch: >
+    Built PromptWatch: memory-augmented RAG system that embeds a golden test corpus,
+    retrieves semantically matched cases on each prompt commit, runs behavioral
+    regression evals, and posts a drift report as a GitHub Actions PR check —
+    making prompt changes as safe as code changes.
+  unique_angle: >
+    promptfoo/DeepEval are eval frameworks requiring full project config. PromptWatch
+    is a single GitHub Action + embedded vector store: `uses: promptwatch/action@v1`
+    + a golden.jsonl file = zero-friction CI-native regression gate. The RAG
+    retrieval selects the *closest* golden cases (semantic, not exact match) so
+    sparse test sets still get meaningful coverage via similarity.
+  reference_competitors:
+    - name: promptfoo
+      url: https://github.com/promptfoo/promptfoo
+      why_we_differ: >
+        Full eval framework requiring project-level config; not a zero-friction
+        GitHub Action; no RAG-based retrieval of semantically similar golden cases.
+    - name: DeepEval (Confident AI)
+      url: https://deepeval.com
+      why_we_differ: >
+        Hosted SaaS + SDK requiring eval suite setup; no memory-augmented retrieval
+        from user's own prompt-history corpus; not a one-command CI action.
+
+- name: buildwhisperer — Agentic CI Build-Log RCA with Hybrid RAG
+  problem_statement: >
+    When a GitHub Actions / CircleCI build fails, developers spend 20–60 minutes
+    reading cryptic multi-thousand-line logs, cross-referencing Stack Overflow,
+    GitHub Issues, and their own past incident history to find the root cause.
+    No tool performs hybrid retrieval over the failure log + public knowledge corpus
+    + the team's own past resolved failures to deliver a cited, actionable RCA in
+    under 30 seconds.
+  target_user: >
+    Solo developers and small teams with frequent CI failures; DevOps/SRE engineers
+    triaging pipeline regressions; AI-native builders whose AI-generated code
+    produces novel failure patterns not yet in training data.
+  why_now_2026: >
+    GitHub Actions suffered 57 outages in a 12-month window; by Feb 2026 GitHub
+    acknowledged needing 30x scale due to AI-generated code explosion. GitHub
+    Workflow Debugger MCP Server launched in early 2026 but provides raw log parsing
+    only — no retrieval against external knowledge bases. NVIDIA's Technical Blog
+    (2026) demonstrated a self-corrective multi-agent RAG for log analysis as a
+    research demo, not a deployable developer tool.
+    Source: https://hackernoon.com/the-end-of-cicd-pipelines-the-dawn-of-agentic-devops
+    Source: https://developer.nvidia.com/blog/build-a-log-analysis-multi-agent-self-corrective-rag-system-with-nvidia-nemotron/
+  current_pain: >
+    Developers paste log snippets into ChatGPT — which hallucinates fixes based on
+    stale training data and has no access to their runner environment or past failure
+    history. CircleCI "Fix with AI" and GitLab Duo CI/CD Assist are platform-locked,
+    do no retrieval beyond the current log, and provide no citation of source
+    knowledge.
+    Source: https://about.gitlab.com/blog/quickly-resolve-broken-ci-cd-pipelines-with-ai/
+  data_sources:
+    - "GitHub Actions API (logs, run metadata, free): https://docs.github.com/en/rest/actions"
+    - "Stack Overflow Data Dump (CC-BY-SA, CI/CD tag subset): https://archive.org/details/stackexchange"
+    - "GitHub Issues public search API (error message → known issues)"
+    - "actionlint rules corpus (YAML validation): https://github.com/rhysd/actionlint"
+    - "User's own past resolved failure history (local JSONL — team builds incrementally)"
+    - "Common Actions error patterns corpus (curated, open-source buildable)"
+  rag_technique: hybrid+rerank
+  rag_technique_why: >
+    CI error messages contain exact tokens (error codes, package names, line numbers)
+    that BM25 handles perfectly; semantic search captures conceptual similarity to
+    resolved past failures where phrasing differs. Reranker (cross-encoder) fuses
+    both signals and prioritises the most actionable retrieval result. Self-corrective
+    loop: if the first retrieved context does not ground a confident RCA, the agent
+    reformulates the query using extracted error tokens (Retrieve → Grade → Requery
+    pattern from NVIDIA's 2026 architecture).
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  portfolio_leverage_why: >
+    Hybrid search + reranker + self-corrective agentic loop over multiple heterogeneous
+    corpora is a canonical 2026 production RAG pattern. Solves a daily pain every
+    developer experiences. GitHub Actions API integration shows system engineering
+    breadth. Strong signal for Stripe/Cohere/Anthropic hiring.
+  recruiter_pitch: >
+    Built BuildWhisperer: self-corrective agentic RAG system that retrieves over
+    GitHub Issues, Stack Overflow CI tag, and team's past resolved failures using
+    hybrid BM25 + dense + rerank, generating a cited RCA with fix steps — reducing
+    CI failure triage from 45 minutes to under 60 seconds.
+  unique_angle: >
+    CircleCI AI Fix and GitLab Duo are platform-locked and do LLM completion over
+    the raw log with no retrieval. BuildWhisperer: (a) platform-agnostic, (b)
+    retrieves from *external* knowledge bases (SO, GH Issues) and the team's *own*
+    past incident history, (c) cites every suggested fix with a source URL, (d)
+    self-corrects if first retrieval is insufficient. No $100M-funded startup owns
+    this cross-platform, retrieval-first, citation-grounded angle.
+  reference_competitors:
+    - name: GitLab Duo CI/CD Assist
+      url: https://about.gitlab.com/blog/quickly-resolve-broken-ci-cd-pipelines-with-ai/
+      why_we_differ: >
+        GitLab-only, LLM completion over raw log, no external retrieval corpus,
+        no citation of source knowledge, no self-corrective loop.
+    - name: Sentry Seer
+      url: https://sentry.io/features/ai-root-cause-analysis/
+      why_we_differ: >
+        Application-error focused (stack traces, Sentry events); not CI build log
+        focused; requires Sentry SDK; no retrieval from SO/GH Issues corpus.

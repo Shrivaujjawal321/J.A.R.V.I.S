@@ -1,6 +1,14 @@
+---
+type: model
+zone: cold
+last_reviewed: 2026-05-15
+---
+
 # People in My Life
 
 > Important people Jarvis should know about. Used for context, reminders, communication style.
+> **Memory type**: `model` — relationship models, update incrementally, never bulk-replace.
+> **Zone**: `cold` — permanent, audited periodically.
 
 ## Family
 

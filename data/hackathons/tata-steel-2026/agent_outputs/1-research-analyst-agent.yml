@@ -1,0 +1,260 @@
+Here's the verbatim YAML output from the research-analyst-agent for Tata Steel Phase 1:
+
+---
+
+```yaml
+research_analyst_report:
+  agent: research-analyst-agent
+  phase: 1
+  target_company: Tata Steel Limited
+  focus_area: Industrial AI / Manufacturing AI
+  generated_at: "2026-05-13"
+
+  industry_overview:
+    market_name: Global Steel Industry + Industrial AI in Metals
+    market_size_usd_bn: "Global steel market: USD 1,490 bn in 2025 (Grand View Research); global crude steel production 1,849.4 Mt in 2025 (worldsteel)"
+    cagr_pct: "5.9% CAGR 2026-2033 (Grand View Research); near-term demand projected flat in 2025 at ~1,749 Mt (worldsteel/SteelOnTheNet)"
+    structure: "Oligopolistic at the top with a long fragmented tail. China alone produced 961 Mt (~52% of world). Top 10 producers account for <30% of global output globally outside China, signalling regional concentration rather than global consolidation."
+    key_players:
+      - "China Baowu Group (largest globally) [unverified-rank-2025]"
+      - "ArcelorMittal (Luxembourg) — 55.6 Mt crude steel 2025"
+      - "Nippon Steel (Japan) — ~40.5 Mt FY2023; 2025 revenue USD 57.4 bn"
+      - "POSCO Holdings (South Korea) — 32.49 Mt crude steel 2025"
+      - "JSW Steel (India) — 27.79 Mt consolidated FY2025"
+      - "Tata Steel (India) — 35 Mtpa capacity; ~31 Mt deliveries FY2025"
+      - "HBIS, Shagang, Ansteel, Jianlong [unverified — exact 2025 ranks pending worldsteel top-50 release]"
+    macro_drivers:
+      - "Decarbonisation push: EU CBAM definitive regime from Jan 1 2026 imposes carbon cost on every steel shipment to EU; Indian steel intensity ~2.5 t CO2/t steel vs EU benchmark 1.8 t — Indian exporters may need 15-22% price cuts (GTRI/Argus)"
+      - "China overcapacity & exports: ~52% of global output from China; oversupply pressuring prices globally (POSCO 2025 commentary)"
+      - "EV / lightweight automotive steel demand: AHSS grades driving AI-quality-control investments at ArcelorMittal and POSCO"
+      - "Energy transition capex: Tata Steel Netherlands EUR 2 bn Dutch govt grant for DRI+EAF; Tata Steel UK GBP 1.25 bn Port Talbot EAF (GBP 500m UK govt)"
+      - "Infra spend in India: India only major economy with strong steel demand growth — Tata Steel India EBITDA margin 22% in FY2025 (vs Netherlands ~1.4%, UK loss-making)"
+      - "Industrial AI / Industry 4.0: Lighthouse Factory awards driving capex into digital twins, predictive maintenance, computer-vision QC"
+    sources:
+      - "https://www.grandviewresearch.com/industry-analysis/steel-market"
+      - "https://worldsteel.org/media/press-releases/2026/december-2025-crude-steel-production-2025-global-crude-steel-production/"
+      - "https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en"
+      - "https://www.argusmedia.com/en/news-and-insights/latest-market-news/2766194-viewpoint-risks-mount-for-indian-steel-exports-in-2026"
+
+  company_profile:
+    name: Tata Steel Limited
+    revenue_usd_bn: "~26 (FY2025; consolidated INR 2,18,543 cr) — Tata Steel press release"
+    ebitda_usd_bn: "~3.1 (FY2025; consolidated INR 25,802 cr, +10% YoY)"
+    crude_steel_capacity_mtpa: "35 (group annual capacity)"
+    key_geographies:
+      - "India — Revenue INR 1,33,444 cr (~61% of consolidated), EBITDA INR 29,285 cr (22% margin), 21.7 Mt production FY2025"
+      - "Netherlands (IJmuiden) — Revenue EUR 6,273 mn, EBITDA EUR 90 mn, 6.75 Mt liquid steel FY2025"
+      - "UK (Port Talbot transition) — 2.51 Mt deliveries FY2025, EBITDA loss GBP 385 mn"
+    strategic_priorities:
+      - "Decarbonisation: Phase out blast furnaces in UK + Netherlands by 2035; Port Talbot EAF (GBP 1.25 bn, ~90% direct emissions cut); IJmuiden DRI+EAF Phase 1 (EUR 2 bn Dutch grant, 5 Mt CO2/yr by 2030, 40% cut)"
+      - "India volume growth: Kalinganagar 5 MTPA expansion now operational; Neelachal Ispat (NINL) ramped to full capacity"
+      - "Cost takeouts: INR 11,500 cr program across geographies (CFO commentary, Outlook Business)"
+      - "Digital steelmaking leadership: 2025 goal to be global leader; 800+ AI models in production"
+      - "ESG/Lighthouse: Member of WEF Global Lighthouse Network (Jamshedpur + Kalinganagar)"
+    ai_headline: "Most AI-mature steelmaker globally on public record: 800+ deployed AI/ML models, 550+ built in last 5-6 years, USD 1.4 bn cumulative savings, 1:10 cost-benefit ratio, 22% downtime reduction via predictive maintenance, 7-10% blast furnace throughput uplift at Kalinganagar, 24/7 ops center monitoring 15+ plants via 250+ digital twins"
+    sources:
+      - "https://www.tatasteel.com/newsroom/press-releases/india/2025/tata-steel-reports-consolidated-ebitda-of-rs-25-802-crores-for-fy2025/"
+      - "https://www.business-standard.com/companies/news/built-over-550-ai-models-in-5-6-yrs-to-enhance-output-quality-tata-steel-125020401386_1.html"
+      - "https://aiexpert.network/case-study-tata-steels-ai-transformation/"
+      - "https://ifactory.jrsinnovation.com/blog/tata-steel-digital-twin-savings-case-study"
+      - "https://www.tata.com/newsroom/business/tata-steel-kalinganagar-indias-industrial-lighthouse"
+
+  industrial_ai_in_steel:
+    segment_market_size_usd_bn: "AI in Mining/Natural Resources: USD 6.39 bn (2025, InsightAce) to USD 35.47 bn (2025, Precedence Research) — wide variance reflects scope differences. [low-confidence on absolute size — sources diverge >5x]"
+    segment_cagr_pct: "20.6% (InsightAce, 2026-2035) to 41.9% (Precedence Research, 2025-2034); most defensible range: 15-25% CAGR for AI-specific spend in metals."
+    top_use_cases:
+      - name: "Surface defect detection (computer vision QC)"
+        maturity: "growing"
+        tata_steel_relevance: "high"
+        notes: "Industry benchmark: 95-99% accuracy at 2000 m/min, detects 200+ defect types, 0.1mm minimum. Surface defects drive 2-5% of production to secondary/reject = USD 3-12M/yr per mill in downgrade losses."
+      - name: "Predictive maintenance"
+        maturity: "mature"
+        tata_steel_relevance: "high"
+        notes: "Tata Steel: 22% downtime reduction. ArcelorMittal Sentinel: 100% pilot success. JSW: 25,000+ hours unplanned downtime avoided across 10 plants, 2,900 critical assets, 13,500 smart sensors."
+      - name: "Process optimization (blast furnace, BOF, casting, rolling)"
+        maturity: "growing"
+        tata_steel_relevance: "high"
+        notes: "Tata Steel Kalinganagar BF throughput +7-10%. POSCO has AI Blast Furnace at Pohang Works. Nippon Steel uses CPP (Cyber Physical Production)."
+      - name: "Energy / yield optimization"
+        maturity: "growing"
+        tata_steel_relevance: "high"
+        notes: "Critical for CBAM-exposed Indian steel (2.5 t CO2/t vs EU 1.8 t benchmark). Tata Steel reports yield/energy/throughput/quality as the four pillars of its 550-model build-out."
+      - name: "Scheduling / production planning optimization"
+        maturity: "growing"
+        tata_steel_relevance: "medium"
+        notes: "ArcelorMittal uses Ant Colony Optimization for scheduling; POSCO uses o9 Solutions for planning digital transformation."
+      - name: "Generative AI for tacit-knowledge capture / plant copilots"
+        maturity: "early"
+        tata_steel_relevance: "high"
+        notes: "[unverified that Tata Steel has shipped a production LLM-based plant copilot]. Largest open hackathon opportunity: shop-floor LLM copilots, multimodal QC, agentic process control."
+      - name: "Decarbonisation / Green steel optimization"
+        maturity: "early"
+        tata_steel_relevance: "high"
+        notes: "DRI + EAF transitions at Port Talbot and IJmuiden create greenfield digital control problems. Hydrogen-ready operations need new ML models — no incumbent has the data yet."
+      - name: "Supply chain / scrap optimization"
+        maturity: "growing"
+        tata_steel_relevance: "medium"
+        notes: "EAF transition makes scrap-mix optimization mission-critical for Tata Steel UK + Netherlands. ArcelorMittal actively uses AI for scrap optimization."
+    sources:
+      - "https://www.precedenceresearch.com/ai-in-mining-market"
+      - "https://www.insightaceanalytic.com/report/ai-in-mining-and-natural-resources-market/2751"
+      - "https://akridata.ai/blog/surface-defect-detection-ai-steel-metal-industries/"
+      - "https://ifactoryapp.com/article/ai-vision-inspection-manufacturing-defect-detection"
+
+  competitive_landscape:
+    peers:
+      - name: ArcelorMittal
+        hq: "Luxembourg"
+        revenue_usd_bn: "61.4 (FY2025)"
+        ai_program_name: "Sentinel (predictive maintenance) + Industry 4.0 / R&D digital economy"
+        ai_maturity: "leader"
+        notable_ai_initiatives:
+          - "Sentinel offline AI platform — 100% pilot success on motor/hydraulic actuator failure prediction"
+          - "AI quality models for automotive AHSS grades"
+          - "Ant Colony Optimization for production scheduling"
+          - "Slashed AHSS product-development from 3-5 yrs to <1 yr using AI"
+          - "Scrap optimization AI"
+        moat_vs_tata_steel: "Deeper R&D in automotive AHSS, broader scrap optimization (relevant as Tata moves to EAF), but smaller publicly disclosed model count vs Tata Steel's 800+"
+        sources:
+          - "https://corporate.arcelormittal.com/about/research-and-development/leveraging-the-digital-economy"
+          - "https://aiexpert.network/ai-at-arcelormittal/"
+
+      - name: POSCO Holdings
+        hq: "South Korea"
+        revenue_usd_bn: "~48 (2025; KRW 68.987 trillion) [low-confidence on FX conversion]"
+        ai_program_name: "PosFrame (smart factory platform) + AI Blast Furnace"
+        ai_maturity: "leader"
+        notable_ai_initiatives:
+          - "PosFrame: world's first smart factory platform for continuous manufacturing — developed by POSCO DX"
+          - "AI-based coating-weight control deep-learning model (Pohang)"
+          - "Pohang Works = WEF Lighthouse Factory (first steel lighthouse)"
+          - "USD 14M+ savings reported from PosFrame"
+          - "o9 Solutions partnership for planning AI"
+        moat_vs_tata_steel: "Owns the platform layer (PosFrame productised via POSCO DX subsidiary) — Tata Steel's stack appears more internal, less productised"
+        sources:
+          - "https://newsroom.posco.com/en/poscos-smart-factory-introduces-artificial-intelligence/"
+          - "https://newsroom.posco.com/en/meet-the-ai-blast-furnace-of-pohang-works/"
+
+      - name: Nippon Steel
+        hq: "Japan"
+        revenue_usd_bn: "57.39 (2025)"
+        ai_program_name: "Nippon Steel DX (NS-DIG + KAMONOHASHI tool) + AI Solution Section"
+        ai_maturity: "fast-follower"
+        notable_ai_initiatives:
+          - "JPY 100+ bn (~USD 700M) DX investment over 5 years"
+          - "CPP (Cyber Physical Production) for early operational change detection + equipment aging prediction"
+          - "NS-DIG comprehensive data analysis platform"
+          - "KAMONOHASHI AI dev tool for citizen data scientists"
+          - "Training 1,000+ employees as data scientists by 2025"
+        moat_vs_tata_steel: "Stronger workforce-DX program and capex commitment; weaker public evidence of deployed-model count vs Tata Steel's 800+"
+        sources:
+          - "https://www.nipponsteel.com/en/company/dx/specific.html"
+          - "https://www.nipponsteel.com/en/company/dx/vision.html"
+
+      - name: JSW Steel
+        hq: "India"
+        revenue_usd_bn: "[unverified-conversion; ~21 estimated]"
+        ai_program_name: "Smart Steel Factories + AI-powered Predictive Maintenance Platform"
+        ai_maturity: "fast-follower (aggressive catch-up)"
+        notable_ai_initiatives:
+          - "Predictive Maintenance Platform: 10 plants, 2,900 critical assets, 13,500 smart sensors, 25,000+ hours downtime avoided"
+          - "565 high-impact COE projects in FY25; 345 with tangible business value"
+          - "INR 10 cr annual savings in ferro alloys via ML/optimization"
+          - "Smart Iron Zone (raw materials, IoT + predictive analytics)"
+        moat_vs_tata_steel: "Direct domestic competitor with comparable PdM scale + faster public cadence of new AI announcements; dangerous for talent/vendor mindshare"
+        sources:
+          - "https://www.jswsteel.in/digital-transformation-manufacturing-transformation"
+          - "https://db.financialexpressb2b.com/features/jsw-steels-record-performance-driven-by-industry-40-and-ai-powered-predictive-maintenance"
+
+      - name: SAIL
+        hq: "India (PSU)"
+        revenue_usd_bn: "[unverified — ~12-14 bn historically]"
+        ai_program_name: "Digital Transformation w/ McKinsey + SAIL Sarathi chatbot"
+        ai_maturity: "laggard (catching up)"
+        notable_ai_initiatives:
+          - "March 2025 McKinsey partnership: target INR 1,000 cr/yr value realization within 3 years"
+          - "Bokaro Steel Plant pilot for AI-based predictive monitoring"
+          - "SAIL Sarathi customer-service AI chatbot (first in Indian steel industry)"
+        moat_vs_tata_steel: "Tata Steel materially ahead — SAIL is in pilot/POC phase while Tata Steel has 800+ production models"
+        sources:
+          - "https://www.sail.co.in/en/sail-news/sail-teams-mckinsey-company-india-llp-propel-digital-transformation"
+          - "https://indiaai.gov.in/news/bokaro-steel-begins-ai-based-predictive-monitoring"
+
+  thematic_ideas:
+    - id: T1
+      theme: "Green-Steel Process Control Copilot for DRI+EAF Transition"
+      one_line_thesis: "Build an LLM + RL hybrid copilot for hydrogen-DRI + EAF process control — the historical blast-furnace model library doesn't transfer, creating a greenfield AI gap exactly where Tata Steel is committing EUR 2 bn + GBP 1.25 bn capex."
+      tata_steel_gap: "Tata Steel's 800+ models are predominantly blast-furnace / BOF era; DRI + EAF + hydrogen-ready operations are a different physics regime; no incumbent has production-scale models on hydrogen-DRI yet."
+      hackathon_angle: "Demo: synthetic DRI process data + open EAF datasets + RAG copilot trained on metallurgical literature; show recommendations for scrap-mix, energy use, and CBAM-compliant CO2 budget. Tie to Port Talbot / IJmuiden timelines."
+      confidence: 0.78
+
+    - id: T2
+      theme: "CBAM Carbon-Accounting & Mill-Level Emissions Auditing Agent"
+      one_line_thesis: "Every Indian steel shipment to EU after Jan 1 2026 requires verifiable per-tonne CO2 accounting — build a multi-mill agentic system that ingests SCADA + procurement + energy data and emits CBAM-defensible carbon reports."
+      tata_steel_gap: "No publicly disclosed AI/agent system from any steelmaker addresses CBAM compliance end-to-end; Tata Steel's AI program is internally cost/quality-focused."
+      hackathon_angle: "Build the data-pipeline + LLM verification layer that flags inconsistencies, recommends intensity reduction actions, and produces auditable CBAM filings. Score on regulatory completeness, not just ML accuracy."
+      confidence: 0.82
+
+    - id: T3
+      theme: "Multimodal Defect-Detection with Vision-Language Models (VLM)"
+      one_line_thesis: "Move from pure CNN-based surface inspection to VLM-based defect reasoning — explain why a defect occurred, not just that it exists, enabling root-cause feedback loops."
+      tata_steel_gap: "Public Tata Steel CV-QC evidence is thinner than POSCO's plating-line work; VLMs collapse detection + classification + diagnosis into one model vs steelmakers' current 3-stage pipelines."
+      hackathon_angle: "NEU-DET / Severstal Steel Defect Detection datasets are open. Build a VLM-fine-tuned pipeline that outputs defect class + likely upstream cause + suggested operator action. Benchmark against pure-CNN baseline."
+      confidence: 0.74
+
+    - id: T4
+      theme: "Shop-Floor Tacit-Knowledge Capture (Veteran Operator Copilot)"
+      one_line_thesis: "Senior operators hold decades of blast-furnace know-how — as they retire and BF→EAF transition accelerates, that knowledge will be lost. Build a voice-first LLM that captures, structures, and re-serves this institutional memory."
+      tata_steel_gap: "No public evidence of a Tata Steel operator-knowledge LLM; Nippon Steel is training 1,000+ data scientists while Tata Steel could leapfrog with an LLM that encodes existing operator knowledge."
+      hackathon_angle: "Voice ingestion (Whisper) + RAG on plant logs + Claude/Llama 3.1 70B. Demo: 'why did the furnace heat dip yesterday?' → retrieves prior similar events + matched operator commentary + recommended action."
+      confidence: 0.71
+
+    - id: T5
+      theme: "Predictive Maintenance for the EAF Era — Electrode + Power Quality"
+      one_line_thesis: "EAF PdM is a different problem from blast-furnace PdM — electrode consumption, harmonic distortion, transformer health are the new failure modes; build a sensor-fusion + time-series foundation-model stack for this regime."
+      tata_steel_gap: "Tata Steel's 22% downtime-reduction PdM is BF-tuned; as Tata Steel pivots UK + Netherlands to EAF, its PdM library needs to be rebuilt from scratch."
+      hackathon_angle: "Open EAF datasets + Chronos/TimesFM time-series foundation models + sensor-fusion layer. Benchmark MTTR / unplanned-downtime reduction vs classical ARIMA/Prophet baselines."
+      confidence: 0.69
+
+  key_risks:
+    - risk: "EU CBAM Exposure"
+      description: "Definitive regime Jan 1 2026. Indian steel emissions intensity ~2.5 t CO2/t vs EU benchmark 1.8 t. Exporters may need 15-22% price cuts to absorb cost."
+      severity: "high"
+      time_horizon: "near"
+
+    - risk: "Chinese Overcapacity & Price Pressure"
+      description: "China produced 961 Mt (52% of global) in 2025 with structural oversupply. Tata Steel India EBITDA margin held at 22% in FY2025 but downside risk persists."
+      severity: "high"
+      time_horizon: "near"
+
+    - risk: "UK Operations Transition Risk (Port Talbot EAF)"
+      description: "Tata Steel UK FY2025 EBITDA loss GBP 385 mn. Blast furnaces shutting; GBP 1.25 bn EAF build underway. Execution risk on timeline, scrap supply chain, and labour relations."
+      severity: "high"
+      time_horizon: "medium"
+
+    - risk: "Netherlands Decarbonisation Capex Burden"
+      description: "EUR 2 bn Dutch government grant + EUR 1.5 bn Tata co-investment. Netherlands EBITDA only EUR 90 mn on EUR 6,273 mn revenue (~1.4% margin). Capex stretches balance sheet during commodity downcycle."
+      severity: "medium"
+      time_horizon: "medium"
+
+    - risk: "Commodity Cycle / Raw Material Volatility"
+      description: "EAF transition shifts dependency from iron ore to scrap — a different volatility regime. Tata Steel's captive-ore advantage diminishes as UK + Netherlands go to EAF."
+      severity: "medium"
+      time_horizon: "medium"
+
+    - risk: "AI Talent Competition from JSW + SAIL"
+      description: "JSW targeting 'most digitally advanced steel business in India by 2026'; SAIL signed McKinsey for INR 1,000 cr/yr program. Both compete for the same Indian AI/ML engineering talent pool."
+      severity: "medium"
+      time_horizon: "near"
+
+  evidence_quality_notes: "All Tata Steel FY2025 financials verified from Tata Steel's own press release + Business Standard. ArcelorMittal 2025 from corporate press release. POSCO 2025 from POSCO newsroom. Nippon Steel revenue from Macrotrends (secondary). JSW Steel full-year consolidated INR figure not surfaced — [unverified-conversion]. SAIL FY2025 revenue not surfaced [unverified]. The 800+ model count, USD 1.4 bn savings, 22% downtime reduction, USD 14M+ POSCO PosFrame savings, and ArcelorMittal Sentinel 100% success are from secondary case-study sources — would benefit from primary-source triangulation before high-stakes use. AI-in-mining market sizing has 5x variance between sources — flagged [low-confidence] on absolute number; 15-25% CAGR is the defensible interval. Thematic T1 (green-steel copilot) leverages confirmed UK + Netherlands transition plans + absence of any public hydrogen-DRI production-AI program at any peer — high-confidence whitespace. T4 (operator-knowledge LLM) has no disconfirming evidence either way — the gap may be partially filled internally."
+```
+
+---
+
+**Phase 1 research-analyst output ready hai, Boss.** Key highlights jo Phase 2 (problem selection) ke liye most relevant hain:
+
+1. **T2 (CBAM Carbon Accounting Agent)** — highest confidence (0.82), near-term regulatory trigger (Jan 1 2026), no incumbent solution visible anywhere
+2. **T1 (Green-Steel DRI+EAF Copilot)** — highest strategic whitespace; EUR 3.5 bn committed capex with no AI stack built yet
+3. **T3 (VLM Defect Detection)** — open datasets available (NEU-DET, Severstal), clear build-in-hackathon path
+4. **Tata Steel's positioning** — most AI-mature steelmaker publicly (800+ models, USD 1.4 bn savings) but the *next* frontier is clearly GenAI/LLM copilots + EAF-era PdM, which peers haven't cracked either

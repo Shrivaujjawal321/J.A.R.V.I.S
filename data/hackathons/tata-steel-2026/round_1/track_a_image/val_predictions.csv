@@ -1,0 +1,2325 @@
+id,predicted_class,confidence
+Isa_01,Iron sheet ash,0.9968
+Isa_04,Iron sheet ash,1.0
+Isa_103,Iron sheet ash,0.9729
+Isa_104,Oil spot,0.6907
+Isa_106,Iron sheet ash,1.0
+Isa_112,Iron sheet ash,0.9059
+Isa_115,Iron sheet ash,1.0
+Isa_119,Iron sheet ash,1.0
+Isa_120,Iron sheet ash,0.9764
+Isa_122,Iron sheet ash,1.0
+Isa_13,Iron sheet ash,0.9977
+Isa_17,Oil spot,0.942
+Isa_19,Iron sheet ash,1.0
+Isa_22,Iron sheet ash,0.9998
+Isa_24,Oil spot,0.8673
+Isa_26,Iron sheet ash,0.4006
+Isa_27,Oil spot,0.452
+Isa_28,Iron sheet ash,0.9891
+Isa_33,Iron sheet ash,1.0
+Isa_37,Iron sheet ash,0.6765
+Isa_39,Iron sheet ash,1.0
+Isa_42,Iron sheet ash,0.8738
+Isa_44,Iron sheet ash,1.0
+Isa_45,Iron sheet ash,0.9938
+Isa_49,Iron sheet ash,0.9979
+Isa_56,Iron sheet ash,0.9989
+Isa_57,Iron sheet ash,0.9996
+Isa_58,Iron sheet ash,0.9998
+Isa_59,Iron sheet ash,1.0
+Isa_60,Iron sheet ash,0.9901
+Isa_68,Pitted surface,0.305
+Isa_69,Iron sheet ash,0.9998
+Isa_75,Oil spot,0.5475
+Isa_76,Iron sheet ash,0.5905
+Isa_88,Iron sheet ash,0.9994
+Isa_93,Oil spot,0.2783
+Isc_101,Inclusion,0.7723
+Isc_105,Iron scale compression,0.9994
+Isc_110,Iron scale compression,0.9889
+Isc_112,Oil spot,0.6623
+Isc_114,Iron scale compression,0.941
+Isc_120,Inclusion,0.8276
+Isc_125,Iron scale compression,0.8618
+Isc_126,Iron scale compression,1.0
+Isc_129,Iron scale compression,0.9803
+Isc_132,Iron scale compression,0.9506
+Isc_133,Iron scale compression,0.9996
+Isc_14,Red iron sheet,0.9834
+Isc_140,Iron scale compression,0.9999
+Isc_146,Iron scale compression,1.0
+Isc_149,Iron scale compression,1.0
+Isc_15,Iron scale compression,0.9859
+Isc_153,Iron scale compression,0.6802
+Isc_163,Iron scale compression,0.9999
+Isc_164,Iron scale compression,1.0
+Isc_165,Iron scale compression,0.996
+Isc_168,Iron scale compression,0.6118
+Isc_17,Dark scratches,0.8997
+Isc_171,Iron scale compression,1.0
+Isc_172,Iron scale compression,1.0
+Isc_177,Inclusion,0.4797
+Isc_183,Iron scale compression,0.9989
+Isc_188,Oil spot,0.5764
+Isc_191,Iron scale compression,0.9968
+Isc_196,Iron scale compression,0.9934
+Isc_198,Inclusion,0.4475
+Isc_200,Iron scale compression,1.0
+Isc_21,Bright scratch,0.7136
+Isc_24,Iron scale compression,1.0
+Isc_27,Iron scale compression,0.9963
+Isc_33,Inclusion,0.8722
+Isc_35,Iron scale compression,0.9929
+Isc_36,Red iron sheet,0.8628
+Isc_39,Iron scale compression,0.8785
+Isc_41,Water spot,0.9972
+Isc_44,Iron scale compression,0.9995
+Isc_47,Iron scale compression,0.9999
+Isc_48,Iron scale compression,1.0
+Isc_53,Iron scale compression,0.5112
+Isc_55,Iron scale compression,0.9979
+Isc_64,Slag inclusion,0.4985
+Isc_69,Iron scale compression,0.9998
+Isc_72,Iron scale compression,0.9904
+Isc_73,Iron scale compression,0.9829
+Isc_75,Iron scale compression,0.974
+Isc_77,Iron scale compression,1.0
+Isc_79,Iron scale compression,0.7897
+Isc_81,Iron scale compression,0.7295
+Isc_82,Iron scale compression,1.0
+Isc_85,Iron scale compression,1.0
+Isc_86,Iron scale compression,0.9998
+Isc_91,Iron scale compression,0.9995
+Isc_92,Iron scale compression,0.9804
+Isc_94,Iron scale compression,0.6184
+Isc_97,Iron scale compression,0.9982
+Isc_98,Iron scale compression,0.9939
+Ops_09,Oxide scale of plate system,1.0
+Ops_11,Oxide scale of plate system,1.0
+Ops_13,Oxide scale of plate system,0.9999
+Ops_17,Oxide scale of plate system,1.0
+Ops_23,Oxide scale of plate system,0.714
+Ops_24,Oxide scale of plate system,0.8982
+Ops_32,Oxide scale of plate system,0.9979
+Ops_33,Oxide scale of plate system,0.9999
+Ops_39,Oxide scale of plate system,0.9942
+Ops_40,Inclusion,0.601
+Ops_43,Oxide scale of plate system,0.5997
+Ops_49,Iron scale compression,0.9651
+Ops_50,Slag inclusion,0.5568
+Ops_53,Oxide scale of plate system,0.7787
+Ops_55,Water spot,0.9604
+Ops_58,Oxide scale of plate system,0.9988
+Ops_62,Water spot,0.4336
+Ops_63,Water spot,0.6016
+Ots_06,Oxide scale of temperature system,1.0
+Ots_10,Oxide scale of temperature system,1.0
+Ots_103,Oxide scale of temperature system,1.0
+Ots_106,Oxide scale of temperature system,1.0
+Ots_107,Oxide scale of temperature system,1.0
+Ots_109,Oxide scale of temperature system,1.0
+Ots_110,Oxide scale of temperature system,1.0
+Ots_111,Oxide scale of temperature system,1.0
+Ots_123,Oxide scale of temperature system,1.0
+Ots_125,Oxide scale of temperature system,0.9167
+Ots_131,Oxide scale of temperature system,0.9998
+Ots_132,Oxide scale of temperature system,0.9982
+Ots_134,Oxide scale of temperature system,0.9999
+Ots_136,Oxide scale of temperature system,0.9993
+Ots_137,Oxide scale of temperature system,1.0
+Ots_139,Oxide scale of temperature system,1.0
+Ots_151,Oxide scale of temperature system,1.0
+Ots_159,Oxide scale of temperature system,0.9992
+Ots_160,Oxide scale of temperature system,1.0
+Ots_164,Oxide scale of temperature system,1.0
+Ots_167,Oxide scale of temperature system,0.9999
+Ots_168,Oxide scale of temperature system,1.0
+Ots_169,Oxide scale of temperature system,0.9966
+Ots_170,Oxide scale of temperature system,1.0
+Ots_172,Oxide scale of temperature system,0.9945
+Ots_173,Oxide scale of temperature system,1.0
+Ots_174,Oxide scale of temperature system,1.0
+Ots_175,Oxide scale of temperature system,1.0
+Ots_186,Oxide scale of temperature system,0.9993
+Ots_187,Oxide scale of temperature system,0.9991
+Ots_188,Oxide scale of temperature system,0.8902
+Ots_189,Oxide scale of temperature system,1.0
+Ots_191,Oxide scale of temperature system,1.0
+Ots_193,Oxide scale of temperature system,1.0
+Ots_195,Oxide scale of temperature system,0.9999
+Ots_199,Oxide scale of temperature system,0.9999
+Ots_200,Oxide scale of temperature system,0.9998
+Ots_23,Oxide scale of temperature system,1.0
+Ots_27,Oxide scale of temperature system,0.9856
+Ots_28,Oxide scale of temperature system,1.0
+Ots_29,Oxide scale of temperature system,0.9999
+Ots_33,Oxide scale of temperature system,1.0
+Ots_36,Oxide scale of temperature system,1.0
+Ots_38,Oxide scale of temperature system,1.0
+Ots_41,Oxide scale of temperature system,0.985
+Ots_42,Oxide scale of temperature system,1.0
+Ots_45,Oxide scale of temperature system,1.0
+Ots_57,Oxide scale of temperature system,1.0
+Ots_59,Oxide scale of temperature system,1.0
+Ots_64,Oxide scale of temperature system,1.0
+Ots_67,Oxide scale of temperature system,0.8804
+Ots_69,Oxide scale of temperature system,1.0
+Ots_71,Oxide scale of temperature system,1.0
+Ots_76,Oxide scale of temperature system,1.0
+Ots_81,Oxide scale of temperature system,1.0
+Ots_83,Oxide scale of temperature system,0.9996
+Ots_87,Oxide scale of temperature system,1.0
+Ots_88,Oxide scale of temperature system,1.0
+Ots_91,Oxide scale of temperature system,1.0
+Ots_93,Oxide scale of temperature system,0.9999
+Srs_01,Secondary rust skin,1.0
+Srs_04,Secondary rust skin,1.0
+Srs_05,Secondary rust skin,1.0
+Srs_08,Secondary rust skin,1.0
+Srs_09,Secondary rust skin,1.0
+Srs_105,Secondary rust skin,0.9999
+Srs_106,Secondary rust skin,1.0
+Srs_108,Secondary rust skin,1.0
+Srs_110,Secondary rust skin,1.0
+Srs_114,Oil spot,0.6985
+Srs_115,Secondary rust skin,1.0
+Srs_116,Secondary rust skin,1.0
+Srs_117,Secondary rust skin,0.9923
+Srs_123,Secondary rust skin,1.0
+Srs_124,Secondary rust skin,0.9999
+Srs_127,Secondary rust skin,1.0
+Srs_129,Secondary rust skin,1.0
+Srs_132,Secondary rust skin,1.0
+Srs_138,Secondary rust skin,1.0
+Srs_142,Secondary rust skin,1.0
+Srs_146,Secondary rust skin,0.7252
+Srs_147,Secondary rust skin,0.9511
+Srs_148,Inclusion,0.5823
+Srs_150,Secondary rust skin,1.0
+Srs_154,Secondary rust skin,1.0
+Srs_161,Secondary rust skin,0.602
+Srs_164,Secondary rust skin,1.0
+Srs_165,Secondary rust skin,0.9998
+Srs_174,Secondary rust skin,1.0
+Srs_179,Secondary rust skin,0.9992
+Srs_180,Secondary rust skin,1.0
+Srs_182,Secondary rust skin,1.0
+Srs_187,Secondary rust skin,1.0
+Srs_188,Secondary rust skin,1.0
+Srs_189,Secondary rust skin,0.9994
+Srs_190,Secondary rust skin,1.0
+Srs_198,Secondary rust skin,1.0
+Srs_25,Secondary rust skin,0.9999
+Srs_31,Secondary rust skin,1.0
+Srs_35,Secondary rust skin,0.9999
+Srs_37,Secondary rust skin,1.0
+Srs_40,Secondary rust skin,0.9649
+Srs_44,Iron scale compression,0.9014
+Srs_45,Oxide scale of plate system,0.8828
+Srs_47,Secondary rust skin,0.9999
+Srs_49,Secondary rust skin,0.7879
+Srs_60,Secondary rust skin,0.9999
+Srs_61,Secondary rust skin,0.9998
+Srs_70,Secondary rust skin,1.0
+Srs_71,Secondary rust skin,0.9999
+Srs_72,Secondary rust skin,1.0
+Srs_76,Secondary rust skin,0.9861
+Srs_81,Secondary rust skin,0.9667
+Srs_84,Oxide scale of plate system,0.5116
+Srs_88,Secondary rust skin,1.0
+Srs_90,Secondary rust skin,1.0
+Srs_91,Secondary rust skin,1.0
+Srs_92,Secondary rust skin,1.0
+Srs_93,Secondary rust skin,1.0
+bs_05,Bright scratch,0.9964
+bs_08,Bright scratch,0.9999
+bs_100,Bright scratch,1.0
+bs_101,Bright scratch,0.9999
+bs_107,Bright scratch,0.9974
+bs_108,Bright scratch,1.0
+bs_109,Bright scratch,1.0
+bs_11,Bright scratch,0.927
+bs_112,Bright scratch,1.0
+bs_114,White rust,0.9627
+bs_116,Bright scratch,0.7671
+bs_119,Bright scratch,1.0
+bs_120,Bright scratch,1.0
+bs_124,White rust,0.9543
+bs_127,Bright scratch,0.9998
+bs_129,Bright scratch,1.0
+bs_13,Bright scratch,1.0
+bs_135,Bright scratch,0.9945
+bs_137,Bright scratch,1.0
+bs_142,Bright scratch,0.9993
+bs_145,Bright scratch,1.0
+bs_146,Bright scratch,1.0
+bs_147,Bright scratch,1.0
+bs_153,Bright scratch,1.0
+bs_154,Bright scratch,1.0
+bs_156,Bright scratch,0.9396
+bs_157,Bright scratch,0.9984
+bs_158,Bright scratch,1.0
+bs_159,Bright scratch,1.0
+bs_161,Bright scratch,0.9971
+bs_163,Bright scratch,0.9977
+bs_164,Bright scratch,0.8284
+bs_17,Bright scratch,1.0
+bs_170,Bright scratch,1.0
+bs_173,Bright scratch,0.9378
+bs_180,Bright scratch,1.0
+bs_182,Bright scratch,1.0
+bs_184,Bright scratch,1.0
+bs_191,Bright scratch,1.0
+bs_194,Bright scratch,1.0
+bs_195,Bright scratch,1.0
+bs_196,Bright scratch,1.0
+bs_201,Bright scratch,1.0
+bs_205,Bright scratch,1.0
+bs_207,Bright scratch,1.0
+bs_210,Bright scratch,1.0
+bs_211,Bright scratch,1.0
+bs_213,Bright scratch,1.0
+bs_214,Bright scratch,1.0
+bs_216,Bright scratch,1.0
+bs_220,Bright scratch,1.0
+bs_221,Bright scratch,1.0
+bs_223,Bright scratch,1.0
+bs_226,Bright scratch,0.9856
+bs_23,Bright scratch,1.0
+bs_230,Bright scratch,0.9932
+bs_233,Bright scratch,1.0
+bs_235,Bright scratch,1.0
+bs_237,Bright scratch,1.0
+bs_240,Bright scratch,1.0
+bs_242,Bright scratch,0.9982
+bs_256,Bright scratch,1.0
+bs_258,Bright scratch,1.0
+bs_261,Bright scratch,1.0
+bs_263,Bright scratch,1.0
+bs_266,Bright scratch,1.0
+bs_274,Bright scratch,0.6775
+bs_277,Bright scratch,1.0
+bs_279,Bright scratch,0.5586
+bs_30,Bright scratch,1.0
+bs_301,Bright scratch,1.0
+bs_303,Bright scratch,0.9999
+bs_305,Bright scratch,1.0
+bs_31,Bright scratch,1.0
+bs_313,Bright scratch,1.0
+bs_318,Bright scratch,1.0
+bs_323,Bright scratch,0.9996
+bs_326,Bright scratch,0.9688
+bs_336,Bright scratch,1.0
+bs_337,Bright scratch,0.9997
+bs_339,Bright scratch,1.0
+bs_342,Bright scratch,0.5056
+bs_345,Bright scratch,0.9923
+bs_347,Bright scratch,0.99
+bs_348,Bright scratch,0.9958
+bs_349,Bright scratch,0.9997
+bs_350,Bright scratch,0.9655
+bs_352,Bright scratch,0.9922
+bs_353,Bright scratch,0.9999
+bs_357,Inclusion,0.9995
+bs_359,Bright scratch,1.0
+bs_367,Bright scratch,1.0
+bs_377,Bright scratch,1.0
+bs_38,Bright scratch,0.8675
+bs_381,Bright scratch,1.0
+bs_384,Bright scratch,0.9998
+bs_388,Bright scratch,1.0
+bs_390,Bright scratch,0.9953
+bs_391,Bright scratch,1.0
+bs_400,Bright scratch,0.8399
+bs_401,Waist folding,0.99
+bs_405,Bright scratch,1.0
+bs_406,Bright scratch,1.0
+bs_41,Bright scratch,1.0
+bs_410,Bright scratch,1.0
+bs_414,Bright scratch,0.9998
+bs_416,Bright scratch,0.9983
+bs_417,Bright scratch,0.9989
+bs_425,Bright scratch,0.9699
+bs_427,Bright scratch,0.9827
+bs_43,Bright scratch,1.0
+bs_44,Bright scratch,0.999
+bs_46,Bright scratch,1.0
+bs_48,Bright scratch,0.9885
+bs_50,Bright scratch,0.9998
+bs_52,Bright scratch,1.0
+bs_59,Bright scratch,1.0
+bs_61,Bright scratch,1.0
+bs_68,Bright scratch,0.998
+bs_76,Bright scratch,1.0
+bs_77,Bright scratch,1.0
+bs_78,Bright scratch,1.0
+bs_82,Bright scratch,0.9996
+bs_86,Bright scratch,1.0
+bs_88,Bright scratch,1.0
+bs_90,Bright scratch,1.0
+bs_92,Bright scratch,1.0
+bs_96,Bright scratch,1.0
+cg_03,Crescent gap,1.0
+cg_07,Crescent gap,1.0
+cg_09,Crescent gap,1.0
+cg_102,Crescent gap,1.0
+cg_104,Crescent gap,1.0
+cg_107,Crescent gap,1.0
+cg_11,Crescent gap,1.0
+cg_110,Crescent gap,1.0
+cg_111,Crescent gap,1.0
+cg_113,Crescent gap,1.0
+cg_116,Crescent gap,1.0
+cg_119,Crescent gap,1.0
+cg_121,Crescent gap,1.0
+cg_123,Crescent gap,1.0
+cg_124,Crescent gap,0.9999
+cg_125,Crescent gap,1.0
+cg_134,Crescent gap,1.0
+cg_135,Crescent gap,1.0
+cg_137,Crescent gap,1.0
+cg_139,Crescent gap,1.0
+cg_142,Crescent gap,1.0
+cg_143,Crescent gap,1.0
+cg_146,Crescent gap,1.0
+cg_150,Crescent gap,1.0
+cg_156,Crescent gap,1.0
+cg_158,Crescent gap,1.0
+cg_161,Crescent gap,1.0
+cg_169,Crescent gap,1.0
+cg_171,Crescent gap,1.0
+cg_172,Crescent gap,1.0
+cg_175,Crescent gap,1.0
+cg_178,Crescent gap,1.0
+cg_18,Crescent gap,1.0
+cg_180,Crescent gap,1.0
+cg_184,Crescent gap,1.0
+cg_186,Crescent gap,1.0
+cg_192,Crescent gap,1.0
+cg_193,Crescent gap,1.0
+cg_195,Crescent gap,1.0
+cg_196,Crescent gap,1.0
+cg_205,Crescent gap,1.0
+cg_214,Crescent gap,1.0
+cg_220,Crescent gap,0.9991
+cg_221,Crescent gap,0.9996
+cg_222,Crescent gap,1.0
+cg_225,Crescent gap,1.0
+cg_227,Crescent gap,1.0
+cg_228,Crescent gap,1.0
+cg_23,Crescent gap,1.0
+cg_237,Crescent gap,1.0
+cg_24,Crescent gap,1.0
+cg_242,Crescent gap,1.0
+cg_28,Crescent gap,1.0
+cg_30,Crescent gap,1.0
+cg_31,Crescent gap,1.0
+cg_37,Crescent gap,1.0
+cg_46,Crescent gap,1.0
+cg_48,Crescent gap,1.0
+cg_50,Crescent gap,1.0
+cg_55,Crescent gap,0.9925
+cg_58,Crescent gap,0.9997
+cg_63,Crescent gap,1.0
+cg_66,Crescent gap,1.0
+cg_67,Crescent gap,1.0
+cg_70,Crescent gap,0.9998
+cg_74,Crescent gap,0.9999
+cg_80,Crescent gap,1.0
+cg_82,Crescent gap,1.0
+cg_84,Crescent gap,1.0
+cg_85,Crescent gap,1.0
+cg_87,Crescent gap,1.0
+cg_89,Crescent gap,1.0
+cg_91,Crescent gap,1.0
+cracking_05,Crazing,1.0
+cracking_102,Crazing,1.0
+cracking_104,Crazing,1.0
+cracking_109,Crazing,1.0
+cracking_11,Crazing,1.0
+cracking_114,Crazing,1.0
+cracking_117,Crazing,1.0
+cracking_119,Crazing,1.0
+cracking_12,Crazing,1.0
+cracking_123,Crazing,1.0
+cracking_125,Crazing,1.0
+cracking_128,Crazing,1.0
+cracking_130,Crazing,1.0
+cracking_131,Crazing,1.0
+cracking_132,Crazing,1.0
+cracking_142,Crazing,1.0
+cracking_144,Crazing,1.0
+cracking_148,Crazing,1.0
+cracking_149,Crazing,1.0
+cracking_15,Crazing,1.0
+cracking_155,Crazing,1.0
+cracking_156,Crazing,1.0
+cracking_157,Crazing,1.0
+cracking_159,Crazing,1.0
+cracking_16,Crazing,1.0
+cracking_161,Crazing,0.9998
+cracking_174,Crazing,1.0
+cracking_179,Crazing,0.9988
+cracking_18,Crazing,1.0
+cracking_183,Crazing,1.0
+cracking_19,Crazing,1.0
+cracking_195,Crazing,1.0
+cracking_197,Crazing,1.0
+cracking_20,Crazing,1.0
+cracking_200,Crazing,1.0
+cracking_201,Crazing,1.0
+cracking_202,Crazing,1.0
+cracking_211,Crazing,1.0
+cracking_216,Crazing,1.0
+cracking_217,Crazing,1.0
+cracking_219,Crazing,1.0
+cracking_220,Crazing,1.0
+cracking_222,Crazing,1.0
+cracking_232,Crazing,1.0
+cracking_234,Crazing,1.0
+cracking_236,Crazing,1.0
+cracking_242,Crazing,1.0
+cracking_245,Crazing,1.0
+cracking_249,Crazing,1.0
+cracking_250,Crazing,0.9987
+cracking_251,Crazing,1.0
+cracking_255,Crazing,1.0
+cracking_256,Crazing,1.0
+cracking_258,Crazing,1.0
+cracking_265,Crazing,0.9999
+cracking_268,Crazing,1.0
+cracking_276,Crazing,1.0
+cracking_280,Crazing,1.0
+cracking_285,Crazing,0.9999
+cracking_291,Crazing,0.9915
+cracking_292,Crazing,1.0
+cracking_293,Crazing,1.0
+cracking_295,Crazing,1.0
+cracking_297,Crazing,1.0
+cracking_298,Crazing,0.9999
+cracking_299,Crazing,0.9996
+cracking_300,Crazing,1.0
+cracking_32,Crazing,1.0
+cracking_34,Crazing,1.0
+cracking_36,Crazing,1.0
+cracking_40,Crazing,0.9997
+cracking_41,Crazing,1.0
+cracking_43,Crazing,0.9999
+cracking_46,Crazing,0.9812
+cracking_50,Crazing,1.0
+cracking_51,Crazing,1.0
+cracking_58,Crazing,1.0
+cracking_59,Crazing,1.0
+cracking_62,Crazing,1.0
+cracking_66,Crazing,1.0
+cracking_70,Crazing,1.0
+cracking_72,Crazing,1.0
+cracking_75,Crazing,1.0
+cracking_80,Crazing,1.0
+cracking_84,Crazing,0.9998
+cracking_86,Crazing,1.0
+cracking_89,Crazing,0.9999
+cracking_91,Crazing,1.0
+cracking_95,Crazing,1.0
+cracking_96,Crazing,1.0
+crease_02,Bright scratch,0.2628
+crease_04,Crease,0.5366
+crease_07,Water spot,0.6213
+crease_09,Crease,0.9432
+crease_16,Crease,0.7876
+crease_27,Crease,0.9781
+crease_29,Bright scratch,0.9666
+crease_31,Crease,0.9908
+crease_37,Inclusion,0.3424
+crease_40,Crease,0.3948
+crease_45,Welding line,0.6194
+crease_47,Crease,0.9969
+crease_58,Crease,0.9872
+crease_60,Crease,0.8118
+crease_62,Crease,0.9807
+crease_66,Crease,1.0
+crease_68,Water spot,0.7729
+crease_69,Crease,0.9992
+crease_72,Crease,0.9573
+crease_73,Crease,0.9949
+crease_74,Welding line,0.5001
+crease_75,Crease,0.9991
+ds_01,Dark scratches,1.0
+ds_02,Dark scratches,1.0
+ds_03,Dark scratches,1.0
+ds_07,Dark scratches,0.9879
+ds_09,Dark scratches,0.9974
+ds_10,Dark scratches,1.0
+ds_106,Dark scratches,1.0
+ds_107,Dark scratches,1.0
+ds_109,Dark scratches,1.0
+ds_110,Dark scratches,1.0
+ds_114,Dark scratches,1.0
+ds_117,Bright scratch,0.983
+ds_118,Dark scratches,1.0
+ds_120,Dark scratches,0.9996
+ds_121,Dark scratches,1.0
+ds_123,Dark scratches,0.9853
+ds_124,Dark scratches,1.0
+ds_125,Dark scratches,1.0
+ds_127,Dark scratches,1.0
+ds_128,Dark scratches,1.0
+ds_129,Dark scratches,1.0
+ds_13,Dark scratches,1.0
+ds_130,Dark scratches,1.0
+ds_133,Dark scratches,1.0
+ds_135,Dark scratches,1.0
+ds_14,Dark scratches,0.9997
+ds_147,Dark scratches,0.9931
+ds_155,Dark scratches,1.0
+ds_157,Dark scratches,1.0
+ds_158,Bright scratch,0.6915
+ds_162,Dark scratches,0.9912
+ds_167,Inclusion,0.7035
+ds_17,Dark scratches,1.0
+ds_174,Dark scratches,1.0
+ds_177,Dark scratches,0.9972
+ds_181,Dark scratches,1.0
+ds_183,Dark scratches,0.9999
+ds_186,Dark scratches,1.0
+ds_190,Dark scratches,0.9999
+ds_191,Dark scratches,1.0
+ds_192,Dark scratches,1.0
+ds_193,Dark scratches,1.0
+ds_195,Dark scratches,1.0
+ds_198,Dark scratches,0.9673
+ds_201,Dark scratches,1.0
+ds_202,Dark scratches,1.0
+ds_204,Dark scratches,1.0
+ds_207,Dark scratches,0.9987
+ds_210,Dark scratches,0.9999
+ds_212,Dark scratches,1.0
+ds_218,Dark scratches,0.9999
+ds_219,Dark scratches,1.0
+ds_22,Dark scratches,1.0
+ds_220,Dark scratches,1.0
+ds_221,Dark scratches,1.0
+ds_222,Dark scratches,1.0
+ds_223,Dark scratches,1.0
+ds_225,Dark scratches,0.9991
+ds_235,Dark scratches,0.9914
+ds_24,Dark scratches,0.9539
+ds_240,Dark scratches,1.0
+ds_259,Dark scratches,0.9993
+ds_261,Dark scratches,1.0
+ds_264,Dark scratches,0.9995
+ds_265,Welding line,0.9971
+ds_268,Dark scratches,0.9999
+ds_276,Dark scratches,0.9997
+ds_278,Dark scratches,1.0
+ds_279,Dark scratches,1.0
+ds_280,Dark scratches,1.0
+ds_284,Dark scratches,1.0
+ds_290,Dark scratches,0.9999
+ds_295,Dark scratches,1.0
+ds_298,Dark scratches,1.0
+ds_299,Dark scratches,1.0
+ds_305,Dark scratches,1.0
+ds_306,Dark scratches,1.0
+ds_307,Dark scratches,1.0
+ds_308,Dark scratches,1.0
+ds_309,Dark scratches,1.0
+ds_312,Dark scratches,1.0
+ds_315,Dark scratches,1.0
+ds_327,Dark scratches,1.0
+ds_328,Dark scratches,1.0
+ds_329,Dark scratches,1.0
+ds_331,Dark scratches,1.0
+ds_332,Dark scratches,1.0
+ds_36,Dark scratches,1.0
+ds_43,Dark scratches,1.0
+ds_51,Dark scratches,1.0
+ds_56,Dark scratches,1.0
+ds_79,Dark scratches,1.0
+ds_82,Dark scratches,1.0
+ds_83,Dark scratches,1.0
+ds_88,Dark scratches,1.0
+ds_93,Dark scratches,1.0
+ds_94,Dark scratches,1.0
+ds_95,Dark scratches,1.0
+ds_97,Dark scratches,0.9768
+ds_99,Dark scratches,1.0
+frp_02,Finishing roll printing,1.0
+frp_07,Finishing roll printing,0.9997
+frp_09,Inclusion,0.6118
+frp_10,Finishing roll printing,0.9991
+frp_100,Finishing roll printing,0.9998
+frp_102,Finishing roll printing,1.0
+frp_107,Finishing roll printing,1.0
+frp_109,Finishing roll printing,0.9999
+frp_111,Finishing roll printing,1.0
+frp_112,Finishing roll printing,1.0
+frp_115,Finishing roll printing,1.0
+frp_12,Finishing roll printing,1.0
+frp_121,Finishing roll printing,0.9951
+frp_128,Finishing roll printing,1.0
+frp_137,Finishing roll printing,1.0
+frp_140,Finishing roll printing,1.0
+frp_144,Finishing roll printing,1.0
+frp_147,Finishing roll printing,0.91
+frp_152,Finishing roll printing,0.9996
+frp_154,Finishing roll printing,1.0
+frp_155,Finishing roll printing,0.9977
+frp_16,Finishing roll printing,1.0
+frp_161,Finishing roll printing,0.9952
+frp_162,Finishing roll printing,0.9986
+frp_164,Finishing roll printing,1.0
+frp_165,Finishing roll printing,0.9999
+frp_17,Finishing roll printing,1.0
+frp_175,Finishing roll printing,1.0
+frp_177,Crease,0.8568
+frp_179,Finishing roll printing,1.0
+frp_18,Finishing roll printing,0.9994
+frp_186,Finishing roll printing,1.0
+frp_188,Finishing roll printing,1.0
+frp_19,Welding line,0.8895
+frp_194,Finishing roll printing,0.9909
+frp_202,Finishing roll printing,1.0
+frp_24,Finishing roll printing,1.0
+frp_25,Finishing roll printing,1.0
+frp_26,Finishing roll printing,0.9998
+frp_27,Finishing roll printing,1.0
+frp_33,Rolled pit,0.7875
+frp_35,Finishing roll printing,1.0
+frp_42,Finishing roll printing,0.9999
+frp_43,Finishing roll printing,1.0
+frp_48,Finishing roll printing,0.924
+frp_52,Finishing roll printing,0.9991
+frp_57,Finishing roll printing,0.9997
+frp_64,Finishing roll printing,1.0
+frp_65,Finishing roll printing,0.9997
+frp_67,Finishing roll printing,0.9935
+frp_68,Finishing roll printing,0.9996
+frp_72,Finishing roll printing,0.9996
+frp_77,Finishing roll printing,1.0
+frp_86,Finishing roll printing,0.9999
+frp_89,Finishing roll printing,0.9998
+frp_91,Finishing roll printing,0.9999
+frp_94,Finishing roll printing,0.9998
+frp_95,Finishing roll printing,0.7588
+frp_96,Finishing roll printing,1.0
+frp_97,Finishing roll printing,0.9999
+in_01,Punching,0.5625
+in_02,Punching,0.4213
+in_07,Inclusion,0.9987
+in_08,Inclusion,0.9999
+in_101,Inclusion,0.721
+in_103,Finishing roll printing,0.4178
+in_104,Inclusion,0.9996
+in_110,Inclusion,0.9994
+in_111,Inclusion,0.9999
+in_116,Inclusion,0.7928
+in_118,Inclusion,1.0
+in_124,Inclusion,0.9222
+in_125,Inclusion,1.0
+in_129,Inclusion,1.0
+in_130,Inclusion,0.9999
+in_132,Crease,0.4502
+in_133,Inclusion,0.9946
+in_14,Inclusion,1.0
+in_143,Inclusion,1.0
+in_144,Inclusion,0.954
+in_145,Inclusion,0.9999
+in_147,Inclusion,0.9996
+in_148,Inclusion,0.9759
+in_150,Inclusion,0.995
+in_152,Inclusion,1.0
+in_160,Inclusion,1.0
+in_162,Inclusion,0.9998
+in_165,Water spot,0.6607
+in_166,Inclusion,1.0
+in_170,Inclusion,0.9617
+in_178,Inclusion,1.0
+in_179,Water spot,0.6452
+in_180,Inclusion,1.0
+in_188,Inclusion,1.0
+in_190,Water spot,0.9923
+in_195,Inclusion,0.9992
+in_205,Inclusion,0.9937
+in_206,Inclusion,0.9998
+in_208,Inclusion,0.9846
+in_209,Inclusion,0.987
+in_21,Silk spot,0.9898
+in_211,Inclusion,1.0
+in_214,Inclusion,1.0
+in_217,Oil spot,0.5713
+in_219,Inclusion,1.0
+in_22,Inclusion,0.7386
+in_222,Inclusion,0.7027
+in_228,Inclusion,1.0
+in_23,Inclusion,0.9825
+in_232,Inclusion,0.9277
+in_234,Water spot,0.8818
+in_237,Inclusion,1.0
+in_240,Inclusion,0.9797
+in_247,Inclusion,0.6216
+in_25,Inclusion,0.6619
+in_254,Inclusion,0.9496
+in_255,Inclusion,1.0
+in_257,Inclusion,0.9846
+in_259,Inclusion,0.976
+in_262,Inclusion,0.9707
+in_268,Inclusion,0.9778
+in_271,Inclusion,0.9179
+in_272,Inclusion,1.0
+in_277,Silk spot,0.9177
+in_279,Inclusion,0.7773
+in_284,Inclusion,0.9964
+in_285,Inclusion,1.0
+in_289,Inclusion,0.9997
+in_291,Inclusion,0.999
+in_295,Inclusion,0.5787
+in_297,Inclusion,1.0
+in_314,Inclusion,1.0
+in_315,Inclusion,1.0
+in_319,Inclusion,0.9999
+in_324,Inclusion,0.992
+in_325,Inclusion,0.9999
+in_329,Inclusion,1.0
+in_332,Inclusion,0.9971
+in_334,Inclusion,1.0
+in_338,Inclusion,1.0
+in_34,Inclusion,1.0
+in_343,Inclusion,1.0
+in_347,Inclusion,0.9993
+in_353,Inclusion,0.9475
+in_359,Inclusion,1.0
+in_367,Inclusion,0.5225
+in_368,Inclusion,0.879
+in_370,Inclusion,0.9997
+in_375,Inclusion,0.999
+in_378,Inclusion,0.996
+in_379,Inclusion,0.9987
+in_38,Inclusion,0.9819
+in_381,Inclusion,0.9996
+in_384,Inclusion,0.9968
+in_385,Inclusion,0.9995
+in_389,Inclusion,0.9316
+in_390,Inclusion,0.9999
+in_391,Inclusion,0.9999
+in_394,Inclusion,0.9969
+in_397,Silk spot,0.6283
+in_40,Inclusion,0.9998
+in_400,Inclusion,0.9996
+in_405,Inclusion,0.7716
+in_407,Inclusion,0.9998
+in_408,Water spot,0.67
+in_419,Inclusion,0.9995
+in_42,Inclusion,1.0
+in_421,Inclusion,0.5161
+in_422,Inclusion,0.9999
+in_429,Inclusion,1.0
+in_43,Inclusion,1.0
+in_430,Inclusion,0.9985
+in_434,Inclusion,1.0
+in_436,Inclusion,0.9996
+in_439,Oil spot,0.7096
+in_443,Inclusion,0.9998
+in_444,Inclusion,1.0
+in_448,Inclusion,1.0
+in_449,Inclusion,0.9876
+in_451,Inclusion,1.0
+in_453,Inclusion,0.9325
+in_463,Inclusion,1.0
+in_464,Inclusion,0.5516
+in_465,Inclusion,0.9987
+in_467,Inclusion,0.999
+in_469,Inclusion,0.9987
+in_470,Inclusion,0.9735
+in_475,Inclusion,1.0
+in_480,Inclusion,0.9974
+in_483,Inclusion,1.0
+in_485,Inclusion,1.0
+in_486,Inclusion,0.6653
+in_488,Inclusion,1.0
+in_489,Inclusion,0.9847
+in_492,Inclusion,1.0
+in_495,Inclusion,0.9995
+in_496,Inclusion,0.9982
+in_500,Inclusion,1.0
+in_501,Inclusion,1.0
+in_502,Inclusion,0.9997
+in_504,Inclusion,1.0
+in_505,Inclusion,0.9999
+in_507,Inclusion,0.9989
+in_511,Inclusion,1.0
+in_512,Inclusion,1.0
+in_518,Inclusion,1.0
+in_52,Inclusion,1.0
+in_520,Inclusion,1.0
+in_524,Inclusion,1.0
+in_525,Inclusion,0.9995
+in_527,Inclusion,1.0
+in_530,Inclusion,1.0
+in_533,Inclusion,1.0
+in_539,Inclusion,1.0
+in_544,Inclusion,1.0
+in_545,Inclusion,1.0
+in_546,Inclusion,1.0
+in_550,Inclusion,1.0
+in_555,Inclusion,0.9998
+in_556,Inclusion,1.0
+in_565,Inclusion,0.9995
+in_573,Inclusion,0.9988
+in_58,Inclusion,0.9891
+in_585,Inclusion,0.9712
+in_586,Inclusion,0.9997
+in_594,Inclusion,1.0
+in_599,Inclusion,1.0
+in_60,Inclusion,0.9969
+in_601,Inclusion,0.9999
+in_604,Inclusion,1.0
+in_605,Inclusion,1.0
+in_609,Inclusion,0.9997
+in_612,Inclusion,0.9999
+in_614,Inclusion,1.0
+in_618,Inclusion,0.9999
+in_620,Inclusion,0.9998
+in_621,Inclusion,0.457
+in_623,Inclusion,1.0
+in_624,Inclusion,0.9995
+in_63,Inclusion,0.9994
+in_630,Inclusion,1.0
+in_637,Inclusion,1.0
+in_64,Inclusion,0.9979
+in_642,Inclusion,0.9983
+in_643,Inclusion,0.9985
+in_644,Inclusion,1.0
+in_652,Inclusion,0.9994
+in_656,Inclusion,1.0
+in_657,Inclusion,0.9991
+in_661,Inclusion,1.0
+in_663,Inclusion,1.0
+in_673,Inclusion,1.0
+in_676,Inclusion,0.9997
+in_679,Inclusion,1.0
+in_683,Inclusion,0.8289
+in_685,Inclusion,1.0
+in_689,Inclusion,0.9993
+in_690,Secondary rust skin,0.3639
+in_693,Inclusion,0.9988
+in_696,Inclusion,1.0
+in_697,Inclusion,1.0
+in_698,Inclusion,1.0
+in_702,Inclusion,0.9384
+in_705,Inclusion,1.0
+in_71,Inclusion,1.0
+in_714,Inclusion,0.9999
+in_716,Inclusion,1.0
+in_717,Inclusion,0.9999
+in_72,Water spot,0.5829
+in_721,Inclusion,1.0
+in_723,Inclusion,0.9993
+in_726,Inclusion,1.0
+in_733,Inclusion,0.9999
+in_735,Inclusion,1.0
+in_737,Inclusion,1.0
+in_738,Inclusion,0.829
+in_739,Inclusion,0.6645
+in_740,Inclusion,0.9981
+in_742,Inclusion,1.0
+in_744,Inclusion,0.9933
+in_749,Inclusion,1.0
+in_753,Inclusion,0.9999
+in_757,Inclusion,1.0
+in_759,Inclusion,1.0
+in_764,Inclusion,1.0
+in_765,Inclusion,1.0
+in_766,Inclusion,1.0
+in_768,Inclusion,0.9999
+in_77,Inclusion,0.9999
+in_773,Inclusion,0.9999
+in_775,Inclusion,1.0
+in_776,Inclusion,1.0
+in_787,Inclusion,1.0
+in_790,Inclusion,1.0
+in_792,Inclusion,1.0
+in_793,Inclusion,1.0
+in_795,Inclusion,1.0
+in_86,Inclusion,0.9994
+os_01,Oil spot,0.9998
+os_03,Oil spot,0.999
+os_10,Oil spot,1.0
+os_105,Oil spot,0.9981
+os_109,Oil spot,1.0
+os_113,Oil spot,0.9999
+os_115,Oil spot,1.0
+os_117,Oil spot,0.9995
+os_118,Oil spot,0.9137
+os_12,Oil spot,1.0
+os_122,Oil spot,0.9998
+os_123,Oil spot,1.0
+os_13,Oil spot,0.6931
+os_130,Inclusion,0.9134
+os_132,Oil spot,0.9998
+os_134,Oil spot,0.9825
+os_135,Oil spot,0.9927
+os_136,Oil spot,0.9999
+os_137,Inclusion,0.9559
+os_140,Oil spot,0.9999
+os_142,Oil spot,0.7019
+os_145,Oil spot,0.999
+os_149,Iron scale compression,0.9633
+os_155,Oil spot,0.9737
+os_156,Oil spot,1.0
+os_159,Oil spot,0.993
+os_161,Oil spot,0.9999
+os_164,Oil spot,0.9033
+os_165,Oil spot,1.0
+os_168,Oil spot,0.9922
+os_170,Oil spot,0.9998
+os_177,Oil spot,0.9968
+os_18,Oil spot,0.999
+os_181,Oil spot,0.9934
+os_184,Oil spot,1.0
+os_185,Oil spot,0.9984
+os_193,Oil spot,1.0
+os_194,Oil spot,1.0
+os_195,Oil spot,0.9972
+os_207,Oil spot,0.2591
+os_212,Oil spot,1.0
+os_216,Oil spot,1.0
+os_217,Oil spot,1.0
+os_222,Oil spot,0.9999
+os_225,Oil spot,0.9996
+os_227,Oil spot,1.0
+os_230,Oil spot,1.0
+os_231,Oil spot,0.9993
+os_233,Oil spot,0.6022
+os_237,Oil spot,0.9997
+os_241,Oil spot,0.9996
+os_242,Oil spot,1.0
+os_244,Oil spot,0.9999
+os_251,Oil spot,0.9987
+os_253,Oil spot,0.5942
+os_254,Oil spot,0.9973
+os_255,Oil spot,1.0
+os_257,Oil spot,1.0
+os_258,Oil spot,0.9999
+os_259,Oil spot,0.9524
+os_262,Oil spot,1.0
+os_263,Inclusion,0.8725
+os_264,Oil spot,1.0
+os_267,Oil spot,0.9546
+os_269,Oil spot,1.0
+os_270,Oil spot,0.9999
+os_272,Oil spot,0.9937
+os_273,Oil spot,1.0
+os_274,Oil spot,1.0
+os_276,Oil spot,0.9999
+os_277,Oil spot,1.0
+os_283,Punching,0.9657
+os_288,Oil spot,0.9984
+os_299,Oil spot,1.0
+os_300,Oil spot,1.0
+os_304,Oil spot,0.9715
+os_306,Crease,0.5601
+os_307,Oil spot,0.8805
+os_311,Oil spot,0.9719
+os_322,Inclusion,0.7912
+os_323,Oil spot,1.0
+os_324,Oil spot,0.5228
+os_33,Oil spot,0.9999
+os_330,Oil spot,0.9997
+os_332,Water spot,0.9791
+os_333,Oil spot,0.9999
+os_335,Oil spot,0.9984
+os_340,Inclusion,0.8448
+os_347,Oil spot,0.8508
+os_35,Oil spot,1.0
+os_354,Inclusion,0.553
+os_361,Inclusion,0.9972
+os_366,Oil spot,0.6687
+os_369,Oil spot,0.985
+os_370,Oil spot,0.9999
+os_373,Oil spot,1.0
+os_375,Oil spot,0.9953
+os_38,Oil spot,1.0
+os_382,Oil spot,0.9996
+os_384,Oil spot,1.0
+os_385,Oil spot,1.0
+os_388,Oil spot,1.0
+os_390,Oil spot,1.0
+os_393,Oil spot,1.0
+os_399,Oil spot,1.0
+os_400,Oil spot,0.9995
+os_402,Oil spot,1.0
+os_403,Oil spot,0.998
+os_413,Water spot,0.3125
+os_414,Water spot,0.8958
+os_419,Oil spot,0.9993
+os_421,Oil spot,1.0
+os_423,Oil spot,0.9991
+os_424,Oil spot,0.8656
+os_430,Oil spot,0.9996
+os_433,Oil spot,0.9938
+os_437,Oil spot,0.9997
+os_448,Inclusion,0.9824
+os_45,Oil spot,0.9998
+os_450,Oil spot,0.6622
+os_453,Oil spot,0.7982
+os_46,Oil spot,1.0
+os_460,Inclusion,0.91
+os_462,Oil spot,0.7805
+os_469,Oil spot,0.8871
+os_477,Oil spot,0.9958
+os_478,Oil spot,0.9966
+os_481,Oil spot,1.0
+os_482,Oil spot,0.832
+os_484,Oil spot,0.9982
+os_485,Water spot,0.6382
+os_49,Oil spot,1.0
+os_491,Oil spot,0.9991
+os_494,Rolled pit,0.9907
+os_51,Oil spot,0.9995
+os_56,Oil spot,1.0
+os_58,Oil spot,1.0
+os_66,Oil spot,1.0
+os_67,Oil spot,0.9999
+os_69,Oil spot,0.9918
+os_71,Oil spot,1.0
+os_77,Oil spot,1.0
+os_83,Oil spot,0.9574
+os_86,Oil spot,0.9857
+os_87,Oil spot,0.9999
+os_90,Oil spot,0.9972
+os_91,Oil spot,1.0
+os_92,Oil spot,1.0
+os_99,Oil spot,1.0
+pa_03,Patches,1.0
+pa_08,Patches,1.0
+pa_09,Patches,0.364
+pa_10,Patches,1.0
+pa_100,Patches,1.0
+pa_108,Patches,0.9998
+pa_115,Patches,1.0
+pa_117,Patches,1.0
+pa_118,Patches,0.9999
+pa_122,Patches,1.0
+pa_125,Patches,1.0
+pa_126,Patches,1.0
+pa_127,Patches,1.0
+pa_129,Patches,0.9998
+pa_13,Patches,0.9992
+pa_130,Patches,1.0
+pa_131,Patches,1.0
+pa_132,Patches,1.0
+pa_133,Patches,1.0
+pa_134,Patches,1.0
+pa_136,Patches,1.0
+pa_138,Patches,1.0
+pa_147,Patches,1.0
+pa_148,Patches,1.0
+pa_149,Patches,0.9999
+pa_150,Patches,1.0
+pa_151,Patches,1.0
+pa_152,Patches,1.0
+pa_153,Patches,1.0
+pa_160,Patches,1.0
+pa_161,Patches,1.0
+pa_166,Patches,1.0
+pa_167,Patches,0.9999
+pa_169,Patches,1.0
+pa_174,Patches,1.0
+pa_176,Patches,1.0
+pa_177,Patches,1.0
+pa_18,Patches,1.0
+pa_180,Patches,1.0
+pa_183,Patches,1.0
+pa_19,Patches,1.0
+pa_194,Patches,1.0
+pa_199,Patches,0.9995
+pa_20,Patches,1.0
+pa_204,Patches,1.0
+pa_205,Patches,1.0
+pa_210,Patches,1.0
+pa_211,Patches,1.0
+pa_219,Patches,1.0
+pa_22,Patches,1.0
+pa_220,Patches,1.0
+pa_227,Patches,1.0
+pa_228,Patches,1.0
+pa_229,Patches,1.0
+pa_230,Patches,1.0
+pa_234,Patches,0.9581
+pa_238,Patches,1.0
+pa_239,Patches,1.0
+pa_242,Patches,1.0
+pa_245,Patches,0.9998
+pa_247,Patches,1.0
+pa_249,Patches,1.0
+pa_25,Patches,1.0
+pa_254,Patches,0.9807
+pa_265,Patches,1.0
+pa_267,Patches,1.0
+pa_268,Patches,0.9983
+pa_273,Patches,1.0
+pa_276,Patches,1.0
+pa_278,Patches,1.0
+pa_279,Patches,1.0
+pa_280,Patches,1.0
+pa_281,Patches,1.0
+pa_289,Patches,1.0
+pa_291,Patches,1.0
+pa_294,Patches,1.0
+pa_297,Patches,0.8017
+pa_300,Patches,1.0
+pa_35,Patches,1.0
+pa_37,Patches,0.9976
+pa_39,Patches,1.0
+pa_42,White rust,0.6451
+pa_45,Patches,1.0
+pa_48,Patches,1.0
+pa_50,Patches,1.0
+pa_71,Patches,0.9999
+pa_73,Patches,0.9998
+pa_87,Patches,1.0
+pa_95,Patches,1.0
+pa_98,Patches,1.0
+ps_01,Pitted surface,1.0
+ps_10,Pitted surface,1.0
+ps_102,Pitted surface,1.0
+ps_108,Pitted surface,1.0
+ps_118,Pitted surface,1.0
+ps_125,Pitted surface,0.9991
+ps_127,Pitted surface,0.9968
+ps_128,Pitted surface,0.9938
+ps_129,Pitted surface,0.9998
+ps_134,Pitted surface,1.0
+ps_141,Inclusion,0.2807
+ps_145,Pitted surface,0.9996
+ps_146,Pitted surface,1.0
+ps_153,Pitted surface,0.9998
+ps_16,Pitted surface,1.0
+ps_160,Pitted surface,0.9509
+ps_162,Pitted surface,1.0
+ps_163,Pitted surface,1.0
+ps_165,Pitted surface,0.9899
+ps_169,Pitted surface,1.0
+ps_173,Pitted surface,1.0
+ps_175,Pitted surface,1.0
+ps_176,Pitted surface,1.0
+ps_18,Pitted surface,0.9998
+ps_180,Pitted surface,1.0
+ps_181,Pitted surface,0.9959
+ps_187,Pitted surface,1.0
+ps_191,Pitted surface,1.0
+ps_192,Pitted surface,0.9897
+ps_194,Pitted surface,0.9965
+ps_20,Pitted surface,1.0
+ps_200,Pitted surface,0.9961
+ps_211,Pitted surface,1.0
+ps_213,Pitted surface,0.9964
+ps_215,Pitted surface,0.9988
+ps_216,Pitted surface,1.0
+ps_219,Pitted surface,1.0
+ps_227,Pitted surface,1.0
+ps_23,Pitted surface,1.0
+ps_233,Pitted surface,1.0
+ps_234,Pitted surface,1.0
+ps_236,Pitted surface,0.9999
+ps_24,Pitted surface,1.0
+ps_242,Pitted surface,1.0
+ps_245,Pitted surface,1.0
+ps_246,Pitted surface,1.0
+ps_249,Pitted surface,1.0
+ps_254,Pitted surface,1.0
+ps_256,Pitted surface,0.9973
+ps_257,Pitted surface,1.0
+ps_26,Pitted surface,1.0
+ps_260,Pitted surface,0.996
+ps_261,Pitted surface,1.0
+ps_265,Pitted surface,0.9999
+ps_272,Pitted surface,1.0
+ps_273,Pitted surface,1.0
+ps_275,Pitted surface,1.0
+ps_277,Pitted surface,0.9552
+ps_28,Pitted surface,0.9999
+ps_280,Pitted surface,0.9854
+ps_284,Pitted surface,1.0
+ps_285,Pitted surface,1.0
+ps_288,Pitted surface,0.9859
+ps_289,Pitted surface,1.0
+ps_291,Pitted surface,1.0
+ps_292,Pitted surface,1.0
+ps_293,Pitted surface,1.0
+ps_299,Pitted surface,0.9973
+ps_31,Pitted surface,1.0
+ps_32,Pitted surface,1.0
+ps_33,Pitted surface,1.0
+ps_34,Pitted surface,0.9915
+ps_38,Pitted surface,0.9999
+ps_39,Pitted surface,0.9783
+ps_47,Pitted surface,0.9997
+ps_49,Pitted surface,1.0
+ps_60,Pitted surface,1.0
+ps_63,Pitted surface,0.9327
+ps_67,Pitted surface,1.0
+ps_69,Pitted surface,1.0
+ps_73,Pitted surface,1.0
+ps_74,Pitted surface,1.0
+ps_78,Pitted surface,1.0
+ps_84,Pitted surface,0.9999
+ps_85,Pitted surface,1.0
+ps_86,Pitted surface,0.7707
+ps_92,Pitted surface,1.0
+ps_93,Pitted surface,0.9999
+ps_98,Pitted surface,0.9996
+ps_99,Pitted surface,1.0
+pu_05,Punching,1.0
+pu_09,Punching,0.9999
+pu_104,Punching,1.0
+pu_107,Punching,1.0
+pu_113,Punching,1.0
+pu_116,Punching,1.0
+pu_117,Punching,1.0
+pu_119,Punching,1.0
+pu_120,Punching,1.0
+pu_121,Punching,0.9943
+pu_13,Punching,1.0
+pu_132,Punching,1.0
+pu_133,Punching,1.0
+pu_134,Punching,0.9999
+pu_135,Punching,1.0
+pu_136,Punching,1.0
+pu_137,Punching,1.0
+pu_138,Punching,1.0
+pu_144,Punching,1.0
+pu_145,Punching,1.0
+pu_146,Punching,0.9999
+pu_148,Punching,0.9998
+pu_15,Punching,1.0
+pu_150,Punching,1.0
+pu_156,Punching,1.0
+pu_157,Punching,0.9993
+pu_158,Punching,0.9826
+pu_159,Punching,1.0
+pu_16,Punching,0.9999
+pu_161,Punching,1.0
+pu_17,Punching,1.0
+pu_175,Punching,1.0
+pu_18,Punching,1.0
+pu_188,Punching,1.0
+pu_195,Punching,1.0
+pu_199,Punching,1.0
+pu_20,Punching,1.0
+pu_200,Punching,1.0
+pu_201,Punching,1.0
+pu_202,Punching,1.0
+pu_205,Punching,1.0
+pu_206,Punching,1.0
+pu_218,Punching,0.9996
+pu_228,Punching,1.0
+pu_23,Punching,1.0
+pu_230,Punching,1.0
+pu_237,Punching,1.0
+pu_239,Punching,1.0
+pu_240,Punching,1.0
+pu_241,Punching,1.0
+pu_242,Punching,1.0
+pu_245,Punching,1.0
+pu_246,Punching,1.0
+pu_247,Punching,1.0
+pu_248,Punching,0.9999
+pu_252,Punching,1.0
+pu_253,Punching,1.0
+pu_257,Punching,1.0
+pu_258,Punching,0.9998
+pu_26,Punching,1.0
+pu_262,Punching,1.0
+pu_265,Punching,1.0
+pu_274,Punching,1.0
+pu_275,Punching,1.0
+pu_276,Punching,1.0
+pu_280,Punching,1.0
+pu_283,Punching,1.0
+pu_284,Punching,1.0
+pu_290,Punching,0.9987
+pu_294,Punching,1.0
+pu_296,Punching,1.0
+pu_299,Punching,1.0
+pu_300,Punching,1.0
+pu_304,Punching,1.0
+pu_307,Punching,1.0
+pu_310,Punching,0.9999
+pu_315,Punching,1.0
+pu_319,Punching,1.0
+pu_32,Punching,1.0
+pu_322,Punching,1.0
+pu_323,Punching,1.0
+pu_327,Punching,1.0
+pu_328,Punching,1.0
+pu_33,Punching,0.9916
+pu_330,Punching,1.0
+pu_331,Punching,1.0
+pu_332,Punching,1.0
+pu_336,Punching,1.0
+pu_340,Punching,1.0
+pu_343,Punching,1.0
+pu_346,Punching,1.0
+pu_35,Punching,1.0
+pu_355,Punching,1.0
+pu_356,Punching,1.0
+pu_363,Punching,1.0
+pu_365,Punching,1.0
+pu_366,Punching,1.0
+pu_367,Punching,1.0
+pu_370,Punching,0.9999
+pu_374,Punching,0.9987
+pu_378,Punching,0.9999
+pu_379,Punching,1.0
+pu_38,Punching,1.0
+pu_39,Punching,1.0
+pu_390,Punching,1.0
+pu_391,Punching,1.0
+pu_392,Punching,0.9999
+pu_398,Punching,1.0
+pu_40,Punching,1.0
+pu_41,Punching,1.0
+pu_47,Punching,1.0
+pu_50,Punching,1.0
+pu_69,Punching,1.0
+pu_70,Punching,1.0
+pu_80,Punching,1.0
+pu_83,Punching,1.0
+pu_87,Punching,1.0
+pu_89,Punching,1.0
+pu_94,Punching,1.0
+ris_03,Red iron sheet,1.0
+ris_10,Red iron sheet,1.0
+ris_102,Red iron sheet,1.0
+ris_104,Red iron sheet,1.0
+ris_106,Red iron sheet,1.0
+ris_108,Red iron sheet,1.0
+ris_109,Red iron sheet,0.9998
+ris_110,Red iron sheet,0.9894
+ris_111,Red iron sheet,1.0
+ris_113,Red iron sheet,1.0
+ris_117,Red iron sheet,1.0
+ris_12,Red iron sheet,1.0
+ris_120,Red iron sheet,1.0
+ris_122,Red iron sheet,1.0
+ris_126,Red iron sheet,1.0
+ris_127,Red iron sheet,1.0
+ris_131,Red iron sheet,0.9992
+ris_139,Red iron sheet,1.0
+ris_142,Red iron sheet,1.0
+ris_144,Slag inclusion,0.9965
+ris_148,Red iron sheet,1.0
+ris_149,Red iron sheet,1.0
+ris_155,Red iron sheet,1.0
+ris_157,Red iron sheet,1.0
+ris_16,Red iron sheet,0.9981
+ris_161,Red iron sheet,1.0
+ris_163,Red iron sheet,1.0
+ris_164,Red iron sheet,1.0
+ris_165,Red iron sheet,1.0
+ris_166,Red iron sheet,0.9974
+ris_167,Red iron sheet,1.0
+ris_168,Red iron sheet,1.0
+ris_169,Red iron sheet,1.0
+ris_176,Red iron sheet,1.0
+ris_177,Red iron sheet,1.0
+ris_178,Red iron sheet,1.0
+ris_182,Red iron sheet,1.0
+ris_189,Red iron sheet,1.0
+ris_19,Red iron sheet,0.8895
+ris_190,Red iron sheet,0.9999
+ris_192,Red iron sheet,1.0
+ris_202,Red iron sheet,0.9991
+ris_204,Red iron sheet,0.9999
+ris_205,Red iron sheet,1.0
+ris_206,Red iron sheet,1.0
+ris_217,Red iron sheet,0.9999
+ris_218,Red iron sheet,0.9998
+ris_229,Red iron sheet,1.0
+ris_231,Red iron sheet,1.0
+ris_232,Red iron sheet,1.0
+ris_235,Red iron sheet,1.0
+ris_238,Red iron sheet,1.0
+ris_24,Red iron sheet,0.9999
+ris_244,Red iron sheet,1.0
+ris_245,Red iron sheet,1.0
+ris_247,Red iron sheet,1.0
+ris_249,Red iron sheet,0.9999
+ris_25,Red iron sheet,1.0
+ris_250,Red iron sheet,1.0
+ris_257,Red iron sheet,1.0
+ris_261,Red iron sheet,1.0
+ris_264,Red iron sheet,1.0
+ris_267,Red iron sheet,1.0
+ris_27,Red iron sheet,1.0
+ris_270,Red iron sheet,1.0
+ris_272,Red iron sheet,1.0
+ris_275,Red iron sheet,0.9998
+ris_279,Inclusion,0.9223
+ris_281,Red iron sheet,1.0
+ris_282,Red iron sheet,1.0
+ris_299,Red iron sheet,1.0
+ris_300,Red iron sheet,0.9998
+ris_307,Red iron sheet,0.9996
+ris_309,Red iron sheet,0.9964
+ris_313,Red iron sheet,1.0
+ris_315,Red iron sheet,0.9993
+ris_317,Red iron sheet,1.0
+ris_319,Inclusion,0.9828
+ris_329,Red iron sheet,1.0
+ris_333,Red iron sheet,0.9992
+ris_336,Red iron sheet,0.9953
+ris_337,Red iron sheet,1.0
+ris_338,Red iron sheet,0.9998
+ris_343,Inclusion,0.7125
+ris_36,Red iron sheet,1.0
+ris_361,Red iron sheet,1.0
+ris_362,Red iron sheet,1.0
+ris_363,Red iron sheet,1.0
+ris_367,Red iron sheet,1.0
+ris_369,Red iron sheet,1.0
+ris_37,Red iron sheet,1.0
+ris_370,Red iron sheet,1.0
+ris_374,Red iron sheet,0.9998
+ris_376,Red iron sheet,1.0
+ris_382,Red iron sheet,1.0
+ris_385,Red iron sheet,1.0
+ris_389,Red iron sheet,1.0
+ris_39,Red iron sheet,1.0
+ris_393,Inclusion,0.6244
+ris_394,Inclusion,0.9897
+ris_397,Red iron sheet,0.6499
+ris_42,Red iron sheet,1.0
+ris_43,Red iron sheet,1.0
+ris_53,Red iron sheet,0.9951
+ris_59,Red iron sheet,0.8502
+ris_60,Red iron sheet,1.0
+ris_61,Red iron sheet,1.0
+ris_63,Red iron sheet,1.0
+ris_65,Red iron sheet,1.0
+ris_69,Red iron sheet,1.0
+ris_72,Red iron sheet,0.9994
+ris_74,Red iron sheet,1.0
+ris_76,Red iron sheet,1.0
+ris_78,Red iron sheet,1.0
+ris_86,Red iron sheet,1.0
+ris_88,Red iron sheet,1.0
+ris_90,Red iron sheet,1.0
+ris_93,Red iron sheet,1.0
+ris_98,Red iron sheet,1.0
+rp_05,Inclusion,0.5707
+rp_08,Bright scratch,0.5706
+rp_10,Rolled pit,0.2434
+rp_15,Silk spot,0.9693
+rp_17,Silk spot,0.4716
+rp_26,Inclusion,0.3323
+rp_29,Crease,0.9625
+rp_31,Rolled pit,0.6792
+rp_34,Silk spot,0.9222
+rp_35,Silk spot,0.7481
+rp_41,Silk spot,0.4283
+rp_42,Rolled pit,0.9987
+rp_46,Oil spot,0.6366
+rp_47,Inclusion,0.5311
+rp_50,Rolled pit,0.3896
+rs_01,Rolled in scale,1.0
+rs_05,Rolled in scale,1.0
+rs_06,Rolled in scale,1.0
+rs_10,Rolled in scale,1.0
+rs_100,Rolled in scale,1.0
+rs_103,Rolled in scale,0.9999
+rs_107,Rolled in scale,1.0
+rs_108,Rolled in scale,1.0
+rs_109,Rolled in scale,1.0
+rs_11,Rolled in scale,0.9999
+rs_115,Rolled in scale,1.0
+rs_119,Rolled in scale,1.0
+rs_122,Rolled in scale,1.0
+rs_123,Rolled in scale,1.0
+rs_124,Rolled in scale,1.0
+rs_127,Rolled in scale,1.0
+rs_129,Rolled in scale,1.0
+rs_13,Rolled in scale,1.0
+rs_132,Rolled in scale,1.0
+rs_138,Rolled in scale,0.9907
+rs_140,Rolled in scale,1.0
+rs_141,Rolled in scale,1.0
+rs_147,Rolled in scale,1.0
+rs_149,Rolled in scale,1.0
+rs_153,Rolled in scale,1.0
+rs_154,Rolled in scale,1.0
+rs_160,Rolled in scale,1.0
+rs_167,Rolled in scale,1.0
+rs_168,Rolled in scale,1.0
+rs_17,Rolled in scale,1.0
+rs_170,Rolled in scale,1.0
+rs_171,Rolled in scale,1.0
+rs_173,Rolled in scale,1.0
+rs_178,Rolled in scale,1.0
+rs_184,Rolled in scale,1.0
+rs_185,Rolled in scale,1.0
+rs_186,Rolled in scale,1.0
+rs_188,Rolled in scale,0.9999
+rs_189,Rolled in scale,1.0
+rs_193,Rolled in scale,1.0
+rs_202,Rolled in scale,1.0
+rs_204,Rolled in scale,1.0
+rs_207,Rolled in scale,1.0
+rs_208,Rolled in scale,1.0
+rs_212,Rolled in scale,1.0
+rs_213,Rolled in scale,1.0
+rs_22,Rolled in scale,1.0
+rs_231,Rolled in scale,1.0
+rs_234,Rolled in scale,1.0
+rs_235,Rolled in scale,1.0
+rs_236,Rolled in scale,1.0
+rs_238,Rolled in scale,1.0
+rs_241,Rolled in scale,1.0
+rs_247,Rolled in scale,1.0
+rs_248,Rolled in scale,1.0
+rs_252,Rolled in scale,1.0
+rs_253,Rolled in scale,1.0
+rs_256,Rolled in scale,1.0
+rs_257,Rolled in scale,1.0
+rs_258,Rolled in scale,1.0
+rs_260,Rolled in scale,1.0
+rs_264,Rolled in scale,1.0
+rs_270,Rolled in scale,1.0
+rs_275,Rolled in scale,1.0
+rs_276,Rolled in scale,0.9998
+rs_280,Rolled in scale,1.0
+rs_282,Rolled in scale,1.0
+rs_286,Rolled in scale,1.0
+rs_289,Rolled in scale,1.0
+rs_292,Rolled in scale,1.0
+rs_294,Rolled in scale,1.0
+rs_300,Rolled in scale,1.0
+rs_33,Rolled in scale,1.0
+rs_36,Rolled in scale,1.0
+rs_42,Rolled in scale,1.0
+rs_46,Rolled in scale,1.0
+rs_47,Rolled in scale,1.0
+rs_50,Rolled in scale,1.0
+rs_51,Rolled in scale,0.9999
+rs_55,Rolled in scale,1.0
+rs_59,Rolled in scale,1.0
+rs_61,Rolled in scale,1.0
+rs_69,Rolled in scale,1.0
+rs_74,Rolled in scale,1.0
+rs_78,Rolled in scale,1.0
+rs_79,Rolled in scale,1.0
+rs_81,Rolled in scale,1.0
+rs_88,Rolled in scale,1.0
+rs_97,Rolled in scale,1.0
+rs_98,Rolled in scale,1.0
+si_03,Slag inclusion,0.9943
+si_04,Slag inclusion,1.0
+si_07,Slag inclusion,0.9995
+si_08,Slag inclusion,1.0
+si_102,Slag inclusion,0.9918
+si_104,Slag inclusion,0.9947
+si_11,Slag inclusion,0.9997
+si_110,Slag inclusion,0.9999
+si_111,Slag inclusion,1.0
+si_127,Slag inclusion,1.0
+si_132,Slag inclusion,0.9825
+si_135,Slag inclusion,0.9997
+si_136,Slag inclusion,0.9999
+si_138,Slag inclusion,0.9997
+si_139,Slag inclusion,0.9579
+si_143,Slag inclusion,0.9999
+si_145,Slag inclusion,0.9993
+si_149,Slag inclusion,0.9997
+si_151,Slag inclusion,1.0
+si_154,Slag inclusion,0.9983
+si_156,Slag inclusion,1.0
+si_159,Slag inclusion,0.9999
+si_16,Slag inclusion,0.9997
+si_161,Slag inclusion,1.0
+si_162,Slag inclusion,1.0
+si_163,Slag inclusion,0.5863
+si_165,Slag inclusion,0.9999
+si_169,Slag inclusion,0.7952
+si_17,Slag inclusion,1.0
+si_173,Slag inclusion,1.0
+si_175,Slag inclusion,0.9996
+si_176,Slag inclusion,0.7578
+si_177,Slag inclusion,0.9672
+si_180,Slag inclusion,1.0
+si_183,Slag inclusion,1.0
+si_185,Slag inclusion,0.9998
+si_188,Slag inclusion,1.0
+si_19,Slag inclusion,0.9292
+si_199,Slag inclusion,0.9994
+si_201,Slag inclusion,0.9864
+si_203,Slag inclusion,1.0
+si_208,Slag inclusion,0.9991
+si_209,Slag inclusion,1.0
+si_21,Slag inclusion,0.9994
+si_210,Slag inclusion,0.9944
+si_212,Slag inclusion,1.0
+si_213,Slag inclusion,1.0
+si_223,Slag inclusion,1.0
+si_225,Slag inclusion,1.0
+si_226,Slag inclusion,1.0
+si_229,Slag inclusion,0.986
+si_230,Slag inclusion,0.9974
+si_236,Slag inclusion,0.9987
+si_237,Slag inclusion,0.9998
+si_238,Inclusion,0.3842
+si_24,Slag inclusion,0.9999
+si_29,Slag inclusion,0.9973
+si_31,Slag inclusion,0.9999
+si_35,Slag inclusion,1.0
+si_38,Slag inclusion,1.0
+si_40,Slag inclusion,0.9981
+si_57,Slag inclusion,0.9998
+si_58,Slag inclusion,1.0
+si_67,Slag inclusion,0.9989
+si_71,Slag inclusion,1.0
+si_78,Slag inclusion,1.0
+si_81,Slag inclusion,0.9997
+si_84,Slag inclusion,1.0
+si_85,Slag inclusion,1.0
+si_91,Slag inclusion,0.9999
+si_95,Slag inclusion,1.0
+ss_03,Silk spot,0.992
+ss_04,Silk spot,0.9463
+ss_08,Silk spot,1.0
+ss_100,Silk spot,1.0
+ss_103,Silk spot,1.0
+ss_105,Silk spot,1.0
+ss_106,Silk spot,1.0
+ss_109,Silk spot,1.0
+ss_11,Silk spot,0.9999
+ss_110,Silk spot,1.0
+ss_116,Silk spot,1.0
+ss_117,Silk spot,1.0
+ss_118,Silk spot,1.0
+ss_122,Silk spot,1.0
+ss_123,Silk spot,1.0
+ss_130,Silk spot,1.0
+ss_133,Silk spot,1.0
+ss_138,Silk spot,1.0
+ss_140,Silk spot,1.0
+ss_147,Silk spot,1.0
+ss_15,Silk spot,0.999
+ss_152,Silk spot,0.999
+ss_156,Silk spot,1.0
+ss_158,Silk spot,1.0
+ss_160,Silk spot,1.0
+ss_164,Silk spot,1.0
+ss_166,Silk spot,1.0
+ss_168,Silk spot,1.0
+ss_169,Silk spot,1.0
+ss_171,Silk spot,0.9999
+ss_174,Silk spot,1.0
+ss_178,Silk spot,1.0
+ss_180,Silk spot,1.0
+ss_189,Silk spot,0.9997
+ss_190,Silk spot,0.9984
+ss_192,Silk spot,0.9997
+ss_193,Silk spot,1.0
+ss_195,Silk spot,0.9985
+ss_198,Silk spot,1.0
+ss_203,Silk spot,1.0
+ss_206,Silk spot,1.0
+ss_207,Silk spot,1.0
+ss_209,Silk spot,1.0
+ss_210,Silk spot,1.0
+ss_211,Silk spot,1.0
+ss_213,Silk spot,1.0
+ss_219,Silk spot,0.9994
+ss_220,Silk spot,0.9947
+ss_221,Silk spot,0.9986
+ss_224,Silk spot,1.0
+ss_226,Silk spot,1.0
+ss_234,Silk spot,0.9979
+ss_236,Silk spot,1.0
+ss_241,Silk spot,1.0
+ss_245,Silk spot,0.9999
+ss_253,Silk spot,1.0
+ss_254,Silk spot,1.0
+ss_255,Silk spot,1.0
+ss_259,Silk spot,1.0
+ss_265,Silk spot,1.0
+ss_269,Silk spot,1.0
+ss_27,Silk spot,1.0
+ss_275,Silk spot,1.0
+ss_276,Silk spot,1.0
+ss_277,Silk spot,1.0
+ss_282,Silk spot,1.0
+ss_284,Silk spot,0.9962
+ss_285,Silk spot,1.0
+ss_296,Silk spot,0.9996
+ss_297,Silk spot,0.9995
+ss_298,Silk spot,0.8848
+ss_299,Silk spot,0.9939
+ss_302,Silk spot,0.9978
+ss_303,Silk spot,0.9672
+ss_305,Silk spot,0.996
+ss_308,Silk spot,0.9996
+ss_309,Silk spot,1.0
+ss_31,Silk spot,0.7045
+ss_313,Silk spot,1.0
+ss_315,Silk spot,1.0
+ss_318,Silk spot,0.9999
+ss_319,Silk spot,0.9985
+ss_321,Silk spot,0.9928
+ss_327,Silk spot,0.7683
+ss_339,Silk spot,1.0
+ss_34,Silk spot,0.9998
+ss_350,Silk spot,1.0
+ss_354,Silk spot,1.0
+ss_357,Silk spot,1.0
+ss_362,Silk spot,1.0
+ss_379,Silk spot,1.0
+ss_38,Silk spot,1.0
+ss_386,Inclusion,0.6289
+ss_388,Silk spot,0.9788
+ss_39,Silk spot,1.0
+ss_390,Silk spot,0.8166
+ss_394,Silk spot,1.0
+ss_398,Silk spot,1.0
+ss_399,Silk spot,0.9992
+ss_401,Silk spot,0.9995
+ss_403,Silk spot,1.0
+ss_407,Silk spot,1.0
+ss_419,Silk spot,1.0
+ss_422,Silk spot,1.0
+ss_423,Silk spot,1.0
+ss_428,Silk spot,1.0
+ss_429,Silk spot,1.0
+ss_437,Silk spot,1.0
+ss_438,Silk spot,0.5695
+ss_443,Silk spot,0.9999
+ss_445,Silk spot,0.997
+ss_446,Silk spot,0.9996
+ss_448,Silk spot,1.0
+ss_45,Silk spot,0.9581
+ss_454,Silk spot,0.9992
+ss_457,Silk spot,1.0
+ss_458,Silk spot,1.0
+ss_460,Silk spot,0.5515
+ss_462,Silk spot,0.993
+ss_464,Silk spot,1.0
+ss_476,Silk spot,1.0
+ss_478,Silk spot,1.0
+ss_48,Silk spot,0.998
+ss_481,Silk spot,0.9999
+ss_483,Silk spot,0.9998
+ss_488,Silk spot,0.9998
+ss_489,Silk spot,0.9999
+ss_493,Silk spot,1.0
+ss_497,Silk spot,1.0
+ss_50,Silk spot,1.0
+ss_500,Silk spot,0.9999
+ss_502,Silk spot,0.9992
+ss_507,Silk spot,1.0
+ss_508,Silk spot,1.0
+ss_510,Silk spot,1.0
+ss_513,Silk spot,0.9965
+ss_515,Silk spot,1.0
+ss_519,Silk spot,1.0
+ss_521,Silk spot,1.0
+ss_523,Silk spot,1.0
+ss_526,Silk spot,1.0
+ss_527,Silk spot,1.0
+ss_53,Silk spot,1.0
+ss_531,Silk spot,1.0
+ss_533,Silk spot,1.0
+ss_534,Silk spot,0.9987
+ss_542,Silk spot,1.0
+ss_545,Silk spot,1.0
+ss_550,Silk spot,1.0
+ss_558,Silk spot,1.0
+ss_559,Silk spot,1.0
+ss_56,Silk spot,1.0
+ss_561,Silk spot,1.0
+ss_564,Silk spot,1.0
+ss_567,Silk spot,1.0
+ss_569,Silk spot,1.0
+ss_570,Silk spot,1.0
+ss_571,Silk spot,1.0
+ss_573,Silk spot,1.0
+ss_58,Silk spot,1.0
+ss_59,Silk spot,1.0
+ss_60,Silk spot,1.0
+ss_63,Silk spot,1.0
+ss_65,Silk spot,1.0
+ss_72,Silk spot,1.0
+ss_75,Silk spot,1.0
+ss_78,Silk spot,1.0
+ss_80,Silk spot,1.0
+ss_81,Silk spot,1.0
+ss_84,Silk spot,1.0
+ss_87,Silk spot,0.9999
+ss_90,Silk spot,1.0
+ss_92,Silk spot,1.0
+wf_01,Waist folding,0.9994
+wf_03,Waist folding,0.9997
+wf_05,Waist folding,0.9248
+wf_100,Waist folding,0.9999
+wf_104,Waist folding,0.9999
+wf_108,Waist folding,1.0
+wf_110,Waist folding,1.0
+wf_118,Waist folding,1.0
+wf_121,Waist folding,0.9861
+wf_127,Waist folding,0.9999
+wf_13,Waist folding,1.0
+wf_132,Waist folding,0.8446
+wf_133,Waist folding,0.9995
+wf_135,Waist folding,1.0
+wf_140,Waist folding,1.0
+wf_141,Waist folding,1.0
+wf_147,Waist folding,1.0
+wf_15,Waist folding,1.0
+wf_150,Waist folding,0.9886
+wf_155,Waist folding,1.0
+wf_158,Waist folding,1.0
+wf_162,Waist folding,1.0
+wf_163,Waist folding,1.0
+wf_164,Waist folding,0.9996
+wf_165,Waist folding,0.9997
+wf_166,Waist folding,1.0
+wf_169,Waist folding,1.0
+wf_175,Waist folding,1.0
+wf_177,Waist folding,1.0
+wf_180,Waist folding,1.0
+wf_188,Waist folding,1.0
+wf_19,Waist folding,0.9417
+wf_194,Waist folding,0.9985
+wf_195,Waist folding,1.0
+wf_21,Waist folding,0.516
+wf_28,Waist folding,0.783
+wf_33,Waist folding,0.9997
+wf_42,Waist folding,1.0
+wf_44,Waist folding,1.0
+wf_45,Waist folding,0.9999
+wf_47,Waist folding,1.0
+wf_50,Waist folding,1.0
+wf_51,Waist folding,0.9965
+wf_52,Waist folding,0.9846
+wf_59,Waist folding,1.0
+wf_63,Waist folding,0.9998
+wf_65,Waist folding,0.9851
+wf_66,Waist folding,1.0
+wf_68,Waist folding,0.9999
+wf_74,Waist folding,1.0
+wf_76,Waist folding,1.0
+wf_78,Waist folding,1.0
+wf_81,Waist folding,0.9999
+wf_82,Waist folding,0.9994
+wf_86,Waist folding,0.999
+wf_87,Waist folding,0.9999
+wf_89,Waist folding,1.0
+wf_95,Waist folding,1.0
+wf_98,Waist folding,1.0
+wl_10,Welding line,1.0
+wl_101,Welding line,1.0
+wl_107,Welding line,1.0
+wl_109,Welding line,1.0
+wl_11,Welding line,0.9997
+wl_114,Welding line,1.0
+wl_117,Welding line,1.0
+wl_121,Welding line,1.0
+wl_122,Welding line,1.0
+wl_123,Welding line,1.0
+wl_124,Welding line,1.0
+wl_137,Welding line,0.9999
+wl_145,Welding line,1.0
+wl_149,Welding line,1.0
+wl_15,Welding line,1.0
+wl_150,Welding line,1.0
+wl_155,Welding line,1.0
+wl_156,Welding line,1.0
+wl_157,Welding line,1.0
+wl_158,Welding line,1.0
+wl_160,Welding line,1.0
+wl_163,Welding line,0.9996
+wl_170,Welding line,1.0
+wl_173,Welding line,1.0
+wl_179,Welding line,0.9976
+wl_18,Welding line,1.0
+wl_184,Welding line,1.0
+wl_186,Welding line,1.0
+wl_187,Welding line,1.0
+wl_188,Welding line,1.0
+wl_191,Crease,0.9113
+wl_196,Welding line,1.0
+wl_198,Welding line,0.9863
+wl_199,Welding line,0.999
+wl_202,Welding line,1.0
+wl_205,Welding line,1.0
+wl_207,Welding line,1.0
+wl_209,Welding line,0.9999
+wl_21,Welding line,0.9539
+wl_211,Welding line,1.0
+wl_213,Welding line,1.0
+wl_217,Welding line,1.0
+wl_218,Welding line,1.0
+wl_223,Welding line,0.9999
+wl_228,Welding line,1.0
+wl_23,Welding line,0.9974
+wl_233,Welding line,0.977
+wl_238,Welding line,1.0
+wl_250,Welding line,1.0
+wl_251,Welding line,1.0
+wl_252,Welding line,1.0
+wl_259,Welding line,1.0
+wl_265,Welding line,1.0
+wl_266,Welding line,1.0
+wl_268,Welding line,1.0
+wl_270,Welding line,0.3611
+wl_271,Welding line,1.0
+wl_279,Inclusion,0.9958
+wl_281,Water spot,0.9778
+wl_286,Welding line,0.9952
+wl_287,Welding line,1.0
+wl_288,Welding line,0.96
+wl_291,Welding line,1.0
+wl_297,Welding line,1.0
+wl_302,Welding line,0.9444
+wl_303,Welding line,1.0
+wl_305,Welding line,0.9999
+wl_308,Welding line,1.0
+wl_309,Welding line,0.9998
+wl_31,Welding line,1.0
+wl_313,Welding line,1.0
+wl_315,Welding line,1.0
+wl_317,Welding line,1.0
+wl_321,Welding line,1.0
+wl_329,Welding line,1.0
+wl_332,Welding line,1.0
+wl_336,Welding line,0.9937
+wl_337,Welding line,1.0
+wl_345,Welding line,1.0
+wl_347,Welding line,1.0
+wl_348,Welding line,1.0
+wl_355,Welding line,1.0
+wl_36,Welding line,1.0
+wl_362,Welding line,1.0
+wl_364,Welding line,1.0
+wl_365,Welding line,1.0
+wl_367,Welding line,1.0
+wl_369,Welding line,0.9967
+wl_370,Welding line,1.0
+wl_372,Welding line,0.9999
+wl_373,Welding line,0.9993
+wl_374,Welding line,0.985
+wl_38,Welding line,1.0
+wl_380,Welding line,0.9996
+wl_381,Welding line,0.9998
+wl_386,Dark scratches,0.7375
+wl_389,Dark scratches,0.9179
+wl_39,Welding line,1.0
+wl_390,Welding line,1.0
+wl_392,Welding line,0.8616
+wl_40,Welding line,1.0
+wl_401,Welding line,0.996
+wl_402,Welding line,1.0
+wl_412,Welding line,0.9999
+wl_414,Welding line,0.9978
+wl_415,Welding line,0.9997
+wl_418,Welding line,0.9801
+wl_421,Welding line,1.0
+wl_422,Welding line,0.9995
+wl_426,Welding line,1.0
+wl_430,Welding line,1.0
+wl_432,Welding line,1.0
+wl_440,Welding line,1.0
+wl_443,Welding line,1.0
+wl_446,Welding line,1.0
+wl_448,Dark scratches,0.4497
+wl_45,Dark scratches,0.9916
+wl_450,Welding line,0.9958
+wl_456,Welding line,1.0
+wl_457,Welding line,0.9996
+wl_458,Welding line,1.0
+wl_463,Welding line,1.0
+wl_474,Welding line,1.0
+wl_476,Welding line,0.9999
+wl_48,Dark scratches,0.9261
+wl_486,Welding line,1.0
+wl_487,Welding line,1.0
+wl_488,Welding line,1.0
+wl_492,Welding line,1.0
+wl_493,Welding line,1.0
+wl_495,Welding line,1.0
+wl_497,Welding line,1.0
+wl_499,Welding line,0.9999
+wl_50,Welding line,1.0
+wl_54,Welding line,0.9992
+wl_55,Welding line,1.0
+wl_57,Welding line,1.0
+wl_58,Welding line,0.9998
+wl_59,Welding line,1.0
+wl_60,Welding line,1.0
+wl_62,Welding line,1.0
+wl_63,Welding line,1.0
+wl_65,Welding line,0.9975
+wl_69,Welding line,1.0
+wl_70,Welding line,1.0
+wl_72,Welding line,0.9938
+wl_73,Welding line,0.9973
+wl_81,Welding line,1.0
+wl_82,Welding line,0.9964
+wl_94,Welding line,1.0
+wr_01,White rust,1.0
+wr_08,Bright scratch,0.8479
+wr_09,White rust,0.9999
+wr_102,White rust,1.0
+wr_107,White rust,1.0
+wr_11,White rust,1.0
+wr_110,White rust,0.9085
+wr_112,White rust,1.0
+wr_127,White rust,1.0
+wr_128,White rust,0.9994
+wr_132,White rust,0.7413
+wr_133,White rust,0.9999
+wr_134,White rust,1.0
+wr_141,White rust,1.0
+wr_146,White rust,0.998
+wr_151,White rust,0.9999
+wr_16,White rust,0.9906
+wr_21,White rust,0.8715
+wr_23,White rust,1.0
+wr_25,White rust,1.0
+wr_26,White rust,1.0
+wr_29,White rust,1.0
+wr_32,White rust,1.0
+wr_33,White rust,0.9999
+wr_35,White rust,0.9981
+wr_37,White rust,0.9991
+wr_38,White rust,0.9968
+wr_41,White rust,1.0
+wr_44,White rust,0.9994
+wr_50,White rust,1.0
+wr_52,White rust,0.9999
+wr_62,White rust,1.0
+wr_65,White rust,1.0
+wr_67,Bright scratch,0.9993
+wr_69,White rust,1.0
+wr_75,White rust,0.992
+wr_80,White rust,0.9787
+wr_82,White rust,1.0
+wr_85,White rust,1.0
+wr_86,White rust,1.0
+wr_89,White rust,1.0
+wr_92,White rust,1.0
+wr_94,White rust,1.0
+wr_95,White rust,1.0
+wr_99,White rust,0.9998
+ws_05,Water spot,0.9982
+ws_06,Water spot,1.0
+ws_106,Water spot,1.0
+ws_108,Oil spot,0.7844
+ws_11,Water spot,1.0
+ws_114,Water spot,1.0
+ws_115,Water spot,0.9398
+ws_12,Water spot,1.0
+ws_120,Water spot,0.9997
+ws_123,Water spot,1.0
+ws_131,Water spot,0.8471
+ws_132,Water spot,1.0
+ws_14,Water spot,1.0
+ws_140,Water spot,0.9983
+ws_141,Water spot,1.0
+ws_142,Water spot,1.0
+ws_147,Water spot,1.0
+ws_151,Water spot,0.9997
+ws_155,Water spot,0.9993
+ws_158,Water spot,0.9999
+ws_167,Water spot,0.8391
+ws_170,Water spot,1.0
+ws_176,Water spot,1.0
+ws_179,Water spot,0.9685
+ws_181,Water spot,1.0
+ws_183,Water spot,1.0
+ws_188,Water spot,0.9262
+ws_190,Slag inclusion,0.9326
+ws_195,Water spot,0.9999
+ws_204,Water spot,1.0
+ws_208,Water spot,1.0
+ws_209,Water spot,1.0
+ws_214,Water spot,1.0
+ws_229,Water spot,0.7293
+ws_234,Water spot,0.9999
+ws_238,Water spot,0.9975
+ws_24,Water spot,0.8033
+ws_242,Water spot,1.0
+ws_243,Water spot,0.9994
+ws_245,Water spot,0.9998
+ws_248,Water spot,0.9999
+ws_250,Water spot,0.9999
+ws_251,Water spot,0.9997
+ws_252,Water spot,0.9947
+ws_260,Water spot,0.9996
+ws_265,Water spot,1.0
+ws_266,Water spot,1.0
+ws_268,Water spot,1.0
+ws_271,Inclusion,0.8559
+ws_275,Water spot,1.0
+ws_279,Water spot,1.0
+ws_282,Inclusion,0.9998
+ws_284,Water spot,0.7288
+ws_285,Water spot,1.0
+ws_286,Water spot,1.0
+ws_288,Water spot,0.9999
+ws_293,Water spot,1.0
+ws_294,Water spot,0.9162
+ws_296,Water spot,1.0
+ws_297,Inclusion,0.6934
+ws_306,Water spot,0.7275
+ws_308,Water spot,0.9999
+ws_311,Water spot,0.8994
+ws_316,Crease,0.4219
+ws_32,Water spot,0.9933
+ws_320,Water spot,1.0
+ws_328,Water spot,0.9923
+ws_332,Oil spot,0.6976
+ws_335,Water spot,1.0
+ws_336,Water spot,1.0
+ws_34,Inclusion,0.9881
+ws_344,Water spot,0.999
+ws_346,Water spot,1.0
+ws_348,Water spot,1.0
+ws_349,Water spot,1.0
+ws_352,Water spot,1.0
+ws_354,Water spot,1.0
+ws_356,Water spot,1.0
+ws_365,Water spot,1.0
+ws_369,Water spot,0.9971
+ws_37,Water spot,0.9984
+ws_370,Water spot,0.9999
+ws_376,Water spot,1.0
+ws_377,Water spot,1.0
+ws_379,Oil spot,0.7514
+ws_386,Slag inclusion,0.4154
+ws_390,Water spot,0.9998
+ws_392,Water spot,1.0
+ws_395,Water spot,0.9998
+ws_398,Water spot,0.9912
+ws_400,Water spot,0.8619
+ws_403,Water spot,1.0
+ws_407,Water spot,1.0
+ws_408,Water spot,0.9999
+ws_410,Water spot,0.7853
+ws_412,Water spot,0.9973
+ws_414,Water spot,1.0
+ws_416,Water spot,1.0
+ws_42,Water spot,0.916
+ws_422,Inclusion,0.9376
+ws_424,Water spot,1.0
+ws_427,Water spot,1.0
+ws_428,Water spot,1.0
+ws_429,Water spot,1.0
+ws_430,Water spot,1.0
+ws_432,Water spot,0.9999
+ws_434,Water spot,0.998
+ws_44,Water spot,0.9397
+ws_444,Water spot,0.9989
+ws_447,Water spot,1.0
+ws_448,Water spot,1.0
+ws_449,Water spot,1.0
+ws_451,Water spot,0.9998
+ws_452,Water spot,1.0
+ws_453,Inclusion,0.625
+ws_454,Water spot,1.0
+ws_455,Water spot,1.0
+ws_458,Water spot,1.0
+ws_461,Water spot,0.8502
+ws_464,Water spot,0.6068
+ws_465,Water spot,1.0
+ws_469,Water spot,0.321
+ws_473,Water spot,0.6443
+ws_476,Water spot,0.9886
+ws_478,Water spot,1.0
+ws_479,Water spot,1.0
+ws_483,Water spot,0.9998
+ws_484,Water spot,0.9999
+ws_486,Water spot,0.9999
+ws_491,Water spot,0.9971
+ws_498,Water spot,0.6072
+ws_501,Water spot,0.9989
+ws_505,Water spot,0.9999
+ws_508,Water spot,1.0
+ws_51,Water spot,1.0
+ws_515,Water spot,1.0
+ws_516,Water spot,1.0
+ws_517,Water spot,0.9972
+ws_52,Water spot,1.0
+ws_522,Inclusion,0.929
+ws_523,Water spot,0.9779
+ws_524,Water spot,0.6129
+ws_526,Water spot,0.9938
+ws_527,Water spot,1.0
+ws_531,Water spot,1.0
+ws_533,Water spot,1.0
+ws_539,Water spot,0.9885
+ws_542,Inclusion,0.6376
+ws_546,Water spot,1.0
+ws_549,Inclusion,0.8324
+ws_55,Water spot,0.9999
+ws_552,Water spot,1.0
+ws_560,Water spot,1.0
+ws_562,Water spot,0.9999
+ws_565,Water spot,0.9996
+ws_566,Water spot,0.9998
+ws_567,Water spot,0.994
+ws_568,Water spot,1.0
+ws_57,Water spot,0.5403
+ws_572,Water spot,1.0
+ws_575,Water spot,1.0
+ws_576,Water spot,0.9834
+ws_577,Water spot,0.7426
+ws_579,Water spot,1.0
+ws_589,Water spot,0.9962
+ws_60,Water spot,0.9997
+ws_603,Water spot,1.0
+ws_605,Water spot,1.0
+ws_606,Water spot,0.9308
+ws_607,Water spot,0.9995
+ws_610,Water spot,1.0
+ws_611,Water spot,1.0
+ws_615,Water spot,1.0
+ws_616,Water spot,1.0
+ws_617,Oil spot,0.7255
+ws_622,Water spot,0.7629
+ws_623,Water spot,0.9999
+ws_624,Water spot,1.0
+ws_625,Water spot,1.0
+ws_626,Water spot,0.9993
+ws_631,Water spot,1.0
+ws_638,Water spot,0.975
+ws_651,Water spot,0.9999
+ws_653,Water spot,0.9943
+ws_654,Inclusion,0.7174
+ws_656,Water spot,0.9251
+ws_657,Water spot,1.0
+ws_660,Water spot,0.9994
+ws_67,Water spot,0.8324
+ws_672,Water spot,1.0
+ws_68,Water spot,1.0
+ws_681,Water spot,0.9917
+ws_69,Water spot,0.9999
+ws_692,Water spot,1.0
+ws_694,Water spot,1.0
+ws_697,Water spot,1.0
+ws_700,Water spot,0.935
+ws_74,Water spot,0.9998
+ws_76,Water spot,0.6962
+ws_79,Water spot,0.885
+ws_83,Water spot,1.0
+ws_84,Water spot,1.0
+ws_86,Water spot,1.0
+ws_88,Water spot,0.9814
+ws_89,Water spot,1.0
+ws_94,Water spot,1.0
+ws_96,Water spot,1.0
+ws_97,Inclusion,0.4627
+ws_98,Welding line,0.8864
+ws_99,Water spot,1.0

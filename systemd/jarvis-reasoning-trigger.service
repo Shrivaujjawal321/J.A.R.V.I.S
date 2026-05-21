@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Reasoning Trigger — synthesises Boss state into proposals
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./specs/reasoning-trigger.spec.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/python /home/ujjwal/Documents/J.A.R.V.I.S./scripts/reasoning_trigger.py
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/reasoning_trigger.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/reasoning_trigger.log
+Environment=PYTHONUNBUFFERED=1
+TimeoutStartSec=180

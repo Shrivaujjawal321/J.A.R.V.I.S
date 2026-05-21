@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Base reset + premium defaults
+   ============================================ */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* design-note: respect reduced-motion globally; component-level overrides only where critical */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    @apply bg-ink text-cream font-sans antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display text-cream;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* premium focus ring — brass, never default-browser */
+  :focus-visible {
+    outline: 2px solid theme('colors.brass.DEFAULT');
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* selection */
+  ::selection {
+    background: theme('colors.gold.DEFAULT');
+    color: theme('colors.ink.DEFAULT');
+  }
+
+  /* native form controls — dark themed */
+  input, textarea, select {
+    @apply bg-walnut-dark/60 border border-walnut-light text-cream;
+    color-scheme: dark;
+  }
+}
+
+/* ============================================
+   Components — reusable patterns
+   ============================================ */
+@layer components {
+  .container-cp {
+    @apply mx-auto w-full max-w-container px-6 md:px-10 lg:px-16;
+  }
+
+  /* premium gold-on-dark heading accent */
+  .eyebrow {
+    @apply inline-block text-xs uppercase tracking-widest text-gold font-sans font-medium;
+  }
+
+  /* brass divider — used between sections */
+  .hairline {
+    @apply h-px w-full bg-brass-line;
+  }
+
+  /* primary CTA — gold, used sparingly */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2
+           px-7 py-3.5 rounded-sm
+           bg-gold text-ink font-sans font-medium tracking-wide text-sm uppercase
+           transition-all duration-300 ease-out
+           hover:bg-gold-light hover:shadow-gold-glow hover:-translate-y-0.5
+           focus-visible:shadow-gold-glow
+           active:translate-y-0;
+  }
+
+  /* secondary CTA — outlined brass */
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2
+           px-7 py-3.5 rounded-sm
+           bg-transparent text-cream font-sans font-medium tracking-wide text-sm uppercase
+           border border-brass/60
+           transition-all duration-300 ease-out
+           hover:border-brass hover:bg-brass/10 hover:-translate-y-0.5
+           active:translate-y-0;
+  }
+
+  /* card — walnut surface */
+  .card-walnut {
+    @apply relative bg-walnut/40 border border-walnut-light/40 rounded-sm
+           backdrop-blur-sm
+           transition-all duration-500 ease-out
+           hover:border-brass/50 hover:bg-walnut/60;
+  }
+
+  /* form field */
+  .field {
+    @apply w-full px-4 py-3.5 rounded-sm
+           bg-ink-deep border border-walnut-light/60
+           text-cream placeholder:text-cream-dim/60
+           font-sans text-base
+           transition-colors duration-200
+           focus:border-brass focus:bg-ink
+           focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brass;
+  }
+
+  .field-label {
+    @apply block text-xs uppercase tracking-widest text-cream-muted mb-2 font-sans font-medium;
+  }
+}
+
+/* ============================================
+   Reveal-on-scroll — IntersectionObserver hooks
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* staggered children — set --i on each child */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.08s),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.08s);
+}
+
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================
+   Hero felt — subtle ambient shimmer
+   ============================================ */
+.felt-ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 40%, rgba(34, 133, 91, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(14, 74, 46, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 90% 20%, rgba(176, 141, 87, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}

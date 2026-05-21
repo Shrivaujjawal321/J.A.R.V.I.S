@@ -1,0 +1,203 @@
+# RAG Decathlon — Legal & Compliance Domain
+# Scouted: 2026-05-14 | research-agent
+# Corpus: public statutes only; no paywalled DB
+# Build target: solo 6-10 hrs, Vercel-deployable
+
+- id: legal-01
+  title: DPDP vs GDPR Gap Radar — Multi-Jurisdiction Agentic RAG for Indian Startups
+  slug: dpdp-gdpr-gap-radar
+  domain: legal-compliance
+  problem_statement: >
+    India's DPDP Rules 2025 (notified Nov 14 2025) and EU's GDPR share vocabulary but
+    diverge in philosophy. Indian startups preparing for EU expansion (18-month compliance
+    window ends May 2027) have no free, citable tool that maps a startup's data practice
+    against BOTH frameworks simultaneously with statute citations. Existing tools (OneTrust,
+    PrivacyEngine) paywalled. Rs.10,000 Cr compliance market opening.
+  real_pain_evidence:
+    - "EY India survey (Feb 2026): awareness growing but implementation 'highly uneven'"
+    - "Inc42 (2026): DPDPA startups not ready — limited in-house expertise"
+    - "IJRASET April 2026 paper: hybrid KG + NLP multi-jurisdiction compliance 88% accuracy"
+  rag_technique: agentic
+  rag_technique_why: >
+    Two FAISS/ChromaDB stores — one over DPDP Act 2023 + Rules 2025, one over GDPR. User
+    describes data practice in plain English. Orchestrator runs parallel retrieval against
+    both, gap-mapper LLM cross-references and returns (a) matching obligations, (b)
+    GDPR-only obligations, (c) DPDP-only obligations. Every clause cited verbatim.
+  corpus:
+    - name: DPDP Act 2023 + DPDP Rules 2025
+      url: https://www.dpdpa.com/DPDP_Rules_2025_English_only.pdf
+    - name: GDPR full text (EUR-Lex)
+      url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0679
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  safety_notes: >
+    Hardcoded disclaimer header: "Not legal advice. All citations verbatim from public
+    statutes. Consult a qualified privacy lawyer before acting." Never assert "is compliant."
+    Flag low-confidence retrievals.
+  unique_angle: >
+    First free, open, dual-jurisdiction, citation-first gap tool for DPDP-to-GDPR expansion.
+    LangGraph-orchestrated parallel retrieval — unseen in OSS as of May 2026.
+  reference_competitors:
+    - name: OneTrust
+      url: https://www.onetrust.com/
+      why_we_differ: Paywalled SaaS; not citation-first; no DPDP-GDPR bi-directional gap.
+
+- id: legal-02
+  title: PrivacyPolicy Auditor — Multimodal DPDP Clause Scanner
+  slug: privacy-policy-dpdp-auditor
+  domain: legal-compliance
+  problem_statement: >
+    DPDP Rules 2025 mandate standalone privacy policies, plain language, 8th Schedule
+    languages, specific clauses (retention schedule, grievance officer, cross-border notice).
+    Most Indian startup policies pre-Nov 2025 are non-compliant. Free URL-paste auditor
+    ingests live policy, chunks/vectorizes, retrieves DPDP Rule mandates, returns clause-
+    by-clause compliance report with verbatim citations.
+  real_pain_evidence:
+    - "DPDP Rules 2025 Rule 3 & Schedule II: explicit list of mandatory notice contents"
+    - "DPDP compliance articles (mitigata.com, sidgs.com, levo.ai): 8-12 required elements"
+    - "Inc42 DPDPA readiness: SMEs disproportionately unprepared"
+  rag_technique: hybrid+structured
+  rag_technique_why: >
+    Playwright scrapes URL. Chunk + embed (all-MiniLM-L6-v2). For each of ~12 DPDP-mandated
+    elements (pre-indexed from official Rules), cosine-search policy corpus, return
+    similarity. LLM judge per chunk above threshold (0.6) — "does this satisfy Requirement
+    X per DPDP Rule Y?" with verbatim rule context. Output: clause-by-clause audit.
+  corpus:
+    - DPDP Rules 2025 (Schedule II)
+    - DPDP Act 2023 Section 5
+  buildable_in_hours: 7
+  complexity_score: 6
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "This audit is informational only. Not legal advice." ABSENT status disclaimer.
+    No policy text stored beyond request lifecycle.
+  unique_angle: >
+    First free, automated, citation-first DPDP policy auditor. Zero-signup, paste-URL-get-
+    report. DPDP Rules only live since Nov 2025 — no OSS tool indexed them yet.
+  reference_competitors:
+    - name: PrivacyEngine
+      url: https://privacyengine.io/
+      why_we_differ: Subscription SaaS with onboarding flows; not free, not citation-first.
+
+- id: legal-03
+  title: EU AI Act Risk-Tier Classifier — RAG-Augmented Agent with Statute Citation
+  slug: eu-ai-act-risk-classifier
+  domain: legal-compliance
+  problem_statement: >
+    EU AI Act fully applicable August 2, 2026 — tiered obligations (Prohibited/High/Limited/
+    Minimal-Risk). Existing free tools (EuConform, artificialintelligenceact.eu) use static
+    questionnaires without citing actual statute text. Developers need description-first
+    tool: describe AI system in plain English, get risk classification WITH specific Articles
+    and Annex III entries justifying it.
+  real_pain_evidence:
+    - "EU AI Act fully applicable August 2026 — enforcement live NOW for developers"
+    - "Penalties: up to 35M EUR or 7% global turnover for prohibited violations"
+    - "EuConform: praised but 'static quiz, not flexible for edge cases'"
+  rag_technique: agentic
+  rag_technique_why: >
+    EU AI Act + Annex I + Annex III + Recitals in ChromaDB with metadata (Article number,
+    Annex ref, risk_tier). User describes AI system. Agent extracts attributes, retrieves
+    top-k from Annex I + III + Articles 5,6,9 via multi-query retrieval, chain-of-thought
+    classifies tier with verbatim citations, returns obligations list.
+  corpus:
+    - name: EU AI Act (Regulation EU 2024/1689)
+      url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689
+    - name: EU AI Act Annex I + III
+      url: https://artificialintelligenceact.eu/annexes/
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "Classification informational only. Risk tier determinations must be validated by
+    qualified legal counsel." Never output "you are compliant" or "you are prohibited" as
+    definitive. Flag ambiguity.
+  unique_angle: >
+    First description-first, verbatim-citation, obligation-generating classifier using
+    LangGraph multi-query retrieval. Auditable, not black-box.
+  reference_competitors:
+    - name: EuConform
+      url: https://github.com/Hiepler/EuConform
+      why_we_differ: Static quiz; no RAG, no verbatim citation, no obligation generation.
+
+- id: legal-04
+  title: India Case Law Citation Walker — GraphRAG over SC + HC Judgments
+  slug: india-caselaw-citation-walker
+  domain: legal-research
+  problem_statement: >
+    Indian advocates, law students, researchers spend hours tracing citation trees in SC/HC
+    judgments. IndianKanoon provides search but no graph traversal. GraphRAG over judgment
+    citation network: nodes = chunks, edges = citations. Ask legal question, retrieve
+    relevant chunk, walk citation graph for full precedent chain.
+  real_pain_evidence:
+    - "IndianKanoon API: 1.4M+ judgments, free API"
+    - "freelaw.in 2026: free judgments with headnotes but no citation graph"
+    - "Law school research papers 2025: manual citation tracing is primary bottleneck"
+  rag_technique: GraphRAG
+  rag_technique_why: >
+    Phase 1: seed corpus ~1000 landmark SC judgments. Extract citations (regex on 'AIR XXXX
+    SC XXX' / 'SCC'). Chunk into ~400-token sections with metadata. Build NetworkX citation
+    graph: nodes = chunks, edges = citations. Phase 2: semantic retrieval (FAISS) → BFS/DFS
+    depth-2 on citation edges → LLM synthesis over retrieved subgraph.
+  corpus:
+    - name: IndianKanoon API
+      url: https://api.indiankanoon.org/documentation/
+    - name: eCourts judgments portal
+      url: https://judgments.ecourts.gov.in/
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 10
+  safety_notes: >
+    "Not legal advice. Judgments are public records for research purposes." Citation
+    extraction may miss non-standard formats — flag [CITATION CONFIDENCE: MEDIUM].
+  unique_angle: >
+    GraphRAG is 2026 SOTA. Applying to Indian case law is novel in OSS. IndianKanoon is
+    search-only. Citation-graph traversal + semantic RAG hybrid is unsolved layer.
+  reference_competitors:
+    - name: IndianKanoon
+      url: https://api.indiankanoon.org/
+      why_we_differ: Search-only. No citation graph traversal, no semantic Q&A.
+
+- id: legal-05
+  title: OSS License Conflict Detector — RAG over SPDX + OSI + Court Rulings
+  slug: oss-license-conflict-detector
+  domain: legal-compliance
+  problem_statement: >
+    AI-native developers combine dozens of OSS libraries (LangChain, ChromaDB, FAISS,
+    LlamaIndex, HF, etc.) with mixed licenses (Apache 2.0, MIT, GPL-3.0, LGPL, AGPL,
+    BSL-1.1). License incompatibilities block commercial deployment, but checking is
+    expert-only. No free, AI-native, dependency-tree-aware tool with citations to SPDX
+    compatibility + OSI guidance exists.
+  real_pain_evidence:
+    - "SPDX License List v3.28.0 (Feb 2026): 500+ licenses with compatibility metadata"
+    - "OSS Review Toolkit exists but requires local install + expert config"
+    - "LLM-based license analysis (ACM 2025): proof of concept, not RAG product"
+    - "AI stacks use BSL (Weaviate, Elastic) — developers confused about commercial use"
+  rag_technique: hybrid+structured
+  rag_technique_why: >
+    Three corpora: (1) SPDX List JSON with compatibility flags. (2) OSI texts + FAQ. (3)
+    Public court summaries (GPL enforcement, Jacobsen v. Katzer, SFLC). User pastes
+    requirements.txt/package.json. PyPI JSON API resolves licenses, spdx-tools builds
+    compatibility graph. For conflicts: RAG query over corpus for "what does conflict
+    between License A and B mean?" returning OSI guidance + court summary.
+  corpus:
+    - SPDX License List v3.28.0 (spdx.org/licenses)
+    - OSI texts + FAQ (opensource.org/licenses)
+    - SFLC GPL enforcement summaries
+    - PyPI JSON API
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 8
+  safety_notes: >
+    "Does not provide legal advice. License compatibility for commercial products must
+    be reviewed by qualified IP counsel." BSL/source-available licenses get extra warning.
+  unique_angle: >
+    First paste-your-requirements-file-get-a-RAG-cited-conflict-report web tool. BSL
+    proliferation in AI stacks creates 2026 confusion that SPDX alone doesn't resolve.
+  reference_competitors:
+    - name: OSS Review Toolkit (ORT)
+      url: https://github.com/oss-review-toolkit/ort
+      why_we_differ: CLI-only, expert-gated, requires local install.
+    - name: libraries.io/license-compatibility
+      url: https://libraries.io/
+      why_we_differ: Static rule lookup, no NL query, no court context.

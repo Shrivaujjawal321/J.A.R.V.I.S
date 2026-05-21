@@ -1,0 +1,170 @@
+# RAG Decathlon — Creative Writing & Media Domain
+# Date: 2026-05-14 | research-agent
+
+- id: CW-01
+  title: Source-Grounded Investigative Essay Engine
+  tagline: CRAG over private FOIA/PDF dumps — 1500-word essay with per-claim audit
+  problem_statement: >
+    Journalists and researchers need long-form citation-exact writing from private document
+    dumps (FOIA, court filings). Generic AI hallucinates citations confidently — CJR (May
+    2026) clocked Grok-3 at 94% hallucination on citation accuracy, Perplexity Sonar Pro
+    at 37%. No tool gives per-claim traceability from an uploaded private corpus.
+  real_pain_evidence:
+    - "CJR 2026: even best models hallucinate citations 37-94%"
+    - "Reuters policy: AI cannot write journalism — hallucination liability"
+    - "Harpe (getharpe.com) confirms demand but zero consumer-tier solutions"
+    - "FOIA volume exploding — agencies process millions of pages"
+  rag_technique: agentic+CRAG
+  rag_technique_why: >
+    User-uploaded PDFs → hybrid BM25 + dense (Cohere embed-v4) → Cohere Rerank 3
+    (top-50 → top-8). Agentic loop: CRAG evaluator scores each chunk; low-confidence
+    triggers query reformulation before generation. RAGAS Faithfulness scorer (>0.9 gate)
+    ensures per-claim traceability. Output: 1500-word essay with [Source N, p. X] citations
+    + audit table (claim | snippet | confidence | VERIFIED/QUESTIONABLE).
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Operates on YOUR uploaded private corpus — FOIA, interview notes, sealed filings.
+    Confidential + grounded + auditable. Perplexity searches open web only.
+  reference_competitors:
+    - name: Harpe
+      url: https://getharpe.com/
+      why_we_differ: B2B only, no essay generation.
+    - name: Perplexity Pro
+      url: https://perplexity.ai/
+      why_we_differ: Web only, no private corpus.
+
+- id: CW-02
+  title: Podcast Quote Oracle
+  tagline: Whisper + Speaker Diarization + Hybrid RAG over any RSS podcast feed
+  problem_statement: >
+    Podcasters/journalists need to find specific quotes/topics across large podcast archives
+    (Lex Fridman 400+ eps, Acquired 200+ eps, Tim Ferriss 700+). Tapesearch is read-only
+    keyword. VoxRAG (arXiv 2505.17326, May 2026) proved architecture but not productised.
+  real_pain_evidence:
+    - "Tapesearch.com — proves demand but keyword-only"
+    - "VoxRAG paper (ACL MagmaR 2026): CLAP-based audio retrieval demonstrated"
+    - "r/podcasting: 'I know Lex said something about X in some episode but cannot find it'"
+    - "spoken.md API (2026) launched for LLM-ready podcast transcript delivery"
+  rag_technique: multimodal+hybrid
+  rag_technique_why: >
+    RSS feed → episode MP3s → Whisper v3-turbo (Groq API — fastest 2026) → pyannote-audio
+    3.3 speaker diarization → chunked transcript with speaker metadata. Hybrid BM25 +
+    dense semantic. BGE-reranker-v2-m3 cross-encoder. Agentic multi-hop: if single chunk
+    confidence <threshold, expand window. Output: answer + quote + episode title + timestamp
+    + wavesurfer.js audio player seeked to time.
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Conversational Q&A across ANY RSS feed user pastes — not curated. Speaker-filtered
+    semantic search + inline audio playback. Tapesearch = keyword + fixed corpus.
+  reference_competitors:
+    - name: Tapesearch
+      url: https://www.tapesearch.com/
+      why_we_differ: Keyword only, curated corpus.
+    - name: Podwise / Snipd
+      url: https://podwise.ai/
+      why_we_differ: Highlight clipping, not search-across-corpus.
+
+- id: CW-03
+  title: Style-Twin Writer
+  tagline: Stylometric RAG over your own writing — drafts in YOUR measurable voice
+  problem_statement: >
+    Newsletter/Substack writers lose voice when scaling output with AI. 2026 Berkeley study
+    (Tom van Nuenen) measured 13 stylometric markers — every frontier model drifted same
+    direction; 'preserve voice' prompts only reduced magnitude not direction. Prompt-based
+    fixes fail after 1-2 paragraphs.
+  real_pain_evidence:
+    - "2026 Berkeley stylometric study: all frontier models drift identically"
+    - "Bookmoth.app: prompt-based voice tools fail structurally"
+    - "SidekickWriter two-pass paid differentiator — proves demand"
+    - "r/writing: 'AI sounds like AI not me'"
+  rag_technique: structured+style-RAG
+  rag_technique_why: >
+    Author's pieces → spaCy 3.8 stylometric metrics (sentence length, TTR, clause nesting,
+    hedge ratio, punctuation cadence) → Qdrant payload filters by style-bucket. Two-pass:
+    Pass 1 (Haiku) generates content. Pass 2 (Sonnet) rewrites through retrieved style
+    examples as in-context anchors. Bind generation to retrieved examples — not prompt
+    description. Output: draft + per-paragraph style anchor citations.
+  buildable_in_hours: 8
+  complexity_score: 6
+  portfolio_leverage_score: 8
+  unique_angle: >
+    Every other tool uses style prompts. This uses style retrieval — retrieved paragraphs
+    from author's own corpus as live style anchors. Architecturally provably different.
+  reference_competitors:
+    - name: SidekickWriter
+      url: https://www.sidekickwriter.com/
+      why_we_differ: Two-pass but proprietary, not style-RAG.
+    - name: Sudowrite
+      url: https://www.sudowrite.com/
+      why_we_differ: Prompt-based voice — proven to drift.
+
+- id: CW-04
+  title: Claim Auditor for Op-Eds
+  tagline: Multi-source agentic RAG — claim-by-claim audit with shareable card
+  problem_statement: >
+    Editors, fact-checkers, readers need fast traceable verification of op-ed claims.
+    Existing tools (Factiverse, Full Fact AI) are B2B/expensive/geo-limited. Consumer tools
+    hallucinate sourcing. EU AI Act Art. 50 (Aug 2026) and CA SB 942 (Jan 2026) create
+    compliance pressure on media. AI-generated text hit 16% of fact-checked claims in 2025.
+  real_pain_evidence:
+    - "MIT Jan 2025: hallucinating models use 34% more confident language"
+    - "Factiverse — B2B only, no consumer tier"
+    - "EU AI Act Art. 50 enforcement Aug 2026"
+    - "r/journalism: 'I need to fact-check this op-ed in 30 minutes'"
+  rag_technique: multi-source+agentic
+  rag_technique_why: >
+    Claim decomposition (Haiku → JSON list). Per-claim hybrid BM25+semantic across 5 sources
+    (PolitiFact + Snopes + Wikipedia + OpenAlex + NewsAPI), Cohere Rerank 3. Per-claim
+    verdict (VERIFIED/CONTESTED/UNVERIFIED/MISLEADING) + evidence snippet + URL. Output:
+    audit table + Satori OG-image audit card + overall trust score.
+  buildable_in_hours: 7
+  complexity_score: 6
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Factiverse = enterprise B2B. Full Fact = UK nonprofit. This = consumer-tier, instant,
+    self-serve auditor with shareable link — 'Grammarly for factual accuracy.'
+  reference_competitors:
+    - name: Factiverse
+      url: https://www.factiverse.ai/
+      why_we_differ: B2B, expensive.
+    - name: Full Fact AI
+      url: https://fullfact.org/
+      why_we_differ: UK nonprofit, not self-serve.
+
+- id: CW-05
+  title: Fiction World-Bible Continuity Engine
+  tagline: GraphRAG-lite over novel canon — catch continuity errors, generate canon-faithful scenes
+  problem_statement: >
+    Novelists maintaining multi-book series face a continuity problem: character eye colour,
+    timeline, world rules diverge across chapters without retrieval-grounded anchor. Even
+    Claude's 200K context insufficient for 400K-word fantasy series. NovelCrafter's Codex
+    injects entire codex at prompt time (static injection), so relevant entries get buried.
+  real_pain_evidence:
+    - "NovelCrafter Codex/story bible = top paid feature"
+    - "IndieHackers: solo dev built novel consistency AI — 3K upvotes"
+    - "r/worldbuilding, r/fantasywriters: 'AI keeps forgetting character details'"
+    - "JaneFreidman.com 2026: 'AI story bibles most valuable workflow change'"
+  rag_technique: GraphRAG-lite+agentic
+  rag_technique_why: >
+    On ingest: Haiku extracts entity bible (characters/locations/factions/timeline). Build
+    character graph in NetworkX (name, traits, relationships, first-mention chapter).
+    Dual-track retrieval: (1) Semantic RAG over manuscript chunks; (2) Entity graph lookup
+    for canon facts. New-scene generation injects retrieved canon as strict constraints.
+    Post-generation continuity-check pass flags contradictions with retrieved canon.
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 8
+  unique_angle: >
+    NovelCrafter injects FULL codex at prompt time (static). This does SEMANTIC retrieval
+    + post-generation continuity audit pass. Two architectural advances over market leader.
+  reference_competitors:
+    - name: NovelCrafter Codex
+      url: https://www.novelcrafter.com/
+      why_we_differ: Static prompt injection, not semantic RAG, no continuity audit.
+    - name: Sudowrite Story Bible
+      url: https://www.sudowrite.com/
+      why_we_differ: Prompt-based, same drift problem.

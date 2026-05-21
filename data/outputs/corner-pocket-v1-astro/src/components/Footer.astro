@@ -1,0 +1,63 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="relative bg-ink-deep border-t border-walnut/50">
+  <div class="container-cp py-16">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-12 gap-10">
+      <div class="lg:col-span-5">
+        <a href="#top" class="inline-flex items-center gap-3 font-display text-xl text-cream mb-5">
+          <span class="relative inline-block h-7 w-7" aria-hidden="true">
+            <span class="absolute inset-0 rounded-full bg-gradient-to-br from-cream to-cream-muted"></span>
+            <span class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-gold"></span>
+          </span>
+          The Corner Pocket
+        </a>
+        <p class="text-sm text-cream-muted max-w-sm leading-relaxed">
+          A private snooker and pool club in Bandra West, Mumbai. Members welcome.
+          Day passes available at the door, subject to capacity.
+        </p>
+      </div>
+
+      <nav class="lg:col-span-2" aria-label="Footer — Visit">
+        <h4 class="text-xs uppercase tracking-widest text-gold mb-4">Visit</h4>
+        <ul class="space-y-2 text-sm text-cream-muted">
+          <li><a href="#tables" class="hover:text-gold transition-colors">Tables</a></li>
+          <li><a href="#membership" class="hover:text-gold transition-colors">Membership</a></li>
+          <li><a href="#coaching" class="hover:text-gold transition-colors">Coaching</a></li>
+          <li><a href="#events" class="hover:text-gold transition-colors">Events</a></li>
+        </ul>
+      </nav>
+
+      <nav class="lg:col-span-2" aria-label="Footer — Connect">
+        <h4 class="text-xs uppercase tracking-widest text-gold mb-4">Connect</h4>
+        <ul class="space-y-2 text-sm text-cream-muted">
+          <li><a href="#booking" class="hover:text-gold transition-colors">Book a Table</a></li>
+          <li><a href="#contact" class="hover:text-gold transition-colors">Find Us</a></li>
+          <li><a href="mailto:hello@thecornerpocket.club" class="hover:text-gold transition-colors">Email</a></li>
+          <li><a href="tel:+919800000000" class="hover:text-gold transition-colors">Call</a></li>
+        </ul>
+      </nav>
+
+      <div class="lg:col-span-3">
+        <h4 class="text-xs uppercase tracking-widest text-gold mb-4">Hours</h4>
+        <ul class="space-y-1 text-sm text-cream-muted">
+          <li class="flex justify-between gap-3"><span>Mon – Thu</span><span class="text-cream">4 PM – 1 AM</span></li>
+          <li class="flex justify-between gap-3"><span>Fri – Sat</span><span class="text-cream">4 PM – 3 AM</span></li>
+          <li class="flex justify-between gap-3"><span>Sun</span><span class="text-cream">4 PM – 1 AM</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hairline mt-14 mb-8"></div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-cream-dim">
+      <p>
+        © {year} The Corner Pocket. All rights reserved.
+      </p>
+      <p class="font-serif italic text-cream-muted">
+        Drink responsibly. Cue carefully.
+      </p>
+    </div>
+  </div>
+</footer>

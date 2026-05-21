@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Auto-Capture — runs every 30 minutes
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./specs/auto-capture.spec.md
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=30min
+Persistent=true
+RandomizedDelaySec=60
+Unit=jarvis-auto-capture.service
+
+[Install]
+WantedBy=timers.target

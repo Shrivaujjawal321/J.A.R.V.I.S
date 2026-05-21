@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Self-Growth Weekly — proposes + applies capability changes
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./specs/self-growth.spec.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/python /home/ujjwal/Documents/J.A.R.V.I.S./scripts/self_growth_weekly.py
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/self_growth.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/self_growth.log
+Environment=PYTHONUNBUFFERED=1
+TimeoutStartSec=720

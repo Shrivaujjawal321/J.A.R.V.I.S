@@ -1,0 +1,207 @@
+# RAG Decathlon — Finance & Investing Domain
+# Scouted: 2026-05-14 | research-agent
+
+- id: finance-01
+  title: SEBI DRHP Red-Flag Radar
+  tagline: Agentic RAG over SEBI DRHPs — surfaces promoter red flags, IPO-fund misuse, litigation
+  india_specific: true
+  problem_statement: >
+    India sees 50-80 DRHP filings/year on SEBI (all public PDFs). Each 400-900 pages.
+    Retail investors miss: (a) "Objects of Issue" diverting to promoter debt, (b) 50+ pages
+    of buried litigation, (c) micro-font promoter pledge tables, (d) single-customer
+    revenue concentration in footnotes. No free RAG tool does DRHP pre-listing forensics
+    in 2026 — Dhanarthi does post-IPO fundamentals only.
+  real_pain_evidence:
+    - "r/IndianStreetBets: 'DRHP padha kisi ne?' with 0 detailed responses"
+    - "ClearTax/Bajaj Finserv: static explainers, not query tools"
+    - "2026 mega-IPO wave (Vikram Solar, Milky Mist, Curefoods)"
+  data_sources:
+    - "SEBI DRHP portal: sebi.gov.in/sebiweb/other/OtherAction.do?doListingDraftOffer=yes"
+    - "BSE IPO documents: bseindia.com/markets/PublicIssues/DraftOfferDocuments.html"
+  rag_technique: agentic
+  rag_technique_why: >
+    5-agent pipeline: (1) PDF ingestor + TOC parser, (2) risk-factor extractor, (3) financial-
+    table parser (promoter pledges, revenue concentration), (4) legal-proceedings summariser,
+    (5) red-flag scorer with citations. Section-aware chunking: parse DRHP TOC to split into
+    named sections; chunks tagged with section_type metadata for targeted retrieval.
+  buildable_in_hours: 7
+  complexity_score: 6
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "Educational only. Does NOT constitute investment advice. Always consult SEBI-registered
+    investment advisor." Every claim cited to exact DRHP page+section. Speculative
+    inferences labelled [INFERRED] vs [STATED IN DRHP].
+  unique_angle: >
+    Dhanarthi does post-listing. No public DRHP-specific red-flag RAG tool exists as of
+    May 2026. Section-aware chunking of regulatory PDFs is underexplored.
+  reference_competitors:
+    - name: Dhanarthi
+      url: https://dhanarthi.com/
+      why_we_differ: Post-listing fundamentals only; not DRHP pre-listing forensics.
+
+- id: finance-02
+  title: Earnings-Call Hedge Detector
+  tagline: Multimodal RAG over transcripts + 10-Q/10-K — flags where management narrative diverges
+  india_specific: false
+  problem_statement: >
+    Earnings call management discussion uses hedging ("we believe," "we expect") that
+    contradicts cold numbers in same quarter's 10-Q. SubjECTive-QA (arXiv 2410.20651)
+    shows current models miss subjective inconsistencies. No free public tool does cross-
+    document contradiction scoring between transcript + 10-Q/10-K. Commercial tools
+    (Sentieo, Visible Alpha) cost $5-50k/year.
+  real_pain_evidence:
+    - "arXiv 2410.20651 (SubjECTive-QA, 2024)"
+    - "arXiv 2502.00415 (MarketSenseAI 2.0, 2025)"
+    - "r/SecurityAnalysis: CEO language vs numbers discrepancy threads"
+  data_sources:
+    - "SEC EDGAR (10-K, 10-Q, 8-K filings)"
+    - "FMP earnings transcripts free API (250 req/day)"
+    - "SEC EDGAR XBRL financials"
+  rag_technique: agentic+multi-doc
+  rag_technique_why: >
+    3-step chain: parallel retrieval from transcript + 10-Q + prior-10-Q; claim-extraction
+    agent; contradiction-scoring agent with structured JSON output (claim, source,
+    actual_value, verdict, confidence). HyDE for forward-looking statement retrieval.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "Identifies potential inconsistencies for educational/research purposes only. Not
+    investment advice, not finding of fraud." [AUTOMATED ANALYSIS — NOT LEGAL OPINION]
+    labels. Every contradiction cited to exact timestamp + filing section.
+  unique_angle: >
+    Cross-filing analysis (transcript vs 10-Q) is hard NLP. No free OSS tool does this
+    as of May 2026.
+  reference_competitors:
+    - name: Sentieo
+      url: https://sentieo.com/
+      why_we_differ: $5k+/yr enterprise; not contradiction-focused; closed.
+
+- id: finance-03
+  title: India Crypto Tax Co-Pilot (Schedule VDA RAG)
+  tagline: Agentic RAG over CBDT + Income Tax Act 2025 — Schedule VDA with citations
+  india_specific: true
+  problem_statement: >
+    India crypto tax (Section 115BBH: 30% + cess; 194S: 1% TDS; Schedule VDA line-by-line)
+    confusing. Pain: (1) No loss set-off — traders don't know until audited. (2) Schedule
+    VDA needs per-transaction breakdown. (3) Budget 2026 new penalty framework. (4) Income
+    Tax Act 2025 renumbered ALL sections effective AY 2026-27 — every 2024-era guide stale.
+    No free RAG tool ingests current CBDT + ITA 2025.
+  real_pain_evidence:
+    - "r/IndianStreetBets weekly: 'VDA mein kya bharna hai?'"
+    - "caclubindia.com (May 2026): Budget 2026 crypto tax widely shared"
+    - "MEXC blog 2026: 6 compliance pain points listed"
+  data_sources:
+    - "CBDT Income Tax Act 2025 (incometaxindia.gov.in)"
+    - "CBDT notifications + circulars"
+    - "ITR-2/ITR-3 Schedule VDA instructions AY 2026-27"
+    - "CBIC GST circulars (platform fees)"
+  rag_technique: agentic+structured
+  rag_technique_why: >
+    Regulatory corpus ~50 documents. Hybrid BM25 (exact section numbers like '115BBH') +
+    dense retrieval. Computation agent: user inputs CSV trades → retrieve applicable rule
+    per transaction → compute tax with citations → generate Schedule VDA table → cross-check
+    TDS against Form 26AS. Disclaimer agent flags ambiguous rules (airdrops, staking).
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "Not substitute for professional tax advice. Verify with SEBI-registered CA before
+    filing." Every rule cited to exact notification/circular number. Ambiguous rules
+    flagged [RULE UNCLEAR — CA REQUIRED]. Tool never files anything.
+  unique_angle: >
+    Income Tax Act 2025 renumbering makes all 2024 RAG tools stale. First to ingest
+    current AY 2026-27 Schedule VDA rules.
+  reference_competitors:
+    - name: ClearTax
+      url: https://cleartax.in/
+      why_we_differ: UI but no RAG citation layer; doesn't ingest current ITA 2025.
+
+- id: finance-04
+  title: DeFi Protocol Risk Profiler
+  tagline: Agentic GraphRAG over audit reports + GitHub + on-chain — protocol risk scorecard
+  india_specific: false
+  problem_statement: >
+    DeFi exploits cost $1.8B in 2024 (Chainalysis). Audit reports scattered across Code4rena,
+    Solodit, Halborn, OpenZeppelin. GitHub commits post-audit never checked. On-chain TVL +
+    liquidation events require multi-source joins. arXiv 2407.14838 (RAG for smart contract
+    vuln detection: 62.7%). Knowdit (arXiv 2603.26270) uses KG of audit reports. Ethereum
+    Foundation 2026 RFP for AI-powered security tooling.
+  real_pain_evidence:
+    - "arXiv 2407.14838: RAG smart contract vuln detection 62.7% rate"
+    - "arXiv 2603.26270 (Knowdit, 2026): agentic KG RAG over audit reports"
+    - "Ethereum Foundation ESP RFP 2026: explicit AI security tooling funding"
+    - "r/ethfinance, r/defi: 'is this protocol safe to ape into?' threads"
+  data_sources:
+    - "Code4rena public audit reports"
+    - "Solodit audit aggregator"
+    - "DefiLlama protocol TVL API (free)"
+    - "Ethereum public RPC (on-chain data)"
+    - "GitHub public repos (protocol source + commits)"
+    - "DeFiHackLabs exploit database (github.com/SunWeb3Sec/DeFiHackLabs)"
+  rag_technique: GraphRAG
+  rag_technique_why: >
+    Entities: Protocol, Contract, Function, Vulnerability, Exploit, Auditor, AuditReport.
+    Relations: AUDITED_BY, CONTAINS_VULNERABILITY, EXPLOITED_IN, FIXED_IN_COMMIT, SIMILAR_TO.
+    LlamaIndex PropertyGraph + NetworkX. Query 'risk profile for Aave v3': graph traversal
+    → hybrid BM25+dense within audit chunks → DefiLlama TVL → GitHub diff (commits since
+    audit) → composite risk score with confidence.
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 10
+  safety_notes: >
+    "Risk score is NOT a guarantee of safety. Smart contract exploits occur even in
+    audited protocols. Never deposit more than you can afford to lose."
+  unique_angle: >
+    GraphRAG (PropertyGraph) is 2026 SOTA. Multi-source join (PDF audits + GitHub + on-
+    chain API) is most technically complex. Ethereum Foundation funding this area.
+  reference_competitors:
+    - name: Certik
+      url: https://www.certik.com/
+      why_we_differ: Manual scoring, not RAG. Dashboard not analysis tool.
+
+- id: finance-05
+  title: Indian Mutual Fund Style-Drift Watchdog
+  tagline: Hybrid SQL+vector RAG over AMFI factsheets — detects fund category drift
+  india_specific: true
+  problem_statement: >
+    AMFI mandates 45 AMCs publish monthly factsheets as public PDFs. Style drift (Large Cap
+    holding 35% mid/small-cap after rally; debt fund taking hidden credit risk) is documented.
+    Franklin Templeton 2020: credit drift in 'safe' debt funds = 6 funds wound up.
+    No free tool does longitudinal drift analysis across factsheet vintages.
+  real_pain_evidence:
+    - "Franklin Templeton 2020 crisis"
+    - "SEBI MFAC portal: static factsheet view, no time-series drift alerting"
+    - "r/IndiaInvestments monthly: 'my large-cap fund underperforming Nifty 50 — why?'"
+    - "Morningstar India charges for style-box drift"
+  data_sources:
+    - "AMFI monthly factsheets (amfiindia.com/online-center/download-factsheets)"
+    - "AMFI NAV history API (amfiindia.com/spages/NAVAll.txt)"
+    - "SEBI mutual fund disclosures"
+    - "mfapi.in (community Indian MF API, free)"
+  rag_technique: hybrid+structured (SQL+vector)
+  rag_technique_why: >
+    Monthly cron: AMFI factsheets → Unstructured.io table extraction → structured JSON
+    (fund, isin, scheme_category, top10_holdings, expense_ratio, sharpe, aum, month).
+    SQLite/DuckDB (structured time-series) + Chroma (prose sections). Drift detection:
+    Layer 1 SQL queries on rolling 3/6/12-month portfolio overlap vs benchmark
+    constituents. Layer 2 RAG prose analysis: retrieve investment objective + portfolio
+    commentary; LLM checks language drift. LlamaIndex RouterRetriever routes numerical
+    queries to DuckDB, prose queries to Chroma.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  safety_notes: >
+    "Educational analysis only. Does NOT recommend buying/selling. Past portfolio
+    composition does not predict future performance." Drift flags cited to specific
+    factsheet month. Drift score probabilistic, not definitive.
+  unique_angle: >
+    Hybrid SQL+vector RAG (RouterRetriever between DuckDB analytics and Chroma prose) is
+    2026-SOTA for mixed structured/unstructured. Time-series anomaly + RAG layered.
+  reference_competitors:
+    - name: mfapi.in
+      url: https://www.mfapi.in/
+      why_we_differ: Raw NAV API only; no drift analysis, no RAG layer.
+    - name: AMFI portal
+      url: https://www.amfiindia.com/
+      why_we_differ: Static factsheet downloads; no longitudinal analytics.

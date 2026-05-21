@@ -1,6 +1,14 @@
+---
+type: principle
+zone: warm
+last_reviewed: 2026-05-15
+---
+
 # My Habits & Routines
 
 > Patterns Jarvis should know about. Helps with planning, scheduling, reminders.
+> **Memory type**: `principle` — patterns, decay slowly, high signal value.
+> **Zone**: `warm` — accessed often; promote to cold once stable.
 
 ## Operating Mode
 

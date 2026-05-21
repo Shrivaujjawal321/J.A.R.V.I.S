@@ -4,6 +4,67 @@
 
 ## Active
 
+### 🏆 Tata Steel AI Hackathon 2026 — Winning Plan (P0 — FT offer = resume P0 solve)
+
+**Folder**: `data/hackathons/tata-steel-2026/`  ·  **Plan**: see `journal/2026-05-13.md`  ·  **Time budget**: 60 hrs
+
+#### Phase 1 — Pre-launch prep (May 13 → May 22) | 9 days
+
+- [x] **[P0]** ⚡ Register on HackerEarth (Boss done 2026-05-13) #tata-steel #boss-action
+  Link: https://www.hackerearth.com/community/challenges/competitive/tata-steel-ai-hackathon/
+- [x] **[P0]** War Room infrastructure built (spec + 5 agents + skill + runner + Telegram cmds) — *2026-05-13* #tata-steel #war-room
+- [x] **[P0]** Input Contract completed via research-agent — *2026-05-13* #tata-steel
+- [x] **[P0]** 5 Tata-Steel domain agents built (Round 2 substrate) — *2026-05-13* #tata-steel
+- [ ] **[P0]** War Room Phase 1 research (7 parallel agents) — *due: 2026-05-13* #tata-steel #war-room
+- [ ] **[P0]** Read Tata Steel AI case study end-to-end — *due: 2026-05-14* #tata-steel #prep
+- [ ] **[P0]** Domain fluency: NEU defect papers + PHM literature + 2 plant ops videos — *due: 2026-05-15* #tata-steel #prep
+- [ ] **[P0]** Kaggle warm-up: industrial-themed competition starter notebook — *due: 2026-05-15* #tata-steel #prep
+- [ ] **[P0]** Equivalent public datasets baselines (NEU + PHM 2010 + SECOM) — *due: 2026-05-16* #tata-steel #prep
+- [ ] **[P0]** Round 2 prototype build (5 agents wired + Streamlit UI + RAG corpus) — *due: 2026-05-19* #tata-steel #round-2
+- [ ] **[P0]** Round 1 infra (notebook template + Docker + submission script + local eval) — *due: 2026-05-19* #tata-steel #round-1
+- [ ] **[P0]** Optuna hyperparameter tuning practice — *due: 2026-05-20* #tata-steel #prep
+- [ ] **[P0]** REST + sleep priority (Boss must be fresh May 22) — *due: 2026-05-21* #tata-steel #self-care
+- [ ] **[P0]** Calendar block: May 22 18:00-22:00 IST sacred build slot — *due: 2026-05-21* #tata-steel
+
+#### Phase 2 — Round 1 ML Challenge (May 22 → May 31) | 9 days
+
+- [ ] **[P0]** Day 0 May 22: 18:00 IST — Problem unlock + dataset download + 5x re-read + EDA — *due: 2026-05-22* #tata-steel #round-1 ⏰
+- [ ] **[P0]** Day 1 May 23: Baseline (LR / simple GBM) + first leaderboard submission — *due: 2026-05-23* #tata-steel #round-1
+- [ ] **[P0]** Day 2 May 24: Strong baseline (XGBoost/LightGBM/CatBoost) + CV matching official metric — *due: 2026-05-24* #tata-steel #round-1
+- [ ] **[P0]** Day 3 May 25: Domain-informed feature engineering — *due: 2026-05-25* #tata-steel #round-1
+- [ ] **[P0]** Day 4 May 26: Image/time-series specific (transfer learning if applicable) — *due: 2026-05-26* #tata-steel #round-1
+- [ ] **[P0]** Day 5 May 27: Optuna hyperparameter tuning + multi-seed — *due: 2026-05-27* #tata-steel #round-1
+- [ ] **[P0]** Day 6 May 28: Ensemble + stacking + pseudo-labeling if allowed — *due: 2026-05-28* #tata-steel #round-1
+- [ ] **[P0]** Day 7 May 29: Final tuning + buffer for surprises — *due: 2026-05-29* #tata-steel #round-1
+- [ ] **[P0]** Day 8 May 30: Code cleanup + README + reproducibility check — *due: 2026-05-30* #tata-steel #round-1
+- [ ] **[P0]** Day 9 May 31: Submit by 18:00 IST + read T&Cs for Round 2 — *due: 2026-05-31* #tata-steel #round-1 ⏰
+
+#### Phase 3 — Round 2 Agentic AI (Jun 5 → Jun 15) — *if shortlisted* | 10 days
+
+- [ ] **[P0]** Jun 4-5: Shortlist email check + Round 2 problem unlock — *due: 2026-06-05* #tata-steel #round-2
+- [ ] **[P0]** Jun 6-7: Tata-Steel-specific agent prompts (rebuild Round 2 prototype) — *due: 2026-06-07* #tata-steel #round-2
+- [ ] **[P0]** Jun 8-9: RAG corpus expansion (annual reports + tech papers + synthetic logs) — *due: 2026-06-09* #tata-steel #round-2
+- [ ] **[P0]** Jun 10-11: 15-scenario eval harness + orchestration debug — *due: 2026-06-11* #tata-steel #round-2
+- [ ] **[P0]** Jun 12: Demo UI polish — visible agent traces, wow factor — *due: 2026-06-12* #tata-steel #round-2
+- [ ] **[P0]** Jun 13: 2-3 min demo video recorded + edited — *due: 2026-06-13* #tata-steel #round-2 #demo
+- [ ] **[P0]** Jun 14: 10-slide pitch deck + README polish — *due: 2026-06-14* #tata-steel #round-2
+- [ ] **[P0]** Jun 15: Final Round 2 submission — *due: 2026-06-15* #tata-steel #round-2 ⏰
+
+#### Phase 4 — Round 3 Interview / PPI (Jun 22 → Jun 26) — *if shortlisted* | 4 days
+
+- [ ] **[P0]** Tata Steel-tailored resume final (background: resume-agent runs Phase 1) — *due: 2026-06-20* #tata-steel #round-3 #resume
+- [ ] **[P0]** Jun 17-19: ML system design mock interviews — *due: 2026-06-19* #tata-steel #round-3
+- [ ] **[P0]** Jun 22: "Why Tata Steel" + "Why AI" narrative practice — *due: 2026-06-22* #tata-steel #round-3
+- [ ] **[P0]** Jun 22-26: Live interview slots + daily post-mortem — *due: 2026-06-26* #tata-steel #round-3 ⏰
+
+#### Compound / parallel work
+
+- [ ] **[P1]** LinkedIn post Day 1 of Round 1 (build-in-public) — *due: 2026-05-23* #tata-steel #social
+- [ ] **[P1]** LinkedIn post Day 1 of Round 2 (agentic AI showcase) — *due: 2026-06-06* #tata-steel #social
+- [ ] **[P1]** 3 Tata Steel AI manager LinkedIn warm-connects (Phase 1) — *due: 2026-05-20* #tata-steel #networking
+- [ ] **[P1]** Daily journal entry in `data/hackathons/tata-steel-2026/journal/` — recurring #tata-steel
+- [ ] **[P2]** Tata Steel content consumption (YouTube/blog 1/day) — recurring #tata-steel #osmosis
+
 ### 🏗️ Current Build — MCP Hub
 
 - [x] **[P0]** MCP Hub spec written — *due: 2026-05-11* #mcp-hub #spec

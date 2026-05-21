@@ -1,0 +1,116 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+// design-note: address + lat/lng must match Layout.astro JSON-LD. Update both before launch.
+const address = '12 Linking Road, Bandra West, Mumbai 400050';
+const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+// Replace ?q= value with real coordinates / place id before launch; this fallback uses search.
+const mapEmbed = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+---
+
+<section id="contact" class="relative py-32 md:py-40 bg-ink-soft">
+  <div class="container-cp">
+    <SectionHeader
+      eyebrow="The Place"
+      title="Off Linking Road. Past the brass door."
+      accent="brass door"
+      align="center"
+    />
+
+    <div class="mt-16 grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+      <div class="lg:col-span-5 space-y-10">
+        <div>
+          <h3 class="font-display text-xl text-gold mb-3">Address</h3>
+          <p class="text-cream leading-relaxed">
+            12 Linking Road<br />
+            Bandra West<br />
+            Mumbai 400050
+          </p>
+          <a
+            href={mapsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 mt-3 text-xs uppercase tracking-widest text-brass hover:text-gold transition-colors"
+          >
+            Open in Maps
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M5 2h7v7M12 2L4 10M2 6v6h6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </div>
+
+        <div>
+          <h3 class="font-display text-xl text-gold mb-3">Phone</h3>
+          <a href="tel:+919800000000" class="text-cream hover:text-gold transition-colors">
+            +91 98000 00000
+          </a>
+        </div>
+
+        <div>
+          <h3 class="font-display text-xl text-gold mb-3">Email</h3>
+          <div class="space-y-1">
+            <a href="mailto:hello@thecornerpocket.club" class="block text-cream hover:text-gold transition-colors">
+              hello@thecornerpocket.club
+            </a>
+            <a href="mailto:membership@thecornerpocket.club" class="block text-cream hover:text-gold transition-colors">
+              membership@thecornerpocket.club
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-display text-xl text-gold mb-3">Follow</h3>
+          <div class="flex gap-3">
+            {
+              [
+                {
+                  name: 'Instagram',
+                  href: 'https://instagram.com/thecornerpocket',
+                  d: 'M2 6.5A4.5 4.5 0 0 1 6.5 2h7A4.5 4.5 0 0 1 18 6.5v7a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 2 13.5v-7zM14.5 6.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zM10 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+                },
+                {
+                  name: 'Facebook',
+                  href: 'https://facebook.com/thecornerpocket',
+                  d: 'M11.5 18v-7H14l.5-3H11.5V6c0-.8.3-1.3 1.4-1.3H14.5V2.2c-.3 0-1.3-.2-2.4-.2C9.7 2 8 3.4 8 6v2H6v3h2v7h3.5z',
+                },
+                {
+                  name: 'WhatsApp',
+                  href: 'https://wa.me/919800000000',
+                  d: 'M10 2a8 8 0 0 0-7 12L2 18l4.2-1.1A8 8 0 1 0 10 2zm0 14.5c-1.3 0-2.5-.3-3.6-1l-.3-.1-2.5.6.7-2.4-.2-.3a6.5 6.5 0 1 1 5.9 3.2z',
+                },
+              ].map((s) => (
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.name}
+                  class="h-10 w-10 rounded-sm border border-walnut-light/50 flex items-center justify-center text-cream-muted hover:text-gold hover:border-brass transition-all duration-300"
+                >
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d={s.d} />
+                  </svg>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 relative reveal">
+        <div class="relative aspect-[4/3] rounded-sm overflow-hidden border border-walnut-light/40 bg-walnut/30">
+          <iframe
+            src={mapEmbed}
+            title="Map showing The Corner Pocket location in Bandra West, Mumbai"
+            class="absolute inset-0 w-full h-full grayscale-[40%] contrast-[1.05]"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            aria-label="Google Map of The Corner Pocket"
+          ></iframe>
+          <!-- design-note: subtle dark tint over map keeps premium palette consistent;
+                          full removal preserves usability. -->
+          <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-ink/20 to-transparent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

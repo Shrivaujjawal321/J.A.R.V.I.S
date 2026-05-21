@@ -1,0 +1,199 @@
+# RAG Decathlon — Agentic / Autonomous Workflows Domain
+# Date: 2026-05-14 | research-agent
+# Sets upper-bound of decathlon — SOTA-stretching candidates
+
+- id: agentic-01
+  title: DebateMind — Multi-Agent Adversarial Fact-Checker with Grounded Retrieval
+  tagline: Two Debater agents take opposing stances + RAG-grounded briefs + Moderator verdict
+  problem_statement: >
+    Misinformation is a 2026 tier-1 problem. Snopes/PolitiFact are slow, manual, opaque.
+    MIRAGE (Oct 2025 arXiv 2510.17590), DebateCV (Apr 2026 arXiv 2507.19090), Tool-MAD
+    (Jan 2026 arXiv 2601.04742) prove pattern is research-validated but no clean OSS
+    streamable demo exists.
+  real_pain: >
+    Perplexity/ChatGPT give single-perspective retrieval. Nobody shipped dual-agent debate
+    + moderator with per-agent retrieval traces and live streaming UI. X/Reddit daily cry
+    for "show me the sources on both sides" tool.
+  rag_technique: multi-agent+CRAG
+  agentic_loops:
+    - "Router classifies claim type (factual/causal/predictive)"
+    - "Debater-PRO plans retrieval, calls web-search + vector DB, drafts argument with inline citations"
+    - "Debater-CON does same independently"
+    - "Moderator reads both briefs, identifies contradictions, CRAG-style corrective retrieval if gaps"
+    - "Moderator writes structured verdict (Supported/Refuted/Insufficient) with confidence + provenance"
+    - "Self-reflection: re-evaluates if confidence <0.7 → third retrieval round"
+  tool_use:
+    - "web_search: Tavily / Brave Search API"
+    - "vector_db: Qdrant — PolitiFact, FullFact exports"
+    - "reranker: Cohere Rerank 3"
+    - "structured_output: Pydantic v2"
+    - "streaming: Vercel AI SDK 6"
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 10
+  unique_angle: >
+    Adversarial retrieval pattern is 2026 SOTA research contribution. Live streaming debate
+    UI is visual wow factor.
+  references:
+    - "DebateCV (arXiv 2507.19090) — adversarial debate-driven claim verification"
+    - "MIRAGE (arXiv 2510.17590) — multimodal misinformation agentic framework"
+    - "Tool-MAD (arXiv 2601.04742) — tool-equipped multi-agent debate"
+    - "MA-RAG (arXiv 2505.20096) — multi-agent collaborative CoT"
+
+- id: agentic-02
+  title: PostMortem Pilot — Agentic SRE Incident Investigator with Memory-Augmented RAG
+  tagline: Hypothesis-driven retrieve-validate loops + memory self-improvement
+  problem_statement: >
+    SRE teams spend 60-90 min/incident writing postmortems manually. PagerDuty, incident.io,
+    AWS DevOps Agent launched AI SRE features in 2026 — all enterprise. No OSS LangGraph-
+    native postmortem agent. Memory-augmented pattern (agent writes own outputs back to
+    vector DB) is 2026 SOTA (MemRL, Graphiti bitemporal) — no clean OSS demo.
+  real_pain: >
+    GitHub issues on LangChain/LangGraph repeatedly ask for "navigate-not-just-search" code/
+    log understanding agent.
+  rag_technique: memory-augmented+agentic
+  agentic_loops:
+    - "Triage: classify alert severity, extract service + error type"
+    - "Retrieval: hybrid BM25+vector over past postmortems + runbooks"
+    - "Hypothesis planner: 3-5 root-cause hypotheses (structured)"
+    - "Per hypothesis: tool-call to simulated metrics/log query — supporting/refuting evidence"
+    - "CRAG validator: replan query if ambiguous"
+    - "Synthesis: rank hypotheses by evidence strength"
+    - "Postmortem writer: structured doc with inline citations"
+    - "Memory ingestion: completed postmortem upserted to vector store (self-improvement)"
+  tool_use:
+    - "vector_db: Qdrant — runbooks + past postmortems"
+    - "hybrid_search: BM25 + Voyage embeddings"
+    - "simulated_metrics_api: tool stub for synthetic data"
+    - "memory_writer: Qdrant upsert after each postmortem"
+  buildable_in_hours: 10
+  complexity_score: 8
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Self-improvement loop = direct 2026 SOTA signal (MemRL, Graphiti). Hypothesis-validate-
+    retry mirrors Anthropic extended-thinking + tool-use.
+  references:
+    - "AWS blog: agentic SRE using DevOps Agent (2026)"
+    - "incident.io AI SRE guide 2026"
+    - "mem0.ai State of AI Agent Memory 2026"
+    - "Zep Graphiti — bitemporal episodic memory"
+
+- id: agentic-03
+  title: DealLens — Agentic GraphRAG Due-Diligence Memo Generator
+  tagline: Live KG (Founders → Products → Competitors → Investors) + multi-agent memo
+  problem_statement: >
+    Angel investors and founders doing competitive analysis spend 4-8 hours/company manual
+    research. Crunchbase/PitchBook are static. Perplexity gives flat answers. Nobody ships
+    GraphRAG-guided multi-agent structured memo that builds KG live and reasons along
+    entity relationships. Neo4j March 2026 blog validated pattern for legal — applying to
+    VC due-diligence is fresh 2026 twist.
+  real_pain: >
+    Direct competitor to Cognition (Devin), Sierra, AI-native investing tools — but VC due-
+    diligence specifically is unsolved at OSS tier.
+  rag_technique: agentic-GraphRAG+multi-agent
+  agentic_loops:
+    - "Entity extraction: crawl URL + web search, extract entities"
+    - "KG build: in-memory NetworkX with typed relationships"
+    - "KG navigator: agent traverses graph, decides edge expansion (Agentic GraphRAG)"
+    - "Per node: vector search over web chunks for that entity — CRAG check"
+    - "Multi-agent: Researcher drafts, Validator checks citations, Skeptic challenges weak claims"
+    - "Skeptic triggers re-retrieval on challenged claims (self-correcting)"
+    - "Synthesiser: memo with inline citations + confidence per section"
+  tool_use:
+    - "web_crawl: Firecrawl / Tavily"
+    - "kg_builder: NetworkX (in-memory)"
+    - "vector_db: Qdrant — chunked web content per entity"
+    - "graph_traversal: custom LangGraph KG neighbor-lookup as tool"
+    - "structured_output: Pydantic InvestorMemo schema"
+  buildable_in_hours: 11
+  complexity_score: 9
+  portfolio_leverage_score: 10
+  unique_angle: >
+    Agentic GraphRAG + MA-RAG multi-agent + React Flow live KG viz = trifecta screaming
+    2026 SOTA. Internal reasoning visible = portfolio wow moment.
+  references:
+    - "Neo4j: Agentic GraphRAG for Commercial Contracts (2026)"
+    - "FalkorDB GraphRAG with LangChain + LangGraph (2026)"
+    - "MA-RAG (arXiv 2505.20096)"
+
+- id: agentic-04
+  title: MetaRAG Oracle — Self-RAG Agent for Large Codebases
+  tagline: Multi-layer index (summaries/functions/deps) + adaptive retrieval decisions
+  problem_statement: >
+    Every developer entering large unfamiliar codebase spends hours tracing flows. Copilot
+    Chat is context-window-limited, single retrieval pass. ICSE AGENT 2026 paper "Meta-RAG
+    on Large Codebases Using Code Summarization" shows 79.8% compression via summary-first
+    indexing. Self-RAG (agent decides WHEN to retrieve, not retrieval-then-generate) is
+    2025-2026 SOTA with no clean OSS codebase-specific demo.
+  real_pain: >
+    GitHub issues on LangChain/LlamaIndex repeatedly ask for "navigate-not-just-search" code.
+  rag_technique: Self-RAG+multi-layer
+  agentic_loops:
+    - "Ingestion: clone repo → per-file LLM summaries → function-level chunks → dep graph"
+    - "Query router: classify (bug-trace/architecture/API-usage/change-impact)"
+    - "Self-RAG decision: should I retrieve? At what layer? (summary/function/raw)"
+    - "Retrieve: hybrid BM25+vector at chosen layer"
+    - "Relevance critic (ISREL): retrieved context useful? Replan if not"
+    - "Reasoning: synthesise, determine sufficiency"
+    - "ISSUP/ISUSE self-assessment: supported? useful? Loop if no"
+    - "Structured answer: CodeExplanation schema with code pointers"
+  tool_use:
+    - "github_api: clone, list files, raw content"
+    - "llm_summariser: Haiku per-file summaries (cost-efficient)"
+    - "vector_db: Qdrant dual-namespace (summaries + functions)"
+    - "hybrid_search: BM25 + Voyage voyage-code-3"
+    - "dep_graph: tree-sitter + NetworkX"
+  buildable_in_hours: 10
+  complexity_score: 9
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Self-RAG adaptive decisions + Meta-RAG summary compression (cites ICSE AGENT 2026)
+    signals bleeding-edge reading. Dual-namespace + dep graph traversal goes beyond
+    "chat with your docs." voyage-code-3 = embeddings-domain awareness.
+  references:
+    - "Meta-RAG on Large Codebases — ICSE AGENT 2026"
+    - "Code RAG: Making LLMs Understand Large Codebases (dasroot.net, Apr 2026)"
+    - "Self-RAG (Asai et al. 2023)"
+    - "Voyage AI voyage-code-3"
+
+- id: agentic-05
+  title: RFP Ghost — Agentic RAG Proposal Drafter with Section-by-Section CRAG
+  tagline: Multi-section orchestrated drafter + Critic + requirement-traceability matrix
+  problem_statement: >
+    Responding to government/enterprise RFPs takes 40-80 hours/bid. BD teams at consulting,
+    SaaS, agencies need automation. Progress Agentic RAG (2026) lists RFP drafting as top 3
+    use case but no clean OSS Vercel-deployable implementation. EU AI Act compliance wave
+    means procurement teams issuing more complex multi-section RFPs in 2026.
+  real_pain: >
+    Multi-section orchestrated drafter with per-section CRAG + Critic with requirement-
+    coverage verification is unsolved at OSS tier.
+  rag_technique: CRAG+multi-agent
+  agentic_loops:
+    - "RFP parser: extract requirement sections (Pydantic schema)"
+    - "Per section: query reformulation + hybrid retrieval over past proposals"
+    - "CRAG evaluator: score chunks (Correct/Incorrect/Ambiguous)"
+    - "If Ambiguous/Incorrect: web-search fallback (Tavily) for benchmarks"
+    - "Drafter: section draft with inline citations"
+    - "Critic agent: check requirement coverage — gaps?"
+    - "If gaps: targeted re-retrieval + revision pass"
+    - "Loop exits when all sections pass Critic"
+    - "Final: requirement-traceability matrix + full proposal"
+  tool_use:
+    - "pdf_parser: LlamaParse / pypdf"
+    - "vector_db: Qdrant — past proposals + company profile"
+    - "hybrid_search: BM25 + Voyage embeddings"
+    - "reranker: Cohere Rerank 3"
+    - "web_search_fallback: Tavily for industry benchmarks (CRAG)"
+    - "structured_output: Pydantic v2 schemas"
+  buildable_in_hours: 11
+  complexity_score: 9
+  portfolio_leverage_score: 9
+  unique_angle: >
+    CRAG web-fallback + MA-style Critic + requirement-traceability output is high-precision
+    business application. Map-reduce parallel section loop demonstrates LangGraph depth.
+    Relevant to enterprise AI (PwC/Accenture/Salesforce/ServiceNow).
+  references:
+    - "Progress Agentic RAG 2026"
+    - "CRAG: Corrective RAG (kore.ai 2026)"
+    - "Morgan Stanley / PwC agentic RAG (NStarX 2026)"
+    - "LangGraph map-reduce pattern"

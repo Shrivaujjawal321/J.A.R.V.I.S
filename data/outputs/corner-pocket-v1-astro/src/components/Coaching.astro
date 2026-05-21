@@ -1,0 +1,69 @@
+---
+import SectionHeader from './SectionHeader.astro';
+---
+
+<section id="coaching" class="relative py-32 md:py-40 bg-ink-soft">
+  <div class="container-cp grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+    <div class="lg:col-span-5 order-2 lg:order-1 relative reveal">
+      <div class="relative aspect-[3/4] max-w-md mx-auto lg:mr-auto lg:ml-0">
+        <div class="absolute inset-0 border border-brass/40 translate-x-4 translate-y-4 rounded-sm"></div>
+        <img
+          src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80"
+          alt="A coach demonstrating a precise cue stance over a snooker table"
+          class="relative w-full h-full object-cover rounded-sm shadow-2xl shadow-ink-deep"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 order-1 lg:order-2">
+      <SectionHeader
+        eyebrow="The Coach"
+        title="Twelve years on the national circuit. Now on table three."
+        accent="table three"
+        intro="Ravi Mehta played the national amateur circuit from 2010 to 2022, reaching three All-India finals. He's been our head coach since the club opened."
+      />
+
+      <div class="mt-12 grid sm:grid-cols-2 gap-4 reveal-stagger">
+        {
+          [
+            {
+              title: 'One-on-One',
+              price: '₹2,500 / hr',
+              body: 'Bring a video of a match, a frame, or just one shot. We work from there.',
+            },
+            {
+              title: 'Group Clinics',
+              price: '₹1,200 / pp',
+              body: 'Saturday mornings, 9–11 AM. Four players per clinic. Open to all members.',
+            },
+            {
+              title: 'Newcomer Programme',
+              price: '6 sessions · ₹12,000',
+              body: 'For first-time players or those returning after years away. From break to bridge.',
+            },
+            {
+              title: 'Match Analysis',
+              price: '₹3,500 / session',
+              body: 'Bring your last three matches on video. We review, mark, and rebuild.',
+            },
+          ].map((c, i) => (
+            <div class="card-walnut p-6" style={`--i: ${i}`}>
+              <h3 class="font-display text-xl text-cream mb-1">{c.title}</h3>
+              <p class="text-xs uppercase tracking-widest text-gold mb-3">{c.price}</p>
+              <p class="text-sm text-cream-muted leading-relaxed">{c.body}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <a href="#booking" class="btn-outline mt-10">
+        Book a Session
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M1 7h12M8 2l5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>

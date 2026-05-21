@@ -133,7 +133,7 @@ def search_category(
         category_id=category_id,
     )
     # Browser ops need tool access
-    raw = _claude_helper.with_tools(prompt, max_turns=30, timeout=420)
+    raw = _claude_helper.with_tools(prompt, max_turns=30, timeout=600)
 
     # Dump raw to disk for post-mortem (overwrites previous run for same category/day)
     DEBUG_DIR.mkdir(parents=True, exist_ok=True)

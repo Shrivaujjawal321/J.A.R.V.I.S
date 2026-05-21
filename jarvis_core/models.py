@@ -31,6 +31,30 @@ class ChatResponse(BaseModel):
     cost_usd: float | None = None
     duration_ms: int | None = None
     error: str | None = None
+    # Self-growth metadata (Phase A + B). None when the respective layer skipped.
+    confidence: str | None = Field(
+        default=None,
+        description="Critic verdict — 'verified' | 'unverified' | 'low'. None if critic skipped.",
+    )
+    memory_hits: int | None = Field(
+        default=None,
+        description="Number of memory chunks injected into the worker prompt (0 if skipped).",
+    )
+    revised: bool | None = Field(
+        default=None,
+        description="True if the critic forced a one-pass revision of the original draft.",
+    )
+    intent: str | None = Field(
+        default=None,
+        description=(
+            "Intent classifier category — one of task/question/feedback/strategic/"
+            "emotional/correction/greeting/unknown. None if classifier skipped/disabled."
+        ),
+    )
+    priority: str | None = Field(
+        default=None,
+        description="Intent classifier priority — low/normal/high/urgent. None if skipped.",
+    )
 
 
 class WorkerSpec(BaseModel):

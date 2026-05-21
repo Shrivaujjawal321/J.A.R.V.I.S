@@ -1,0 +1,59 @@
+---
+import SectionHeader from './SectionHeader.astro';
+---
+
+<section id="about" class="relative py-32 md:py-40">
+  <div class="container-cp grid lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+    <div class="lg:col-span-6">
+      <SectionHeader
+        eyebrow="The House"
+        title="A snooker room, made the way they used to be."
+        accent="used to be"
+        intro="The Corner Pocket opened in 2019 in a converted warehouse off Linking Road. Tournament-grade Star tables. A single-malt-led bar. Walnut, brass, and felt — and no televisions, anywhere on the floor."
+      />
+
+      <div class="mt-10 space-y-6 max-w-prose text-cream-muted leading-relaxed">
+        <p>
+          We are a club for people who think a quiet evening over a tight frame is a serious
+          pleasure. Members come for the tables. They stay for the room.
+        </p>
+        <p>
+          Coaching runs six days a week with <em class="text-cream not-italic">Ravi Mehta</em>, former
+          national finalist, and weekend clinics for newcomers and lapsed players alike.
+          Monthly handicap tournaments. An annual invitational every November.
+        </p>
+      </div>
+
+      <!-- Signature line — owner quote -->
+      <figure class="mt-12 pl-6 border-l border-gold/40 max-w-prose">
+        <blockquote class="font-serif italic text-xl text-cream leading-snug">
+          "A good table is half the game. The other half is the room you play it in."
+        </blockquote>
+        <figcaption class="mt-4 text-xs uppercase tracking-widest text-cream-dim">
+          — Aman Sethi, Founder
+        </figcaption>
+      </figure>
+    </div>
+
+    <!-- Image collage — two stacked, brass-framed -->
+    <div class="lg:col-span-6 relative reveal">
+      <div class="relative aspect-[4/5] max-w-md mx-auto lg:ml-auto lg:mr-0">
+        <div class="absolute inset-0 border border-brass/40 -translate-x-4 translate-y-4 rounded-sm"></div>
+        <img
+          src="https://images.unsplash.com/photo-1611404432790-3eaf2bbed09e?auto=format&fit=crop&w=900&q=80"
+          alt="A snooker table in a low-lit walnut-paneled room, brass pendant lamp overhead, balls racked on the green felt"
+          class="relative w-full h-full object-cover rounded-sm shadow-2xl shadow-ink-deep"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      <!-- Floating brass plaque -->
+      <div class="hidden lg:block absolute -bottom-8 -left-8 bg-walnut/90 backdrop-blur-md border border-brass/40 px-6 py-5 rounded-sm shadow-brass-glow max-w-xs">
+        <div class="text-[0.65rem] uppercase tracking-widest text-gold mb-2">Members since 2019</div>
+        <div class="font-display text-3xl text-cream">340+</div>
+        <div class="text-sm text-cream-muted">Including 9 of India's top-50 amateurs</div>
+      </div>
+    </div>
+  </div>
+</section>

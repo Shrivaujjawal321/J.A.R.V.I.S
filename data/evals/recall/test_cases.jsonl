@@ -1,0 +1,10 @@
+{"id": "recall-001", "category": "hit-preferences", "query": "what does Boss prefer for communication?", "expect_source_substring": "preferences.md", "expect_text_contains": ["Hinglish", "respectful"], "min_score": 0.55}
+{"id": "recall-002", "category": "hit-person", "query": "Anisha ke liye kya plan karein iss weekend?", "expect_source_substring": "people.md", "expect_text_contains": ["Anisha"], "min_score": 0.50}
+{"id": "recall-003", "category": "hit-project", "query": "LinkedIn pipeline ka status kya hai?", "expect_source_substring": "projects.md", "expect_text_contains": ["LinkedIn"], "min_score": 0.50}
+{"id": "recall-004", "category": "hit-habits", "query": "Boss ki neend ka pattern kya hai?", "expect_source_substring": "habits.md", "expect_text_contains": ["sleep"], "min_score": 0.40}
+{"id": "recall-005", "category": "skip-greeting", "query": "hi", "expect_skipped_reason": "too_short", "expect_chunks": 0}
+{"id": "recall-006", "category": "skip-greeting", "query": "Hello Jarvis good morning!", "expect_skipped_reason": "greeting", "expect_chunks": 0}
+{"id": "recall-007", "category": "skip-slash", "query": "/recall what about resume", "expect_skipped_reason": "slash_command", "expect_chunks": 0}
+{"id": "recall-008", "category": "no-hit", "query": "What is the airspeed velocity of an unladen swallow flying over a coconut forest?", "expect_skipped_reason": "no_hits_above_threshold", "expect_chunks": 0}
+{"id": "recall-009", "category": "multi-topic", "query": "Anisha ke birthday plan aur resume update dono pe focus", "expect_min_chunks": 2}
+{"id": "recall-010", "category": "hit-account-setup", "query": "Boss ka Google account konsa hai?", "expect_text_contains": ["shriva.ujjawal"], "min_score": 0.50}

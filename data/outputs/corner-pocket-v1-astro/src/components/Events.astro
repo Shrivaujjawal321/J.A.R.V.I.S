@@ -1,0 +1,85 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+const events = [
+  {
+    date: 'Sat 24 May',
+    time: '7:30 PM',
+    title: 'May Handicap — Snooker',
+    body: 'Open to all members. Handicap-balanced bracket of 16. Single-elimination, best-of-three frames.',
+    tag: 'Monthly Tournament',
+    accent: false,
+  },
+  {
+    date: 'Fri 6 Jun',
+    time: '9:00 PM',
+    title: 'Old Fashioned & Frames',
+    body: 'A guest bartender from The Library Bar pairs three rare ryes with three short matches. Twelve seats only.',
+    tag: 'Lounge Evening',
+    accent: true,
+  },
+  {
+    date: 'Sat 22 Jun',
+    time: '6:00 PM',
+    title: 'Newcomer Showcase',
+    body: 'Programme graduates play their first competitive frames in front of the room. Drinks on the house.',
+    tag: 'Members & Guests',
+    accent: false,
+  },
+];
+---
+
+<section id="events" class="relative py-32 md:py-40">
+  <div class="container-cp">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
+      <SectionHeader
+        eyebrow="The Calendar"
+        title="What's on, in the room."
+        accent="in the room"
+      />
+      <a href="#contact" class="text-sm text-brass hover:text-gold transition-colors tracking-wide reveal">
+        See full calendar →
+      </a>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6 reveal-stagger">
+      {
+        events.map((e, i) => (
+          <article
+            class={`card-walnut p-7 lg:p-8 flex flex-col h-full ${
+              e.accent ? 'border-gold/30 bg-walnut/55' : ''
+            }`}
+            style={`--i: ${i}`}
+          >
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <div class="font-display text-2xl text-cream leading-none">{e.date}</div>
+                <div class="text-xs uppercase tracking-widest text-cream-dim mt-2">{e.time}</div>
+              </div>
+              <span
+                class={`text-[0.65rem] uppercase tracking-widest px-2.5 py-1 rounded-sm border ${
+                  e.accent
+                    ? 'border-gold/50 text-gold bg-gold/5'
+                    : 'border-brass/40 text-brass bg-brass/5'
+                }`}
+              >
+                {e.tag}
+              </span>
+            </div>
+            <h3 class="font-display text-2xl text-cream mb-3 leading-snug">{e.title}</h3>
+            <p class="text-sm text-cream-muted leading-relaxed mb-6 flex-1">{e.body}</p>
+            <a
+              href="#booking"
+              class="text-xs uppercase tracking-widest text-brass hover:text-gold transition-colors inline-flex items-center gap-2"
+            >
+              Reserve a place
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M1 7h12M8 2l5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

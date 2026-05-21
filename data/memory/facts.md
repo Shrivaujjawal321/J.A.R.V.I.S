@@ -1,7 +1,15 @@
+---
+type: fact
+zone: cold
+last_reviewed: 2026-05-15
+---
+
 # Facts About Me
 
 > Edit this file with your information. Jarvis loads this every session.
 > Keep it concise and updated.
+> **Memory type**: `fact` — stable, decay slowly, reverify if old.
+> **Zone**: `cold` — permanent until invalidated.
 
 ## Identity
 

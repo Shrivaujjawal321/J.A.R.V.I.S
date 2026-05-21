@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "slug": "__SLUG__",
+  "started_at": null,
+  "updated_at": null,
+  "current_phase": 0,
+  "current_checkpoint": null,
+  "input_contract": {
+    "COMPANY": {
+      "name": null,
+      "url": null,
+      "focus": null
+    },
+    "HACKATHON": {
+      "url": null,
+      "problem_statements": null,
+      "deadline": null,
+      "team_size": null,
+      "required_tech": null,
+      "judging_rubric": null
+    },
+    "TEAM": {
+      "roles": null,
+      "skill_levels": null,
+      "time_budget_hours": null,
+      "domain_experience": null
+    },
+    "CONSTRAINTS": {
+      "budget": null,
+      "cloud_credits": null,
+      "ip_rules": null
+    }
+  },
+  "phase_outputs": {},
+  "shortlisted_problem_ids": [],
+  "selected_problem_id": null,
+  "scoring_weights": {
+    "innovation": 0.20,
+    "judge_appeal": 0.25,
+    "feasibility": 0.25,
+    "technical_depth": 0.15,
+    "business_potential": 0.15
+  },
+  "decisions": [],
+  "errors": [],
+  "telegram_chat_id": null,
+  "war_room_document_path": null
+}

@@ -70,12 +70,19 @@ def cmd_morning(args) -> None:
         parse_mode=None,
     )
 
-    # 1. Find ICP profiles to follow (broader pool, no notes needed)
+    # 1+2. Single ICP sweep shared between follow + connection use cases.
+    # search_all_categories returns profiles ordered by category priority, so
+    # taking the first n_conn gives the higher-priority subset for connections,
+    # while the full pool (n_follow profiles) is used for follows. Avoids the
+    # ~60-min duplicate-search penalty the previous two-call design incurred.
+    search_target = max(n_follow, n_conn)
     try:
-        follow_profiles = icp_search.search_all_categories(daily_target=n_follow)
+        icp_profiles = icp_search.search_all_categories(daily_target=search_target)
     except Exception as e:
-        _telegram_notify.safe_send(f"⚠️ Follow search failed: {e}. Skipping follows.")
-        follow_profiles = []
+        _telegram_notify.safe_send(f"⚠️ ICP search failed: {e}. Skipping follows + connections.")
+        icp_profiles = []
+
+    follow_profiles = icp_profiles[:n_follow]
     follows = [
         {
             "profile_id": p["id"],
@@ -87,12 +94,7 @@ def cmd_morning(args) -> None:
         for p in follow_profiles
     ]
 
-    # 2. Find ICP profiles for connection requests (smaller, higher-priority pool)
-    try:
-        conn_profiles = icp_search.search_all_categories(daily_target=n_conn)
-    except Exception as e:
-        _telegram_notify.safe_send(f"⚠️ Connection search failed: {e}. Skipping connections.")
-        conn_profiles = []
+    conn_profiles = icp_profiles[:n_conn]
     conn_drafts = connection_drafter.draft_batch(conn_profiles) if conn_profiles else []
 
     # 3. Draft Jarvis-intro DMs to 1st-degree recruiters/founders
@@ -145,13 +147,16 @@ def cmd_afternoon(args) -> None:
         f"LinkedIn afternoon mini-batch — {n_follow} follows + {n_conn} connections",
         parse_mode=None,
     )
-    follow_profiles = icp_search.search_all_categories(daily_target=n_follow)
+    # Single ICP sweep shared between follow + connection use cases (same fix
+    # as cmd_morning — avoids the duplicate ~60-min search penalty).
+    icp_profiles = icp_search.search_all_categories(daily_target=max(n_follow, n_conn))
+    follow_profiles = icp_profiles[:n_follow]
     follows = [
         {"profile_id": p["id"], "name": p.get("name"), "headline": p.get("headline"),
          "category_id": p.get("category_id"), "url": p.get("url")}
         for p in follow_profiles
     ]
-    conn_profiles = icp_search.search_all_categories(daily_target=n_conn)
+    conn_profiles = icp_profiles[:n_conn]
     conn_drafts = connection_drafter.draft_batch(conn_profiles) if conn_profiles else []
     telegram_approval.send_morning_batch(
         follows=follows,

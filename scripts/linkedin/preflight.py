@@ -7,7 +7,7 @@ debug-protocol session at http://127.0.0.1:9222 with LinkedIn already logged in.
 
 Recovery ladder:
   1. Port 9222 alive?               → continue.
-  2. Dead → auto-launch Chrome with /tmp/chrome-jarvis profile + feed URL.
+  2. Dead → auto-launch Chrome with ~/.cache/jarvis-chrome profile + feed URL.
   3. Wait for port to come up.
   4. Verify LinkedIn session (open feed, check if redirected to /login).
   5. Check li_at cookie expiry → warn if < 7 days remaining.
@@ -40,7 +40,7 @@ import httpx
 from . import _telegram_notify
 
 CHROME_PORT = 9222
-CHROME_PROFILE = Path("/tmp/chrome-jarvis")
+CHROME_PROFILE = Path.home() / ".cache" / "jarvis-chrome"
 CHROME_BIN_CANDIDATES = (
     "google-chrome",
     "google-chrome-stable",
@@ -51,8 +51,11 @@ CHROME_BIN_CANDIDATES = (
 LINKEDIN_FEED = "https://www.linkedin.com/feed/"
 LOGGED_OUT_MARKERS = ("/login", "/uas/login", "/checkpoint", "/authwall")
 COOKIE_WARN_DAYS = 7
-LAUNCH_WAIT_S = 25
+LAUNCH_WAIT_S = 60
 VERIFY_WAIT_S = 12
+# Stale Chrome lockfiles left behind by a crashed/killed instance prevent the
+# new launch from binding to --remote-debugging-port. Remove them defensively.
+CHROME_LOCKFILES = ("SingletonLock", "SingletonCookie", "SingletonSocket")
 
 
 @dataclass
@@ -104,6 +107,14 @@ def _launch_chrome() -> tuple[bool, str]:
         return False, f"No Chrome binary found (tried {', '.join(CHROME_BIN_CANDIDATES)})"
 
     CHROME_PROFILE.mkdir(parents=True, exist_ok=True)
+
+    for lock_name in CHROME_LOCKFILES:
+        lock_path = CHROME_PROFILE / lock_name
+        try:
+            if lock_path.exists() or lock_path.is_symlink():
+                lock_path.unlink()
+        except OSError:
+            pass
 
     cmd = [
         binary,
@@ -259,7 +270,7 @@ def run_preflight(*, check_only: bool = False) -> PreflightResult:
     if session == "logged_out":
         _telegram_notify.safe_send(
             "🚨 LinkedIn session logged OUT.\n\n"
-            f"Chrome is up at port {CHROME_PORT} with profile `/tmp/chrome-jarvis`.\n"
+            f"Chrome is up at port {CHROME_PORT} with profile `{CHROME_PROFILE}`.\n"
             "Open the browser, sign in to LinkedIn, then rerun:\n"
             "`python -m scripts.linkedin.daily_runner morning`\n\n"
             "Pipeline aborting cleanly — no empty drafts written.",

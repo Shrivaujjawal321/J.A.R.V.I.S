@@ -1,0 +1,13 @@
+[Unit]
+Description=Jarvis Auto-Capture — summarise recent chats into vector memory
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./specs/auto-capture.spec.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/python /home/ujjwal/Documents/J.A.R.V.I.S./scripts/auto_capture.py
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/auto_capture.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/auto_capture.log
+Environment=PYTHONUNBUFFERED=1
+TimeoutStartSec=600

@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Tables from '../components/Tables.astro';
+import Membership from '../components/Membership.astro';
+import Coaching from '../components/Coaching.astro';
+import Events from '../components/Events.astro';
+import Gallery from '../components/Gallery.astro';
+import Booking from '../components/Booking.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="The Corner Pocket — Premium Snooker & Pool Club, Mumbai"
+  description="A private snooker club in Bandra West. Six tournament-grade snooker tables, four pool tables, lounge bar, coaching with a former national finalist. Where the city racks up after dark."
+>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <About />
+    <Tables />
+    <Membership />
+    <Coaching />
+    <Events />
+    <Gallery />
+    <Booking />
+    <Contact />
+  </main>
+  <Footer />
+</Layout>

@@ -1,6 +1,14 @@
+---
+type: fact
+zone: warm
+last_reviewed: 2026-05-15
+---
+
 # Active Projects
 
 > What I'm currently working on. Updated as projects evolve.
+> **Memory type**: `fact` — current-state snapshot, decays fast as projects evolve.
+> **Zone**: `warm` — high-churn; expect frequent edits; auto-prune dormant entries.
 
 ## 🟢 Active
 

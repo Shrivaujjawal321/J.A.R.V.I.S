@@ -1,0 +1,132 @@
+---
+// Sticky nav — transparent at top, walnut-backdrop after scroll
+const links = [
+  { href: '#about', label: 'About' },
+  { href: '#tables', label: 'Tables' },
+  { href: '#membership', label: 'Membership' },
+  { href: '#coaching', label: 'Coaching' },
+  { href: '#events', label: 'Events' },
+  { href: '#contact', label: 'Contact' },
+];
+---
+
+<header
+  id="site-header"
+  class="fixed inset-x-0 top-0 z-40 transition-all duration-500 ease-out"
+  data-state="top"
+>
+  <div class="container-cp flex h-20 items-center justify-between">
+    <a
+      href="#top"
+      class="group flex items-center gap-3 font-display text-xl tracking-wide text-cream"
+      aria-label="The Corner Pocket — home"
+    >
+      <!-- mark: a cue-ball with subtle gold dot -->
+      <span class="relative inline-block h-8 w-8" aria-hidden="true">
+        <span class="absolute inset-0 rounded-full bg-gradient-to-br from-cream to-cream-muted shadow-inner"></span>
+        <span class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-gold"></span>
+      </span>
+      <span class="leading-none">
+        <span class="block text-[0.65rem] uppercase tracking-widest text-brass">The</span>
+        <span class="block -mt-0.5">Corner Pocket</span>
+      </span>
+    </a>
+
+    <nav class="hidden lg:block" aria-label="Primary">
+      <ul class="flex items-center gap-9 font-sans text-sm tracking-wide text-cream-muted">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="relative py-2 transition-colors duration-300 hover:text-cream
+                       after:absolute after:left-0 after:bottom-0 after:h-px after:w-0
+                       after:bg-gold after:transition-all after:duration-300
+                       hover:after:w-full"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <a href="#booking" class="btn-gold !px-5 !py-2.5 !text-xs">Book a Table</a>
+      <button
+        id="nav-toggle"
+        class="lg:hidden -mr-2 p-2 text-cream"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div
+    id="mobile-menu"
+    class="hidden lg:hidden border-t border-walnut-light/30 bg-ink/95 backdrop-blur-xl"
+  >
+    <nav class="container-cp py-6" aria-label="Mobile">
+      <ul class="flex flex-col gap-1 font-sans text-base text-cream-muted">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="block py-3 border-b border-walnut-light/20 transition-colors hover:text-gold"
+                data-mobile-link
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script is:inline>
+  (function () {
+    const header = document.getElementById('site-header');
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('mobile-menu');
+
+    if (!header) return;
+
+    // background fade after scroll
+    const onScroll = () => {
+      const scrolled = window.scrollY > 40;
+      header.dataset.state = scrolled ? 'scrolled' : 'top';
+      if (scrolled) {
+        header.classList.add('bg-ink/85', 'backdrop-blur-xl', 'border-b', 'border-walnut-light/20', 'shadow-lg', 'shadow-ink-deep/50');
+      } else {
+        header.classList.remove('bg-ink/85', 'backdrop-blur-xl', 'border-b', 'border-walnut-light/20', 'shadow-lg', 'shadow-ink-deep/50');
+      }
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // mobile menu
+    if (toggle && menu) {
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        menu.classList.toggle('hidden');
+      });
+      menu.querySelectorAll('[data-mobile-link]').forEach((a) => {
+        a.addEventListener('click', () => {
+          toggle.setAttribute('aria-expanded', 'false');
+          menu.classList.add('hidden');
+        });
+      });
+    }
+  })();
+</script>

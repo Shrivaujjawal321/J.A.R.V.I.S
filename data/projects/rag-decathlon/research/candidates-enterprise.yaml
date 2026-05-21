@@ -1,0 +1,207 @@
+# RAG Decathlon — Enterprise Knowledge & Productivity Domain
+# Date: 2026-05-14 | research-agent
+# Corpus anchor: EnterpriseRAG-Bench (MIT, 500k+ docs, github.com/onyx-dot-app/EnterpriseRAG-Bench)
+
+- name: commitmentlens — Meeting Decision & Promise Tracker
+  problem_statement: >
+    After cross-functional meetings, commitments scatter across transcripts, Slack
+    follow-ups, Jira/Linear tickets — no source of truth tracking who promised what,
+    to whom, by when. Meeting bots (Fireflies, Otter, tl;dv) summarise but don't TRACK.
+    Gap: queryable commitment graph spanning meeting → Slack → ticket chain.
+  target_user: >
+    Engineering leads, PMs, founders running 5-15 person cross-functional teams.
+  why_now_2026: >
+    Fireflies/tl;dv expose transcript JSON via open APIs. EnterpriseRAG-Bench ships
+    Fireflies + Linear data in synthetic corpus (free ground-truth). LangGraph stateful
+    cycles (2025 stable) make reflection loops cheap.
+  current_pain: >
+    r/projectmanagement: PMs spend 30-60 min/week manually extracting commitments. No
+    tool answers "show all unresolved commitments from last sprint."
+  data_sources:
+    - "EnterpriseRAG-Bench — Fireflies transcripts + Linear tickets"
+    - "AMI Meeting Corpus (HF: knkarthick/AMI)"
+    - "MeetingBank dataset"
+    - "OrgForge synthetic Slack threads (arxiv 2603.14997)"
+  rag_technique: GraphRAG+agentic
+  rag_technique_why: >
+    Plain vector RAG cannot answer "is this commitment still open?" because openness is
+    relational state. GraphRAG tracks lifecycle across documents. LangGraph reflection
+    handles meeting A → Slack thread 3 days later → graph node update.
+  buildable_in_hours: 8
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Not a meeting summariser. Persistent commitment graph with lifecycle (open/acknowledged/
+    resolved/overdue). Agentic tool call auto-creates Linear ticket when commitment has none.
+  reference_competitors:
+    - name: tl;dv
+      url: https://tldv.io/
+      why_we_differ: Summaries only, no commitment graph.
+    - name: Fireflies.ai
+      url: https://fireflies.ai/
+      why_we_differ: Action items list, no cross-meeting tracking.
+
+- name: dealautopsy — Lost Deal Pattern Engine
+  problem_statement: >
+    Sales teams lose deals and move on. CRM notes say "price" — vague tags wasting real
+    signal in transcripts, emails, champion tone. No tool synthesises lost-deal artifacts
+    (CRM + calls + emails) into a pattern report telling VP Sales "34% of deals lost at
+    procurement when security questionnaire >5 days, most often to Competitor X."
+  target_user: >
+    VP Sales, RevOps, sales enablement at B2B SaaS with 10-50 AEs.
+  why_now_2026: >
+    Gong/Chorus/Avoma expose transcript export APIs. HubSpot AI scans but writes vague
+    disposition codes. Hindsight (usehindsight.com) closest but $30k+/yr enterprise.
+    Cirrus Insight 2026: most teams <40% win rates yet only 23% do systematic win/loss.
+  current_pain: >
+    Reps spend 2-3 hours per lost deal if reviewing manually. Cross-deal pattern detection
+    over 50+ deals simultaneously not available sub-$500/month tool.
+  data_sources:
+    - "EnterpriseRAG-Bench — HubSpot CRM + Fireflies transcripts + Gmail"
+    - "Synthetic 50 won / 50 lost B2B deals (GPT-4o-generated)"
+    - "Kaggle: 'B2B Sales Opportunities' (abhishekunnam)"
+  rag_technique: multi-doc+rerank
+  rag_technique_why: >
+    Per-deal corpus: merge CRM + transcript + emails via deal_id metadata join. Hybrid
+    BM25+vector (Qdrant + rank-fusion). Cohere Rerank v3 collapses 200 candidates → top-15.
+    Pattern synthesis LLM call over N lost deals → structured JSON (loss_reason_taxonomy,
+    competitor_mentions, stage_breakdown, recommendation). Every claim cited to deal_id +
+    transcript timestamp.
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Output is BUSINESS REPORT, not Q&A chatbot. 5-section pattern brief (loss taxonomy,
+    competitor heatmap, stage failure rates, rep delta, recommendations). Anti-
+    hallucination with source citations.
+  reference_competitors:
+    - name: Hindsight
+      url: https://usehindsight.com/
+      why_we_differ: $30k+/yr, requires hosted connector.
+    - name: Gong Revenue Intelligence
+      url: https://gong.io/
+      why_we_differ: Transcript analysis, no cross-deal synthesis.
+
+- name: runbookgpt — Engineering Onboarding Agentic RAG Copilot
+  problem_statement: >
+    New engineers spend 2-3 weeks asking "how do we deploy?", "where is on-call runbook?" —
+    answers split across outdated Confluence, buried Slack threads, stale GitHub READMEs,
+    tribal knowledge. Glean/Onyx index everything but return DOCUMENTS, not ANSWERS with
+    tutorial mode.
+  target_user: >
+    New-hire engineers (first 90 days) at Series-A-to-D startups; engineering managers
+    losing 4-6 hours/week to repeat onboarding.
+  why_now_2026: >
+    Backstage TechDocs AI plugin launched early 2026. Port Atlassian MCP bridge connects
+    Jira + Confluence for agents. EnterpriseRAG-Bench ships Confluence + Jira + GitHub +
+    Slack in one corpus. Vercel AI SDK RAG template reduces scaffolding to <2 hrs.
+  current_pain: >
+    r/ExperiencedDevs: "I answered the same 'how to deploy' question 9 times in my first
+    month." Onyx 2026: teams lose 2+ hours/day to cross-tool search.
+  data_sources:
+    - "EnterpriseRAG-Bench — Confluence + GitHub + Jira + Slack (MIT)"
+    - "Backstage TechDocs sample"
+    - "Public GitHub repos with READMEs + CONTRIBUTING + ADRs"
+    - "Synthetic onboarding Q&A pairs (50 from EnterpriseRAG-Bench)"
+  rag_technique: agentic+HyDE
+  rag_technique_why: >
+    HyDE generates hypothetical answer, embeds it, retrieves with that embedding — superior
+    for "how do I?" questions because runbook uses imperative ("Run kubectl...") not question
+    form. Yields 20-30% better recall on procedural queries. Agentic GitHub cross-reference:
+    if retrieved chunk mentions service, secondary tool pulls latest README/CODEOWNERS —
+    catches stale Confluence pages.
+  buildable_in_hours: 8
+  complexity_score: 6
+  portfolio_leverage_score: 8
+  unique_angle: >
+    Tutorial-mode detection: "how do I / steps to" → response formats as numbered walkthrough
+    with code blocks + per-step citation. Most RAG demos return prose.
+  reference_competitors:
+    - name: Glean
+      url: https://glean.com/
+      why_we_differ: Returns documents, not answers; no tutorial mode.
+    - name: Onyx
+      url: https://onyx.app/
+      why_we_differ: Open-source similar but no HyDE or agentic cross-reference.
+
+- name: precallbrief — Agentic Account Intelligence Synthesiser
+  problem_statement: >
+    Sales reps spend 20-40 min per call doing manual pre-call research: LinkedIn for
+    stakeholder news, old CRM notes, Slack for context, last email thread. Repetitive
+    context-assembly — exactly what RAG should automate. SiftHub exists but $200+/seat/month.
+  target_user: >
+    AEs and SDRs at B2B SaaS (SMB-to-mid-market) with 3-8 calls/day, no RevOps tooling.
+  why_now_2026: >
+    Salesforce Agentforce demonstrated pattern but only Salesforce data. EnterpriseRAG-Bench
+    includes HubSpot CRM + Fireflies + Slack — exactly the multi-source context needed.
+    Parallel async tool calls (LangGraph fan-out) bring 4-source retrieval under 2s.
+  current_pain: >
+    JVG Labs 2025: automating pre-call research saved 4.5 hrs/rep/week. Leads-at-Scale 2026:
+    43% improvement in qualification accuracy with prepared brief.
+  data_sources:
+    - "EnterpriseRAG-Bench — HubSpot CRM + Fireflies + Slack + Gmail"
+    - "Synthetic 30 prospect profiles (GPT-4o-generated)"
+    - "Public LinkedIn company data (Apify free tier, 100 companies)"
+    - "Industry news RSS (TechCrunch, VentureBeat) — real-time"
+  rag_technique: agentic+parallel
+  rag_technique_why: >
+    LangGraph fan-out to 4 parallel retrieval tools: CRM-search (pgvector over HubSpot),
+    transcript-search (past call chunks), Slack-search (BM25 over account threads), news-
+    search (real-time RSS + LLM filter). Cohere Rerank v3 collapses to top-12 across sources.
+    Structured 5-section JSON brief output renders as card UI.
+  buildable_in_hours: 9
+  complexity_score: 7
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Real-time news ingestion via RSS makes brief freshness-aware — flags layoff/funding/
+    leadership change in last 48 hrs. Temporal awareness mostly absent from portfolio RAG.
+  reference_competitors:
+    - name: SiftHub
+      url: https://sifthub.io/
+      why_we_differ: $200+/seat/month, enterprise only.
+    - name: Salesforce Agentforce
+      url: https://www.salesforce.com/agentforce/
+      why_we_differ: Salesforce-only data layer.
+
+- name: tickettriage — Multimodal RAG Support Router with Confidence Scoring
+  problem_statement: >
+    IT and SaaS support tickets mix free-text + screenshots + log snippets. Tier-1 agents
+    spend 3-5 min just deciding: Tier-2 or KB article #XYZ? Routing wrong 30-40% (Zendesk
+    2025). No open-source multimodal routing (screenshot OCR + ticket text + KB semantic
+    match + confidence + rationale).
+  target_user: >
+    IT support managers and CS ops leads at mid-market SaaS (50-500 employees) running
+    Zendesk/Freshdesk with Tier-1/Tier-2 split and KB of 100-500 articles.
+  why_now_2026: >
+    RAG-Anything (HKUDS, EMNLP 2025) production-grade multimodal framework. GPT-4o-mini
+    Vision makes screenshot OCR cheap ($0.003/ticket). Milvus 2026 native multimodal vector
+    storage. 2026 RAG support benchmark: 40-50% Tier-1 handle time reduction.
+  current_pain: >
+    Milvus docs: "Employees often submit screenshots asking for help." r/sysadmin: "Half
+    our tickets are just a screenshot with 'it is broken'." Every RAG tutorial uses
+    text-only.
+  data_sources:
+    - "Zendesk public ticket dataset (HF: Zendesk/customer-support-tickets, 50k)"
+    - "Synthetic 100 Playwright-generated error-state screenshots"
+    - "Synthetic 200 KB articles for 5 fictional SaaS products"
+    - "RAG-Anything sample corpus"
+  rag_technique: multimodal
+  rag_technique_why: >
+    Dual-embedding (CLIP + text). Text chunks embedded with text-embedding-3-small;
+    screenshots → GPT-4o-mini Vision (OCR + error JSON) + CLIP image embedding. Hybrid
+    retrieval against KB (Qdrant dense+BM25 RRF) → top-20 → BGE Reranker v2 → top-5.
+    Routing classifier structured output (route, confidence, kb_article_id, rationale,
+    citations). Confidence <0.65 → Tier-2 + flag for human review.
+  buildable_in_hours: 9
+  complexity_score: 8
+  portfolio_leverage_score: 9
+  unique_angle: >
+    Confidence score with human-escalation path. System knows when to defer to human and
+    explains why with KB citations. Auditability addresses enterprise hallucination concern.
+  reference_competitors:
+    - name: Zendesk AI
+      url: https://zendesk.com/ai
+      why_we_differ: Text-only, no multimodal routing.
+    - name: Freshdesk Freddy AI
+      url: https://www.freshworks.com/freshdesk/
+      why_we_differ: Intent classification only, no KB-citation rationale.

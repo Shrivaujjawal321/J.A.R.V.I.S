@@ -1,0 +1,91 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+const facilities = [
+  {
+    title: 'Six Snooker Tables',
+    spec: 'Star — 12 ft, tournament cloth',
+    body: 'Re-clothed quarterly. Heaters under every bed. Each table its own brass pendant.',
+    icon: 'snooker',
+  },
+  {
+    title: 'Four Pool Tables',
+    spec: 'Diamond — 9 ft, Simonis 860',
+    body: 'For 8-ball, 9-ball, and the after-midnight crowd. Cue racks finished in walnut.',
+    icon: 'pool',
+  },
+  {
+    title: 'The Lounge Bar',
+    spec: '40 single malts · seasonal cocktails',
+    body: 'Curated by a former Soho House bartender. Quiet enough to talk. Always.',
+    icon: 'bar',
+  },
+  {
+    title: 'The Private Room',
+    spec: 'Seats 8 · one dedicated table',
+    body: 'For corporate evenings, milestone matches, and the kind of night that wants its own door.',
+    icon: 'private',
+  },
+];
+---
+
+<section id="tables" class="relative py-32 md:py-40 bg-ink-soft">
+  <!-- top hairline -->
+  <div class="container-cp">
+    <div class="hairline mb-20"></div>
+  </div>
+
+  <div class="container-cp">
+    <SectionHeader
+      eyebrow="The Floor"
+      title="Ten tables. One unhurried room."
+      accent="unhurried"
+      intro="Every table is tournament-grade, levelled monthly, and re-clothed every ninety days. The lighting is calibrated for play, not for photographs."
+    />
+
+    <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-stagger">
+      {
+        facilities.map((f, i) => (
+          <article
+            class="card-walnut p-7 flex flex-col h-full group"
+            style={`--i: ${i}`}
+          >
+            <div class="mb-6 text-gold opacity-80 group-hover:opacity-100 transition-opacity duration-500">
+              {f.icon === 'snooker' && (
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                  <rect x="3" y="14" width="34" height="14" rx="1.5" />
+                  <circle cx="11" cy="21" r="1.5" fill="currentColor" />
+                  <circle cx="20" cy="21" r="1.5" fill="currentColor" />
+                  <circle cx="29" cy="21" r="1.5" fill="currentColor" />
+                  <path d="M3 28v3M37 28v3M3 14v-3M37 14v-3" stroke-linecap="round" />
+                </svg>
+              )}
+              {f.icon === 'pool' && (
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                  <circle cx="20" cy="20" r="14" />
+                  <circle cx="20" cy="20" r="6" fill="currentColor" fill-opacity="0.2" />
+                  <text x="20" y="24" text-anchor="middle" font-size="9" font-family="serif" fill="currentColor" stroke="none">8</text>
+                </svg>
+              )}
+              {f.icon === 'bar' && (
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                  <path d="M10 6h20l-7 12v12h2v2H15v-2h2V18L10 6z" stroke-linejoin="round" />
+                </svg>
+              )}
+              {f.icon === 'private' && (
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                  <rect x="6" y="6" width="28" height="28" rx="1.5" />
+                  <path d="M14 14h12v12H14z" />
+                  <circle cx="28" cy="20" r="1" fill="currentColor" />
+                </svg>
+              )}
+            </div>
+            <h3 class="font-display text-2xl text-cream mb-1.5 leading-tight">{f.title}</h3>
+            <p class="text-xs uppercase tracking-widest text-brass mb-4">{f.spec}</p>
+            <p class="text-sm text-cream-muted leading-relaxed">{f.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

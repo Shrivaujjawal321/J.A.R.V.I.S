@@ -40,7 +40,7 @@ systemctl --user restart jarvis-bridge
 
 ## Pre-flight checklist (BEFORE first morning run)
 
-- [ ] Chrome is open with `--remote-debugging-port=9222 --user-data-dir=/tmp/chrome-jarvis`
+- [ ] Chrome is open with `--remote-debugging-port=9222 --user-data-dir=~/.cache/jarvis-chrome`
 - [ ] Boss is logged into LinkedIn in that Chrome window
 - [ ] `data/linkedin/icp.json` has been reviewed by Boss (geo + companies look right)
 - [ ] `.env` has TELEGRAM_BOT_TOKEN and ALLOWED_USER_IDS

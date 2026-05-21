@@ -1,0 +1,174 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+// design-note: Two-mode form.
+//   1. Default action = mailto: (works on Boss's first launch, no backend setup).
+//   2. Boss can swap to Formspree by replacing the action= URL — instructions in README.
+const FORM_ACTION = 'mailto:bookings@thecornerpocket.club';
+---
+
+<section id="booking" class="relative py-32 md:py-40">
+  <div class="container-cp grid lg:grid-cols-12 gap-12 lg:gap-20">
+    <div class="lg:col-span-5">
+      <SectionHeader
+        eyebrow="The Reservation"
+        title="Reserve a table, or a quiet corner."
+        accent="quiet corner"
+        intro="Bookings are confirmed by phone or email within an hour. For same-evening reservations, please call us directly."
+      />
+
+      <div class="mt-10 space-y-5 text-sm text-cream-muted">
+        <div class="flex items-start gap-4">
+          <div class="text-gold mt-0.5 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M3 5a2 2 0 0 1 2-2h2.5l1.5 4-2 1.5A11 11 0 0 0 12 13l1.5-2L17.5 12.5V15a2 2 0 0 1-2 2C8 17 3 12 3 5z" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-cream-dim mb-1">Direct line</div>
+            <a href="tel:+919800000000" class="text-cream hover:text-gold transition-colors">
+              +91 98000 00000
+            </a>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="text-gold mt-0.5 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <rect x="2" y="4" width="16" height="12" rx="1.5" />
+              <path d="M2 6l8 6 8-6" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-cream-dim mb-1">Bookings</div>
+            <a href="mailto:bookings@thecornerpocket.club" class="text-cream hover:text-gold transition-colors">
+              bookings@thecornerpocket.club
+            </a>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="text-gold mt-0.5 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <rect x="3" y="4" width="14" height="14" rx="1.5" />
+              <path d="M3 8h14M7 2v4M13 2v4" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-cream-dim mb-1">Hours</div>
+            <div class="text-cream leading-relaxed">
+              Mon – Thu &nbsp; 4 PM – 1 AM<br />
+              Fri – Sat &nbsp; 4 PM – 3 AM<br />
+              Sun &nbsp; 4 PM – 1 AM
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 reveal">
+      <form
+        action={FORM_ACTION}
+        method="POST"
+        enctype="text/plain"
+        class="bg-walnut/30 border border-walnut-light/40 rounded-sm p-7 sm:p-10 space-y-6"
+      >
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label for="name" class="field-label">Your name</label>
+            <input
+              type="text"
+              id="name"
+              name="Name"
+              required
+              autocomplete="name"
+              class="field"
+              placeholder="e.g. Anjali Iyer"
+            />
+          </div>
+          <div>
+            <label for="phone" class="field-label">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              name="Phone"
+              required
+              autocomplete="tel"
+              inputmode="tel"
+              pattern="[0-9+\s\-()]{7,}"
+              class="field"
+              placeholder="+91 ..."
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="email" class="field-label">Email (optional)</label>
+          <input
+            type="email"
+            id="email"
+            name="Email"
+            autocomplete="email"
+            class="field"
+            placeholder="you@example.com"
+          />
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label for="date" class="field-label">Date</label>
+            <input type="date" id="date" name="Date" required class="field" />
+          </div>
+          <div>
+            <label for="time" class="field-label">Time</label>
+            <input type="time" id="time" name="Time" required class="field" />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div>
+            <label for="table" class="field-label">Table preference</label>
+            <select id="table" name="Table preference" class="field">
+              <option value="No preference">No preference</option>
+              <option value="Snooker">Snooker</option>
+              <option value="Pool">Pool</option>
+              <option value="Private room">Private room</option>
+            </select>
+          </div>
+          <div>
+            <label for="players" class="field-label">Players</label>
+            <select id="players" name="Players" class="field">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5+">5 or more</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="notes" class="field-label">Notes (optional)</label>
+          <textarea
+            id="notes"
+            name="Notes"
+            rows="3"
+            class="field resize-none"
+            placeholder="Coaching session, occasion, bar preference, anything we should know."
+          ></textarea>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
+          <button type="submit" class="btn-gold w-full sm:w-auto">
+            Request Reservation
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M1 7h12M8 2l5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <p class="text-xs text-cream-dim leading-relaxed">
+            We confirm by phone or email within the hour. No payment is taken at booking.
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

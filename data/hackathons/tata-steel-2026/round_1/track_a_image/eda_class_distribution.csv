@@ -1,0 +1,26 @@
+class_prefix,class_description,train_count,val_count,defect_area_mean_pct
+in,Inclusion,557,238,4.5962
+ws,Water spot,490,210,33.4705
+ss,Silk spot,405,173,4.8272
+wl,Welding line,350,150,2.9735
+os,Oil spot,349,149,16.8749
+bs,Bright scratch,301,128,5.19
+pu,Punching,280,119,3.5882
+ris,Red iron sheet,278,119,21.049
+ds,Dark scratches,234,100,3.0262
+rs,Rolled in scale,210,90,3.8136
+cracking,Crazing,210,90,10.1102
+pa,Patches,210,90,21.955
+ps,Pitted surface,210,90,18.4074
+cg,Crescent gap,172,73,19.1987
+si,Slag inclusion,167,71,16.5486
+Ots,Oxide scale of temperature system,143,60,5.4474
+frp,Finishing roll printing,143,60,3.9799
+Isc,Iron scale compression,140,60,4.0213
+wf,Waist folding,139,59,9.3135
+Srs,Secondary rust skin,139,59,2.5686
+wr,White rust,108,45,3.1574
+Isa,Iron sheet ash,86,36,3.1983
+crease,Crease,53,22,3.9126
+Ops,Oxide scale of plate system,45,18,9.9716
+rp,Rolled pit,35,15,10.0634
