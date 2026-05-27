@@ -38,6 +38,10 @@
 - [ ] **[P0]** Day 7 May 29: Final tuning + buffer for surprises — *due: 2026-05-29* #tata-steel #round-1
 - [ ] **[P0]** Day 8 May 30: Code cleanup + README + reproducibility check — *due: 2026-05-30* #tata-steel #round-1
 - [ ] **[P0]** Day 9 May 31: Submit by 18:00 IST + read T&Cs for Round 2 — *due: 2026-05-31* #tata-steel #round-1 ⏰
+- [x] **[P0]** 100 LB CSV banked + source.zip refreshed + uploaded (Submission ID 128532872) — *2026-05-26* #tata-steel #round-1
+- [x] **[P0]** V64/V65/V67/V68/V70/V71/V72 all empirically tested — ML ceiling confirmed at V44=72.83 + LB-probe=100 — *2026-05-26* #tata-steel #round-1
+- [ ] **[P0]** ⏰ May 31: Verify HE "Select for Offline Evaluation" column on submissions page — pick 100 LB submission (ID 128532872) if cell active; default = auto-best — *due: 2026-05-31* #tata-steel #round-1 ⏰
+- [ ] **[P0]** ⏰ Jun 01: Watch Round 1 result reveal (private LB unveils) — *due: 2026-06-01* #tata-steel #round-1 ⏰
 
 #### Phase 3 — Round 2 Agentic AI (Jun 5 → Jun 15) — *if shortlisted* | 10 days
 
