@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Salary Calculator — Jarvis</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#141b2e; --card2:#1b2540; --line:#28324f;
+    --txt:#e8edf7; --mut:#93a0c0; --acc:#5b8cff; --acc2:#7c5cff;
+    --good:#34d399; --warn:#fbbf24; --bad:#f87171;
+    --shadow:0 12px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#1c2647 0,transparent 60%),
+               radial-gradient(900px 500px at -10% 110%,#241b45 0,transparent 55%),
+               var(--bg);
+    color:var(--txt); min-height:100vh; padding:24px 14px 60px;
+  }
+  .wrap{max-width:1040px;margin:0 auto}
+  header{text-align:center;margin-bottom:26px}
+  header h1{font-size:1.9rem;font-weight:800;letter-spacing:-.5px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--mut);font-size:.92rem;margin-top:6px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));
+    border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+  .card h2{font-size:1.05rem;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .card h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--acc)}
+
+  label{display:block;font-size:.8rem;color:var(--mut);margin:12px 0 6px;font-weight:600}
+  input{width:100%;background:#0d1426;border:1px solid var(--line);color:var(--txt);
+    padding:12px 14px;border-radius:11px;font-size:1rem;outline:none;transition:.15s}
+  input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(91,140,255,.18)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .btn{margin-top:18px;width:100%;border:none;cursor:pointer;
+    background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;
+    padding:13px;border-radius:12px;font-size:1rem;font-weight:700;transition:.15s}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--mut);font-weight:600}
+
+  /* live breakdown */
+  .break{margin-top:4px}
+  .line{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+  .line:last-child{border-bottom:none}
+  .line .k{color:var(--mut)}
+  .line .v{font-variant-numeric:tabular-nums;font-weight:600}
+  .total{margin-top:14px;background:#0d1426;border:1px solid var(--line);border-radius:14px;
+    padding:16px;text-align:center}
+  .total .lbl{font-size:.78rem;color:var(--mut);letter-spacing:1px;text-transform:uppercase}
+  .total .amt{font-size:2.1rem;font-weight:800;margin-top:4px;
+    background:linear-gradient(90deg,var(--good),#5b8cff);-webkit-background-clip:text;
+    background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+
+  /* table */
+  .tbl-card{margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{padding:11px 10px;text-align:right;border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--mut);font-size:.74rem;text-transform:uppercase;letter-spacing:.5px}
+  tbody tr:hover{background:rgba(91,140,255,.06)}
+  tfoot td{font-weight:800;border-top:2px solid var(--acc);border-bottom:none;font-size:1rem;padding-top:14px}
+  .del{cursor:pointer;color:var(--bad);background:none;border:none;font-size:1.1rem;padding:0 6px}
+  .empty{text-align:center;color:var(--mut);padding:26px;font-size:.9rem}
+
+  .toolbar{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .toolbar .btn{margin-top:0;width:auto;flex:1;min-width:130px;font-size:.88rem;padding:11px}
+
+  .formula{margin-top:14px;font-size:.78rem;color:var(--mut);line-height:1.7;
+    background:#0d1426;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .formula code{color:var(--acc);font-weight:600}
+  @media print{
+    body{background:#fff;color:#000;padding:0}
+    .card,.formula{box-shadow:none;border:1px solid #ccc;background:#fff;color:#000}
+    .no-print{display:none!important}
+    header h1{color:#111;-webkit-text-fill-color:#111}
+    .amt{color:#111;-webkit-text-fill-color:#111}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💰 Salary Calculator</h1>
+    <p>Din + Overtime daalo → Total salary turant. Overtime rate = normal hourly rate (koi extra premium nahi).</p>
+  </header>
+
+  <div class="grid">
+    <!-- INPUT -->
+    <div class="card no-print">
+      <h2><span class="dot"></span> Employee Details</h2>
+      <label>Naam (optional)</label>
+      <input id="name" type="text" placeholder="e.g. Akaash" />
+
+      <div class="row">
+        <div>
+          <label>Monthly Salary (₹)</label>
+          <input id="salary" type="number" placeholder="14500" min="0" />
+        </div>
+        <div>
+          <label>Din Present</label>
+          <input id="days" type="number" placeholder="30" min="1" max="31" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Daily Duty (ghante)</label>
+          <input id="duty" type="number" placeholder="8" min="1" max="24" value="8" />
+        </div>
+        <div>
+          <label>Overtime (ghante)</label>
+          <input id="ot" type="number" placeholder="62" min="0" />
+        </div>
+      </div>
+
+      <button class="btn" id="addBtn">➕ Add to List</button>
+    </div>
+
+    <!-- LIVE RESULT -->
+    <div class="card">
+      <h2><span class="dot"></span> Live Calculation</h2>
+      <div class="break" id="break">
+        <div class="line"><span class="k">Per day wage</span><span class="v" id="perday">—</span></div>
+        <div class="line"><span class="k">Hourly rate</span><span class="v" id="hourly">—</span></div>
+        <div class="line"><span class="k">Base salary</span><span class="v" id="base">—</span></div>
+        <div class="line"><span class="k">Overtime pay</span><span class="v" id="otpay">—</span></div>
+      </div>
+      <div class="total">
+        <div class="lbl">Total Salary</div>
+        <div class="amt" id="total">₹0</div>
+      </div>
+      <div class="formula">
+        <b>Formula:</b><br/>
+        Per-day = <code>Salary ÷ Din</code><br/>
+        Hourly = <code>Per-day ÷ Duty hours</code><br/>
+        OT pay = <code>OT hours × Hourly</code><br/>
+        <b>Total = <code>Salary + OT pay</code></b>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card tbl-card">
+    <h2><span class="dot"></span> Salary Sheet</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Naam</th><th>Salary</th><th>Din</th><th>Duty</th>
+          <th>OT hr</th><th>Hourly</th><th>OT Pay</th><th>Total</th><th class="no-print"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="9" class="empty">Abhi koi employee add nahi kiya. Upar form bharo aur "Add to List" dabao.</td></tr>
+      </tbody>
+      <tfoot id="tfoot" style="display:none">
+        <tr>
+          <td>GRAND TOTAL</td><td id="gSalary"></td><td></td><td></td><td></td><td></td>
+          <td id="gOt"></td><td id="gTotal"></td><td class="no-print"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="toolbar no-print">
+      <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+      <button class="btn ghost" id="csvBtn">⬇️ Export CSV</button>
+      <button class="btn ghost" id="clearBtn">🗑️ Clear All</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => '₹' + (Math.round(n*100)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0 = n => '₹' + Math.round(n).toLocaleString('en-IN');
+
+function calc(salary, days, duty, ot){
+  salary=+salary||0; days=+days||0; duty=+duty||0; ot=+ot||0;
+  if(salary<=0||days<=0||duty<=0) return null;
+  const perday = salary/days;
+  const hourly = perday/duty;
+  const otpay  = ot*hourly;
+  const total  = salary+otpay;
+  return {perday,hourly,otpay,total,salary,days,duty,ot};
+}
+
+function liveUpdate(){
+  const r = calc($('salary').value,$('days').value,$('duty').value,$('ot').value);
+  if(!r){
+    $('perday').textContent=$('hourly').textContent=$('base').textContent=$('otpay').textContent='—';
+    $('total').textContent='₹0'; return;
+  }
+  $('perday').textContent=fmt(r.perday);
+  $('hourly').textContent=fmt(r.hourly)+' /hr';
+  $('base').textContent=fmt(r.salary);
+  $('otpay').textContent=fmt(r.otpay);
+  $('total').textContent=fmt0(r.total);
+}
+['salary','days','duty','ot'].forEach(id=>$(id).addEventListener('input',liveUpdate));
+
+// storage
+let list = JSON.parse(localStorage.getItem('salaryList')||'[]');
+
+function save(){ localStorage.setItem('salaryList',JSON.stringify(list)); }
+
+function render(){
+  const tb=$('tbody'), tf=$('tfoot');
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="9" class="empty">Abhi koi employee add nahi kiya. Upar form bharo aur "Add to List" dabao.</td></tr>';
+    tf.style.display='none'; return;
+  }
+  let gS=0,gO=0,gT=0;
+  tb.innerHTML = list.map((e,i)=>{
+    const r=calc(e.salary,e.days,e.duty,e.ot);
+    gS+=r.salary; gO+=r.otpay; gT+=r.total;
+    return `<tr>
+      <td>${e.name||'—'}</td>
+      <td>${fmt0(r.salary)}</td>
+      <td>${r.days}</td>
+      <td>${r.duty}h</td>
+      <td>${r.ot}</td>
+      <td>${fmt(r.hourly)}</td>
+      <td>${fmt0(r.otpay)}</td>
+      <td><b>${fmt0(r.total)}</b></td>
+      <td class="no-print"><button class="del" onclick="remove(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+  $('gSalary').textContent=fmt0(gS);
+  $('gOt').textContent=fmt0(gO);
+  $('gTotal').textContent=fmt0(gT);
+  tf.style.display='';
+}
+
+function remove(i){ list.splice(i,1); save(); render(); }
+
+$('addBtn').addEventListener('click',()=>{
+  const r=calc($('salary').value,$('days').value,$('duty').value,$('ot').value);
+  if(!r){ alert('Salary, Din aur Duty hours sahi se bharo.'); return; }
+  list.push({
+    name:$('name').value.trim(),
+    salary:+$('salary').value, days:+$('days').value,
+    duty:+$('duty').value, ot:+$('ot').value||0
+  });
+  save(); render();
+  // reset for next entry (keep duty hours)
+  $('name').value=''; $('salary').value=''; $('days').value=''; $('ot').value='';
+  liveUpdate(); $('name').focus();
+});
+
+$('clearBtn').addEventListener('click',()=>{
+  if(confirm('Poori list clear kar dein?')){ list=[]; save(); render(); }
+});
+
+$('csvBtn').addEventListener('click',()=>{
+  if(!list.length){ alert('List khaali hai.'); return; }
+  let rows=[['Naam','Salary','Din','Duty(hr)','OT(hr)','Hourly','OT Pay','Total']];
+  list.forEach(e=>{
+    const r=calc(e.salary,e.days,e.duty,e.ot);
+    rows.push([e.name||'',r.salary,r.days,r.duty,r.ot,
+      (Math.round(r.hourly*100)/100),(Math.round(r.otpay*100)/100),(Math.round(r.total*100)/100)]);
+  });
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='salary-sheet.csv'; a.click();
+});
+
+render(); liveUpdate();
+</script>
+</body>
+</html>
