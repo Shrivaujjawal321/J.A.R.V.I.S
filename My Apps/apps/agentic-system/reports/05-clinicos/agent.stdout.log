@@ -1,0 +1,9 @@
+Report written to `/home/ujjwal/Documents/10 saas app/apps/agentic-system/reports/05-clinicos/test.json`.
+
+**Summary**
+- **Status: yellow** — build and dev server both succeeded; HTTP-level route checks all passed, but in-browser console-error verification was not possible.
+- Build: passed on first try (Next.js 16.1.6 + Turbopack, 70s compile, 31 routes).
+- Dev server: started on port 3005, Ready in 92s, `GET /` → 200.
+- Routes tested via curl: `/` and `/login` return 200; `/dashboard`, `/appointments`, `/patients`, `/doctors`, `/prescriptions`, `/queue` all 307-redirect to `/login?callbackUrl=...` as expected by NextAuth middleware.
+- chrome-devtools MCP was unusable — its profile was locked by another running instance — so I fell back to HTTP curl checks. No code fixes were needed.
+- Dev server killed; port 3005 free.

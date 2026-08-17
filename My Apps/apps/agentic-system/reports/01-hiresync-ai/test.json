@@ -1,0 +1,59 @@
+{
+  "app": "01-hiresync-ai",
+  "status": "green",
+  "phase": "done",
+  "build_retries": 0,
+  "fixes_applied": [],
+  "pages_tested": [
+    {
+      "route": "/",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2F (NextAuth middleware). Login form rendered cleanly."
+    },
+    {
+      "route": "/login",
+      "console_errors": [],
+      "note": "Login page rendered. Clicked primary 'Sign In' button with empty form — no console errors, no navigation. Demo credentials block visible."
+    },
+    {
+      "route": "/dashboard",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Fdashboard (auth middleware) — no errors."
+    },
+    {
+      "route": "/jobs",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Fjobs — no errors."
+    },
+    {
+      "route": "/candidates",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Fcandidates — no errors."
+    },
+    {
+      "route": "/analytics",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Fanalytics — no errors."
+    },
+    {
+      "route": "/interviews",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Finterviews — no errors."
+    },
+    {
+      "route": "/settings",
+      "console_errors": [],
+      "note": "307 redirect to /login?callbackUrl=%2Fsettings — no errors."
+    }
+  ],
+  "errors": [],
+  "notes": [
+    "Next.js 16.1.6 with Turbopack; production build compiled successfully in 11.2s, 20 static pages generated.",
+    "Dev server ready in ~2s on port 3001 (HTTP 307 redirect to /login on root).",
+    "All non-/login routes are gated by NextAuth middleware and redirect to /login — verified clean redirects with no console errors on each.",
+    "Build warning (non-blocking): the 'middleware' file convention is deprecated in Next.js 16; should be renamed to 'proxy'.",
+    "Auth flow not exercised beyond clicking the primary 'Sign In' button once on /login per tester spec."
+  ],
+  "duration_seconds": 126,
+  "timestamp": "2026-04-28T11:16:44Z"
+}

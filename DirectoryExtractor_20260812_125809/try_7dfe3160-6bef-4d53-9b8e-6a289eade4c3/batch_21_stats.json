@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 20,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 106,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 12,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 37,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 51,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Michigan",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

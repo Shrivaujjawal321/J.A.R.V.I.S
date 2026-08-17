@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 25,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 25,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 16,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New York",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

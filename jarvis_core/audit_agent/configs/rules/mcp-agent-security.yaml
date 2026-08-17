@@ -1,0 +1,242 @@
+# MCP / LLM-Agent Security — the 2026 wedge
+#
+# Maps to OWASP Top 10 for Agentic Applications (2026), OWASP MCP Top 10, and the
+# CVE-2026-27825 ("MCPwnfluence") class. These detectors are NOVEL and high-signal:
+# the generic p/default pack has no coverage for MCP tool / LLM-agent sinks.
+#
+# Threat model (defensive):
+#   - A tool/skill takes attacker-influenceable input (tool args, fetched docs,
+#     ticket bodies, LLM output) and feeds it to a dangerous sink (shell, eval,
+#     SQL, file-write) WITHOUT confinement.
+#   - LLM completions flow into code/SQL/file sinks (indirect prompt injection →
+#     action). LLM output is UNTRUSTED data, never code.
+#   - MCP HTTP transport bound to 0.0.0.0 with no auth (the 27825 enabler).
+#
+# DEFENSIVE: these rules describe the dangerous wiring so the auditor adds
+# allow-lists, output quarantine, path/SSRF validation, and transport auth.
+rules:
+  # ── MCP tool argument → shell/eval (tool poisoning / excessive agency) ─────
+  - id: jarvis-mcp-tool-arg-to-shell
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      MCP/agent tool passes its (attacker-influenceable) argument into a shell or
+      eval sink. A crafted tool call or poisoned tool input becomes RCE (OWASP
+      Agentic LLM08 Excessive Agency / tool poisoning). Validate+allowlist tool
+      args; never pass them to shell=True / eval / exec.
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A05:2025-Injection"
+      owasp-agentic: "ASI08-Excessive-Agency"
+      category: security
+      confidence: HIGH
+      references:
+        - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+        - https://owasp.org/www-project-mcp-top-10/
+        - https://cwe.mitre.org/data/definitions/78.html
+    options:
+      # Treat any function decorated as an MCP/agent tool as a taint entry point:
+      # its parameters are externally influenceable.
+      symbolic_propagation: true
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              @$MCP.tool(...)
+              def $TOOL(..., $ARG, ...):
+                ...
+          - focus-metavariable: $ARG
+      - patterns:
+          - pattern-inside: |
+              @tool
+              def $TOOL(..., $ARG, ...):
+                ...
+          - focus-metavariable: $ARG
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: os.system(...)
+              - pattern: os.popen(...)
+              - pattern: subprocess.$M(..., shell=True, ...)
+              - pattern: eval(...)
+              - pattern: exec(...)
+
+  # ── LLM completion → dangerous sink (indirect prompt injection → action) ──
+  - id: jarvis-agent-llm-output-to-sink
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      LLM model output flows into a code/command/SQL/file sink. Model output is
+      UNTRUSTED data — indirect prompt injection (a poisoned doc/ticket) can drive
+      it into RCE/SQLi/arbitrary-write (OWASP LLM02 Insecure Output Handling).
+      Treat completions as data: validate, allowlist, never exec/eval/raw-SQL them.
+    metadata:
+      cwe: "CWE-94"
+      owasp: "A05:2025-Injection"
+      owasp-agentic: "ASI05-Cascading-Hallucination / LLM02-Insecure-Output-Handling"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+        - https://cwe.mitre.org/data/definitions/94.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: $RESP.choices[0].message.content
+              - pattern: $RESP.content[0].text
+              - pattern: openai.ChatCompletion.create(...).choices[...].message.content
+              - pattern: $CLIENT.messages.create(...).content[...].text
+              - pattern: $CHAIN.run(...)
+              - pattern: $CHAIN.invoke(...)
+              - pattern: $LLM.predict(...)
+              - pattern: completion(...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: json.loads(...)
+              - pattern: ast.literal_eval(...)
+              - pattern: int(...)
+              - pattern: $V in $ALLOWLIST
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: eval(...)
+              - pattern: exec(...)
+              - pattern: os.system(...)
+              - pattern: subprocess.$M(..., shell=True, ...)
+              - pattern: $CUR.execute($Q, ...)
+              - pattern: open($P, "w", ...)
+              - pattern: open($P, "w")
+
+  # ── LLM output → sink (Node/TS) ───────────────────────────────────────────
+  - id: jarvis-agent-llm-output-to-sink-node
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      LLM completion flows into eval / child_process / db query / fs write. Model
+      output is untrusted; indirect prompt injection can weaponize it (OWASP LLM02).
+      Parse+validate completions as data; never execute them.
+    metadata:
+      cwe: "CWE-94"
+      owasp: "A05:2025-Injection"
+      owasp-agentic: "LLM02-Insecure-Output-Handling"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+        - https://cwe.mitre.org/data/definitions/94.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: $RESP.choices[0].message.content
+              - pattern: $RESP.content[0].text
+              - pattern: $COMPLETION.text
+              - pattern: await $LLM.invoke(...)
+              - pattern: await $CHAIN.call(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: eval(...)
+              - pattern: child_process.exec(...)
+              - pattern: child_process.execSync(...)
+              - pattern: $DB.query(...)
+              - pattern: fs.writeFile(...)
+              - pattern: fs.writeFileSync(...)
+
+  # ── MCP HTTP transport bound to all interfaces with no auth (27825 enabler)
+  - id: jarvis-mcp-transport-bind-all-interfaces
+    languages: [python]
+    severity: WARNING
+    message: >
+      MCP/agent server appears to bind to 0.0.0.0 (all interfaces). Remote MCP
+      transport must require auth (OAuth/mTLS/token) — an unauthenticated, network-
+      adjacent actor can invoke every tool (the CVE-2026-27825 enabler). Bind to
+      127.0.0.1 for local use, or require auth on the transport.
+    metadata:
+      cwe: "CWE-306"
+      owasp: "A02:2025-Misconfig"
+      owasp-agentic: "MCP-Insecure-Transport"
+      category: security
+      confidence: LOW
+      references:
+        - https://owasp.org/www-project-mcp-top-10/
+        - https://arcticwolf.com/resources/blog-uk/cve-2026-27825-critical-unauthenticated-rce-and-ssrf-in-mcp-atlassian/
+        - https://cwe.mitre.org/data/definitions/306.html
+    patterns:
+      - pattern-either:
+          - pattern: $APP.run(host="0.0.0.0", ...)
+          - pattern: $MCP.run(host="0.0.0.0", ...)
+          - pattern: uvicorn.run(..., host="0.0.0.0", ...)
+
+  # ── MCP tool with unconfined file write (the MCPwnfluence path-write class) ─
+  - id: jarvis-mcp-tool-file-write-unconfined
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      MCP/agent tool writes to a filesystem path built from its argument without
+      path confinement. This is the CVE-2026-27825 class: a traversal payload
+      overwrites ~/.ssh/authorized_keys or /etc/cron.d → RCE. Confine with
+      validate_safe_path (realpath + startswith(BASE)); reject '..' and absolute.
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2025-BAC"
+      owasp-agentic: "MCP-Path-Confinement"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://securingagents.com/articles/mcp-attack-surface-cve-2026-27825/
+        - https://cwe.mitre.org/data/definitions/22.html
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              @$MCP.tool(...)
+              def $TOOL(..., $ARG, ...):
+                ...
+          - focus-metavariable: $ARG
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: validate_safe_path(...)
+              - pattern: secure_filename(...)
+              - pattern: os.path.realpath(...)
+              - pattern: $P.startswith($BASE)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: open($P, "w", ...)
+              - pattern: open($P, "w")
+              - pattern: open($P, "wb", ...)
+              - pattern: $F.write_bytes(...)
+              - pattern: $F.write_text(...)
+              - pattern: shutil.copyfile(..., $P)
+
+  # ── Instruction-bearing MCP tool description (tool-poisoning surface) ──────
+  - id: jarvis-mcp-tool-description-instruction-bearing
+    languages: [python]
+    severity: INFO
+    message: >
+      MCP tool docstring/description contains imperative agent-directed instructions
+      (e.g. 'ignore previous', 'you must', 'always call'). Tool descriptions are
+      injected into the agent's context — instruction-bearing text is a tool-
+      poisoning / prompt-injection surface. Keep descriptions purely declarative.
+    metadata:
+      cwe: "CWE-77"
+      owasp-agentic: "MCP-Tool-Poisoning"
+      category: security
+      confidence: LOW
+      references:
+        - https://owasp.org/www-project-mcp-top-10/
+        - https://www.truefoundry.com/blog/blog-mcp-tool-poisoning-gateway-defense
+    patterns:
+      - pattern-inside: |
+          @$MCP.tool(...)
+          def $TOOL(...):
+            "..."
+            ...
+      - metavariable-regex:
+          metavariable: $TOOL
+          regex: (.*)
+      - pattern-regex: (?i)(ignore (all |the )?previous|you must always|always call|disregard (the )?above|system:\s|<important>)

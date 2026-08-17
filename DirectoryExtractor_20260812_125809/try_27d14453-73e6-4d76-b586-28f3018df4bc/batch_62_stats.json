@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 5,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Indiana",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

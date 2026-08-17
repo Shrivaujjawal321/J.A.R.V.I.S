@@ -1,0 +1,127 @@
+# AltBrief — Synthesis Layer Golden Set
+# 6 tickers with expected outputs for offline regression testing.
+# Run: pytest tests/ -v
+# These cases use mock SourceResult dicts from data/evals/mocks/*.json.
+#
+# Pass thresholds:
+#   overall_direction: exact match
+#   n_signals: >= value
+#   n_contradictions: >= value
+#   confidence_range: [min, max] inclusive
+#   data_quality_flag: exact match
+#   has_bull_thesis: True (non-empty list)
+#   has_bear_case: True (non-empty list)
+#   has_brief_narrative: True (non-empty string, length >= 100)
+
+evals:
+
+  - ticker: NVDA
+    mock_file: data/evals/mocks/nvda_sources.json
+    description: >
+      NVDA with strong SEC (insider buy) + Yahoo beat + Reddit bearish sentiment.
+      Classic insider_vs_crowd contradiction expected. Partial data quality (5 sources missing).
+    expected:
+      overall_direction: bullish
+      n_signals: 3
+      n_contradictions: 1
+      confidence_range: [0.50, 0.80]
+      data_quality_flag: minimal
+      has_bull_thesis: true
+      has_bear_case: true
+      has_brief_narrative: true
+      contradiction_types_present:
+        - insider_vs_crowd
+      gold_signal_sources:
+        - sec  # CEO insider buy — Cohen-Malloy-Pomorski signal
+
+  - ticker: XOM
+    mock_file: data/evals/mocks/xom_sources.json
+    description: >
+      XOM with satellite thermal data (Baytown down 31%) contradicting SEC guidance.
+      Classic operational_vs_guided contradiction. 5 sources available.
+    expected:
+      overall_direction: neutral
+      n_signals: 5
+      n_contradictions: 1
+      confidence_range: [0.40, 0.70]
+      data_quality_flag: partial
+      has_bull_thesis: true
+      has_bear_case: true
+      has_brief_narrative: true
+      contradiction_types_present:
+        - operational_vs_guided
+      gold_signal_sources:
+        - satellite  # NASA FIRMS thermal anomaly — Berkeley Haas signal
+
+  - ticker: WMT
+    mock_file: data/evals/mocks/wmt_sources.json
+    description: >
+      WMT with Glassdoor rating declining + LinkedIn hiring surge.
+      employee_vs_growth contradiction expected (Green et al JFE 2019 signal).
+      6 sources available = full quality.
+    expected:
+      overall_direction: neutral
+      n_signals: 6
+      n_contradictions: 1
+      confidence_range: [0.35, 0.65]
+      data_quality_flag: partial
+      has_bull_thesis: true
+      has_bear_case: true
+      has_brief_narrative: true
+      contradiction_types_present:
+        - employee_vs_growth
+      gold_signal_sources:
+        - glassdoor  # Glassdoor rating Δ — Green et al JFE 2019 signal
+
+  - ticker: AAPL
+    mock_file: null  # no mock — test confidence formula with synthetic signals only
+    description: >
+      AAPL with all 8 sources available, all bullish, no contradictions.
+      Tests maximum agreement bonus + full coverage = high confidence.
+      Synthetic test for rollup_confidence formula.
+    synthetic_signals:
+      - {source: sec, direction: bullish, confidence: 0.82}
+      - {source: yahoo, direction: bullish, confidence: 0.79}
+      - {source: news, direction: bullish, confidence: 0.75}
+      - {source: glassdoor, direction: bullish, confidence: 0.71}
+      - {source: linkedin, direction: bullish, confidence: 0.68}
+      - {source: satellite, direction: bullish, confidence: 0.66}
+      - {source: gdelt, direction: neutral, confidence: 0.55}
+      - {source: reddit, direction: bullish, confidence: 0.42}
+    synthetic_contradictions: []
+    expected:
+      confidence_range: [0.70, 0.95]
+      data_quality_flag: full
+      rollup_only: true  # skip full LLM synthesis for this eval
+
+  - ticker: TSLA
+    mock_file: null  # synthetic contradiction test
+    description: >
+      TSLA with mixed bearish macro (news, gdelt) vs bullish fundamentals (yahoo)
+      and insider buying (sec). Tests sentiment_divergence detection.
+      3 sources only = minimal flag.
+    synthetic_signals:
+      - {source: sec, direction: bullish, confidence: 0.78}
+      - {source: yahoo, direction: bullish, confidence: 0.72}
+      - {source: reddit, direction: bearish, confidence: 0.65}
+    synthetic_contradictions:
+      - {severity: medium, signal_a_source: yahoo, signal_b_source: reddit}
+    expected:
+      confidence_range: [0.30, 0.65]
+      data_quality_flag: minimal
+      rollup_only: true
+
+  - ticker: JPM
+    mock_file: null  # synthetic minimal coverage test
+    description: >
+      JPM with only 2 sources returned — BrightData down.
+      Tests graceful degradation path: brief still produced, minimal flag,
+      confidence severely capped by coverage_cap formula.
+    synthetic_signals:
+      - {source: sec, direction: neutral, confidence: 0.70}
+      - {source: yahoo, direction: bullish, confidence: 0.65}
+    synthetic_contradictions: []
+    expected:
+      confidence_range: [0.00, 0.50]
+      data_quality_flag: minimal
+      rollup_only: true

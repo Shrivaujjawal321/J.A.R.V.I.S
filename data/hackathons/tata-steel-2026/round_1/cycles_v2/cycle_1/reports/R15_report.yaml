@@ -1,0 +1,423 @@
+agent_id: R15
+topic: threshold-and-decision-theory
+cycle: 1
+timestamp_utc: 2026-05-23T15:28:11Z
+status: ok
+
+# ============================================================
+# UPFRONT ANALYTICAL VERDICT (honest, before recommendations)
+# ============================================================
+# Drill questions resolved (negatively, no lift) BEFORE recs:
+#
+# 1. Analytical optimum vs V4's empirical sweep:
+#    Score(T) = (R(T) + P(T)) / 2 is a piecewise-CONSTANT step function
+#    of T with jumps at unique OOF probability values. V3+ implements
+#    "exact-unique-threshold sweep" -- it iterates every unique OOF proba
+#    as candidate T. Therefore V4's T=0.01428 IS the global argmax over
+#    the relevant discrete set. There is NO closed-form continuous T
+#    that improves on it; the function is constant between jumps.
+#    => Drill #1 yields 0 lift.
+#
+# 2. Randomized ROCCH rule for SUM objective:
+#    Mixing two deterministic rules A,B with weight alpha gives
+#      E[R] = alpha*R_A + (1-alpha)*R_B           (linear in alpha)
+#      E[P] = (alpha*TP_A + (1-alpha)*TP_B) /
+#             (alpha*(TP_A+FP_A) + (1-alpha)*(TP_B+FP_B))
+#            (ratio-of-linears in alpha -- hyperbolic, not linear)
+#    For maximizing E[R+P], the optimum over alpha is always at an
+#    endpoint (vertex of achievable set), never the interior, because
+#    the achievable set already contains every threshold-induced vertex.
+#    Randomization additionally injects variance into a one-shot LB
+#    submission. => 0 lift, NEGATIVE risk-adjusted.
+#
+# 3. Neyman-Pearson likelihood ratio:
+#    NP optimizes Recall at fixed FPR (or fixed Type-I error). Our
+#    metric is (R+P)/2 which is neither of those. NP doesn't apply
+#    as a primary lever; the LR threshold and the (R+P)/2-optimal
+#    threshold differ unless prior calibration is exact.
+#    => Not a recommendation source.
+#
+# 4. F-beta analysis:
+#    (R+P)/2 is the ARITHMETIC mean (sum), not harmonic (F1). Its level
+#    sets in (R,P)-space are 45-degree lines R+P=const. The sweep
+#    already finds the tangent point. No beta parameter to tune.
+#    => 0 lift.
+#
+# 5. Cost-curve framework (Drummond & Holte 2006):
+#    Useful when operating-cost is unknown or varies. Here the cost
+#    structure is fixed by the scoring formula. Cost curves give a
+#    robustness diagnostic, not a lift mechanism.
+#    => Diagnostic only, no rec.
+#
+# What DOES have genuine novel surface area:
+#   (a) Per-COHORT thresholds (per-grade X11, per-bin) WITH shrinkage
+#       -- V15 tried per-grade MODELS (overfit); per-grade THRESHOLDS
+#          on a SHARED model is a different and safer object.
+#   (b) Per-ROW uncertainty-modulated thresholds (needs R10 variance).
+#   (c) Per-FOLD threshold variance + robust aggregation
+#       (V4 pools OOF and takes single argmax -- discards fold spread).
+#   (d) Bootstrap-CONSERVATIVE threshold selection
+#       (V4 reports bootstrap CI but selects via greedy argmax, which
+#        is the noisiest estimator inside the CI).
+#
+# All four are POST-HOC pure-Python operations on V4's existing OOF
+# probability vector. No retraining. Effort < 2 hours each. Be honest:
+# expected lift is small. Total realistic OOF ceiling from all four
+# combined is roughly +0.5 to +1.5 OOF, with LB transfer uncertain.
+
+recommendations:
+
+  # ----------------------------------------------------------
+  - id: R15_rec_1
+    title: "Per-grade (X11) threshold w/ empirical-Bayes shrinkage"
+    technique_class: threshold
+    description: |
+      Compute a per-grade-code threshold T(g) by maximizing (R+P)/2 within
+      each X11 grade-cohort on OOF, then SHRINK each T(g) toward the global
+      V4 threshold using an empirical-Bayes shrinkage weight w(g) =
+      n_pos(g) / (n_pos(g) + k0), with k0 ~ 5-10 chosen by nested CV.
+      Grades with many positives keep their own threshold; small-n grades
+      collapse to the global. This addresses the SPECIFIC observation that
+      V5 logs show "X11 grade code with strong defect separation" and that
+      different grades likely have different score distributions, while
+      avoiding V15's failure mode (per-grade MODELS overfit on tiny grade
+      subsets). The shared underlying model is unchanged -- only the
+      decision rule becomes piecewise.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        V15 trained SEPARATE specialists per grade -> shared signal lost,
+        per-grade AUC 0.798. This rec keeps V4's stack intact and only
+        adjusts the post-hoc decision rule. Structurally distinct object.
+    expected_lift_oof:
+      point: 0.5
+      low: 0.0
+      high: 1.2
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies: [numpy, pandas, scipy>=1.10]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning + empirical-Bayes shrinkage standard (Efron & Morris 1975,
+        "Data Analysis Using Stein's Estimator"). Per-cohort thresholds
+        documented in clinical-decision literature (Pencina et al. 2008
+        Stat Med, "Evaluating the added predictive ability"). For
+        (R+P)/2 specifically, no published precedent -- reasoning-only on
+        structure. The +0.0 low bound reflects honest possibility that
+        the same global T is already near-optimal for every grade
+        (would happen if all grades share the same per-row score
+        distribution given Y).
+    failure_modes:
+      - >
+        Most grades have <5 OOF positives -- per-grade T(g) computed from
+        2-3 positives is pure noise. Shrinkage helps but k0 itself must
+        be tuned via nested CV to avoid double-dipping.
+      - >
+        If X11 distribution differs train vs test (some grade only in
+        test), no per-grade T is learnable for it; must fall back to
+        global T. Need a documented fallback rule.
+      - >
+        If the V4 stack's score is already calibrated similarly across
+        grades (because grade code is a feature), per-grade thresholds
+        will be near-identical and gain ~0.
+    code_sketch: |
+      # Inputs: oof_proba (n,), y (n,), grade = X11 column (n,), T_global = 0.01428
+      import math, numpy as np
+      grades = sorted(set(grade))
+      T_global = 0.01428
+      k0 = 7  # shrinkage prior strength; choose via nested CV
+      T_grade = {}
+      for g in grades:
+          m = (grade == g)
+          if y[m].sum() < 1:
+              T_grade[g] = T_global; continue
+          best, T_g = -1, T_global
+          for t in np.unique(oof_proba[m]):
+              pred = (oof_proba[m] >= t).astype(int)
+              tp = ((pred == 1) & (y[m] == 1)).sum()
+              fp = ((pred == 1) & (y[m] == 0)).sum()
+              fn = (y[m] == 1).sum() - tp
+              if tp + fp == 0: continue
+              r = tp / max(1, tp + fn); p = tp / (tp + fp)
+              s = (r + p) / 2
+              if s > best: best, T_g = s, t
+          n_pos = int(y[m].sum())
+          w = n_pos / (n_pos + k0)
+          # shrink in log-odds space to respect the [0,1] geometry
+          lo_g = math.log(max(1e-6, T_g) / max(1e-6, 1 - T_g))
+          lo_glob = math.log(T_global / (1 - T_global))
+          lo_shrunk = w * lo_g + (1 - w) * lo_glob
+          T_grade[g] = 1.0 / (1.0 + math.exp(-lo_shrunk))
+      # Verify on held-out (nested CV) before banking.
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  # ----------------------------------------------------------
+  - id: R15_rec_2
+    title: "Per-fold threshold + robust median aggregation"
+    technique_class: threshold
+    description: |
+      V4 pools the 5 OOF folds into one vector and runs ONE score-aware
+      sweep, yielding a single T=0.01428. This discards the per-fold
+      threshold variance signal. Recompute the (R+P)/2-optimal T_k inside
+      each of the 5 folds (using only that fold's validation rows),
+      examine the empirical distribution {T_1,...,T_5}, and choose the
+      MEDIAN (or a trimmed mean) as the production T. This is a
+      bias-variance trade: the median is more robust to one outlier fold
+      whose argmax was driven by a single-coil idiosyncrasy. Also report
+      the IQR of {T_k} as a stability diagnostic -- large IQR is a red flag
+      that the score sweep is overfitting OOF noise.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        Bootstrap CI (V4+) resamples ROWS from pooled OOF and is symmetric
+        around the pooled argmax. Per-fold-then-aggregate resamples the
+        STRUCTURED 5-fold split and is robust to a single contaminated fold.
+        These attack different overfit modes.
+    expected_lift_oof:
+      point: 0.2
+      low: -0.2
+      high: 0.6
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning-only. The intuition matches the well-known
+        bagging-of-decisions vs decision-on-bagged-scores duality
+        (Breiman 1996, "Bagging Predictors"); aggregating decisions
+        (thresholds) across folds is unusual but defensible. Risk:
+        OOF positives = 66 across 5 folds = ~13 positives per fold,
+        so per-fold T is itself noisy and the median may be no better
+        than the pooled argmax. The -0.2 low bound reflects this.
+    failure_modes:
+      - >
+        With ~13 positives/fold, per-fold T variance dominates. Median
+        could land at a worse global point.
+      - >
+        Folds are not iid (5-fold StratifiedKFold seed=42 is one
+        partition). Replacing this with repeated K-fold (3x5 or 5x5)
+        before aggregating would strengthen the estimator but adds cost.
+      - >
+        If the pooled sweep already lands at a value within the
+        per-fold IQR, no improvement -- but no harm either.
+    code_sketch: |
+      # Inputs: oof_proba (n,), y (n,), fold_id (n,)
+      import numpy as np
+      T_per_fold = []
+      for k in sorted(set(fold_id)):
+          m = (fold_id == k)
+          best, T_k = -1, 0.01428
+          for t in np.unique(oof_proba[m]):
+              pred = oof_proba[m] >= t
+              tp = (pred & (y[m] == 1)).sum()
+              fp = (pred & (y[m] == 0)).sum()
+              fn = (y[m] == 1).sum() - tp
+              if tp + fp == 0: continue
+              r, p = tp / max(1, tp + fn), tp / (tp + fp)
+              s = (r + p) / 2
+              if s > best: best, T_k = s, float(t)
+          T_per_fold.append(T_k)
+      T_median = float(np.median(T_per_fold))
+      iqr = float(np.quantile(T_per_fold, 0.75) - np.quantile(T_per_fold, 0.25))
+      print(f"per-fold T: {T_per_fold}, median={T_median:.5f}, iqr={iqr:.5f}")
+      # Use T_median if iqr < 0.5 * T_median (stable); else flag instability and fall back to pooled.
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  # ----------------------------------------------------------
+  - id: R15_rec_3
+    title: "Bootstrap-conservative threshold (quantile select)"
+    technique_class: threshold
+    description: |
+      V4 reports a bootstrap 95% CI on OOF score but still selects T via
+      greedy argmax on the point estimate. Greedy argmax is the most
+      optimistic estimator inside the bootstrap distribution and tends
+      to overfit OOF noise. Instead: for each of B=1000 bootstrap
+      resamples, compute T_b* = argmax (R+P)/2; then pick T_robust as the
+      25th-percentile (or trimmed-mean) of {T_b*}. The 25th percentile
+      sits on the higher-precision side of the threshold distribution,
+      trading a tiny recall hit for FP reduction -- well-suited to
+      (R+P)/2 since precision at V4 is only 8.62% (recall has saturated
+      at 100% with ~50% test-positive rate, so the entire score-room
+      lives in precision).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        V4+ standard reports bootstrap CI of the SCORE; this rec uses
+        the bootstrap of the THRESHOLD itself for selection. Distinct
+        object: V4 reports uncertainty, this rec converts uncertainty
+        into a more conservative point decision.
+    expected_lift_oof:
+      point: 0.3
+      low: -0.1
+      high: 0.8
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning + classical bootstrap-selection literature (Efron &
+        Tibshirani 1993). The quantile-of-bootstrap-argmax trick is
+        commonly used in pharmacology for dose selection (Berry et al.
+        2010, "Bayesian Adaptive Methods for Clinical Trials"). For
+        binary classification thresholds it is less common but
+        defensible. The low bound at -0.1 reflects that if V4's argmax
+        is already at the bootstrap median (which it should be if the
+        OOF is unbiased), this rec changes nothing or slightly hurts OOF
+        but potentially HELPS LB by reducing argmax overfit.
+    failure_modes:
+      - >
+        The 25th-percentile choice is asymmetric -- assumes the calibration
+        delta direction. V4 had +2.67 LB delta (LB > OOF), so test set
+        is "friendlier" -- a conservative T might leave gains on the
+        table here. Pick percentile via held-out simulation, not dogma.
+      - >
+        If the bootstrap argmax distribution is very concentrated (low
+        variance), any quantile equals the pooled argmax. No effect.
+      - >
+        Computational: B=1000 bootstrap resamples on full sweep =
+        ~5 minutes Python. Trivial.
+    code_sketch: |
+      # Inputs: oof_proba (n,), y (n,)
+      import numpy as np
+      from numpy.random import default_rng
+      rng = default_rng(42)
+      B = 1000
+      n = len(y)
+      T_boot = []
+      uniq = np.unique(oof_proba)
+      for b in range(B):
+          idx = rng.integers(0, n, n)
+          yb, pb = y[idx], oof_proba[idx]
+          best, T_b = -1, 0.01428
+          for t in uniq:
+              pred = pb >= t
+              tp = (pred & (yb == 1)).sum()
+              fp = (pred & (yb == 0)).sum()
+              fn = (yb == 1).sum() - tp
+              if tp + fp == 0: continue
+              r, p = tp / max(1, tp + fn), tp / (tp + fp)
+              s = (r + p) / 2
+              if s > best: best, T_b = s, float(t)
+          T_boot.append(T_b)
+      T_robust = float(np.quantile(T_boot, 0.25))
+      # Sanity: also score pooled argmax + median + 75th-pctile and pick best by nested CV.
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  # ----------------------------------------------------------
+  - id: R15_rec_4
+    title: "Per-row uncertainty-modulated threshold (R10 synergy)"
+    technique_class: threshold
+    description: |
+      Conditional / row-adaptive threshold: T_row = T_global - lambda * sigma_row
+      where sigma_row is per-row uncertainty (ensemble std, MC-dropout
+      variance, or jackknife conformal score). Low-uncertainty rows get
+      a slightly LOWER threshold (we trust their score, so even small
+      signal counts); high-uncertainty rows get a HIGHER threshold (we
+      doubt them, demand stronger evidence). lambda is tuned on OOF via
+      a 1-D search. This is the operational version of selective
+      classification / Mondrian conformal prediction adapted to
+      (R+P)/2. STRICTLY DEPENDS ON R10: if R10 does not deliver
+      per-row uncertainty for V4's OOF, this rec is null. Hence
+      cross-topic flag.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        No V1-V22 build produced or used per-row uncertainty for
+        thresholding. V12 multi-seed bagging produced per-seed scores
+        (variance available) but was not submitted and not used for
+        thresholding. Clean novel territory.
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.0
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies: [numpy, "R10 output (per-row variance vector)"]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Vovk, Gammerman, Shafer 2005 "Algorithmic Learning in a Random
+        World" (foundational conformal). Geifman & El-Yaniv 2017
+        "Selective Classification for Deep Neural Networks" NeurIPS.
+        Romano et al. 2020 "Classification with Valid and Adaptive
+        Coverage" NeurIPS (Mondrian conformal). Translating any of
+        these directly to (R+P)/2-optimization is reasoning-only --
+        they target coverage, not score. Low bound at 0 acknowledges
+        that without R10 delivering useful variance, this rec is dead.
+    failure_modes:
+      - >
+        No R10 output -> rec is unusable. Hard dependency.
+      - >
+        If sigma_row is nearly constant across rows (V4 stack already
+        well-calibrated), modulation has no effect.
+      - >
+        Wrong sign on lambda inverts the rule (catastrophic). lambda
+        sign should be tuned, not assumed.
+    code_sketch: |
+      # Inputs: oof_proba (n,), y (n,), sigma (n,) from R10, T_global = 0.01428
+      import numpy as np
+      def score(p, y, sigma, T0, lam):
+          T_row = np.clip(T0 - lam * sigma, 1e-5, 1 - 1e-5)
+          pred = (p >= T_row).astype(int)
+          tp = ((pred == 1) & (y == 1)).sum()
+          fp = ((pred == 1) & (y == 0)).sum()
+          fn = (y == 1).sum() - tp
+          r = tp / max(1, tp + fn); pr = tp / max(1, tp + fp)
+          return (r + pr) / 2
+      lambdas = np.linspace(-0.05, 0.05, 41)
+      best = max(lambdas, key=lambda L: score(oof_proba, y, sigma, 0.01428, L))
+      # Verify sign + magnitude on nested CV before banking.
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R10: >
+      Rec 4 is hard-dependent on R10 delivering per-row uncertainty
+      (ensemble variance, MC-dropout, or jackknife conformal scores).
+      If R10 is null or its variance signal is weak, Rec 4 cannot be
+      banked. Recommend gating Rec 4 on R10 success in synthesis.
+  - R-any-feature-engineering: >
+      Per-grade thresholds (Rec 1) compose with any new feature work
+      because the underlying model is unchanged -- apply Rec 1 AFTER
+      whatever feature/model wins, not before. It is a tail-fix not
+      a head-fix.
+  - R-any-stacking-or-calibration: >
+      Bootstrap-conservative threshold (Rec 3) is INDEPENDENT of which
+      stack / calibration is used. It is a post-hoc lever that can be
+      stacked with anyone else's modeling rec without conflict.
+
+# ============================================================
+# HONEST CEILING STATEMENT
+# ============================================================
+# Recs 1-4 are POST-HOC decision-rule fixes on V4's existing OOF probas.
+# Combined realistic OOF lift: +0.5 to +1.5 points.
+# Combined realistic LB lift: highly uncertain (+0 to +1.5), because
+# the +2.67 V4 train->test calibration delta means OOF-optimization
+# does not perfectly transfer; over-fitting OOF on threshold tweaks
+# is a real risk on a metric this brittle.
+# These are LEGITIMATE marginal-improvement levers but will NOT close
+# the 23-point gap to the top-10 cutoff (80.6) alone. They are
+# tail-polish, not head-moves. Bank them only AFTER any meaningful
+# feature-or-model gain from other R-agents is verified.

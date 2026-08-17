@@ -1,0 +1,103 @@
+{
+ "checked": [
+  {
+   "url": "https://postgis.net/docs/ST_DWithin.html",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 8010 bytes, text/html. Page body is a bare DocBook fragment: 'ST_DWithin \u2014 Tests if two geometries are within a given distance'. NO license statement on the page itself. Parent manual https://postgis.net/docs/postgis-en.html declares 'PostGIS 3.6.5dev Manual ... DEV (Thu Jul 23 06:23:02 AM UTC 2026 rev. ebf8f43)' and 'This work is licensed under a Creative Commons Attribution-Share Alike 3.0 License'.",
+   "correction": "Two errors. (1) VERSION: the unversioned /docs/ path serves the DEVELOPMENT manual (3.6.5dev today), not 3.4. The DB actually runs POSTGIS 3.4.3 (docker exec psql: POSTGIS=\"3.4.3 e365945\", GEOS=3.9.0, PROJ=7.2.1). Cite https://postgis.net/docs/manual-3.4/ST_DWithin.html (probed 200; its postgis-en.html declares 'PostGIS 3.4.7dev Manual'). (2) LICENSE: docs are CC BY-SA 3.0 \u2014 Attribution-ShareAlike, not generic 'Creative Commons'. Software COPYING is GPL v2 (raw.githubusercontent.com/postgis/postgis/master/COPYING, 200, 18092 bytes, 'GNU GENERAL PUBLIC LICENSE Version 2, June 1991') \u2014 confirmed. Neither license attaches to query OUTPUT, so tos=ok_to_store_and_serve is correct for the data; but pasting doc prose into the repo would carry BY-SA share-alike."
+  },
+  {
+   "url": "https://postgis.net/docs/ST_LineSubstring.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 8775 bytes, text/html. 'ST_LineSubstring \u2014 Returns the part of a line between two fractional locations. Synopsis geometry ST_LineSubstring(...)', section 7.19 Linear Referencing. Function exists and matches the described use.",
+   "correction": "Same two caveats as ST_DWithin: /docs/ is the 3.6.5dev manual (pin /docs/manual-3.4/), and the doc license is specifically CC BY-SA 3.0."
+  },
+  {
+   "url": "https://postgis.net/docs/ST_Segmentize.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 7920 bytes, text/html. 'ST_Segmentize \u2014 Returns a modified geometry/geography having no segment longer than a given distance', section 7.5 Geometry Editors. Matches claimed use for route densification.",
+   "correction": ""
+  },
+  {
+   "url": "https://postgis.net/docs/geometry_distance_knn.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 8339 bytes, text/html. Page title resolves to the '<->' operator: '<-> \u2014 Returns the 2D distance between A and B. Synopsis double precision <-> (geometry A, geometry B)', section 7.10.2 Distance Operators. The KNN operator claim holds.",
+   "correction": ""
+  },
+  {
+   "url": "https://postgis.net/docs/ST_LineLocatePoint.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 5541 bytes, text/html. 'ST_LineLocatePoint \u2014 Returns the fractional location of the closest point on a line to a point', section 7.19 Linear Referencing. Exactly the primitive needed for nearest-route-point / chainage.",
+   "correction": ""
+  },
+  {
+   "url": "https://postgis.net/docs/ST_Azimuth.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 6839 bytes, text/html. 'ST_Azimuth \u2014 Returns the north-based azimuth of a line between two points', section 7.12 Measurement Functions. Supports the travel-direction bearing computation.",
+   "correction": ""
+  },
+  {
+   "url": "https://overpass-api.de/api/interpreter",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "POST with [out:json];node[\"highway\"=\"motorway_junction\"](38.40,-75.85,39.87,-75.05);out count; -> HTTP 200, 414 bytes. Response: {\"tags\":{\"nodes\":\"424\",\"ways\":\"0\",\"relations\":\"0\",\"total\":\"424\"}}, generator 'Overpass API 0.7.62.11', timestamp_osm_base 2026-07-23T10:59:46Z, copyright field: 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.' The 424 count reproduces EXACTLY and ODbL is asserted by the endpoint itself.",
+   "correction": "Count and license CONFIRMED; the ToS characterisation is incomplete. https://overpass-api.de/robots.txt returns 200 (only with an explicit Accept header; a bare curl gets HTTP 406) and reads 'User-agent: * / Disallow: /api/ / Disallow: /munin/' \u2014 i.e. robots.txt disallows the exact path being called. The researcher flagged share-alike but never mentioned this. Also 'share_alike_viral' is over-broad: see the ODbL 4.5(b) finding."
+  },
+  {
+   "url": "https://wiki.openstreetmap.org/wiki/Tag:highway%3Dmotorway_junction",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 91358 bytes, text/html; charset=UTF-8. Footer: 'This page was last edited on 15 February 2026, at 16:59. Content is available under Creative Commons Attribution-ShareAlike 2.0 license unless otherwise noted.'",
+   "correction": "Holds. Only refinement: the wiki text license is specifically CC BY-SA 2.0 (not an unversioned 'CC-BY-SA'). This page is documentation only \u2014 no data is drawn from it, so it creates no obligation on the pipeline."
+  },
+  {
+   "url": "https://download.geofabrik.de/north-america/us.html",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 33331 bytes, text/html. Page footer states verbatim: 'Data processed by Geofabrik GmbH and created by OpenStreetMap Contributors | License: ODbL 1.0'. So the ODbL 1.0 claim is CONFIRMED from the source's own page. HEAD on https://download.geofabrik.de/north-america/us-latest.osm.pbf -> 200, content-length 12038018063 (12.0 GB), last-modified Wed, 22 Jul 2026 22:52:44 GMT. Page also warns the extracts 'do not contain the user names, user IDs and changeset IDs of the OSM objects'.",
+   "correction": "License CONFIRMED but the ToS/robots assessment is WRONG BY OMISSION. https://download.geofabrik.de/robots.txt returns 200 and reads 'User-agent: * / Disallow: *.osm.pbf / Disallow: *.osm.bz2 / Disallow: *.osc.gz / Disallow: *.shp.zip / Disallow: state.txt / Disallow: *.state.txt / Disallow: *updates* / Disallow: *.md5'. Every file format this project would ingest is explicitly disallowed to robots. Under the repo's non-negotiable 'respect robots.txt' rule enforced in polite_get, an automated Geofabrik PBF pull is formally blocked."
+  },
+  {
+   "url": "https://www.fhwa.dot.gov/policyinformation/statistics/2022/hm20.cfm",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 50892 bytes. Table header: 'Public Road Length - 2022 Miles By Functional System, January 12, 2024, Table HM-20'. Two totals present in the page text: 'U.S. Total ... 4,197,446' and 'Grand Total ... 4,217,423' (Puerto Rico row 19,977 sits between them). https://www.fhwa.dot.gov/robots.txt is 200 with 'Crawl-delay: 1' and does NOT disallow /policyinformation/statistics/ (only /policyinformation/travel_monitoring/ is disallowed) \u2014 so this fetch is robots-clean.",
+   "correction": "4,217,423 is the GRAND Total (US + Puerto Rico/territories), not 'total US public road miles'. The U.S. Total is 4,197,446. Also relevant to the repo honesty rule: this is 2022 data published 2024-01-12, so observed_at must be 2022 \u2014 never the download date. Public-domain status is not stated on the page itself; it rests on 17 USC 105 for US Government works [UNVERIFIED on-page]."
+  },
+  {
+   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 51177 bytes, text/html; charset=utf-8. Title 'Open Data Commons Open Database License (ODbL) v1.0'. Full legal text present: 41 occurrences of 'Derivative Database', 11 of 'Produced Work'. Section 4.5 verbatim: 'Use of the Database to create a Produced Work does not create a Derivative Database for purposes of Section 4.4; and c. Use of a Derivative Database internally within an organisation is not to the public and therefore does not fall under the requirements of Section 4.4.' Section 4.6 verbatim: 'If You Publicly Use a Derivative Database or a Produced Work from a Derivative Database, You must also offer to recipients ... a copy in a machine readable form of: a. The entire Derivative Database; or b. A file containing all of the alterations made...'",
+   "correction": "URL and license text CONFIRMED, but the blanket tag 'share_alike_viral' is legally imprecise and it is the imprecision that drives the repo's whole \u00a73.1-4a quarantine. Share-alike (4.4) attaches to a Derivative Database that is PUBLICLY CONVEYED. Per 4.5(b) a Produced Work (e.g. a rendered shop listing served to a user) does NOT create a Derivative Database, and per 4.5(c) internal use is not public use. The actual bite is 4.6: publicly using a Produced Work derived from a Derivative Database triggers a duty to OFFER the derivative database or the alterations in machine-readable form. That is a disclosure obligation, not automatic relicensing of core.*."
+  },
+  {
+   "url": "https://www.postgresql.org/docs/16/runtime-config-resource.html",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 70761 bytes, text/html; charset=utf-8. 'PostgreSQL: Documentation: 16: 20.4. Resource Consumption'. Footer 'Copyright (c) 1996-2026 The PostgreSQL Global Development Group'. https://www.postgresql.org/about/licence/ (200) states 'PostgreSQL is released under the PostgreSQL License, a liberal Open Source license, similar to the BSD or MIT licenses' and grants 'Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee'.",
+   "correction": "Holds fully \u2014 and note the grant explicitly covers 'this software and its documentation', so unlike the PostGIS docs there is no share-alike on the doc text. DB confirmed running PGSQL=\"160\" (PostgreSQL 16), so the version pin is correct here."
+  },
+  {
+   "url": "https://download.geofabrik.de/robots.txt",
+   "http_status": "200",
+   "claim_holds": "REFUTED",
+   "evidence": "200. Verbatim: 'User-agent: *' then 'Disallow: *.osm.pbf', 'Disallow: *.osm.bz2', 'Disallow: *.osc.gz', 'Disallow: *.shp.zip', 'Disallow: state.txt', 'Disallow: *.state.txt', 'Disallow: *updates*', 'Disallow: *.md5'. NOT probed or mentioned anywhere by the researcher.",
+   "correction": "Refutes the implicit 'this is a clean automated bulk source' framing. Every ingestible artifact is robots-disallowed. Honest reading: these directives target search-engine crawlers (Geofabrik's own https://www.geofabrik.de/data/download.html, 200, advertises the files as 'available for free download' and 'updated every day'), so the intent is anti-crawl, not anti-client. But this repo's stated rule is literal robots.txt compliance inside polite_get. Boss must either (a) record a documented, narrow exception for this host with a rate cap and contact UA, or (b) source the PBF elsewhere. It must not be fetched silently."
+  },
+  {
+   "url": "https://overpass-api.de/robots.txt",
+   "http_status": "200",
+   "claim_holds": "REFUTED",
+   "evidence": "Bare curl -> HTTP 406 Not Acceptable (Apache/2.4.68 Debian). With an explicit 'Accept: */*' header -> HTTP 200, body verbatim: 'User-agent: *' / 'Disallow: /api/' / 'Disallow: /munin/' / 'Sitemap: https://z.overpass-api.de/api/sitemap'. NOT probed or mentioned by the researcher.",
+   "correction": "The single most consequential omission alongside Geofabrik: robots.txt disallows /api/, which is exactly /api/interpreter. Two secondary traps: (1) the 406-on-bare-request means a naive polite_get robots check will get a non-200 and must have an explicit documented fail-open/fail-closed policy rather than silently proceeding; (2) https://dev.overpass-api.de/overpass-doc/en/preface/commons.html (200) states the public instances share capacity across 'roundabout 30'000 daily' users and 'defend themselves against overuse', and recommends heavy users run their own instance \u2014 which is the correct answer for a national-scale build, not hammering the public endpoint."
+  }
+ ],
+ "verdict_summary": "All 12 claimed URLs return HTTP 200 \u2014 none are dead or misattributed as endpoints, and the headline measurement reproduces exactly: 424 motorway_junction nodes in the Delaware bbox, confirmed via out count (timestamp_osm_base 2026-07-23T10:59:46Z). But four claims break, and the worst failure is an omission.\n\nBIGGEST FIND \u2014 robots.txt blocks BOTH OSM ingest paths, and the researcher probed neither. download.geofabrik.de/robots.txt: \"User-agent: * / Disallow: *.osm.pbf\" (plus .osm.bz2, .osc.gz, .shp.zip, *updates*). overpass-api.de/robots.txt: \"Disallow: /api/\" \u2014 i.e. /api/interpreter itself; note a bare curl returns 406 and only an explicit Accept header yields the 200. Under this repo's non-negotiable \"respect robots.txt\" rule enforced in polite_get, both OSM sources are formally disallowed. Honest reading: these target search crawlers, and both projects invite programmatic use \u2014 but that makes it a documented exception Boss must approve, not something to fetch silently.\n\nLICENSE ERRORS. PostGIS docs are CC BY-SA 3.0 (share-alike), read off postgis-en.html \u2014 not vague \"Creative Commons\"; software COPYING is GPLv2 (confirmed). Neither binds query output, so ok_to_store_and_serve holds for data. VERSION MISLABEL: /docs/ is the DEV manual, serving 3.6.5dev today; the DB runs POSTGIS 3.4.3 (GEOS 3.9.0). Pin /docs/manual-3.4/. \"share_alike_viral\" is over-broad \u2014 ODbL 4.5(b) verbatim says creating a Produced Work does NOT create a Derivative Database; 4.6's disclosure duty is the real bite. FHWA 4,217,423 is the GRAND Total incl. Puerto Rico; U.S. Total is 4,197,446 (2022 data published 2024-01-12, so observed_at=2022).\n\nDB CLAIMS: tiger.county/state/place/zcta5 all 0, the present_in CHECK, truck_repair=1, and zip/phone/website 2921/2064/2098 all CONFIRMED exactly (2/6/49 of those are empty strings). One REFUTED: \"OSM opening_hours is not currently ingested\" is false \u2014 osm_extract.py:212 stores the full tag dict in props, and 9,176 osm.fuel_stations rows carry opening_hours TODAY, 6,398 of them \"24/7\". The 24x7 field is already answerable; that remediation is unnecessary."
+}

@@ -1,0 +1,4 @@
+opc_quality_code,opc_status,meaning
+192,Good,OPC-UA StatusCode Good (0xC0=192); reading trustworthy
+64,Uncertain,OPC-UA StatusCode Uncertain (0x40=64); sensor degraded/last-known
+0,Bad,OPC-UA StatusCode Bad (0x00=0); sensor dropout — value should be ignored/masked

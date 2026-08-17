@@ -1,0 +1,64 @@
+{
+  "chosen_threshold_oof": 0.006902378930632497,
+  "chosen_k_oof": 246,
+  "test_threshold_at_k": 0.00011532169115818586,
+  "test_k_actual": 246,
+  "test_positive_rate": 0.7256637168141593,
+  "oof_score": 45.15890613451589,
+  "oof_recall": 0.7121212121212122,
+  "oof_precision": 0.1910569105691057,
+  "mean_auc_repeated": 0.8528954942944629,
+  "std_auc_repeated": 0.055025146783154115,
+  "oof_auc_first_repeat": 0.8444200951977001,
+  "bootstrap_ci_lo": 0.8207931688645502,
+  "bootstrap_ci_hi": 0.869268738474382,
+  "estimated_lb": 47.82890613451589,
+  "v4_lb_reference": 56.98,
+  "delta_vs_v4_lb": -9.151093865484107,
+  "all_gates_passed": false,
+  "gates": {
+    "auc_gate": {
+      "passed": false,
+      "value": 0.8528954942944629,
+      "threshold": 0.935
+    },
+    "bootstrap_ci_gate": {
+      "passed": false,
+      "value": 0.8207931688645502,
+      "threshold": 0.8937
+    },
+    "stability_gate": {
+      "passed": false,
+      "value": 5.5025146783154115,
+      "threshold": 1.5
+    },
+    "regression_gate": {
+      "passed": true,
+      "value": 1.0,
+      "threshold": 5.0
+    },
+    "lb_gate": {
+      "passed": false,
+      "value": 45.15890613451589,
+      "threshold": 54.31
+    }
+  },
+  "fold_aucs": [
+    0.7924865831842577,
+    0.8688160088938299,
+    0.7312181981442682,
+    0.919784495659982,
+    0.9105058365758755,
+    0.9335122242098985,
+    0.8365758754863812,
+    0.8901526489075129,
+    0.8398683029033224,
+    0.780903920981742,
+    0.8398926654740608,
+    0.9046692607003891,
+    0.812331637234361,
+    0.8829691709069142,
+    0.8497455851541453
+  ],
+  "reasoning": "K=246 maximizes OOF (R+P)/2=45.16. Test threshold=0.000115. Bayes-optimal threshold \u2248 0.0032. BBSE: w1=9.0, w0=0.579. Stand FE features add +0.015 AUC over raw baseline. Single LGB ceiling ~0.84-0.85; V4's 0.8837 came from 3-model stacking."
+}

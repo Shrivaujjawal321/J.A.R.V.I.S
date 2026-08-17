@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 297,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 261,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 82,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 39,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 81,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 142,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 336,
+    "status": "completed"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Arizona",
+    "dest": "Utah",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  }
+]

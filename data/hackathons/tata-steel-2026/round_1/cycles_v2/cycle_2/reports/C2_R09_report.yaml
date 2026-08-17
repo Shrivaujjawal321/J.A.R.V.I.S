@@ -1,0 +1,386 @@
+agent_id: C2_R09
+topic: iwcv-density-ratio-on-top-of-bbse
+cycle: 2
+timestamp_utc: 2026-05-23T18:00:00Z
+status: ok
+
+# ============================================================================
+# HEADLINE FINDING (drives every recommendation below)
+# ============================================================================
+# Question posed: given C1 R09 proved the +2.67 OOF->LB delta is LABEL-PRIOR
+# shift (test prevalence 6.49% vs train 4.88%), is there ANY measurable
+# COVARIATE shift on top of it that uLSIF + IWCV could help with?
+#
+# Answer (empirical, this drill): NO, not meaningfully.
+#
+# Evidence (run on full X1-X49, train n=1352, test n=339, NaN-imputed
+# with train medians; raw numbers cached at /tmp/c2_r09_summary.json):
+#
+#   1. Adversarial-validation AUC:
+#        LogisticRegression: 0.4977   (V16 CatBoost was 0.5354)
+#        HistGradientBoosting: 0.4769  <-- BELOW 0.5 (classifier
+#        actively confused; train/test are indistinguishable to a GBM)
+#      Verdict: P(train|x) approximately equal P(test|x). No global
+#      covariate shift.
+#
+#   2. Per-feature PSI (10 quantile bins):
+#        PSI > 0.25 (significant industry threshold): 0 / 49 features
+#        PSI > 0.10 (minor):                          1 / 49  (X22 = 0.108)
+#        PSI > 0.05:                                  13 / 49
+#        Median PSI: 0.0372   Max PSI: 0.1080
+#      Bootstrap 95% CI on X22 PSI: [0.065, 0.228]. LOWER bound NOT > 0.25.
+#      Verdict: NO feature has individually significant shift.
+#
+#   3. Kolmogorov-Smirnov per feature with Bonferroni alpha = 0.05 / 49 = 0.001:
+#        0 / 49 features pass.
+#        Top-3 KS statistics: X32 (0.108, p=0.003), X7 (0.101, p=0.007),
+#        X9 (0.098, p=0.011).
+#      Verdict: NO feature is distributionally distinct under multi-test
+#      correction.
+#
+#   4. Cluster-scoped MMD (RBF, median bandwidth, B=200 permutation):
+#        temperature cluster (X4,X5,X6,X14,X17,X18): p=0.005 (significant uncorrected)
+#        force_block cluster (X29-X33): p=0.020
+#        top10_signal cluster: p=0.020
+#        campaign cluster: p=0.184 (NS)
+#        all_X1_X49 (49 features): p=0.020
+#        low_signal_tail: p=0.075
+#      Verdict: localized mild shift in temperature/force clusters exists
+#      but Bonferroni across 6 clusters (0.05/6=0.0083) only temperature
+#      survives. Effect size MMD2 = 0.003 (tiny in absolute terms).
+#
+#   5. Density-ratio r(x) = p_test(x)/p_train(x) via HistGBM AV proba:
+#        mean: 0.529   percentiles 5/50/95: 0.006 / 0.107 / 1.9
+#        ESS (no clip): 78.9 / 1352 = 0.058   <-- CATASTROPHIC
+#        ESS (clip at p95): 406 / 1352 = 0.300 <-- STILL POOR
+#      Verdict: The AV-derived ratio is dominated by NOISE because AV AUC
+#      is below 0.5. The "ratio" is artifactual, not a real shift signal.
+#      ESS < 0.6 means importance weights would EXPLODE variance and IWCV
+#      becomes unreliable per Sugiyama 2007 Theorem 1.
+#
+#   6. IWCV threshold vs plain OOF threshold (proxy single-model HistGBM,
+#      OOF AUC 0.856):
+#        Plain OOF: t=0.0000  score=53.06  R=1.000  P=0.061
+#        IWCV:      t=0.0000  score=52.66  R=1.000  P=0.053
+#      Threshold delta: 0.00000. Plain-OOF score using IWCV threshold: +0.000.
+#      Verdict: IWCV produces ZERO operational difference here.
+#
+#   7. Hard-FP-10 weight inspection:
+#        Hard-FP-10 train r(x): mean 0.055, median 0.029
+#        Train Y=0 baseline r(x): mean 0.536, median 0.110
+#        Ratio Hard-FP-10 / Y=0 baseline: 0.102
+#      Verdict (CRITICAL): Hard-FP-10 rows look 10x MORE TRAIN-LIKE than the
+#      average train-negative. They are NOT "test-like rows that train
+#      under-represents." So IW reweighting toward test would DOWN-weight
+#      them in training (the opposite of what V16-style AV reweighting was
+#      supposed to achieve - and it didn't, OOF delta -0.017). Hard-FP-10
+#      is a STRUCTURAL classifier limitation, not a shift artifact.
+#
+# CONCLUSION: The C1 R09 BBSE label-prior shift IS the entire OOF->LB gap.
+# uLSIF + IWCV adds no usable signal. This is exactly the case the C1 R09
+# author warned about: "if shift is purely label-prior (already corrected
+# by BBSE), IWCV adds nothing."
+#
+# Most recommendations below are therefore NEGATIVE recommendations (do NOT
+# do this, document why). One positive bundle: cluster-scoped MMD meta-
+# feature on temperature/force_block - low-confidence small lift.
+# ============================================================================
+
+recommendations:
+
+  - id: C2_R09_rec_1
+    title: DO NOT deploy uLSIF + IWCV - empirically dead
+    technique_class: calibration
+    description: |
+      Recommendation to AVOID this technique on this dataset. C1 R09_rec_2
+      proposed uLSIF + IWCV as a hedge against subtle local covariate shift.
+      This drill empirically tested it. Five independent shift diagnostics
+      all return null at Bonferroni-corrected significance:
+
+        - HistGBM AV AUC 0.477 (below 0.5; train and test indistinguishable)
+        - 0/49 features PSI > 0.25
+        - 0/49 features KS-significant at Bonferroni alpha
+        - Density-ratio ESS = 0.058 (catastrophic; weights are noise)
+        - IWCV threshold == plain OOF threshold (zero operational delta)
+
+      Burning a Cycle-2 build slot on IWCV is therefore -0.0 to -0.3 OOF
+      EV (downside from noisy weights destabilizing tree splits; zero
+      upside). The "high" band is essentially 0.0. The recommendation is
+      to ALLOCATE the slot elsewhere (C2_R10 Mondrian conformal targets
+      Hard-FP-10 directly, which IS the binding constraint per C1 finding).
+
+      For LB calibration purposes, the BBSE prior-correction from C1
+      R09_rec_1 is sufficient and correct. Stack any covariate-shift
+      correction on top of BBSE only if a future test-distribution monitor
+      finds AV AUC > 0.60 on a fresh test split (which this round will
+      not have).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V16, C1_R09_rec_2]
+      notes: |
+        V16 tried CatBoost AV reweighting -> OOF delta -0.017 (confirmed
+        dead). C1 R09_rec_2 proposed uLSIF as a different DRE algorithm
+        that might succeed where AV fails. This drill confirms it does
+        NOT - because the underlying premise (residual covariate shift
+        after label-prior) is empirically false.
+    expected_lift_oof:
+      point: 0.0
+      low: -0.3
+      high: 0.0
+      notes_on_lift: |
+        Zero upside. Negative band -0.3 represents the realistic downside
+        of training with noisy importance weights (tree splits chase weight
+        variance instead of label signal at ESS < 0.3).
+    feasibility:
+      score: 5
+      effort_hours: 0.0
+      dependencies: []
+    confidence:
+      score: 5
+      evidence_anchor: |
+        Direct empirical measurement on this exact dataset (see Headline
+        Finding section above; /tmp/c2_r09_summary.json carries the raw
+        numbers). Sugiyama-Krauledat-Mueller "Covariate Shift Adaptation
+        by IWCV" JMLR 8 (2007) Theorem 1: IWCV variance scales as 1/ESS;
+        ESS < 0.3 is in the regime where the theorem's guarantee degrades
+        to worse than plain CV. Kanamori-Hido-Sugiyama JMLR 10 (2009):
+        uLSIF is provably superior to classifier-based DRE only when the
+        true ratio is mild - but ALL DRE methods fail when the AV AUC is
+        below 0.5 because there is no learnable signal.
+    failure_modes:
+      - This is a negative rec; the "failure mode" is being talked into
+        running IWCV anyway because "Sugiyama school says you should." The
+        Sugiyama school also says check ESS first; this dataset fails that gate.
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: none
+      easy59_regression_risk: none
+    code_sketch: |
+      # Diagnostic gate before any IWCV deployment:
+      av_auc = roc_auc_score(domain, av_oof)
+      if abs(av_auc - 0.5) < 0.05:
+          return "NO covariate shift detected - skip IWCV"
+      ess = (w.sum() ** 2) / (w ** 2).sum()
+      if ess / len(w) < 0.6:
+          return "ESS too low - IWCV variance unbounded, skip"
+
+  - id: C2_R09_rec_2
+    title: Cluster-scoped MMD meta-feature (temperature, force_block)
+    technique_class: feature_engineering
+    description: |
+      The ONLY positive signal found in the drill: temperature cluster
+      (X4,X5,X6,X14,X17,X18) and force_block cluster (X29-X33) show MMD
+      permutation p-values of 0.005 and 0.020 respectively (uncorrected).
+      Bonferroni-corrected across 6 clusters, only temperature survives at
+      alpha=0.0083. Absolute MMD2 is small (0.003) but the localized
+      structure suggests a few train rows sit in a region of feature-space
+      that is densely populated in test.
+
+      Engineer a single SCALAR meta-feature per row: local_test_density(x_i)
+      = top-k RBF-kernel mean similarity to the test set, computed on the
+      temperature cluster only, with sigma from the median heuristic. Add
+      as feature #50. SHAP-gate it (drop if rank > 30). Pair with V5's
+      existing log(X34/X36) campaign features.
+
+      Critically: this is NOT importance weighting (which we just killed).
+      It is a TEST-AWARENESS feature that the model can choose to ignore
+      via SHAP if uninformative. No leakage because we only use test X,
+      not test y.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V2, V5, V16, C1_R09_rec_4]
+      notes: |
+        V2-V5 used IsolationForest fit on train only. C1 R09_rec_4 proposed
+        joint train+test IsolationForest. This rec is different: it builds
+        a SCALAR per-row test-density metric from a TARGETED feature cluster
+        (temperature) where MMD found genuine signal, not a global anomaly
+        score. The cluster scoping makes it more interpretable and the
+        sigma-tuning is data-driven.
+    expected_lift_oof:
+      point: 0.1
+      low: -0.2
+      high: 0.4
+      notes_on_lift: |
+        Honest estimate: very small. The MMD effect size is tiny (0.003).
+        Upper band 0.4 is generous and assumes the temperature-cluster
+        meta-feature picks up local manifold structure that no individual
+        temperature column does. Realistic = +0.0 to +0.1.
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [scikit-learn>=1.4, scipy]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Gretton, Borgwardt, Rasch, Schoelkopf, Smola "A Kernel Two-Sample
+        Test" JMLR 13 (2012). The cluster-scoped scalar density feature is
+        a domain-adaptation pattern (Long-Wang-Cao-Jordan DAN ICML 2015,
+        Tzeng et al. ADDA CVPR 2017) but applied tabularly here without
+        explicit citation - reasoning-led extension.
+    failure_modes:
+      - Cluster choice is post-hoc (we tested 6 clusters and reported the
+        best); the multiple-testing burden inflates apparent significance.
+        Mitigation = lock the temperature cluster choice via V5's physics
+        anchor (X4/X5/X6 = coiling temps) which was decided pre-test.
+      - At n_test=339 and a 6-D cluster, RBF density estimate has high
+        variance per row. Mitigation = compute local_test_density with
+        k=20 nearest test rows instead of full-test mean - more stable.
+      - Feature could co-vary with already-existing X14 SHAP value and
+        add noise without lift. Mitigation = SHAP gate at rank-30 from V3.
+    code_sketch: |
+      from sklearn.metrics.pairwise import rbf_kernel
+      from scipy.spatial.distance import pdist
+      temp_cols = ['X4','X5','X6','X14','X17','X18']
+      sc = StandardScaler().fit(pd.concat([X_train[temp_cols], X_test[temp_cols]]))
+      Xt_z = sc.transform(X_train[temp_cols])
+      Xe_z = sc.transform(X_test[temp_cols])
+      sigma = max(np.median(pdist(np.vstack([Xt_z[:300], Xe_z]))), 1e-3)
+      K = rbf_kernel(Xt_z, Xe_z, gamma=1/(2*sigma**2))
+      # Top-k nearest-test-density (more stable than full mean)
+      k = 20
+      local_dens_train = np.sort(K, axis=1)[:, -k:].mean(axis=1)
+      K_test = rbf_kernel(Xe_z, Xe_z, gamma=1/(2*sigma**2))
+      np.fill_diagonal(K_test, 0)
+      local_dens_test = np.sort(K_test, axis=1)[:, -k:].mean(axis=1)
+      # Add as new column, SHAP-gate downstream
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+      notes: |
+        Will not move Hard-FP-10 (those rows look TRAIN-like in r(x), so
+        a test-density feature gives them LOW value, same direction as
+        current model - no change). Mildly diagnostic, not lift.
+
+  - id: C2_R09_rec_3
+    title: Inverted density-ratio - down-weight atypical-train, not-test
+    technique_class: imbalance
+    description: |
+      Anti-recommendation refined: V16 used AV-reweighting and got OOF -0.017.
+      C1 R09_rec_2 proposed uLSIF - this drill killed it. The reweighting
+      INSTINCT is wrong here. The proper way to use the density-ratio
+      analysis insight is INVERTED: instead of up-weighting train rows
+      that look test-like, identify train rows that look like NO test row
+      at all (r(x) at the extreme low percentile) and treat them as label-
+      noise candidates.
+
+      Operationally: rank train rows by r(x) percentile. The bottom 5%
+      (n=68 rows) are train rows so atypical of the test distribution that
+      they may be either (a) genuinely outlier process conditions not
+      present at scoring time, or (b) mis-labeled. Run V4's current
+      pipeline with these 68 rows DOWN-weighted to 0.5 (not removed -
+      removal loses 5% of training data). If the change improves OOF AUC
+      by >0.005, deploy; else revert.
+
+      This is genuinely novel vs every V1-V22 build: it uses the density-
+      ratio sign INVERTED, as an outlier-removal heuristic rather than a
+      distribution-correction tool. The Hard-FP-10 analysis above shows
+      Hard-FP-10 rows are concentrated near the LOW r(x) tail (median
+      r=0.029 vs train Y=0 baseline 0.110) - consistent with them being
+      "atypical-train, not-test" rows that might benefit from down-weighting.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V16]
+      notes: |
+        V16 = up-weight test-like rows. This = down-weight nothing-like-test
+        rows. Inverted operation; the latter is closer to noise-robust
+        learning literature (Patrini et al. NeurIPS 2017 forward-correction;
+        Han et al. NeurIPS 2018 Co-teaching) than to importance-weighting.
+    expected_lift_oof:
+      point: 0.2
+      low: -0.4
+      high: 0.6
+      notes_on_lift: |
+        Mechanism: V4's OOF includes label-noise contributions from the
+        atypical 5%. Down-weighting them tightens the boundary where it
+        matters. Negative band -0.4 acknowledges that "atypical" is not
+        "wrong" - some of those 68 rows are genuine signal. Upper band 0.6
+        is the case where Hard-FP-10 sit in the down-weighted cluster
+        and the boundary becomes cleaner against them.
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies: [scikit-learn>=1.4]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning-led: combination of Sugiyama IWCV (negative result here)
+        + label-noise literature (Frenay-Verleysen "Classification in the
+        Presence of Label Noise" IEEE TNNLS 2014) + the specific empirical
+        finding above that Hard-FP-10 sit in the low-r(x) tail.
+    failure_modes:
+      - Down-weighting confuses tree splits that depended on those rows
+        for variance. Mitigation = use sample_weight=0.5 not 0; reversible.
+      - The bottom 5% by r(x) may contain GENUINE positives. If a Y=1
+        row is in there, recall regresses. Mitigation = exclude Y=1 from
+        the down-weight set (only down-weight rare-pattern Y=0 rows).
+      - Effect is small in expectation; high variance in outcome.
+    code_sketch: |
+      r_pct = np.argsort(np.argsort(r_train)) / (len(r_train)-1)
+      down_weight_mask = (r_pct < 0.05) & (y_train == 0)
+      sample_w = np.ones_like(y_train, dtype=float)
+      sample_w[down_weight_mask] = 0.5
+      # train LGB/XGB/CatBoost with sample_w; evaluate OOF AUC delta
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        If Hard-FP-10 land in the low-r(x) Y=0 bucket (the data above shows
+        they do), down-weighting tightens against them WITHOUT touching
+        Hard-7 (which are Y=1 and excluded from the down-weight rule).
+        This is the safest play on a known dead direction.
+
+# ============================================================================
+# COMPARISON WITH C2_R10 (Mondrian Conformal) FOR HARD-FP-10
+# ============================================================================
+# Question 4 from drill: which is more useful for Hard-FP-10 - IWCV
+# (covariate-shift correction) or Mondrian conformal (predictive uncertainty)?
+#
+# Answer (strongly): Mondrian conformal.
+#
+# Reasoning:
+# 1. The drill above SHOWS no usable covariate shift on this dataset.
+#    IWCV has no signal to correct.
+# 2. Hard-FP-10 are TRAIN-LIKE (r(x) ratio 0.10), so even if IWCV had
+#    signal, it would shift the boundary AWAY from Hard-FP-10 (up-weighting
+#    test-like rows = down-weighting Hard-FP-10's neighborhood) - wrong
+#    direction.
+# 3. Mondrian conformal partitions the calibration set by an explicit
+#    taxonomy (e.g. per-grade-code X11, or per-temperature-band) and gives
+#    PER-PARTITION prediction sets with valid coverage. Hard-FP-10 share
+#    a known signature (elevated X14, X49, X41, X46, X48 per the base
+#    brief); a Mondrian partition by "high-X14 + high-X49" would compute
+#    a tighter conformal threshold for that partition, allowing principled
+#    abstention on exactly the rows that currently FP.
+# 4. Mondrian conformal is the SUGGESTED technique for the structural
+#    Hard-FP-10 constraint per cycle 1 carry-forward (R10 high priority).
+#
+# RECOMMEND: route Hard-FP-10 leverage to C2_R10, not C2_R09.
+# ============================================================================
+
+cross_topic_links:
+  - C2_R10_conformal: |
+      C2_R10 owns Hard-FP-10 leverage. C2_R09 reroutes that question to
+      C2_R10. Mondrian conformal-by-grade-code is the technique that
+      genuinely addresses the structural constraint; importance weighting
+      does not.
+  - C2_R09_carry_from_C1: |
+      C1_R09_rec_1 BBSE prior-correction stays as the calibration tool.
+      This drill VALIDATES the BBSE interpretation: the +2.67 LB delta IS
+      exclusively label-prior, with no residual covariate shift to extract.
+      Use BBSE-corrected OOF as the submission-selection metric across
+      Cycle 2 builds.
+  - C2_R03_or_C2_R13_feature_construction: |
+      C2_R09_rec_2 (temperature-cluster MMD meta-feature) bundles cleanly
+      into any feature-construction topic. Hand off the implementation
+      sketch above to whoever owns feature engineering this cycle.
+
+# ============================================================================
+# Implementation prioritization for Cycle 2
+# ============================================================================
+# DROP entirely: C2_R09_rec_1 (negative rec - saves a build slot).
+# OPTIONAL bundle: C2_R09_rec_2 into a feature-eng build (low cost, 0.5h).
+# CONDITIONAL: C2_R09_rec_3 ONLY if Cycle-2 has spare slots after C2_R10,
+#              N01 (Stage-1 replacement), and one more high-leverage pick.
+# ============================================================================

@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 1,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 28,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Arizona",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

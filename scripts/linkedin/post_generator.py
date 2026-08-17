@@ -23,20 +23,24 @@ from . import _claude_helper
 
 JARVIS_ROOT = Path(__file__).resolve().parents[2]
 CALENDAR_PATH = JARVIS_ROOT / "data" / "linkedin" / "post_calendar.md"
-NEWS_DIR = JARVIS_ROOT / "data" / "news"
+# News digests live at data/briefings/news-YYYY-MM-DD.md (NOT data/news/).
+NEWS_DIR = JARVIS_ROOT / "data" / "briefings"
+NEWS_GLOB = "news-*.md"
 HACK_DIR = JARVIS_ROOT / "data" / "hackathons"
 PROJECTS_PATH = JARVIS_ROOT / "data" / "memory" / "projects.md"
 POSTS_DIR = JARVIS_ROOT / "data" / "linkedin" / "posts"
 IST = ZoneInfo("Asia/Kolkata")
 
+# Daily tech-news rotation — each day a different angle on AI/ML news.
+# See data/linkedin/post_calendar.md for hook/CTA/source per theme.
 DAY_THEMES = {
-    0: "monday_news_take",       # Mon
-    1: "tuesday_project",        # Tue
-    2: "wednesday_hackathon",    # Wed
-    3: "thursday_learning",      # Thu
-    4: "friday_hot_take",        # Fri
-    5: "saturday_recap",         # Sat
-    6: "sunday_engagement_only", # Sun
+    0: "mon_weekend_wrap",       # Mon
+    1: "tue_paper_breakdown",    # Tue
+    2: "wed_product_launch",     # Wed
+    3: "thu_tooling_news",       # Thu
+    4: "fri_hot_take",           # Fri
+    5: "sat_weekly_roundup",     # Sat
+    6: "sun_builder_spotlight",  # Sun
 }
 
 POST_PROMPT = """\
@@ -82,64 +86,90 @@ Reply with ONLY this JSON:
 """
 
 THEME_BRIEFS = {
-    "monday_news_take": (
-        "A take on a 2026 AI/ML news item from the last 48 hours. Pick from the "
-        "news source block. Frame the angle most people are missing. End by asking "
-        "for the reader's take on a specific implication."
+    "mon_weekend_wrap": (
+        "Weekend Wrap. Pick the top 1-3 AI/ML stories from the past 72 hours (Fri-Sun) "
+        "out of the news source block. Frame what the wider conversation is missing. "
+        "Hook: 'What you missed in AI over the weekend:' followed by 2-3 punchy lines. "
+        "CTA: 'Which of these shifts your stack this week?' Name specific companies / "
+        "models / numbers — no generic 'AI is moving fast' framing."
     ),
-    "tuesday_project": (
-        "Showcase something Boss has built or shipped recently (Jarvis component, "
-        "side project, OSS contrib, hackathon submission). Lead with what broke + "
-        "what was learned. Include a link if possible. CTA = ask for feedback."
+    "tue_paper_breakdown": (
+        "Paper / Research Breakdown. Pick ONE recent paper or lab blog from the news "
+        "source block (arxiv, Anthropic/OpenAI/DeepMind/HF). Frame what it actually "
+        "proves vs how it's being marketed. Hook: '[Paper title] in one paragraph. "
+        "The trick:' followed by a tight technical summary. Name the dataset, metric, "
+        "delta over prior SOTA. CTA: 'Anyone tried this in prod yet? What broke?'"
     ),
-    "wednesday_hackathon": (
-        "Either: (a) an upcoming hackathon Boss is building for, with the angle "
-        "of why it's interesting, or (b) recap of one Boss recently joined. CTA = "
-        "invite teammates / share insights."
+    "wed_product_launch": (
+        "Product / Model Launch Take. Pick a specific product or model release from "
+        "the news source block (new SDK, model checkpoint, dev tool). Frame what most "
+        "analysis is missing — a technical or strategic angle. Hook: '[Company] just "
+        "shipped [X]. Here's what most takes are missing:' CTA: 'Will you migrate to "
+        "it? What's your blocker?'"
     ),
-    "thursday_learning": (
-        "Narrative-style. Something technical Boss figured out recently — bug, "
-        "framework quirk, paper insight, debugging story. Hook = the time spent + "
-        "the trick. Not tutorial style. CTA = ask if others hit the same."
+    "thu_tooling_news": (
+        "Dev Tooling / Infra News. Pick a tooling move from the news source block — "
+        "LangChain, DSPy, vLLM, Modal, Replicate, HF, new SDK release, infra benchmark. "
+        "Lead with what changes for a working engineer (not press-release tone). Hook: "
+        "'[Tool] just got [feature]. Why builders should care:' CTA: 'What's your "
+        "default for [X] in 2026?'"
     ),
-    "friday_hot_take": (
-        "Defensible contrarian view on AI/ML/career/tech. Open with 'Unpopular take:' "
-        "or similar. The take must be actually argued, not just spicy. CTA = invite "
-        "readers to disagree with where Boss is wrong."
+    "fri_hot_take": (
+        "Hot Take / Controversy. Pick a current news item or industry trend from the "
+        "source block. Argue a defensible contrarian view — real argument, not "
+        "engagement bait. Hook: 'Everyone's saying [common take]. They're wrong "
+        "because:' CTA: 'Where am I wrong? Be specific — I'll defend the position in "
+        "replies.' Take must be defensible with concrete examples."
     ),
-    "saturday_recap": (
-        "What Boss shipped/learned/failed at this week (read git log + tasks for source). "
-        "Three takeaways format. INCLUDE the failure honestly. CTA = ask what others built."
+    "sat_weekly_roundup": (
+        "Weekly Roundup. Top 5 AI/ML stories of the week from the news source block, "
+        "ranked. #1 is the MOST OVERLOOKED (not necessarily the biggest). Each item "
+        "gets a one-line 'why it matters' — never just a headline. Hook: '5 AI stories "
+        "this week. #1 is the one most people missed:' CTA: 'Which one changes how "
+        "you build next week?'"
     ),
-    "sunday_engagement_only": (
-        "NO POST TODAY. Return empty post field. Sunday is engagement-only day."
+    "sun_builder_spotlight": (
+        "Builder Spotlight. Pick ONE person or team from the news source block who "
+        "shipped something noteworthy this week (paper, OSS release, demo, model "
+        "checkpoint, viral thread). Surface independent builders + smaller teams, not "
+        "just big-company employees. Hook: '[Person/Team] shipped [project] this week. "
+        "Why it matters:' CTA: 'Tag a builder who deserves more attention this week.'"
     ),
 }
 
 
-def _read_safe(path: Path, max_chars: int = 4000) -> str:
+def _read_safe(path: Path, max_chars: int = 4000, glob: str = "*.md", limit: int = 2) -> str:
     if not path.exists():
         return ""
     if path.is_dir():
-        # concatenate latest 2 files
-        files = sorted(path.glob("*.md"), reverse=True)[:2]
+        files = sorted(path.glob(glob), reverse=True)[:limit]
         return "\n\n---\n\n".join(f.read_text()[:max_chars] for f in files)
     return path.read_text()[:max_chars]
 
 
+def _read_news(days: int = 3, max_chars_per_file: int = 4000) -> str:
+    """Concatenate the latest `days` news digests from data/briefings/news-*.md."""
+    return _read_safe(NEWS_DIR, max_chars=max_chars_per_file, glob=NEWS_GLOB, limit=days)
+
+
 def _gather_source(theme: str) -> str:
+    """Every daily-tech-news theme loads from the news digest as primary source.
+    Per-theme extras layered on top where useful (memory, projects, etc.)."""
     blocks = []
-    if theme == "monday_news_take":
-        blocks.append("## Latest AI/ML news (RSS digest)\n" + _read_safe(NEWS_DIR))
-    if theme == "tuesday_project":
-        blocks.append("## Boss's active projects\n" + _read_safe(PROJECTS_PATH))
-    if theme == "wednesday_hackathon":
-        blocks.append("## Upcoming hackathons\n" + _read_safe(HACK_DIR))
-    if theme == "thursday_learning":
-        blocks.append("## Recent code/research conversations\n" + _read_safe(JARVIS_ROOT / "data" / "conversations", max_chars=6000))
-    if theme == "saturday_recap":
-        blocks.append("## Boss's projects + recent activity\n" + _read_safe(PROJECTS_PATH))
-        blocks.append("## Recent conversations\n" + _read_safe(JARVIS_ROOT / "data" / "conversations", max_chars=4000))
+    # All themes get the news block — different look-back windows per theme.
+    if theme == "sat_weekly_roundup":
+        blocks.append("## AI/ML news (last 7 days)\n" + _read_news(days=7))
+    elif theme == "mon_weekend_wrap":
+        blocks.append("## AI/ML news (last 3 days, Fri-Sun)\n" + _read_news(days=3))
+    else:
+        blocks.append("## AI/ML news (last 2 days)\n" + _read_news(days=2))
+
+    # Theme-specific supplementary context.
+    if theme == "fri_hot_take":
+        blocks.append("## Boss's strongly-held views (memory)\n" + _read_safe(JARVIS_ROOT / "data" / "memory" / "preferences.md", max_chars=3000))
+    if theme == "thu_tooling_news":
+        blocks.append("## Boss's tech-stack context\n" + _read_safe(PROJECTS_PATH, max_chars=2000))
+
     return "\n\n".join(blocks) if blocks else "(no source material loaded)"
 
 
@@ -150,13 +180,6 @@ def _today_theme(now: datetime | None = None) -> str:
 
 def generate_today(now: datetime | None = None, override_theme: str | None = None) -> dict[str, Any]:
     theme = override_theme or _today_theme(now)
-    if theme == "sunday_engagement_only":
-        return {
-            "theme": theme,
-            "post": None,
-            "skip_reason": "Sunday = engagement-only day, no post per calendar.",
-        }
-
     source = _gather_source(theme)
     prompt = POST_PROMPT.format(
         theme=theme,

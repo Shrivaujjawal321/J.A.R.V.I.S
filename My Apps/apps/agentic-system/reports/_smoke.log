@@ -1,0 +1,19 @@
+═══════════════════════════════════════════════════════════
+  Agentic system — testing 1 app(s)
+  Root:         /home/ujjwal/Documents/10 saas app/apps
+  Allow yellow: false
+  Skip publish: true
+═══════════════════════════════════════════════════════════
+
+── 01-hiresync-ai ─────────────────────────────────────────────
+[tester] 01-hiresync-ai on port 3001 — starting
+[tester] 01-hiresync-ai → green
+
+═══════════════════════════════════════════════════════════
+  Summary
+═══════════════════════════════════════════════════════════
+  APP                        TEST        PUBLISH   
+  ───                  ────  ───────
+  01-hiresync-ai             green       skipped   
+
+  Reports: /home/ujjwal/Documents/10 saas app/apps/agentic-system/reports/<app>/{test,publish}.json

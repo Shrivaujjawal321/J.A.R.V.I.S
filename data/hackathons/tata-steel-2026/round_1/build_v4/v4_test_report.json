@@ -1,0 +1,198 @@
+{
+  "n_pass": 13,
+  "n_warn": 2,
+  "n_fail": 0,
+  "n_info": 30,
+  "verdict": "ready",
+  "bootstrap_95ci": [
+    53.36343616547734,
+    55.343550186449605
+  ],
+  "bootstrap_mean": 54.32083633383823,
+  "threshold_sensitivity_range": 1.1173631569884108,
+  "brier_score": 0.0414527648313204,
+  "rough_ece": 0.03239068992986147,
+  "test_pos_rate": 45.42772861356932,
+  "results": [
+    {
+      "tag": "[INFO]",
+      "msg": "OOF rows: 1352 | cols: ['oof_lgb', 'oof_xgb', 'oof_cat', 'oof_meta', 'Y']"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Test meta rows: 339"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Test feat rows: 339"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Submission rows: 339"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Chosen T: 0.014283  Predicted LB: 54.3081"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "TP=66  FP=700  FN=0  TN=586"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Recall=1.000000 (claimed 1.000000)"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Precision=0.086162 (claimed 0.086162)"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Score=54.308094 (claimed 54.308094)"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "n_pos OOF=766 (claimed 766)"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Score reproduces from saved probas (within 1e-3)"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Recall reproduces exactly"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Precision reproduces (within 1e-6)"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Bootstrap mean score: 54.3208  std: 0.5153"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "95% CI: [53.3634, 55.3436]"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Recall  mean \u00b1 std: 1.0000 \u00b1 0.0000"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Precision mean \u00b1 std: 0.0864 \u00b1 0.0103"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "95% CI lower bound (53.36) beats V2 LB (50.19) \u2014 V4 is robustly above V2"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Score range across T \u00d7 [0.9, 1.1]: 1.1174"
+    },
+    {
+      "tag": "[WARN]",
+      "msg": "Moderate threshold sensitivity (range 1.12) \u2014 fine but watch"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Brier score: 0.0415"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Mean |mean_proba - realized_rate| across deciles (rough ECE): 0.0324"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Calibration is tight (rough ECE < 0.05)"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Shape (339, 2)"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Columns = {CoilID, Y}"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Y is strictly binary 0/1"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "CoilID is unique"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "CoilID order matches test_v4.parquet"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Test predicted positives: 154 / 339 = 45.4%"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Training prevalence: 4.88%"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Test pos rate 45.4% in acceptable range"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "OOF defects   (  66):  q00=0.0143  q05=0.0180  q25=0.1512  q50=0.2960  q75=0.4658  q95=0.5956  q100=0.7419"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "OOF non-def   (1286):  q00=0.0047  q05=0.0053  q25=0.0094  q50=0.0152  q75=0.0693  q95=0.3278  q100=0.7778"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Test proba    ( 339):  q00=0.0081  q05=0.0083  q25=0.0090  q50=0.0121  q75=0.0708  q95=0.3728  q100=0.5898"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "KS test (test_proba vs full OOF): stat=0.1501, p=0.0000"
+    },
+    {
+      "tag": "[WARN]",
+      "msg": "Significant distribution shift (KS p=0.0000) \u2014 model may behave differently on test than OOF suggests"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "V2 positives: 134  V4 positives: 154"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Both:  129   V2-only: 5   V4-only: 25"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Jaccard(V2, V4) on positives: 0.811"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "V4 mostly agrees with V2 on positives \u2014 incremental improvement"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "V3 positives: 256  V4 positives: 154  shared: 154"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "Jaccard(V3, V4): 0.602"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "80% subsample scores (n=200): mean=54.2493, std=0.0489"
+    },
+    {
+      "tag": "[INFO]",
+      "msg": "  min=54.1204  p25=54.2139  median=54.2484  p75=54.2851  max=54.3845"
+    },
+    {
+      "tag": "[PASS]",
+      "msg": "Score is very stable across subsamples (std 0.049 < 0.5)"
+    }
+  ]
+}

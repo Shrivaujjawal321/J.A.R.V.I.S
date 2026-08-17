@@ -1,0 +1,107 @@
+PRACTICE
+COMPETE
+JOBS
+LEADERBOARD
+08
+
+DAY
+
+:
+06
+
+HRS
+
+:
+59
+
+MIN
+
+:
+14
+
+SEC
+
+AI Hackathon LIVE
+
+May 22, 2026, 06:00 PM IST (Asia/Kolkata) - Jun 01, 2026, 12:00 AM IST (Asia/Kolkata)
+
+INSTRUCTIONS
+PROBLEMS
+SUBMISSIONS
+LEADERBOARD
+ANALYTICS
+JUDGE
+Instructions
+
+This is an individual-participant challenge.
+
+After you have built your application, you must do the following:
+
+Submit the solution in .zip format
+At the end of the page, you must complete the following tasks:
+Upload the following as a zip, tar, or tar.zip archive:
+Prediction file
+Source file
+Submit your solution
+
+The submissions are evaluated automatically. The evaluation parameters include the following:
+
+Functionality of the code
+Design aesthetics
+Usability of the application
+
+The evaluation of submissions can take up to a week's time.
+
+When the challenge is live, your output will be evaluated only for 50% of the test data. After the challenge is over, your output for the remaining 50% of the test data will be evaluated and the final rank will be awarded.
+
+If you do not select a submission file for the offline evaluation, your best submission will be automatically considered.
+
+You will have to upload your submissions on the Problems page in the format specified in the problem statement.
+
+In addition to your final submission, you will also have to submit your source file and other files as a .zip or .tar compressed archive.
+
+You can use any tools or libraries to build your solution. There is no restriction on the tools that you can use.
+
+The Intellectual Property (IP) of the product/code of the winners will belong to HackerEarth & Tata Steel (only when they accept the prize). Other participants will retain the IP over their product/code. They can choose to put it in an open source domain under any license.
+
+You will receive your prize after the announcement of results on the contest page in the last week of the following month. But note that if your nation does not accept PayPal payments, we will not be able to send you any cash prizes.
+
+Prizes above are mentioned per individual.
+
+In order to claim the prize, your leaderboard score must be reproducible from your code files.
+
+Use of external dataset is prohibited for this challenge. Participants found using external dataset will be disqualified.
+
+By participating in this challenge, you are agreeing to HackerEarth's terms and conditions.
+
++1-650-461-4192
+For sales enquiry
+contact@hackerearth.com
+For support
+support@hackerearth.com
+For Developers
+Hackathons
+Challenges
+Jobs
+Practice
+Campus Ambassadors
+For Businesses
+Hackathons
+Assessments
+FaceCode
+Learning and Development
+Knowledge
+Practice
+Interview Prep
+Codemonk
+Engineering Blog
+Company
+About us
+Careers
+Press
+Support
+Contact
+Privacy Policy
+© 2026 HackerEarth All rights reserved  Terms of Service  Privacy Policy
+
+?

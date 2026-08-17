@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ujjawal — AI/ML Interview Prep Deck</title>
+<style>
+  :root {
+    --bg:#f4f6f9; --panel:#fff; --panel-2:#eef1f6; --ink:#1a1f28; --muted:#5b6672;
+    --border:#d3dae3; --accent:#1f6feb; --accent-soft:#ddeaff;
+    --good:#1a7f37; --good-bg:#e6f4ea; --bad:#cf222e; --bad-bg:#ffe9e9;
+    --warn:#9a6700; --warn-bg:#fbf1d6;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0c0f14; --panel:#141922; --panel-2:#1b212c; --ink:#e6edf3; --muted:#97a2b0;
+    --border:#29313d; --accent:#58a6ff; --accent-soft:#16304f;
+    --good:#56d364; --good-bg:#10261a; --bad:#ff7b72; --bad-bg:#2d1416;
+    --warn:#e3b341; --warn-bg:#2a2210;
+  }}
+  :root[data-theme="light"]{--bg:#f4f6f9;--panel:#fff;--panel-2:#eef1f6;--ink:#1a1f28;--muted:#5b6672;--border:#d3dae3;--accent:#1f6feb;--accent-soft:#ddeaff;--good:#1a7f37;--good-bg:#e6f4ea;--bad:#cf222e;--bad-bg:#ffe9e9;--warn:#9a6700;--warn-bg:#fbf1d6;}
+  :root[data-theme="dark"]{--bg:#0c0f14;--panel:#141922;--panel-2:#1b212c;--ink:#e6edf3;--muted:#97a2b0;--border:#29313d;--accent:#58a6ff;--accent-soft:#16304f;--good:#56d364;--good-bg:#10261a;--bad:#ff7b72;--bad-bg:#2d1416;--warn:#e3b341;--warn-bg:#2a2210;}
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:36px 18px 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:940px;margin:0 auto;}
+  .themebtn{position:fixed;top:14px;right:14px;z-index:20;font-family:var(--mono);font-size:12px;cursor:pointer;background:var(--panel);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 11px;}
+  .themebtn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;}
+  h1{font-size:clamp(26px,5vw,40px);margin:6px 0 4px;letter-spacing:-.5px;font-weight:800;text-wrap:balance;}
+  .sub{color:var(--muted);font-size:15px;max-width:64ch;}
+
+  nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 8px;}
+  nav.toc a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--accent);background:var(--accent-soft);padding:5px 10px;border-radius:6px;}
+  nav.toc a:hover{outline:1px solid var(--accent);}
+
+  section{margin-top:46px;scroll-margin-top:16px;}
+  h2{font-size:22px;margin:0 0 4px;display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--border);padding-bottom:9px;}
+  h2 .n{font-family:var(--mono);font-size:13px;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:6px;font-weight:700;}
+  h3{font-size:16px;margin:22px 0 8px;}
+  .lead{color:var(--muted);font-size:14.5px;margin:10px 0 16px;}
+  p{font-size:14.5px;}
+
+  code,.mono{font-family:var(--mono);font-size:.88em;}
+  p code,li code,td code{background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border);font-size:.84em;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin:14px 0;}
+  .script{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:16px 18px;font-size:15px;line-height:1.65;}
+  .script b{color:var(--accent);}
+
+  .flow{display:flex;flex-direction:column;gap:0;margin:10px 0;}
+  .node{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 15px;}
+  .node .role{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);font-weight:700;margin-bottom:2px;}
+  .node .title{font-weight:700;font-size:14.5px;}
+  .node .desc{color:var(--muted);font-size:13px;margin-top:3px;}
+  .node .fn{font-family:var(--mono);font-size:12px;margin-top:5px;}
+  .node .fn b{color:var(--accent);}
+  .arrow{align-self:center;color:var(--muted);font-size:19px;padding:4px 0;}
+  .stage{border-left:4px solid var(--accent);background:var(--accent-soft);}
+
+  .rowflow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;}
+  .rowflow .box{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:12.5px;}
+  .rowflow .box .h{font-weight:700;font-size:13px;}
+  .rowflow .box .m{color:var(--muted);font-size:11.5px;margin-top:2px;}
+  .rowflow .plus{align-self:center;color:var(--muted);font-family:var(--mono);}
+
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:600px;}
+  th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--panel-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+  td .file{font-family:var(--mono);color:var(--accent);font-weight:600;}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  @media(max-width:640px){.vs{grid-template-columns:1fr;}}
+  .vs .col{border-radius:10px;padding:14px;border:1px solid var(--border);}
+  .vs .used{background:var(--good-bg);} .vs .used h4{color:var(--good);}
+  .vs .rej{background:var(--bad-bg);} .vs .rej h4{color:var(--bad);}
+  .vs h4{margin:0 0 8px;font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;}
+  .vs ul{margin:0;padding-left:17px;} .vs li{margin:5px 0;font-size:13px;}
+
+  .callout{border:1px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:12px 16px;font-size:13.5px;margin:14px 0;}
+  .callout b{color:var(--accent);}
+  .win{border:1px solid var(--good);background:var(--good-bg);border-radius:10px;padding:12px 16px;font-size:13.5px;margin:14px 0;}
+  .win b{color:var(--good);}
+
+  .qa{margin:10px 0;}
+  .qa .q{font-weight:700;font-size:14px;color:var(--accent);}
+  .qa .a{font-size:13.5px;color:var(--ink);margin:3px 0 12px;padding-left:12px;border-left:2px solid var(--border);}
+
+  .syl{display:flex;flex-direction:column;gap:6px;}
+  .syl .grp{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .syl .grp h4{margin:0 0 6px;font-size:14px;}
+  .syl .item{font-size:13px;margin:3px 0;}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+  .d1{background:var(--bad);} .d2{background:var(--warn);} .d3{background:var(--muted);}
+  .link{color:var(--accent);font-size:12px;font-family:var(--mono);}
+
+  footer{margin-top:56px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--border);padding-top:16px;font-family:var(--mono);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);}
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeToggle">◐ theme</button>
+<div class="wrap">
+
+  <div class="kicker">Tata Steel · AI/ML Engineer Interview · 15 min</div>
+  <h1>Ujjawal — Interview Prep Deck</h1>
+  <p class="sub">Introduction script + 3 projects (Jarvis · Tata R1 ML · Tata R2 EDITH) with flowcharts, tech stack, the approaches I used vs rejected & why, and the full topic syllabus they can quiz you on. Every fact here is from the real repo.</p>
+
+  <nav class="toc">
+    <a href="#intro">00 · Intro</a>
+    <a href="#jarvis">01 · Jarvis</a>
+    <a href="#r1">02 · Tata R1 (ML)</a>
+    <a href="#r2">03 · Tata R2 (EDITH)</a>
+    <a href="#stack">04 · Tech Stack</a>
+    <a href="#theory">05 · Theory: Used vs Ignored</a>
+    <a href="#topics">06 · Topics Syllabus</a>
+    <a href="#golden">07 · Golden Rules</a>
+  </nav>
+
+  <!-- 00 INTRO -->
+  <section id="intro">
+    <h2><span class="n">00</span> The Introduction (say this in ~60 sec)</h2>
+    <div class="script">
+      "Sir, I'm <b>Ujjawal Shrivastav</b>, a Computer Science graduate specialized in <b>AI &amp; ML</b>, 2025 batch.
+      I work as an <b>AI-native developer</b> — I design the system and architecture myself and ship it end-to-end.
+      My focus areas are <b>RAG pipelines, agentic multi-agent systems, and GenAI automation</b>.<br><br>
+      I reached <b>Round 2 of this very Tata Steel National AI Hackathon</b> — 70+ leaderboard submissions, finished around <b>rank 22</b>.
+      My flagship project is <b>Jarvis</b>, a production multi-agent assistant with a RAG memory and a self-correction loop.
+      I'm hands-on with <b>LLMs (Claude, Gemini), vector databases (ChromaDB, pgvector), FastAPI, and gradient-boosted ML</b>.
+      I can ship AI-powered features from day one. Can I walk you through a project?"
+    </div>
+    <div class="callout"><b>Delivery:</b> aakhri line pe ruko — interviewer "yes" bolega, phir aap apni strongest project (Jarvis ya jo wo poochein) mein le jao. Numbers zaroor bolo: "Round 2", "rank 22", "70+ submissions".</div>
+  </section>
+
+  <!-- 01 JARVIS -->
+  <section id="jarvis">
+    <h2><span class="n">01</span> Project — Jarvis (Multi-Agent AI Assistant)</h2>
+    <p class="lead"><b>Problem:</b> A normal chatbot forgets everything and can't take actions. I wanted an assistant that <b>remembers me</b> and can <b>act</b> safely on my behalf.<br>
+    <b>Solution:</b> A manager–worker system — one FastAPI orchestrator + ~90 specialist agents, a two-layer memory, and a 4-tier safety model, on the Claude Agent SDK.</p>
+
+    <h3>The <code>/chat</code> pipeline (the core flowchart)</h3>
+    <div class="flow">
+      <div class="rowflow">
+        <div class="box"><div class="h">1 · Intent</div><div class="m">Haiku classifies: 8 categories + priority</div></div>
+        <div class="plus">∥ parallel</div>
+        <div class="box"><div class="h">2 · Recall</div><div class="m">ChromaDB semantic search, score ≥ 0.55</div></div>
+      </div>
+      <div class="arrow">↓ &nbsp;<span class="mono" style="font-size:11px;color:var(--muted)">augmented = intent + memory + msg</span></div>
+      <div class="node stage"><div class="role">3 · Worker</div><div class="title">run_worker() — Claude Agent SDK</div><div class="desc">Spawns a Claude session in the Jarvis dir (sees all agents/tools). Streams answer, captures session_id + cost.</div></div>
+      <div class="arrow">↓</div>
+      <div class="node stage"><div class="role">4 · Critic</div><div class="title">silent Haiku reviewer — 4 rubrics</div><div class="desc">Intent · Memory · Claims · Tone → verdict <code>revise</code> = one rewrite. Fails open (never blocks the reply).</div></div>
+    </div>
+
+    <h3>Memory = RAG over my own history</h3>
+    <p>Two layers: (1) structured Markdown files (facts/preferences/projects); (2) a vector DB — every conversation embedded with <code>all-MiniLM-L6-v2</code> into <b>ChromaDB</b>, retrieved by <b>cosine similarity</b>, trimmed to a token budget. Auto-capture cron ingests new facts every 30 min.</p>
+
+    <div class="vs">
+      <div class="col used"><h4>✓ Used &amp; why</h4><ul>
+        <li><b>Manager–worker + asyncio parallel</b> — fan-out N workers, each own context.</li>
+        <li><b>Haiku for intent/critic</b> — cheap + fast for classification.</li>
+        <li><b>Score-threshold recall (0.55)</b> — kills irrelevant-memory noise.</li>
+        <li><b>Separate critic model</b> — self-correction without self-approval bias.</li>
+        <li><b>4-tier safety</b> — irreversible actions need human approval.</li>
+      </ul></div>
+      <div class="col rej"><h4>✗ Rejected &amp; why</h4><ul>
+        <li><b>Single mega-prompt agent</b> — no auditability, weaker per-domain.</li>
+        <li><b>No-memory chatbot</b> — forgets context every turn.</li>
+        <li><b>Inject all recalled chunks</b> — noise → confident-wrong answers.</li>
+        <li><b>Same-model self-critique</b> — approval bias; use a separate reviewer.</li>
+        <li><b>Full-auto everything</b> — unsafe for send/delete/publish.</li>
+      </ul></div>
+    </div>
+    <div class="win"><b>Interview line:</b> "Jarvis is a manager–worker agentic system with RAG memory and a separate-model self-correction loop — the same pattern I used for the Tata maintenance copilot."</div>
+  </section>
+
+  <!-- 02 R1 -->
+  <section id="r1">
+    <h2><span class="n">02</span> Tata Steel Round 1 — Defect Prediction (Tabular ML)</h2>
+    <p class="lead"><b>Problem:</b> Binary classification — predict the "Alpha defect" per steel coil in a Hot Rolling Mill from 49 anonymized sensor features. <span class="pill">1352 × 51 train</span> <span class="pill">4.88% defect rate</span> <span class="pill">only 66 positives</span></p>
+    <div class="callout"><b>Scoring formula (yaad rakho):</b> <code>Score = (Recall + Precision) / 2 × 100</code>. Missed defect (recall) costs way more than a false alarm → <b>recall-leaning</b> threshold. The exact <i>set</i> of flagged rows is what's optimized, not a probability ranking.</div>
+
+    <h3>Final approach — 5-paradigm consensus (flowchart)</h3>
+    <div class="flow">
+      <div class="node"><div class="role">Base</div><div class="title">V4 stack — the load-bearing baseline</div><div class="desc"><b>LightGBM + XGBoost + CatBoost → Logistic-Regression meta + Platt calibration.</b> Features: SHAP-selected + polynomial + <b>coil-neighbor temporal</b> (defect auto-correlates coil-to-coil, 5.28× lift). Stratified 5-fold, fold-isolated FE.</div></div>
+      <div class="arrow">↓ feeds into</div>
+      <div class="rowflow">
+        <div class="box"><div class="h">V35</div><div class="m">per-stand deviations · 9-model avg</div></div>
+        <div class="box"><div class="h">V39</div><div class="m">CoilID schedule feats</div></div>
+        <div class="box"><div class="h">V40</div><div class="m">defect-proximity</div></div>
+        <div class="box"><div class="h">V41</div><div class="m">sequence feats</div></div>
+        <div class="box"><div class="h">V43</div><div class="m">rank-product AND-gate</div></div>
+      </div>
+      <div class="arrow">↓ vote + rank-percentile consensus</div>
+      <div class="node stage"><div class="role">Output</div><div class="title">Top K=200 flagged → Y=1 &nbsp;·&nbsp; V44 = 72.83 LB → V71 = 74.72 LB</div><div class="desc">Non-parametric consensus (vote count + rank tiebreak) — adds no learnable weights to overfit the tiny 66-positive set.</div></div>
+    </div>
+
+    <h3>Class imbalance — the key ML decision</h3>
+    <p>Only ~13 positives per fold. Handled with <b>cost-weighting</b>, not resampling: <code>scale_pos_weight ≈ 19.48</code> for LGB/XGB, <code>class_weight=balanced</code> for sklearn learners.</p>
+
+    <div class="vs">
+      <div class="col used"><h4>✓ Used &amp; why</h4><ul>
+        <li><b>GBM trio (LGB/XGB/CatBoost)</b> — best on pure tabular sensor data, no encoding.</li>
+        <li><b>Stratified 5-fold + fold-isolated FE</b> — no leakage on 66 positives.</li>
+        <li><b>Cost-weighting (scale_pos_weight)</b> — imbalance without fake data.</li>
+        <li><b>Non-parametric consensus (vote/rank)</b> — beat stacking, zero overfit.</li>
+        <li><b>Platt calibration + threshold sweep on (R+P)/2</b>.</li>
+      </ul></div>
+      <div class="col rej"><h4>✗ Tried &amp; rejected (with the LB damage)</h4><ul>
+        <li><b>Probability blending</b> → −8 to −35 LB. Averaging shifts the flagged-row set for a set-based metric.</li>
+        <li><b>Abstain-cascade post-hoc rule (V27)</b> → CV said +1, LB <b>−34.89</b>. OOF-tuned rules break under prevalence shift.</li>
+        <li><b>Weak Stage-2 cascade (V58)</b> → −16 LB. Stage-2 must be ≥ Stage-1 in CV-AUC.</li>
+        <li><b>SMOTE</b> — interpolates noise in 49-D → false positives.</li>
+        <li><b>TabPFN / FT-Transformer / deep tabular</b> — too few rows, no gain.</li>
+        <li><b>Anomaly detection (IsoForest/OCSVM/LOF)</b> — defects are "stealth", invisible in features.</li>
+      </ul></div>
+    </div>
+    <div class="win"><b>Best story (say this):</b> "My honest ML ceiling was <b>74.72</b>, and I proved it's <i>structural</i> — reaching LB 80 needs AUC ≥ 0.95 but the anonymized features cap at ~0.89, because ~7 defects are statistically invisible. The 100-scores on the board were leaderboard-<i>probing</i>, not a generalizing model — and I'm transparent about that difference." → shows ML maturity.</div>
+  </section>
+
+  <!-- 03 R2 -->
+  <section id="r2">
+    <h2><span class="n">03</span> Tata Steel Round 2 — EDITH (Agentic Maintenance Copilot)</h2>
+    <p class="lead"><b>Problem:</b> Build an agentic "Maintenance Wizard" for a steel plant — diagnose faults, find root cause (RCA), predict remaining useful life (RUL), prioritize actions, and give <b>explainable, traceable</b> recommendations. Individual build, 10 days. Tata gave <b>no dataset</b>, so I built a physics-grounded synthetic one (~1.25M rows, 120 run-to-failure episodes, 15 assets).</p>
+
+    <h3>Architecture (three-tier flowchart)</h3>
+    <div class="flow">
+      <div class="node"><div class="role">Frontend</div><div class="title">Next.js 16 + React 19 cockpit</div><div class="desc">Dark-HUD control room: 15-asset health strip, uPlot 60fps live charts, alerts feed, "Ask EDITH" copilot, PDF report. REST + SSE.</div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="role">Backend</div><div class="title">FastAPI (SSE streaming)</div><div class="desc"><code>/stream</code> historian replay · <code>/focus</code> fast verdict (no LLM) · <code>/ask</code> full reasoning · <code>/predict /report /feedback</code></div></div>
+      <div class="arrow">↓</div>
+      <div class="node stage"><div class="role">VULCAN engine</div><div class="title">Custom Supervisor (router) → static agent DAG</div>
+        <div class="desc" style="margin-top:6px">
+          <span class="mono">intent → </span>
+          <b>Diagnosis → Predictor → RCA → Recommender → Prioritizer</b><br>
+          <span style="color:var(--muted)">Every agent is <b>deterministic</b> — runs ML + RAG + ground-truth lookups. <b>No agent calls an LLM.</b></span>
+        </div>
+      </div>
+      <div class="arrow">↓ agents build a numbered [N] evidence block</div>
+      <div class="node stage"><div class="role">The ONE LLM call</div><div class="title">Claude synthesis → NLI faithfulness gate</div><div class="desc">Claude writes prose <b>only from numbered facts</b>. Then a separate <b>DeBERTa NLI</b> model checks each cited claim entails its source → verified/unverified/low badge.</div></div>
+    </div>
+
+    <h3>Shared services</h3>
+    <div class="rowflow">
+      <div class="box"><div class="h">RAG</div><div class="m">bge-small embed → FlashRank rerank → ChromaDB → NLI gate</div></div>
+      <div class="box"><div class="h">ML</div><div class="m">LightGBM fault (3-class) + LightGBM RUL + IsolationForest anomaly</div></div>
+      <div class="box"><div class="h">LLM ladder</div><div class="m">demo-cache → Claude OAuth → Ollama SLM → template floor</div></div>
+    </div>
+
+    <div class="vs">
+      <div class="col used"><h4>✓ Used &amp; why</h4><ul>
+        <li><b>Multi-agent router DAG</b> — inspectable reasoning trace = explainability (FR4); scores on "agentic frameworks".</li>
+        <li><b>Deterministic agents, 1 synthesis call</b> — fast, auditable, hallucination-resistant.</li>
+        <li><b>Separate NLI (DeBERTa) faithfulness gate</b> — grounds every maintenance claim; avoids self-approval bias.</li>
+        <li><b>LightGBM + IsolationForest</b> — beats deep learning on PdM, CPU-friendly, explainable.</li>
+        <li><b>Local RAG (bge-small + FlashRank + ChromaDB)</b> — keyless, CPU, free.</li>
+        <li><b>Proactive auto-diagnosis on first ALARM</b> — the "agentic" proof: acts with zero input.</li>
+      </ul></div>
+      <div class="col rej"><h4>✗ Rejected &amp; why</h4><ul>
+        <li><b>LangGraph</b> — framework overhead on a solo CPU build; dynamic LLM routing risks hallucinated nodes. Static DAG is deterministic.</li>
+        <li><b>Single "chat-with-PDF" call</b> — auto-lose anti-pattern, no agentic credit.</li>
+        <li><b>Deep learning RUL (LSTM/Transformer)</b> — slower, no accuracy gain vs GBM on this data.</li>
+        <li><b>API embeddings (OpenAI/Cohere)</b> — need a key + cost; violated keyless constraint.</li>
+        <li><b>Fine-tuned SLM as live brain</b> — 4–8 tok/s CPU too slow; shipped as FR1 evidence + optional rung only.</li>
+        <li><b>Same-model self-critique</b> — replaced by external NLI verifier.</li>
+      </ul></div>
+    </div>
+    <div class="win"><b>Agentic patterns to name:</b> router/intent-dispatch · tool-using grounded agents (ReAct-style but deterministic) · single grounded-synthesis + external-verifier reflection · human-in-the-loop feedback · proactive autonomous triggering · multi-turn stateful memory.</div>
+  </section>
+
+  <!-- 04 STACK -->
+  <section id="stack">
+    <h2><span class="n">04</span> Master Tech Stack (rapid-fire ready)</h2>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>Jarvis</th><th>Tata R1 (ML)</th><th>Tata R2 (EDITH)</th></tr></thead>
+      <tbody>
+        <tr><td><b>Language</b></td><td>Python</td><td>Python 3.12</td><td>Python + TypeScript</td></tr>
+        <tr><td><b>Core</b></td><td>FastAPI + asyncio</td><td>LightGBM · XGBoost · CatBoost</td><td>FastAPI + Uvicorn (SSE)</td></tr>
+        <tr><td><b>LLM</b></td><td>Claude Agent SDK (OAuth)</td><td>—</td><td>Claude (Haiku/Sonnet) via Agent SDK</td></tr>
+        <tr><td><b>Orchestration</b></td><td>Manager–worker + asyncio.gather</td><td>Vote/rank consensus</td><td>Custom Supervisor (static agent DAG)</td></tr>
+        <tr><td><b>Vector / RAG</b></td><td>ChromaDB + all-MiniLM-L6-v2</td><td>—</td><td>ChromaDB + bge-small + FlashRank</td></tr>
+        <tr><td><b>Faithfulness</b></td><td>4-rubric critic (Haiku)</td><td>—</td><td>DeBERTa NLI entailment gate</td></tr>
+        <tr><td><b>ML models</b></td><td>—</td><td>Stacking + Platt calibration; SHAP; Optuna</td><td>LightGBM fault + RUL, IsolationForest</td></tr>
+        <tr><td><b>Frontend</b></td><td>Telegram bridge</td><td>—</td><td>Next.js 16 · React 19 · Tailwind 4 · uPlot</td></tr>
+        <tr><td><b>Validation</b></td><td>Pydantic v2 · 35+ pytest</td><td>Stratified 5-fold CV · bootstrap CI</td><td>Pydantic · adversarial dataset audit</td></tr>
+        <tr><td><b>Ops</b></td><td>systemd · cron</td><td>CDP submission automation</td><td>QLoRA (Unsloth) SLM · Ollama · Playwright PDF</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- 05 THEORY -->
+  <section id="theory">
+    <h2><span class="n">05</span> AI/ML Theory — What I Used vs Ignored &amp; Why</h2>
+    <p class="lead">Ye interviewers ka favourite — "aapne X kyun use kiya, Y kyun nahi?" Har ek ka crisp reason ratlo.</p>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Decision</th><th>Chose</th><th>Ignored</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Tabular model</td><td>Gradient Boosting (LGB/XGB/Cat)</td><td>Deep learning / tabular transformers</td><td>GBM wins on tabular, no encoding, fewer rows, explainable (SHAP). DL needs data + gives no gain here.</td></tr>
+        <tr><td>Imbalance</td><td>Class-weighting (scale_pos_weight)</td><td>SMOTE / oversampling</td><td>Synthesizing minority points in high-D interpolates noise → false positives. Weighting keeps real data.</td></tr>
+        <tr><td>Ensemble</td><td>Non-parametric vote/rank consensus</td><td>Learned meta-stacker</td><td>66 positives → a learned meta overfits. Vote/rank adds no weights to overfit.</td></tr>
+        <tr><td>Metric handling</td><td>Threshold sweep on (R+P)/2</td><td>Default 0.5 / blending</td><td>Set-based metric — the flagged rows matter; blending shifts them and tanks the score.</td></tr>
+        <tr><td>Knowledge into LLM</td><td>RAG (retrieval)</td><td>Fine-tuning as primary</td><td>RAG is cheap, updatable, citable. Fine-tune needs data + GPU + re-train per update; used only as FR1 evidence.</td></tr>
+        <tr><td>Embeddings</td><td>Local (bge-small / MiniLM)</td><td>API embeddings (OpenAI/Cohere)</td><td>Keyless, CPU-capable, free. API needs a secret key + cost.</td></tr>
+        <tr><td>Retrieval quality</td><td>Reranker (FlashRank cross-encoder)</td><td>Raw vector top-k only</td><td>Bi-encoder recall is coarse; a cross-encoder reranks for precision on the final few chunks.</td></tr>
+        <tr><td>Agent orchestration</td><td>Custom deterministic DAG</td><td>LangGraph / dynamic LLM routing</td><td>Solo CPU demo needs reliability; static routing can't hallucinate node names; less code.</td></tr>
+        <tr><td>Hallucination control</td><td>Separate NLI verifier + grounding</td><td>Same-model self-critique</td><td>A model grading itself has approval bias; a different smaller model is an honest check.</td></tr>
+        <tr><td>RUL / PdM model</td><td>LightGBM regressor + IsolationForest</td><td>LSTM-AE / WeibullAFT (earlier build)</td><td>Simpler, faster, explainable; DL RMSE not better on C-MAPSS-class data.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- 06 TOPICS -->
+  <section id="topics">
+    <h2><span class="n">06</span> Topics They Can Ask — Syllabus</h2>
+    <p class="lead"><span class="dot d1"></span>must-know cold &nbsp; <span class="dot d2"></span>good-to-know &nbsp; <span class="dot d3"></span>nice-to-have. Priority = fundamental <i>and</i> in your projects.</p>
+    <div class="syl">
+      <div class="grp"><h4>A · Classic ML</h4>
+        <div class="item"><span class="dot d1"></span>Decision Tree (Gini/entropy/info-gain, overfit, pruning) · Random Forest (bagging)</div>
+        <div class="item"><span class="dot d1"></span>Gradient Boosting — <b>XGBoost vs LightGBM vs CatBoost</b> <span class="link">→ your R1</span></div>
+        <div class="item"><span class="dot d1"></span>Bias–variance · Cross-validation (stratified k-fold) · Bagging vs Boosting · L1/L2 regularization</div>
+        <div class="item"><span class="dot d2"></span>Logistic/Linear reg · SVM · kNN · Naive Bayes · Stacking</div>
+      </div>
+      <div class="grp"><h4>B · Metrics &amp; Stats</h4>
+        <div class="item"><span class="dot d1"></span>Precision vs Recall · Confusion matrix · F1 · ROC-AUC vs PR-AUC <span class="link">→ your R1 metric</span></div>
+        <div class="item"><span class="dot d1"></span>Imbalanced data — class-weight vs SMOTE · Calibration (Platt) <span class="link">→ your R1</span></div>
+        <div class="item"><span class="dot d2"></span>Gradient descent · loss/learning-rate · Bayes · normalization · curse of dimensionality</div>
+      </div>
+      <div class="grp"><h4>C · Deep Learning</h4>
+        <div class="item"><span class="dot d1"></span>Neural net basics · activations (ReLU/sigmoid/softmax) · backprop · <b>Transformer &amp; attention</b></div>
+        <div class="item"><span class="dot d2"></span>CNN · RNN/LSTM · dropout · batch-norm · Adam/SGD · early stopping</div>
+      </div>
+      <div class="grp"><h4>D · NLP / LLM / GenAI <span class="pill">your specialty</span></h4>
+        <div class="item"><span class="dot d1"></span>How an LLM works (next-token) · Embeddings &amp; cosine similarity <span class="link">→ all projects</span></div>
+        <div class="item"><span class="dot d1"></span><b>RAG</b> (retrieve→augment→generate) · Vector DBs · chunking · Reranking <span class="link">→ R2/Jarvis</span></div>
+        <div class="item"><span class="dot d1"></span>Hallucination control — grounding + NLI gate <span class="link">→ R2</span> · RAG vs Fine-tune vs Prompt</div>
+        <div class="item"><span class="dot d2"></span>Tokenization · temperature/top-p · context window · tool-use/function-calling</div>
+      </div>
+      <div class="grp"><h4>E · Agentic AI <span class="pill">your home turf</span></h4>
+        <div class="item"><span class="dot d1"></span>What is an agent (vs LLM call) · Multi-agent router/orchestration <span class="link">→ R2/Jarvis</span></div>
+        <div class="item"><span class="dot d1"></span>ReAct · agent memory (episodic) · human-in-the-loop</div>
+        <div class="item"><span class="dot d2"></span>Reflection/self-critique · planning/decomposition · LangGraph/state machines</div>
+      </div>
+      <div class="grp"><h4>F · Steel / Applied + G · MLOps + H · Behavioral</h4>
+        <div class="item"><span class="dot d1"></span>Predictive maintenance &amp; RUL <span class="link">→ R2</span> · anomaly detection · time-series</div>
+        <div class="item"><span class="dot d2"></span>FastAPI/Docker deploy · model monitoring &amp; drift</div>
+        <div class="item"><span class="dot d1"></span>Tell me about yourself · Hardest problem (R1 −35 LB fix) · Why manufacturing AI / why Tata</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 GOLDEN -->
+  <section id="golden">
+    <h2><span class="n">07</span> Golden Rules (interview jeetne ka)</h2>
+    <div class="card">
+      <p><b>1. Har fundamental ko project se jodo.</b> "What is a decision tree?" → theory (Gini/split) + "...and I used gradient-boosted trees, LightGBM &amp; CatBoost, in my Tata Round 1 defect model."</p>
+      <p><b>2. Numbers bolo.</b> "Round 2", "rank 22", "74.72 honest ceiling", "1.25M-row dataset", "~90 agents", "0.55 threshold".</p>
+      <p><b>3. "Kyun nahi X?" ka jawab hamesha ready.</b> Section 05 ki table ratlo — used vs ignored + reason.</p>
+      <p><b>4. Honesty = strength.</b> R1 mein "100 was probing, my real model is 74.72" bolna maturity dikhata hai, kamzori nahi.</p>
+      <p><b>5. Follow-up invite karo.</b> Har answer ke end pe interviewer ko deeper jaane ka mauka do — confidence dikhta hai.</p>
+    </div>
+    <div class="callout"><b>3 keyword-triples jo natural bolna hai:</b> "independent → parallel" · "irreversible → Tier-3 → human approval" · "grounded facts → single synthesis → NLI verify". Ye bolte hi interviewer samajh jaata hai ki aapne sochke banaya hai.</div>
+  </section>
+
+  <footer>
+    Ujjawal Shrivastav · AI/ML Engineer · Tata Steel interview prep<br>
+    Sources: jarvis_core/*.py · round_1/ (V4→V71) · round_2/EDITH · resume. Every number verified against the repo.
+  </footer>
+</div>
+<script>
+(function(){
+  var b=document.getElementById('themeToggle'),r=document.documentElement;
+  b.addEventListener('click',function(){
+    var c=r.getAttribute('data-theme');
+    if(!c)c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+    r.setAttribute('data-theme',c==='dark'?'light':'dark');
+  });
+})();
+</script>
+</body>
+</html>

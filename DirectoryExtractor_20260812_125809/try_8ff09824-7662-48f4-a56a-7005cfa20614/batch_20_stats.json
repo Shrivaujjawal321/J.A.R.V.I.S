@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 103,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 36,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 54,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 5,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 5,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 16,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 13,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

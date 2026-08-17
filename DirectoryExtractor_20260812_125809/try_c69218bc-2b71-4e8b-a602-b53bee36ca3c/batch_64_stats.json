@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 7,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 16,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Kansas",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

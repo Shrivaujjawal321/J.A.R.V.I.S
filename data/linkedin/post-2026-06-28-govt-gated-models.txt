@@ -1,0 +1,21 @@
+The biggest AI story this week wasn't a new model. It was who gets to use one.
+
+OpenAI previewed GPT-5.6 "Sol" — stronger at coding, science, and cybersecurity. Then it limited the rollout after a government request, and said publicly this shouldn't become the norm: it "keeps the best tools from users, developers, enterprises, and cyber defenders."
+
+Same week, the US administration cleared Anthropic's Mythos 5 for use across 100+ companies and federal agencies.
+
+Notice the pattern.
+
+For years the gate on a frontier model was compute and red-teaming. Now there's a third gate: government access policy.
+
+What most takes are missing — this changes the builder's risk model, not just the headline:
+
+— The model you architect around today might reach your region on a different timeline than the demo.
+— "Available" and "available to you" are now two different questions.
+— Capability parity between labs starts to matter less than distribution rights.
+
+If you're building on frontier APIs in 2026, model access is becoming a supply-chain dependency — so plan for it like one. Abstract your provider. Keep a fallback. Don't hard-couple a product roadmap to a model you can't guarantee you'll be allowed to call.
+
+Are you already designing for provider-portability, or still betting on one model? Curious how others are hedging this.
+
+#AIengineering #LLMOps #AIagents #MLOps

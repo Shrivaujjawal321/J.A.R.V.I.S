@@ -1,0 +1,162 @@
+{
+  "oof_auc": 0.8742,
+  "ci_lower": 0.836,
+  "ci_upper": 0.9069,
+  "spearman_vs_v35_oof": 0.8989,
+  "test_spearman": {
+    "v35": 0.9226,
+    "v39": 0.7964,
+    "v40": 0.7898,
+    "v41": 0.9125
+  },
+  "pseudo_count": 132,
+  "pseudo_weight": 0.6,
+  "prevalence_real_pct": 4.88,
+  "prevalence_aug_pct": 13.34,
+  "oof_score_k200": 43.33,
+  "best_oof_k": 299,
+  "best_oof_score": 46.24,
+  "shap_top5": [
+    [
+      "poly_X13_over_X36_X16",
+      0.5871
+    ],
+    [
+      "X13_over_X36",
+      0.5232
+    ],
+    [
+      "poly_X13_minus_X36^2",
+      0.2374
+    ],
+    [
+      "X36",
+      0.2071
+    ],
+    [
+      "iso_score",
+      0.1772
+    ]
+  ],
+  "gates_passed": 3,
+  "total_gates": 3,
+  "gates_detail": [
+    {
+      "name": "OOF AUC >= 0.87 (real-train only)",
+      "pass": true,
+      "value": "0.8742"
+    },
+    {
+      "name": "Spearman vs V35 OOF < 0.95",
+      "pass": true,
+      "value": "0.8989"
+    },
+    {
+      "name": "Pseudo-positive count == 132",
+      "pass": true,
+      "value": "132"
+    }
+  ],
+  "per_model_aucs": {
+    "LGB1": {
+      "mean_oof_auc": 0.8626,
+      "fold_std": 0.0259,
+      "fold_aucs": [
+        0.8602,
+        0.8902,
+        0.815,
+        0.8797,
+        0.8677
+      ]
+    },
+    "LGB2": {
+      "mean_oof_auc": 0.8683,
+      "fold_std": 0.0238,
+      "fold_aucs": [
+        0.847,
+        0.8872,
+        0.8381,
+        0.9015,
+        0.865
+      ]
+    },
+    "XGB1": {
+      "mean_oof_auc": 0.8692,
+      "fold_std": 0.0189,
+      "fold_aucs": [
+        0.8497,
+        0.8758,
+        0.8459,
+        0.8833,
+        0.8943
+      ]
+    },
+    "XGB2": {
+      "mean_oof_auc": 0.8729,
+      "fold_std": 0.023,
+      "fold_aucs": [
+        0.8629,
+        0.8835,
+        0.8345,
+        0.8913,
+        0.8979
+      ]
+    },
+    "CatBoost": {
+      "mean_oof_auc": 0.8735,
+      "fold_std": 0.0203,
+      "fold_aucs": [
+        0.862,
+        0.888,
+        0.8405,
+        0.8809,
+        0.8973
+      ]
+    },
+    "RF": {
+      "mean_oof_auc": 0.8586,
+      "fold_std": 0.0242,
+      "fold_aucs": [
+        0.8479,
+        0.8894,
+        0.8219,
+        0.8768,
+        0.8747
+      ]
+    },
+    "ET": {
+      "mean_oof_auc": 0.8566,
+      "fold_std": 0.0391,
+      "fold_aucs": [
+        0.8511,
+        0.8583,
+        0.7869,
+        0.8824,
+        0.9021
+      ]
+    },
+    "HGB": {
+      "mean_oof_auc": 0.8574,
+      "fold_std": 0.0247,
+      "fold_aucs": [
+        0.8605,
+        0.8677,
+        0.8126,
+        0.8878,
+        0.8599
+      ]
+    },
+    "TabICL": {
+      "mean_oof_auc": 0.8738,
+      "fold_std": 0.0224,
+      "fold_aucs": [
+        0.859,
+        0.8797,
+        0.8447,
+        0.9048,
+        0.8961
+      ]
+    }
+  },
+  "avg_fold_std": 0.0247
+}

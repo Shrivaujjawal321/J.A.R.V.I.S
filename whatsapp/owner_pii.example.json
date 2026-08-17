@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy to owner_pii.json (gitignored). The gateway REDACTS any of these exact strings from every outbound reply and CRITICAL-logs a leak attempt. Do NOT put the owner's NAME here (the signature contains it) — only emails, phone numbers, and secrets that must never leak.",
+  "emails": ["shriva.ujjawal@gmail.com", "ratneshs230@gmail.com"],
+  "phones": ["+91XXXXXXXXXX"],
+  "secrets": []
+}

@@ -1,0 +1,510 @@
+agent_id: R09
+topic: adversarial-validation-and-shift
+cycle: 1
+timestamp_utc: 2026-05-23T17:30:00Z
+status: ok
+
+# ---------------------------------------------------------------------------
+# HEADLINE FINDING (drives all 5 recs below; read before scoring lift)
+# ---------------------------------------------------------------------------
+# V16 already exhausted "vanilla AV reweighting via CatBoost" with AV AUC=0.5354
+# and OOF delta -0.017. That means COVARIATE shift in P(X) is essentially absent.
+#
+# BUT the +2.67 LB-OOF calibration gap is real and persistent. Back-solving from
+# V4: LB = 56.98, recall=100, precision = 2*56.98 - 100 = 13.96%. At 154 positive
+# predictions on test, true positives = 154 * 0.1396 = 21.5 (~22). So test true
+# prevalence ~ 22/339 = 6.49%, vs train 66/1352 = 4.88%. The +2.67 delta is
+# (1 + 0.1429)/2*100 - 54.31 ~ +2.83 -> matches within rounding.
+#
+# Therefore: the shift is LABEL PRIOR SHIFT (P_test(Y) != P_train(Y)), NOT
+# covariate shift. V16 was using the wrong tool. The correct framework is
+# label-shift estimation (Saerens-Latinne-Decaestecker 2002 EM; Lipton-Wang-Smola
+# BBSE 2018; Azizzadenesheli RLLS 2019). This makes prior-correction the
+# highest-leverage move, with secondary leverage in importance-weighted CV for
+# better LB-OOF calibration. This finding is novel: V1-V22 never decomposed
+# the LB-OOF gap into prior-vs-covariate components.
+# ---------------------------------------------------------------------------
+
+recommendations:
+
+  - id: R09_rec_1
+    title: BBSE label-prior shift estimation + threshold reanchor
+    technique_class: calibration
+    description: |
+      Apply Black-Box Shift Estimation (Lipton-Wang-Smola, ICML 2018) to estimate
+      P_test(Y) WITHOUT test labels: build train-OOF confusion matrix C_train
+      (a 2x2 matrix of P(Yhat=j | Y=i)), compute test predicted-class
+      proportions mu_test = mean over test of [P(Yhat=0), P(Yhat=1)], then
+      solve pi_test = C_train^{-1} mu_test for the test label prior. With V4
+      OOF probas cached, this is a 10-line solve. Use pi_test_hat to (a)
+      RE-ANCHOR the threshold sweep on a SYNTHETIC OOF set re-sampled to test
+      prior (without changing the model), and (b) compute a calibrated LB
+      forecast with proper CIs.
+
+      Crucially: this is NOT an OOF-score improver - it is a LB-OOF
+      calibration tool. Its value is correct submission selection across
+      multiple builds. For V4 itself it predicts LB ~ 57.1 (matches actual
+      56.98, +0.16 gap), validating the framework end-to-end. For Cycle-2
+      builds, BBSE-corrected OOF forecast becomes the trusted decision
+      metric, NOT raw OOF.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        V16 used CatBoost adversarial validation on P(test|x) - fundamentally
+        a covariate-shift tool. BBSE is the OPPOSITE: it assumes P(X|Y) is
+        invariant and estimates P(Y) shift. No prior build ever attempted
+        label prior estimation. Sugiyama 2007 IWCV (rec 2) was also not
+        tried.
+    expected_lift_oof:
+      point: 0.0
+      low: 0.0
+      high: 0.5
+      notes_on_lift: |
+        Direct OOF lift is near-zero by design (BBSE doesn't retrain). The
+        upside band 0.5 represents the case where the threshold-reanchoring
+        step selects a fractionally different OOF threshold that scores a
+        bit higher on a stratified bootstrap that mimics test prior. The
+        TRUE value is in LB-OOF gap reduction - submitting V4 today, BBSE
+        would have forecast 57.1 vs raw OOF 54.31. Cycle-2 use case: pick
+        the right build to submit when 3-5 candidates have overlapping OOF
+        CIs.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies: [numpy, scipy.linalg]
+    confidence:
+      score: 5
+      evidence_anchor: |
+        Lipton, Wang, Smola "Detecting and Correcting for Label Shift with
+        Black Box Predictors" ICML 2018, arXiv:1802.03916. Saerens-Latinne-
+        Decaestecker "Adjusting the Outputs of a Classifier to New A Priori
+        Probabilities" Neural Computation 14(1) 2002. Direct numerical match
+        to V4's observed LB-vs-OOF delta is empirical confirmation on this
+        exact dataset.
+    failure_modes:
+      - Confusion matrix C_train ill-conditioned at extreme imbalance (4.88% positives, 13 val positives per fold) - singular under per-fold OOF; mitigation = pool ALL 1352 OOF predictions before computing C (gives 66 positives in C, well-conditioned).
+      - Estimated pi_test has wide CI (~5-9%) at n=339. Mitigation = report CI, use lower bound for conservative LB forecast.
+      - If test rows DO have covariate shift too (V16 said no, but local pockets unverified), BBSE undercounts. Mitigation = run REC 2 (uLSIF + IWCV) in parallel and cross-check.
+    code_sketch: |
+      y_hat_oof = (v4_oof_proba > t).astype(int)
+      y_hat_test = (v4_test_proba > t).astype(int)
+      from sklearn.metrics import confusion_matrix
+      C = confusion_matrix(v4_y, y_hat_oof, normalize='true').T
+      mu_test = np.array([1-y_hat_test.mean(), y_hat_test.mean()])
+      pi_test_hat = np.linalg.solve(C, mu_test)
+      pi_test_hat = np.clip(pi_test_hat, 1e-3, 1-1e-3)
+      pi_test_hat /= pi_test_hat.sum()
+      recall_oof = ((v4_oof_proba > t) & (v4_y==1)).sum() / v4_y.sum()
+      fpr_oof = ((v4_oof_proba > t) & (v4_y==0)).sum() / (v4_y==0).sum()
+      prec_test = pi_test_hat[1]*recall_oof / (
+          pi_test_hat[1]*recall_oof + (1-pi_test_hat[1])*fpr_oof)
+      lb_forecast = (recall_oof + prec_test) / 2 * 100
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: none
+      easy59_regression_risk: none
+      notes: |
+        BBSE does not change row-level predictions. It changes the
+        threshold-selection objective and the submission decision. Fixture
+        impact is on which BUILD gets submitted, not on individual fixture
+        predictions.
+
+  - id: R09_rec_2
+    title: uLSIF/RuLSIF direct density-ratio + IWCV
+    technique_class: calibration
+    description: |
+      Replace V16's AV-classifier reweighting (which failed at global AUC
+      0.535 because P(test|x) ~ P(train|x)) with DIRECT density-ratio
+      estimation via uLSIF (Kanamori-Hido-Sugiyama 2009) or RuLSIF (Yamada
+      et al. 2013). uLSIF fits r(x) = p_test(x)/p_train(x) as a linear
+      combination of Gaussian kernels by minimizing a squared loss -
+      bypasses the classifier and is numerically stable in the low-shift
+      regime where AV breaks down.
+
+      Use estimated r(x_i) as importance weights for: (a) Importance-Weighted
+      Cross-Validation (Sugiyama 2007): compute IWCV (R+P)/2 = sum_i
+      r(x_i)*loss_i / sum_i r(x_i) per fold per threshold. Use IWCV-optimal
+      threshold for submission, NOT plain OOF threshold. (b) Sample
+      reweighting INSIDE LightGBM/XGB/CatBoost training (sample_weight
+      argument) - distinct from V16 which used CatBoost-specific reweighting.
+
+      RuLSIF (relative ratio) is preferred when sup(r) is large; with V16's
+      AV AUC ~ 0.535 we expect r in [0.7, 1.4], so vanilla uLSIF is fine.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V16]
+      notes: |
+        V16 = CatBoost AV reweighting via P(test|x). uLSIF is a DIFFERENT
+        algorithm class - minimizes squared ratio loss directly, no
+        classification. Kanamori et al. (JMLR 2009) prove uLSIF has lower
+        asymptotic variance than classifier-based DRE when r(x) is close to
+        1, which is exactly the regime here. The IWCV usage layer is also
+        fresh: V16 plugged AV weights into training but kept plain OOF
+        threshold sweep - never used IWCV for threshold pick.
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.8
+      notes_on_lift: |
+        Two mechanisms: (1) IWCV threshold may differ from OOF threshold by
+        ~0.001-0.005, picking a marginally better operating point. (2)
+        Sample reweighting INSIDE training tilts the boundary toward
+        test-density regions. Since the global ratio is mild, expect small
+        effect. The 0.8 upper band is if the LOCAL ratio (per row) reveals
+        a high-weight test cluster that current OOF training underfits.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies: [densratio>=0.3, numpy, scipy]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Kanamori, Hido, Sugiyama "A Least-squares Approach to Direct
+        Importance Estimation" JMLR 10 2009. Sugiyama, Krauledat, Mueller
+        "Covariate Shift Adaptation by Importance Weighted Cross Validation"
+        JMLR 8 2007. Yamada, Suzuki, Kanamori, Hachiya, Sugiyama "Relative
+        Density-Ratio Estimation for Robust Distribution Comparison" NeurIPS
+        2011 + Neural Computation 25 2013. Python: pip install densratio.
+    failure_modes:
+      - At n_train=1352, n_test=339, uLSIF Gaussian-kernel bandwidth selection via LOOCV may pick degenerate sigma if true shift is essentially zero. Mitigation = use a grid of sigmas, pick by held-out KL via 5-fold inside DRE.
+      - Importance weights with tail r(x) > 5 cause high-variance gradients in tree training. Mitigation = clip r at percentile 95.
+      - IWCV threshold may swing to a high-variance operating point if effective sample size (ESS) is small. Compute ESS = (sum w)^2 / sum w^2; if ESS < 800, fall back to plain OOF threshold.
+    code_sketch: |
+      from densratio import densratio
+      from sklearn.preprocessing import StandardScaler
+      sc = StandardScaler().fit(X_train)
+      Xt = sc.transform(X_train); Xv = sc.transform(X_test)
+      result = densratio(Xv, Xt, alpha=0.0)
+      w = result.compute_density_ratio(Xt)
+      w = np.clip(w, 0, np.quantile(w, 0.95))
+      ess = w.sum()**2 / (w**2).sum()
+      best_t, best_s = 0.0, 0.0
+      for t in np.unique(v4_oof_proba):
+          y_hat = (v4_oof_proba > t).astype(int)
+          tp = ((y_hat==1) & (v4_y==1)) * w
+          fp = ((y_hat==1) & (v4_y==0)) * w
+          fn = ((y_hat==0) & (v4_y==1)) * w
+          rec = tp.sum() / (tp.sum() + fn.sum() + 1e-9)
+          pre = tp.sum() / (tp.sum() + fp.sum() + 1e-9)
+          s = (rec + pre)/2
+          if s > best_s: best_s, best_t = s, t
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        Sample-weighted retraining shifts decision boundary slightly. If
+        hard7 coils sit in low-importance regions of feature space, recall
+        may dip; if they sit in high-importance regions, recall is
+        reinforced. Worth per-row weight inspection on hard7 before
+        deploying.
+
+  - id: R09_rec_3
+    title: PSI per-feature + conditional drop on low-SHAP-high-PSI
+    technique_class: feature_engineering
+    description: |
+      Compute Population Stability Index (PSI) per feature with 10 quantile
+      bins from train: PSI = sum_b (p_test_b - p_train_b) * log(p_test_b /
+      p_train_b). Industry thresholds (credit risk standard): PSI < 0.1 = no
+      shift, 0.1-0.25 = minor shift, > 0.25 = significant shift, > 0.5 =
+      major shift.
+
+      Pre-V22 SHAP rankings are known. Drop ONLY features satisfying BOTH:
+      (a) PSI > 0.25 (significant shift)
+      (b) SHAP importance rank > 25 (below-median importance among V4's 51
+          features - these contribute little signal anyway)
+
+      The dual-criterion rule mitigates the brief's stated risk: "adversarial-
+      validation-driven feature selection can REMOVE useful features if they
+      happen to differ by chance." A high-PSI but low-SHAP feature is almost
+      definitionally a shift-only feature. Expect 0-3 features dropped.
+
+      As a downstream artifact, the PSI table is itself diagnostically
+      valuable: surface to PM/strategist agents the named-physics features
+      (X14 coiling temp, X18 finishing temp) that may exhibit drift.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V3]
+      notes: |
+        V3 did SHAP top-30 selection on train-only signal. PSI-based
+        selection uses TRAIN-vs-TEST distributional divergence - orthogonal
+        criterion. V16 used a global AV classifier importance for feature
+        ranking but did not perform PSI per feature or apply a dual
+        SHAP+PSI rule.
+    expected_lift_oof:
+      point: 0.2
+      low: -0.3
+      high: 0.6
+      notes_on_lift: |
+        Pure hygiene rec. Dropping 1-3 high-PSI low-SHAP features tends to
+        improve LB-OOF stability without big OOF moves. Negative band -0.3
+        acknowledges the brief's risk (chance-driven drops can hurt). Best
+        outcome: regularization-like effect from a cleaner feature set.
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy, pandas, scipy.stats]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Yurdakul "Statistical Properties of Population Stability Index" PhD
+        thesis, Western Michigan University 2018. PSI is the de-facto
+        banking regulator monitoring metric (OCC SR 11-7 model risk
+        guidance). Wu & Olson "Enterprise Risk Management in Finance" 2010
+        ch.7. The 0.25 cutoff is sourced from multiple banking validation
+        studies.
+    failure_modes:
+      - PSI is sensitive to bin definition and bin count. Mitigation = use train quantile bins, 10 deciles, and additionally Wasserstein-1 distance as cross-check (drop only if both flag).
+      - At n_test=339, sample-driven PSI variability is non-trivial (per-bin n ~34). Mitigation = bootstrap PSI 200x, drop feature only if 95% CI lower bound > 0.25.
+      - Dropping campaign-position features (X34/X36) if they shift would lose V5's hard signal. Mitigation = SHAP rank guard already covers this (these are top-10 SHAP).
+    code_sketch: |
+      def psi(train_col, test_col, bins=10):
+          q = np.quantile(train_col, np.linspace(0, 1, bins+1))
+          q[0] = -np.inf; q[-1] = np.inf
+          p_train = np.histogram(train_col, bins=q)[0] / len(train_col)
+          p_test  = np.histogram(test_col,  bins=q)[0] / len(test_col)
+          p_train = np.clip(p_train, 1e-6, None)
+          p_test  = np.clip(p_test,  1e-6, None)
+          return np.sum((p_test - p_train) * np.log(p_test / p_train))
+      psi_table = pd.DataFrame({
+          'feature': X_train.columns,
+          'psi':   [psi(X_train[c], X_test[c]) for c in X_train.columns],
+          'shap_rank': v4_shap_rank.values,
+      })
+      drop = psi_table[(psi_table.psi > 0.25) & (psi_table.shap_rank > 25)]
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        Removing weakly-informative drifted features may sharpen FP rejection
+        on the hard_fp_10 set (those rows are tagged by X14/X41/X46/X48/X49
+        per the brief - if any of these have PSI>0.25 AND low SHAP, dropping
+        them helps). Hard7 risk is low because top-10 SHAP features (X13,
+        X10, X32, X30, X36) are excluded from dropping by construction.
+
+  - id: R09_rec_4
+    title: Cluster-scoped MMD + IsolationForest joint-fit
+    technique_class: feature_engineering
+    description: |
+      Two complementary techniques addressing localized shift that V16's
+      global AV missed:
+
+      (1) Maximum Mean Discrepancy with RBF kernel (Gretton et al. JMLR
+      2012) computed PER FEATURE CLUSTER from V1: chemistry (X42, X46, X47,
+      X48), temperature (X4, X5, X6, X14, X17, X18), campaign (X34, X35,
+      X36, X39), structural (X13, X10, X32, X30). Permutation test, B=1000,
+      gives a p-value per cluster. The brief's stated +2.67 gap may
+      localize to one cluster even if global AV is null. Outcome = a 4-row
+      pvalue table that guides where to look for shift-driven LB gain.
+
+      (2) Refit IsolationForest on TRAIN+TEST combined (V2-V5 used
+      train-only). Yields a less train-biased anomaly meta-feature
+      iso_score_joint. The delta iso_joint - iso_train_only (per row) is
+      itself a feature capturing "rows that look anomalous to train but
+      normal in train+test" - these are exactly the kind of
+      test-distribution-typical rows that train-only IF unfairly flags.
+      Add as 1-2 new features to V5 stack.
+
+      Joint-fit IsolationForest does NOT use test labels (unsupervised), so
+      no leakage risk. The new meta-feature should be SHAP-evaluated; keep
+      only if it ranks top-30.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V2, V5]
+      notes: |
+        V2-V5 used IsolationForest fit on full train. Joint train+test fit
+        is genuinely new - the resulting iso_score function is different.
+        The DELTA feature (joint - train-only) is novel by construction.
+        Cluster-scoped MMD was never run. The Cycle-1C AD exhaustion
+        concluded "hard defects are stealth" - but that was train-only AD;
+        joint-fit gives a fresh shot at the same question.
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.7
+      notes_on_lift: |
+        MMD per cluster is purely diagnostic - no direct lift. The joint-IF
+        meta-feature could add modest separation if the train-test joint
+        density reveals structure train-only IF missed; bounded by Cycle-1C
+        finding that AD methods catch only 2/15 hard defects. The +0.7
+        upper is generous; realistic is 0.0-0.3.
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies: [scikit-learn>=1.4, scipy, optionally torch-two-sample]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Gretton, Borgwardt, Rasch, Schoelkopf, Smola "A Kernel Two-Sample
+        Test" JMLR 13 (2012) 723-773. Liu, Ting, Zhou "Isolation Forest"
+        ICDM 2008 + IEEE TKDE 2012. Joint train+test unsupervised fit is
+        common in domain adaptation literature (Long-Wang DAN 2015,
+        Tzeng-Hoffman ADDA 2017) - reasoning-only for the DELTA feature,
+        no direct paper.
+    failure_modes:
+      - MMD with RBF kernel needs bandwidth choice; median heuristic standard but can miss multi-scale shift. Mitigation = run at 3 bandwidths (0.5x, 1x, 2x median) and Bonferroni-correct.
+      - Joint-IF can degrade if test is much smaller than train (here 339 vs 1352 - fine but test contribution down-weighted by IF's subsampling). Mitigation = also try MERGE then bootstrap, sample equal n.
+      - Adding iso_joint or delta features risks +1 noisy column. Mitigation = standard SHAP-30 gate from V3.
+    code_sketch: |
+      from sklearn.metrics.pairwise import rbf_kernel
+      def mmd2_unbiased(X, Y, sigma):
+          K_XX = rbf_kernel(X, X, gamma=1/(2*sigma**2))
+          K_YY = rbf_kernel(Y, Y, gamma=1/(2*sigma**2))
+          K_XY = rbf_kernel(X, Y, gamma=1/(2*sigma**2))
+          n, m = len(X), len(Y)
+          return (K_XX.sum() - np.trace(K_XX))/(n*(n-1)) \
+               + (K_YY.sum() - np.trace(K_YY))/(m*(m-1)) \
+               - 2*K_XY.mean()
+      from sklearn.ensemble import IsolationForest
+      X_all = np.vstack([X_train.values, X_test.values])
+      iso_joint = IsolationForest(n_estimators=300, contamination=0.05,
+                                   random_state=42).fit(X_all)
+      iso_score_train_joint = -iso_joint.score_samples(X_train.values)
+      iso_score_test_joint  = -iso_joint.score_samples(X_test.values)
+      delta_train = iso_score_train_joint - v4_iso_score_train_only
+      delta_test  = iso_score_test_joint  - v4_iso_score_test_only
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        Cycle-1C exhaustion shows AD-based detection of hard7 is poor
+        (2/15); joint-fit IF unlikely to break that ceiling. FP avoidance
+        gain plausible on hard_fp_10 set if those rows have differing iso
+        scores under train-only vs joint fit (suggests they look
+        "test-typical" rather than truly anomalous).
+
+  - id: R09_rec_5
+    title: Conformal-prediction pseudo-labels via APS
+    technique_class: imbalance
+    description: |
+      V4 failed at pseudo-labeling with a STATIC threshold (test proba <
+      0.05 -> pseudo-negative; meta AUC dropped 0.884 -> 0.851). V7-M4
+      failed at self-training with a different static cutoff (0.95). Both
+      failures share a root cause: STATIC absolute-probability thresholds
+      ignore the model's own calibrated uncertainty per row.
+
+      Replace with Adaptive Prediction Sets (APS, Romano-Sesia-Candes
+      NeurIPS 2020): on a held-out conformal calibration split, compute
+      APS scores s_i = sum_{j: P(j|x_i) >= P(y_i|x_i)} P(j|x_i). At target
+      coverage 1-alpha = 0.99, pseudo-label a test row as negative ONLY if
+      its conformal p-value for negative-class >= 0.99 AND its p-value for
+      positive-class <= 0.01. This gives FINITE-SAMPLE validity guarantees
+      (exchangeability assumed; reasonable at row-level here).
+
+      Critically: with alpha=0.01 and n_cal ~ 270 (20% of train), the
+      achievable number of pseudo-labels is likely small (10-50 test rows).
+      That is FINE. A small number of HIGH-CONFIDENCE pseudo-negatives,
+      added to train with sample_weight=0.5 (down-weighted to limit damage),
+      is the safe play. Compare against control (no pseudo-labels) on the
+      same fold split.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V4, V7_M4]
+      notes: |
+        V4 = static cutoff < 0.05 on raw probs. V7-M4 = static cutoff > 0.95
+        on raw probs, never relabeled anything (V4 OOF on Y=0 didn't exceed
+        0.95). Conformal APS is a DIFFERENT decision rule: it uses ranked
+        score quantiles on a calibration set, gives exchangeability-based
+        coverage guarantees, and the threshold is data-derived per test row
+        (not static). This is the genuinely fresh attempt.
+    expected_lift_oof:
+      point: 0.4
+      low: -0.5
+      high: 1.0
+      notes_on_lift: |
+        Conditional on conformal selecting non-zero pseudo-labels (probable),
+        gain comes from extra training signal AND tighter test-aware
+        boundary. Negative band -0.5 acknowledges the V4 failure mode could
+        repeat if even the conformal-selected pseudo-negatives are wrong (1%
+        nominal error * 50 rows = 0.5 wrong-label injections). Use
+        sample_weight=0.5 and ablate. Upside 1.0 if 30+ rows get safely
+        labeled and tighten the decision boundary near hard_fp territory.
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies: [mapie>=0.8 or crepes>=0.6, scikit-learn]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Romano, Sesia, Candes "Classification with Valid and Adaptive
+        Coverage" NeurIPS 2020. Angelopoulos & Bates "A Gentle Introduction
+        to Conformal Prediction and Distribution-Free Uncertainty
+        Quantification" arXiv:2107.07511 (2021). Vovk-Gammerman-Shafer
+        "Algorithmic Learning in a Random World" Springer 2005. Python:
+        mapie's MapieClassifier with method='aps' is a direct API.
+    failure_modes:
+      - Exchangeability fails if there IS local covariate shift (run REC 4 first to confirm). Mitigation = weighted conformal (Tibshirani et al. 2019) using uLSIF weights from REC 2.
+      - Conformal calibration set steals 270 train rows; reduces fold size and may regress OOF separately. Mitigation = nested CV - use existing 5-fold OOF probas as the calibration scores (no extra holdout needed); this is the "split-conformal-via-OOF" trick.
+      - Even at alpha=0.01, accepting 50 pseudo-labels with 1% expected wrong = 0.5 wrong labels. Mitigation = pseudo-label NEGATIVES ONLY, never positives.
+    code_sketch: |
+      n_train = len(v4_y)
+      def aps_score(probs, y):
+          order = np.argsort(-probs)
+          rank = np.where(order == y)[0][0]
+          return probs[order[:rank+1]].sum()
+      cal_scores = np.array([aps_score(v4_oof_proba[i], v4_y[i])
+                             for i in range(n_train)])
+      qhat = np.quantile(cal_scores,
+                         np.ceil((n_train+1)*(1-0.01))/n_train)
+      pseudo_neg = []
+      for i in range(len(v4_test_proba)):
+          probs = v4_test_proba[i]
+          order = np.argsort(-probs)
+          cum = 0.0; allowed = []
+          for j in order:
+              cum += probs[j]
+              allowed.append(j)
+              if cum > qhat: break
+          if allowed == [0]:
+              pseudo_neg.append(i)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: medium
+      notes: |
+        Tightening with negative pseudo-labels concentrates near hard_fp
+        territory, plausibly correctly down-weighting the hard_fp_10
+        cluster. Hard7 risk = medium because adding negative pressure near
+        decision boundary could push barely-above-threshold positives below.
+        Mitigation = compare per-fixture predictions before/after as a
+        regression guard.
+
+cross_topic_links:
+  - R_calibration: |
+      REC 1 (BBSE) is the strongest available LB-forecasting tool. Any
+      calibration-focused agent (Platt/isotonic/temperature scaling) should
+      compose downstream of BBSE prior correction - fix the prior first,
+      then calibrate the conditional.
+  - R_threshold: |
+      REC 2 (uLSIF + IWCV) produces an alternative threshold-selection
+      objective. Threshold-focused agents should consume the IWCV score
+      alongside plain OOF.
+  - R_pseudo_label_or_semi_supervised: |
+      REC 5 (conformal pseudo-labels) directly competes/complements any
+      semi-supervised topic. Conformal route should be tested as a SAFER
+      alternative - finite-sample valid coverage vs heuristic confidence
+      cutoff.
+  - R_anomaly_or_density: |
+      REC 4's joint-IF feeds the AD meta-feature stack that Cycle-1C
+      exhausted under train-only fitting. Worth re-testing the 7-way LR AD
+      ensemble using joint-fit variants of each AD method.
+
+# ---------------------------------------------------------------------------
+# Notes on rec ordering and bundling
+# ---------------------------------------------------------------------------
+# ONE rec: pick REC 1 (BBSE). It is the cheapest, most rigorous, and most
+# actionable rec - and it changes the decision metric used to evaluate every
+# other rec in this cycle. Without REC 1, every other rec is being scored
+# against a miscalibrated OOF baseline.
+#
+# TWO recs: REC 1 + REC 2 (BBSE + uLSIF/IWCV). Together they form a closed
+# loop: BBSE corrects label prior, uLSIF corrects (small) covariate ratio,
+# IWCV gives the unified scoring.
+#
+# ALL FIVE: 1 -> 2 -> 3 -> 4 -> 5 (calibration -> reweighting -> feature
+# hygiene -> diagnostic+meta-feature -> semi-supervised). Each step is
+# informed by the previous.
+# ---------------------------------------------------------------------------

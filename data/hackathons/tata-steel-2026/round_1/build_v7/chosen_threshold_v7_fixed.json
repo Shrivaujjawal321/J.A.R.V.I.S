@@ -1,0 +1,23 @@
+{
+  "chosen_variant": "v7_blend_w0.7",
+  "chosen_score_oof": 54.76878612716764,
+  "chosen_threshold": 0.020568979202306548,
+  "meta_oof_auc_v7": 0.8637306187850512,
+  "recall_at_T": 0.9848484848484849,
+  "precision_at_T": 0.07793764988009592,
+  "n_pos_test_chosen": 152,
+  "v7_standalone_score": 53.139306736429035,
+  "v7_standalone_T": 0.015745427332176452,
+  "best_blend_weight": 0.7,
+  "best_blend_score": 54.76878612716764,
+  "best_blend_T": 0.020568979202306548,
+  "bootstrap_mean": 53.15770942205899,
+  "bootstrap_ci_lo": 51.058792441961565,
+  "bootstrap_ci_hi": 54.62099011654383,
+  "calibration_correction": 2.67,
+  "lb_estimate_corrected": 55.809306736429036,
+  "v4_actual_lb": 56.98113,
+  "v5_oof_score": 53.70058610799352,
+  "delta_v5": 1.068200019174114,
+  "delta_vs_v4_lb": -1.171823263570964
+}

@@ -1,0 +1,404 @@
+{
+ "summary": "The task prompt's assumed signal list is partly wrong and I verified this on the wire: `service:vehicle:truck=yes` and `service:vehicle:hgv=yes` DO NOT EXIST in OSM \u2014 taginfo key stats return all=0 for both keys. The real key is `service:vehicle:truck_repair` (1,381 global, 529 in the US). Second correction: `hgv=yes` is NOT evidence of truck service \u2014 the `hgv` key has 1,633,084 uses of which 1,605,995 (98.3%) are on ways, because it is a road ACCESS tag (`hgv=designated` 987,238; `hgv=no` 243,977). Using it as a POI signal is a category error. The single most valuable finding: in a US bbox download of 847 real elements, `shop=truck_repair` yields 328 but `shop=car_repair` + `service:vehicle:truck_repair=yes` yields 446 \u2014 so a naive \"only take shop=truck_repair\" rule silently discards ~58% of tag-confirmed truck shops, which are exactly the \"car garage that explicitly services HCV\" the inclusion rule demands. Negative evidence is useless: `service:vehicle:truck_repair=no` occurs exactly ONCE in the whole bbox, so absence-of-truck-tag can never mean CAR_ONLY, it means unknown. Recall from tags alone is brutal \u2014 Overpass and Geofabrik taginfo independently agree the US has exactly 272 `shop=truck_repair` objects (69 nodes + 203 ways, data_until 2026-07-22), versus ~47,143 `shop=car_repair`. I ran an empirical false-positive test over the DFW metro: a name regex for truck|diesel|fleet|semi returned 85 POIs of which only 1 was tag-confirmed truck, 28 were repair-ish/ambiguous, and 56 were hard false positives \u2014 a 66% FP rate, with the traps being real and hilarious (\"Seminary\" church/college/polling-station matching \"semi\", \"Awestruck Design\", \"Starfleet Couriers\", \"Fleet Feet\" shoe stores \u00d73, \"Diesel Barbershop\" \u00d73, \"Diesel\" clothing store, \"Food Truck\" restaurants, \"Truck Yard\" bar, \"Budget Truck Rental\", \"Truck Driving Academy\", \"Trucker Drivers Wash\"). NAICS is a dead end for discrimination and I confirmed this from census.gov's own files: 811111 General Automotive Repair explicitly covers \"passenger cars, trucks, and vans, and all trailers\" in one code and its index literally contains \"Truck repair shops, general\" and \"Diesel engine repair shops, automotive\", so it conflates car and truck by definition; 811310 is titled \"(except Automotive)\" and is forklifts/material-handling/construction equipment, NOT highway truck repair; and there is no free per-establishment NAICS source anyway (Census CBP requires an API key and is aggregate-only with no business names). Overture's taxonomy is the better lever and I verified the real slugs from overture_categories.csv (`truck_repair`, `trailer_repair`, `towing_service`, `truck_dealer`, `commercial_vehicle_dealer`, plus traps `food_truck`, `truck_rentals`, `game_truck_rental`). Enrichment coverage measured on the real 847 rows is the honest killer: name 73%, phone 38%, website 35%, opening_hours 23%, email 4%, `contact:whatsapp` 0% and `contact:mobile` 0% \u2014 WhatsApp, ratings, review counts, review summaries and photos have no free legal US source at all. Finally, the one existing `truck_repair` row already in core.businesses is proof the risk is live: it is named \"\u0412\u0430\u043a\u0430\u043d\u0441\u0438\u0438\" (Russian for \"Vacancies\") at a Manhattan coordinate with Overture `src_confidence` 0.0668, published with no confidence gate.",
+ "sources": [
+  {
+   "name": "OSM taginfo API \u2014 global tag stats",
+   "url": "https://taginfo.openstreetmap.org/api/4/tag/stats?key=shop&value=truck_repair",
+   "license": "ODbL 1.0 (data); taginfo API free, no key",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST/JSON",
+   "approx_rows": "shop=truck_repair all=813 (369 nodes/441 ways/3 rel); shop=car_repair 290,346; shop=truck 1,419; shop=trailer 279; shop=truck_parts 19; shop=tyres 40,774; shop=car_parts 95,988; amenity=vehicle_inspection 13,335",
+   "us_coverage": "national (global instance)",
+   "fields_provided": [
+    "key",
+    "value",
+    "count_all",
+    "count_nodes",
+    "count_ways",
+    "count_relations"
+   ],
+   "why_it_matters": "Ranks every candidate positive/negative signal by real-world usage before any of it is coded.",
+   "caveats": "Global counts are Europe-heavy and materially overstate US availability \u2014 always cross-check the US instance.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "tos_evidence_url": "https://taginfo.openstreetmap.org/about",
+   "owner": "OpenStreetMap Foundation / Geofabrik"
+  },
+  {
+   "name": "OSM taginfo \u2014 DISPROOF of service:vehicle:truck and service:vehicle:hgv",
+   "url": "https://taginfo.openstreetmap.org/api/4/key/stats?key=service%3Avehicle%3Atruck",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST/JSON",
+   "approx_rows": "service:vehicle:truck all=0; service:vehicle:hgv all=0; service:vehicle:truck=yes all=0; service:vehicle:hgv=yes all=0",
+   "us_coverage": "national",
+   "fields_provided": [
+    "count_all"
+   ],
+   "why_it_matters": "Directly refutes two of the signals named in the task brief. Coding against these keys would produce a classifier that matches literally nothing.",
+   "caveats": "Verified by both /key/stats (key total 0) and /tag/stats (value total 0).",
+   "tos_verdict": "ok_to_store_and_serve",
+   "owner": "OSMF"
+  },
+  {
+   "name": "OSM taginfo \u2014 full service:vehicle:* subkey enumeration (748 keys)",
+   "url": "https://taginfo.openstreetmap.org/api/4/keys/all?query=service%3Avehicle&rp=60&sortname=count_all&sortorder=desc",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST/JSON",
+   "approx_rows": "748 matching keys. Truck-relevant globals: truck_repair 1,381 \u00b7 truck_sales 95 \u00b7 truck_parts 53 \u00b7 truck_tyres 52 \u00b7 welding 48 \u00b7 diesel_repair 31 \u00b7 trailer_repair 26 \u00b7 used_truck_sales 24 \u00b7 clutch 24 \u00b7 turbo 24 \u00b7 bus_repair 23 \u00b7 diesel 23 \u00b7 radiator 23 \u00b7 fleet_services 18 \u00b7 fleet_vehicle_maintenance 16 \u00b7 gearbox_repair 16 \u00b7 truck_trailer 16 \u00b7 tachograph 16 \u00b7 differentials 15 \u00b7 hydraulics 15 \u00b7 diesel_engine_repair 15 \u00b7 axles 8 \u00b7 underchassis 8",
+   "us_coverage": "national",
+   "fields_provided": [
+    "key",
+    "count_all"
+   ],
+   "why_it_matters": "This is the ONLY authoritative way to find the correct key names. It is how I found service:vehicle:truck_repair and proved the brief's key names were invented.",
+   "caveats": "service:vehicle:* is a free-text namespace; long tail is typo-ridden (tyres_repair vs tire_repair vs tyre_repair all coexist). Sub-category keys in the 8-50 range are too sparse to drive published fields.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "owner": "OSMF"
+  },
+  {
+   "name": "Geofabrik regional taginfo \u2014 US-only tag counts",
+   "url": "https://taginfo.geofabrik.de/north-america:us/api/4/tag/stats?key=shop&value=truck_repair",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST/JSON",
+   "approx_rows": "US, data_until 2026-07-22T20:21:23Z \u2014 shop=truck_repair 272 \u00b7 shop=car_repair 47,143 \u00b7 shop=truck 304 \u00b7 shop=trailer 96 \u00b7 shop=truck_parts 6 \u00b7 shop=tyres 7,367 \u00b7 shop=car_parts 17,072 \u00b7 amenity=vehicle_inspection 482 \u00b7 amenity=truck_wash 0 \u00b7 service:vehicle:truck_repair=yes 529 \u00b7 service:vehicle:car_repair=yes 2,598 \u00b7 service:vehicle:towing=yes 299 \u00b7 service:vehicle:tyres=yes 1,205 \u00b7 service:vehicle:diesel_repair=yes 20 \u00b7 service:vehicle:trailer_repair=yes 9 \u00b7 service:vehicle:truck_parts=yes 7 \u00b7 service:vehicle:truck_tyres=yes 3",
+   "us_coverage": "national (US extract)",
+   "fields_provided": [
+    "count_all",
+    "count_nodes",
+    "count_ways",
+    "data_until"
+   ],
+   "why_it_matters": "The correct denominator for every recall estimate. Global taginfo would have overstated US truck-tag availability by ~3x.",
+   "caveats": "Carries a data_until timestamp \u2014 use it as observed_at, never the download date.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://www.geofabrik.de/data/download.html",
+   "owner": "Geofabrik GmbH"
+  },
+  {
+   "name": "Overpass API \u2014 US shop=truck_repair count (independent confirmation)",
+   "url": "https://overpass-api.de/api/interpreter",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST/JSON (out count;)",
+   "approx_rows": "area[\"ISO3166-1\"=\"US\"][admin_level=2] \u2192 nodes 69, ways 203, relations 0, total 272. timestamp_osm_base 2026-07-23T08:05:21Z",
+   "us_coverage": "national",
+   "fields_provided": [
+    "count by element type",
+    "timestamp_osm_base"
+   ],
+   "why_it_matters": "Exactly matches Geofabrik's 272 (69/203). Two independent methods agreeing means the number is trustworthy: the ENTIRE US has 272 shop=truck_repair objects.",
+   "caveats": "area[] queries with negation or name regex over the whole US time out (I got 504 and 120s kills). Use bbox + POI-key filters, or download-then-analyse locally.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://operations.osmfoundation.org/policies/api/",
+   "owner": "OSMF / Overpass community instances"
+  },
+  {
+   "name": "Overpass API \u2014 bulk download of US truck-repair POIs (my primary evidence set)",
+   "url": "https://overpass-api.de/api/interpreter",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200 (403,406 bytes)",
+   "format": "REST/JSON (out tags center;)",
+   "approx_rows": "847 elements from bbox 24.0,-125.0,49.5,-66.5. Breakdown: shop=truck_repair 328 \u00b7 has service:vehicle:truck_repair key 575 (yes=574, no=1) \u00b7 BOTH 56 \u00b7 shop=car_repair AND service:vehicle:truck_repair=yes 446 \u00b7 shop=car 49 \u00b7 shop=truck 17 \u00b7 no shop tag 4",
+   "us_coverage": "partial (bbox; includes southern Ontario/Quebec \u2014 Canadian rows visible e.g. 'Centre du camion Beaudoin', 'Kenworth Ontario')",
+   "fields_provided": [
+    "name 73%",
+    "phone 38%",
+    "website 35%",
+    "opening_hours 23%",
+    "addr:housenumber 48%",
+    "addr:street 48%",
+    "addr:city 45%",
+    "addr:postcode 43%",
+    "addr:state 39%",
+    "brand 27%",
+    "operator 12%",
+    "email 4%",
+    "service:vehicle:towing 3%",
+    "description 2%",
+    "contact:whatsapp 0%",
+    "contact:mobile 0%"
+   ],
+   "why_it_matters": "Every coverage percentage, every co-occurrence number, and the 446-row hidden-gold discovery come from this real download, not from memory.",
+   "caveats": "bbox leaks into southern Canada \u2014 production must clip to a US boundary polygon. Only 15/847 (1.8%) have 24/7 in opening_hours.",
+   "tos_verdict": "store_with_attribution",
+   "owner": "OSMF"
+  },
+  {
+   "name": "Overpass API \u2014 DFW false-positive control experiment",
+   "url": "https://overpass-api.de/api/interpreter",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200 (35,435 bytes)",
+   "format": "REST/JSON",
+   "approx_rows": "85 POIs in bbox 32.3,-97.7,33.3,-96.4 whose name matches /truck|diesel|fleet|semi/i AND carry shop|amenity|office|craft|industrial. Of those: 1 tag-confirmed truck, 28 repair-ish ambiguous, 56 hard false positives (66% FP rate).",
+   "us_coverage": "partial (DFW metro)",
+   "fields_provided": [
+    "name",
+    "shop",
+    "amenity",
+    "office",
+    "service:vehicle:*"
+   ],
+   "why_it_matters": "This is the precision measurement. It converts 'keyword matching is risky' from an opinion into a measured 66% false-positive rate, and it surfaced the real trap names rather than imagined ones.",
+   "caveats": "One metro only; FP mix will vary by region (Bible-belt 'Seminary' hits are region-specific). Re-run per region before trusting a national threshold.",
+   "tos_verdict": "store_with_attribution",
+   "owner": "OSMF"
+  },
+  {
+   "name": "US Census Bureau \u2014 2022 NAICS Index File (official)",
+   "url": "https://www.census.gov/naics/2022NAICS/2022_NAICS_Index_File.xlsx",
+   "license": "US Government work, public domain (17 U.S.C. \u00a7105)",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200 (499,358 bytes)",
+   "format": "XLSX bulk download",
+   "approx_rows": "20,399 index entries. Truck-repair-relevant: 811111 'Truck repair shops, general' \u00b7 811111 'Diesel engine repair shops, automotive' \u00b7 811111 'Automotive fleet repair and maintenance services' \u00b7 811111 'Mobile automotive and truck repair services' \u00b7 811121 'Truck trailer body shops' \u00b7 811310 'Industrial truck (e.g., forklifts) repair and maintenance services' \u00b7 811310 'Truck refrigeration repair and maintenance services' \u00b7 811198 'Spray-on bedliner installation for trucks' \u00b7 423120 'Truck parts, new, merchant wholesalers' \u00b7 441340 'Truck tires and tubes dealers (except heavy truck)' \u00b7 423130 'Heavy truck tires and tubes merchant wholesalers'",
+   "us_coverage": "national",
+   "fields_provided": [
+    "6-digit NAICS code",
+    "index entry text"
+   ],
+   "why_it_matters": "Settles the NAICS question definitively from the primary source. 811111 is the correct code for truck repair \u2014 and it is ALSO the code for every car garage, so it cannot discriminate.",
+   "caveats": "811310 contains 'Industrial truck (e.g., forklifts)' \u2014 'industrial truck' means FORKLIFT, not highway tractor. Anyone mapping 811310\u2192truck repair imports forklift shops. 336-series entries are all MANUFACTURING.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "tos_evidence_url": "https://www.census.gov/about/policies/open-government.html",
+   "owner": "US Census Bureau"
+  },
+  {
+   "name": "US Census Bureau \u2014 2022 NAICS Descriptions (official definitions)",
+   "url": "https://www.census.gov/naics/2022NAICS/2022_NAICS_Descriptions.xlsx",
+   "license": "US Government work, public domain",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200 (263,810 bytes)",
+   "format": "XLSX",
+   "approx_rows": "811111 General Automotive Repair: 'establishments primarily engaged in providing (1) a wide range of mechanical and electrical repair and maintenance services for automotive vehicles, such as passenger cars, trucks, and vans, and all trailers or (2) engine repair and replacement.' \u2014 811310: 'Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance ... repair agricultural and other heavy and industrial machinery and equipment (e.g., forklifts and other material handling equipment, machine tools, commercial refrigeration equipment, construction equipment, and mining machinery).'",
+   "us_coverage": "national",
+   "fields_provided": [
+    "NAICS code",
+    "title",
+    "full definition",
+    "illustrative examples",
+    "cross-references"
+   ],
+   "why_it_matters": "The literal '(except Automotive)' in the 811310 title is the proof that 811310 is the WRONG code for highway truck repair. The 811111 text is the proof that NAICS structurally conflates car and truck.",
+   "caveats": "None \u2014 this is the authoritative definition source.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "owner": "US Census Bureau"
+  },
+  {
+   "name": "Overture Maps \u2014 official category taxonomy CSV",
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
+   "license": "Schema repo is open; Places DATA is CDLA-Permissive 2.0 (FSQ portion Apache 2.0)",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200 (148,502 bytes)",
+   "format": "CSV bulk download",
+   "approx_rows": "TRUCK-POSITIVE slugs: truck_repair [automotive>automotive_services_and_repair>truck_repair] \u00b7 trailer_repair \u00b7 towing_service \u00b7 truck_dealer \u00b7 commercial_vehicle_dealer \u00b7 trailer_dealer \u00b7 truck_stop \u00b7 truck_gas_station \u00b7 truck_repair_and_services_for_businesses [b2b>...>trucks_and_industrial_vehicles>...] \u00b7 b2b_truck_equipment_parts_and_accessories \u00b7 motor_freight_trucking. AMBIGUOUS: automotive_repair \u00b7 tire_dealer_and_repair \u00b7 tire_repair_shop. HARD TRAPS: food_truck [retail>food>food_truck] \u00b7 truck_rentals [travel>rental_service] \u00b7 trailer_rentals \u00b7 game_truck_rental [professional_services>event_planning]",
+   "us_coverage": "national",
+   "fields_provided": [
+    "category slug",
+    "full hierarchy path"
+   ],
+   "why_it_matters": "Gives an exact allow-list/deny-list keyed on hierarchy PATH, not on substring. Matching on the path prefix 'automotive>automotive_services_and_repair' cleanly excludes food_truck and game_truck_rental, which naive substring matching on 'truck' would import.",
+   "caveats": "Overture places also expose basic_category and a newer 'categories' object \u2014 pin which field you match on and record it in props.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://docs.overturemaps.org/attribution/",
+   "owner": "Overture Maps Foundation"
+  },
+  {
+   "name": "Overture Maps \u2014 places schema (available enrichment fields)",
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/schema/places/place.yaml",
+   "license": "CDLA-Permissive 2.0 (data)",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "YAML schema",
+   "approx_rows": "unknown (schema file, not data)",
+   "us_coverage": "national",
+   "fields_provided": [
+    "categories.primary",
+    "categories.alternate",
+    "basic_category",
+    "confidence (0-1 float)",
+    "websites[]",
+    "socials[]",
+    "emails[]",
+    "phones[]",
+    "brand{names,wikidata}",
+    "addresses[]",
+    "operating_status (open|permanently_closed|temporarily_closed)"
+   ],
+   "why_it_matters": "Overture carries a per-place `confidence` 0..1 AND `operating_status` AND socials/emails \u2014 none of which the current ingest is gating on or storing. This is free precision the pipeline is throwing away today.",
+   "caveats": "No opening_hours, no rating, no review_count, no photos in the schema. Those fields are simply not obtainable from Overture.",
+   "tos_verdict": "store_with_attribution",
+   "owner": "Overture Maps Foundation"
+  },
+  {
+   "name": "Overture Maps \u2014 attribution & licensing page (ODbL question)",
+   "url": "https://docs.overturemaps.org/attribution/",
+   "license": "Places = CDLA-Permissive 2.0 + Foursquare portion Apache 2.0; Transportation/Base/Buildings/Divisions = ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML docs",
+   "approx_rows": "n/a",
+   "us_coverage": "national",
+   "fields_provided": [
+    "per-theme license",
+    "required attribution strings"
+   ],
+   "why_it_matters": "This is the legal core of the repo's ruling 3.1-4a. Overture Places is PERMISSIVE (no share-alike); OSM is ODbL (share-alike). Copying OSM POIs into core.businesses would arguably make core.businesses a Derivative Database under ODbL \u00a74.4/\u00a74.6 and force the whole published DB share-alike. Keeping osm.* separate and joining at query time is legally correct, not just tidy.",
+   "caveats": "FSQ-sourced Overture rows need the literal notice 'Copyright 2024 Foursquare Labs, Inc. All rights reserved' plus NOTICE.txt. Track per-row provenance or you cannot honour this.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://docs.overturemaps.org/attribution/",
+   "owner": "Overture Maps Foundation"
+  },
+  {
+   "name": "US Census County Business Patterns API (tested \u2014 NOT usable per-business)",
+   "url": "https://api.census.gov/data/2022/cbp?get=NAICS2017,ESTAB,NAME&for=state:48&NAICS2017=811111",
+   "license": "US Government work, public domain",
+   "access": "free_key",
+   "verified_live": true,
+   "http_status": "200 but body = 'Missing Key' HTML error page",
+   "format": "REST/JSON",
+   "approx_rows": "unknown \u2014 request rejected without an API key",
+   "us_coverage": "national",
+   "fields_provided": [
+    "establishment COUNTS by NAICS \u00d7 geography only \u2014 no business names, no addresses, no coordinates"
+   ],
+   "why_it_matters": "Closes the NAICS loop honestly: even if NAICS could discriminate (it cannot), there is no free per-establishment NAICS dataset to join to. CBP is aggregate-only by design (Title 13 confidentiality).",
+   "caveats": "The key is free but the data is still aggregate. Useful ONLY as a denominator for coverage/recall reporting, never as a POI source.",
+   "tos_verdict": "cache_limited",
+   "tos_evidence_url": "https://www.census.gov/data/developers/about/terms-of-service.html",
+   "owner": "US Census Bureau"
+  },
+  {
+   "name": "Foursquare OS Places category taxonomy (COULD NOT VERIFY)",
+   "url": "https://docs.foursquare.com/data-products/docs/categories",
+   "license": "Apache 2.0 (FSQ OS Places data) [UNVERIFIED for the taxonomy file itself]",
+   "access": "unknown",
+   "verified_live": true,
+   "http_status": "200 on the docs page; 404 on raw.githubusercontent.com/foursquare/fsq-os-places paths; 401 on the HuggingFace parquet resolve path",
+   "format": "unknown",
+   "approx_rows": "unknown \u2014 I did NOT obtain a single real FSQ category id",
+   "us_coverage": "unknown",
+   "fields_provided": [],
+   "why_it_matters": "The brief asked for FSQ category ids. I could not retrieve them on the wire, so I am reporting zero FSQ ids rather than inventing plausible-looking hex strings.",
+   "caveats": "[UNVERIFIED] Docs page loads but does not inline the taxonomy. HF dataset landing page returns 200 while the parquet resolve path returned 401, suggesting a different release path or an auth-gated file. Resolve this before writing any FSQ branch of the classifier. core.businesses already permits present_in='fsq' but the DB currently holds Overture-only rows.",
+   "tos_verdict": "unknown",
+   "owner": "Foursquare Labs, Inc."
+  },
+  {
+   "name": "Live DB evidence \u2014 the existing truck_repair row is garbage",
+   "url": "https://docs.overturemaps.org/schema/reference/places/place/",
+   "license": "n/a (local measurement of already-ingested Overture data)",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "n/a (local psql)",
+   "format": "PostGIS table",
+   "approx_rows": "core.businesses = 2,981 rows; category='truck_repair' = exactly 1; towing=6; tire_service=1; truck_dealer=1; restaurant=1,093; cafe=628",
+   "us_coverage": "partial (NYC/NJ bbox proof only)",
+   "fields_provided": [
+    "business_id",
+    "name",
+    "category",
+    "lat/lon",
+    "props.overture.src_confidence",
+    "props.overture.release",
+    "props.overture.observed_at"
+   ],
+   "why_it_matters": "The one truck_repair row is name='\u0412\u0430\u043a\u0430\u043d\u0441\u0438\u0438' (Russian: 'Vacancies'), address='\u041c\u0430\u0448\u0438\u043d\u043e\u0441\u0442\u0440\u043e\u0438\u0442\u0435\u043b\u0435\u0439', at lat 40.7168/lon -73.9999 (Manhattan), with src_confidence=0.0668. It proves the precision risk is already realised in production and that no Overture confidence floor is being applied at ingest.",
+   "caveats": "n=1, so this is an existence proof of the failure mode, not a rate. Measure the real rate after a national Overture pull.",
+   "tos_verdict": "store_with_attribution",
+   "owner": "Overture Maps Foundation (data) / local pipeline"
+  }
+ ],
+ "recommendations": [
+  "SIGNAL INVENTORY, RANKED BY PRECISION (all counts US-scoped, verified). TIER A \u2014 CONFIRMED_TRUCK, publish on any single hit: (A1) osm shop=truck_repair, US 272, precision ~0.98, the tag's whole definition is HCV repair; (A2) osm service:vehicle:truck_repair=yes, US 529, precision ~0.95, and CRITICALLY 446 of these sit on shop=car_repair \u2014 this is the explicit 'car garage that also services HCV' the inclusion rule demands, and a shop=truck_repair-only filter throws all 446 away; (A3) Overture categories.primary IN (truck_repair, trailer_repair, truck_repair_and_services_for_businesses) matched on the FULL hierarchy path, not substring. TIER B \u2014 LIKELY_TRUCK, needs one corroborator: osm shop=truck (US 304, mixes dealers+repair), shop=trailer (96), service:vehicle:diesel_repair=yes (20), service:vehicle:trailer_repair=yes (9), service:vehicle:truck_tyres=yes (3), service:vehicle:truck_parts=yes (7), Overture towing_service / truck_dealer / commercial_vehicle_dealer. TIER C \u2014 AMBIGUOUS, never publish alone: shop=car_repair (US 47,143), shop=tyres (7,367), shop=car_parts (17,072), amenity=vehicle_inspection (482), Overture automotive_repair / tire_dealer_and_repair. TIER D \u2014 NEGATIVE but nearly worthless: service:vehicle:truck_repair=no occurs exactly ONCE in the entire bbox download of 847. Absence of a truck tag therefore means UNKNOWN, never CAR_ONLY. Do not build an exclusion rule on absence.",
+  "TWO SIGNALS FROM THE BRIEF MUST BE DELETED FROM THE DESIGN. (1) service:vehicle:truck=yes and service:vehicle:hgv=yes do not exist \u2014 taginfo /key/stats returns all=0 for BOTH keys, and /tag/stats returns 0 for the =yes values. The correct key is service:vehicle:truck_repair. If this had been coded as specified it would have matched zero rows and the bug would have looked like an ingest failure. (2) hgv=yes is a ROAD ACCESS tag, not a service tag: the hgv key has 1,633,084 uses of which 1,605,995 (98.3%) are on ways, dominated by hgv=designated (987,238), hgv=yes (217,471) and hgv=no (243,977). hgv on a way means 'trucks may drive here'. Using it as POI evidence would tag every business on a truck route as a truck shop. hgv belongs ONLY on osm.ways (where the repo already correctly stores it) and is useful for the ROUTE side of the join, never the shop side.",
+  "NAME/KEYWORD HEURISTICS WITH MEASURED PRECISION. My DFW control experiment: name regex /truck|diesel|fleet|semi/i over shop|amenity|office|craft|industrial POIs returned 85 hits \u2014 1 tag-confirmed truck, 28 repair-ish, 56 hard false positives = 66% FP rate. Keywords are therefore FORBIDDEN as a standalone signal and permitted ONLY as a booster inside an already-repair-ish category gate. HIGH-PRECISION phrases (multi-word, require word boundaries): 'truck repair', 'truck & trailer', 'trailer repair', 'diesel repair', 'diesel service', 'heavy duty repair', 'fleet service', 'fleet maintenance', 'big rig', '18 wheeler'/'18-wheeler', 'DOT inspection', 'air brake', 'leaf spring', 'reefer'. BRAND tokens are high precision but need a whole-word anchor: Freightliner (8 in my set), Peterbilt (5), Kenworth (3), Western Star (2), plus Mack, Navistar, Volvo Trucks, Hino, Isuzu Commercial. MEASURED FALSE-POSITIVE TRAPS, all real names from DFW: 'semi' matches Seminary (a church, a college AND a polling station) and Yosemite \u2014 this alone disqualifies bare 'semi'; 'truck' matches Awestruck Design Company, Food Truck restaurants, 'Truck Yard' (a bar), Budget/Rush Truck Rental, Truck Driving Academy, Truck Toys and Truck Accessories, Trucker Drivers Wash, and a lawyer advertising 'Car & Truck Accident'; 'fleet' matches Fleet Feet (a shoe chain, 3 locations) and Starfleet Couriers; 'diesel' matches Diesel Barbershop (3 locations) and 'Diesel' the clothing brand; 'mobile' matches Automobile \u2014 'Riverview Automobile Ltd.' \u2014 so mobile-mechanic detection MUST use a word boundary and must exclude 'automobile'. Also require a repair verb: 'Truck Parts', 'Truck Sales', 'Truck Rental', 'Truck Leasing', 'Truck Centers' are parts/sales/rental, not repair \u2014 Rush Truck Centers appeared 7\u00d7 in DFW and is a dealer network that does service, so it is LIKELY not CONFIRMED. Finally, allow fuzzy matching: I found 'Truck Repar' and 'Diesel Repar' (typos) twice, so use trigram similarity (the businesses_name_trgm GIN index already exists) rather than exact LIKE.",
+  "SCORING RULE \u2014 additive integer score with a hard category gate. Step 0 GATE: if the POI has no repair-ish category in ANY source (osm shop in {truck_repair, car_repair, truck, trailer, tyres, car_parts, truck_parts}, or Overture path under automotive>automotive_services_and_repair, or towing_service) then emit NOT_REPAIR and stop \u2014 this single gate kills 56 of 85 DFW false positives before any scoring happens. Step 1 SCORE: shop=truck_repair +6; service:vehicle:truck_repair=yes +6; Overture primary truck_repair/trailer_repair +6; shop=truck or shop=trailer +3; service:vehicle:{diesel_repair,trailer_repair,truck_tyres,truck_parts}=yes +3 each; high-precision name phrase +3; HCV brand token +3; Overture towing_service/truck_dealer +2; service:vehicle:towing=yes +1; single weak keyword ('truck' alone) +1; PENALTIES: name matches /food truck|truck rental|truck leasing|truck driving|truck accessor|truck toys|truck cap|bedliner|monster truck/i -5; Overture category in {food_truck, truck_rentals, trailer_rentals, game_truck_rental} -8; Overture confidence < 0.20 -4; operating_status != 'open' -6. Step 2 BAND: score>=6 AND at least one Tier-A signal \u2192 CONFIRMED_TRUCK; score 3-5 \u2192 LIKELY_TRUCK; score 1-2 \u2192 AMBIGUOUS; score<=0 with a car-only category and no truck evidence \u2192 CAR_ONLY; gate failure \u2192 NOT_REPAIR. PUBLISH POLICY: publish CONFIRMED_TRUCK and LIKELY_TRUCK; publish LIKELY only with flags containing 'truck_service_inferred' so the API can filter it; hold AMBIGUOUS in a staging view (do NOT publish, do NOT delete \u2014 it is the LLM queue); never publish CAR_ONLY or NOT_REPAIR. Map the band into the EXISTING core.businesses taxonomy which already allows truck_repair, mobile_repair, trailer_repair, tire_service, towing, truck_parts, truck_dealer, truck_wash \u2014 no schema change needed \u2014 and store the band + score + per-signal contributions in props so every verdict is reproducible.",
+  "ADD AN OVERTURE CONFIDENCE FLOOR IMMEDIATELY \u2014 this is a live bug, not a hypothetical. The single existing core.businesses row with category='truck_repair' is name='\u0412\u0430\u043a\u0430\u043d\u0441\u0438\u0438' (Russian for 'Vacancies'), address='\u041c\u0430\u0448\u0438\u043d\u043e\u0441\u0442\u0440\u043e\u0438\u0442\u0435\u043b\u0435\u0439', plotted in Manhattan, with props.overture.src_confidence = 0.0668. Overture's own schema documents confidence as 0..1 where 0 means 'we are sure this does not exist'. The ingest is currently publishing a 0.067-confidence Cyrillic phantom as a US truck repair shop. Recommend: reject rows with src_confidence < 0.20 outright; between 0.20 and 0.50 force band to at most AMBIGUOUS; also honour operating_status (permanently_closed/temporarily_closed must never publish as an active shop). Additionally add a script-mismatch flag \u2014 a US POI whose name is majority non-Latin script with a non-US-format address is a strong garbage signal.",
+  "THE 22 SUB-CATEGORIES \u2014 DETECTABLE vs UNDETECTABLE, honestly. DETECTABLE (direct tag or Overture category exists): truck mechanic / heavy vehicle garage / commercial vehicle workshop / commercial vehicle service center \u2014 all four collapse onto the SAME evidence (shop=truck_repair, service:vehicle:truck_repair=yes) and cannot be distinguished from each other in free data, so implement them as ONE canonical category, not four; trailer \u2192 service:vehicle:trailer_repair (US 9) + shop=trailer (96) + Overture trailer_repair; diesel engine repair \u2192 service:vehicle:diesel_repair (US 20) + service:vehicle:diesel_engine_repair (global 15) + name 'diesel repair'; welding & fabrication \u2192 service:vehicle:welding (global 48) + craft=blacksmith/metal_construction; truck AC \u2192 service:vehicle:air_conditioning (global 3,509, but NOT truck-specific \u2014 it is overwhelmingly car); radiator \u2192 service:vehicle:radiators (84) + radiator (23); truck electrical \u2192 service:vehicle:electrical (global 3,317, again not truck-specific); 24x7 \u2192 opening_hours containing '24/7' \u2014 but only 15 of my 847 rows (1.8%) have it, so this field is ~98% NULL; breakdown assistance / roadside emergency / towing \u2192 service:vehicle:towing (US 299, present on just 3% of my truck set) + Overture towing_service. WEAKLY DETECTABLE, counts too small to be useful (all GLOBAL, so US counts are a fraction): clutch & gearbox \u2192 service:vehicle:clutches 55 / clutch 24 / gearbox_repair 16; axle & differential \u2192 differentials 15 / axles 8; hydraulic \u2192 hydraulics 15; chassis \u2192 underchassis 8; fleet maintenance \u2192 fleet_services 18 / fleet_vehicle_maintenance 16 (name 'Fleet Service' is better evidence than the tag, and 'Fleet Feet' is the trap). UNDETECTABLE FROM FREE DATA \u2014 must be NULL/unknown, never false: air brake (no tag exists; only inferable from name 'air brake' which is rare), suspension & leaf spring (service:vehicle:suspension is global 398 and is car-dominated; 'leaf spring' has no tag), pneumatic (no tag), mobile mechanic (NO reliable tag \u2014 NAICS 811111 index literally has 'Mobile automotive and truck repair services' but there is no free per-business NAICS; name 'mobile' collides with 'automobile'; core.businesses already has a mobile_repair category so populate it ONLY on a word-boundary name match, flagged as inferred). RULE: emit these as SQL NULL and render as 'unknown' per the repo honesty rule \u2014 never emit false, which would assert 'this shop does not do air brakes' on zero evidence.",
+  "LLM CLASSIFIER PASS \u2014 YES, but narrowly scoped and cached. Justification is quantitative: the DFW experiment produced 28 rows in the AMBIGUOUS bucket that deterministic rules genuinely cannot resolve, containing real truck shops (G & C Truck Repair, Legendary Automotive & Diesel Repair, Diesel Pros LLC, Double G Diesel, Mac's Diesel Diagnostics, Bill's Auto & Truck Repair, Inland Truck Parts & Service, Barebones Auto & Diesel Repar) sitting next to real non-repair businesses (Truck Toys, DFW Truck and Auto Accessories, AFG Truck Parts, Grimes Truck & Auto Parts). No regex separates those. SCOPE: run the LLM ONLY on band=AMBIGUOUS \u2014 roughly 30% of gated candidates, not the full 47k car_repair universe \u2014 which keeps cost bounded and keeps the deterministic path auditable. INPUT: a minimal canonical JSON of {name, all osm tags OR overture categories path, city, state, website hostname} and nothing else; do NOT feed coordinates or free web text. OUTPUT: strict JSON {band, primary_category, subcategories[], rationale, confidence}. AUDITABILITY via the EXISTING quality.ai_decisions table (verified schema: decision_id, job, input_hash, model, prompt_version, input JSONB, verdict JSONB, rationale TEXT, decided_by DEFAULT 'ai', created_at, UNIQUE(job, input_hash, decided_by)) \u2014 use job='truck_vs_car_classification', input_hash=sha256 of the canonicalised input so identical inputs are never re-billed, and pin prompt_version so a prompt change forces re-decision rather than silently reusing stale verdicts. The UNIQUE constraint including decided_by is exactly right: a human row with decided_by='human' coexists with and overrides the ai row, giving you a free correction path. HARD RULE: an LLM verdict may promote AMBIGUOUS\u2192LIKELY_TRUCK but must NEVER promote to CONFIRMED_TRUCK \u2014 CONFIRMED stays reserved for deterministic Tier-A tag evidence, so the highest-trust tier of your published data never depends on a model.",
+  "RESPECT RULING 3.1-4a AND THE ODbL BOUNDARY \u2014 and note it is legally load-bearing, not stylistic. I verified Overture Places is CDLA-Permissive 2.0 (Foursquare portion Apache 2.0) while OSM is ODbL 1.0 share-alike, and core.businesses carries CHECK present_in <@ ARRAY['overture','fsq']. If OSM truck-repair POIs were copied into core.businesses, core.businesses becomes a plausible Derivative Database under ODbL and the share-alike obligation propagates to the entire published database including the permissively-licensed Overture rows. Therefore: build the OSM side as a NEW table osm.repair_pois (mirroring the osm.fuel_stations/rest_areas pattern already in the schema), classify it with the same rule engine, and expose the union ONLY through a query-time VIEW that carries per-row license attribution. This is also why the API must emit '\u00a9 OpenStreetMap contributors (ODbL)' on OSM-sourced rows and the Foursquare notice on FSQ-sourced rows \u2014 track license at row level in props or you cannot comply. Practical consequence for the product: an OSM-sourced shop and an Overture-sourced shop can both appear in a route query result, but they must be separately attributed and separately filterable.",
+  "US VOCABULARY MAPPING for the India-flavoured field list, plus the free sources. 'District' \u2192 COUNTY, and the free authoritative source is Census TIGER/Line county polygons (public domain) via PostGIS point-in-polygon \u2014 do NOT use OSM admin boundaries for this since that would re-introduce ODbL into a core table. 'PIN Code' \u2192 ZIP code; OSM addr:postcode covers 43% of my sample, Overture addresses[] carries postcode, and gaps can be filled by point-in-polygon against Census ZCTA polygons (public domain) \u2014 but ZCTA is a statistical approximation of ZIP, not the USPS ZIP itself, so flag it as 'zip_from_zcta' rather than claiming it is the delivery ZIP. 'State' \u2192 USPS 2-letter, already the char(2) column, 39% coverage from OSM addr:state and the rest from TIGER state polygons. 'WhatsApp Number' \u2192 has NO US equivalent worth modelling: contact:whatsapp is 17,937 globally but only 24 across ALL POI types in the US, and ZERO across my 847 truck-repair rows. Drop the field or hard-code NULL. 'Google Maps URL' \u2192 do NOT scrape or store Google Places data (Google ToS forbids storing Places content beyond caching); the legal substitute is a constructed geo: URI or an OpenStreetMap permalink from the lat/lon you already own, which costs nothing and violates nothing.",
+  "MEASURE RECALL HONESTLY AND PUBLISH THE NUMBER. The US has 272 shop=truck_repair + 529 service:vehicle:truck_repair=yes objects, union roughly 750-800 after the ~17% overlap I measured (56 of 328). Against a US universe that plausibly runs into the tens of thousands of HCV service facilities, OSM tag-based recall is low single-digit percent. Overture's national truck_repair count is UNKNOWN to this project because only an NYC/NJ bbox was ever ingested (2,981 rows, exactly 1 truck_repair) \u2014 measure it before designing around it, since Overture may well dominate recall while OSM dominates precision. Recommended framing for the product: report coverage per route as an explicit 'shops found / route km' with a stated method, and never let the UI imply the list is exhaustive. Concretely: (1) pull Overture places nationally for the automotive>automotive_services_and_repair subtree and count; (2) build osm.repair_pois nationally \u2014 note the US OSM backfill process is currently DEAD with no systemd timers, so this is blocked until that is restarted; (3) run the gate+score engine over both; (4) publish a coverage table by state into ops so the honesty claim is auditable."
+ ],
+ "unfillable_or_risky": [
+  {
+   "field_or_claim": "WhatsApp Number",
+   "problem": "Verified zero signal. contact:whatsapp has 17,937 uses globally but only 24 in the entire US across ALL POI types, and 0 across my 847-row US truck-repair download. contact:mobile is also 0. There is no free US business-WhatsApp registry, and harvesting numbers to message businesses raises CAN-SPAM/TCPA exposure independent of data licensing.",
+   "best_legal_alternative": "Drop the column, or keep it as a permanently-NULL column rendered as 'unknown'. The phone field (38% coverage from OSM tel tags, plus Overture phones[]) is the only realistic contact channel."
+  },
+  {
+   "field_or_claim": "Average rating, review count, review summary, photos",
+   "problem": "No free legal US source. Google Places, Yelp Fusion and TripAdvisor all prohibit storing/redistributing ratings, review text and photos beyond narrow caching windows; scraping them violates ToS and the project constraints forbid paid APIs. OSM has no rating field and Overture's places schema (verified) contains no rating, review_count or photo fields at all.",
+   "best_legal_alternative": "Do not model these fields as first-class columns. Substitute an internally-computed, honestly-labelled 'data_confidence' derived from source agreement (present_in cardinality), Overture src_confidence, field completeness and freshness \u2014 the repo already has conf_trust/conf_fresh/conf_complete/conf_agree columns for exactly this. Label it plainly as data confidence, never as a quality or customer rating."
+  },
+  {
+   "field_or_claim": "NAICS code as a truck-vs-car discriminator",
+   "problem": "Two independent failures verified against census.gov primary files. (a) 811111 'General Automotive Repair' is defined as covering 'passenger cars, trucks, and vans, and all trailers' in ONE code, and its index contains both 'Truck repair shops, general' and ordinary auto garages \u2014 so it cannot discriminate. (b) 811310 is titled 'Commercial and Industrial Machinery and Equipment (EXCEPT AUTOMOTIVE and Electronic) Repair' and its truck entries are 'Industrial truck (e.g., forklifts)' \u2014 mapping it to highway truck repair would import forklift and material-handling shops. Separately, 336-series codes are MANUFACTURING, 423120 is parts WHOLESALE, 811198's truck entry is 'Spray-on bedliner installation' (a pickup accessory), and 441340 is explicitly 'Truck tires and tubes dealers (except heavy truck)'. Finally there is no free per-establishment NAICS source at all: Census CBP returned a 'Missing Key' error and is aggregate-only by Title 13 confidentiality even with a key.",
+   "best_legal_alternative": "Do not put a naics column on the POI table. Use NAICS only as documentation of what the taxonomy means, and use CBP establishment counts by county\u00d7811111 purely as a DENOMINATOR when reporting coverage/recall \u2014 never as a source of businesses."
+  },
+  {
+   "field_or_claim": "service:vehicle:truck=yes and service:vehicle:hgv=yes as classifier inputs",
+   "problem": "Both keys have ZERO uses in OSM worldwide \u2014 verified via taginfo /key/stats (key totals 0) and /tag/stats (value totals 0). Code written against these matches nothing, and the failure would present as an empty result set rather than an obvious error.",
+   "best_legal_alternative": "Use service:vehicle:truck_repair (global 1,381 / US 529) \u2014 and note that 446 of the US ones sit on shop=car_repair, making it the single highest-value signal in the whole inventory rather than a footnote."
+  },
+  {
+   "field_or_claim": "hgv=yes as evidence a POI services trucks",
+   "problem": "Category error, verified: the hgv key has 1,633,084 uses of which 1,605,995 (98.3%) are on ways. It is a road access restriction (hgv=designated 987,238; hgv=no 243,977), meaning 'trucks may/may not drive here'. Applying it to POIs would classify every business adjacent to a truck route as a truck shop \u2014 catastrophic for precision on exactly the buffer-query this system performs.",
+   "best_legal_alternative": "Keep hgv strictly on osm.ways where the repo already stores it, and use it on the ROUTE side (identifying truck-legal roads for the buffer) rather than the SHOP side."
+  },
+  {
+   "field_or_claim": "Google Maps URL per shop",
+   "problem": "Google Maps Platform ToS prohibits storing Google Places content (including place_ids used to build canonical URLs) beyond limited caching, and prohibits use without Google Maps display. Scraping maps.google.com is a ToS violation. The project constraints also forbid paid APIs.",
+   "best_legal_alternative": "Construct a geo: URI or an openstreetmap.org permalink from the lat/lon the system already owns. Costs nothing, opens in the user's map app of choice, and carries no licensing exposure."
+  },
+  {
+   "field_or_claim": "Air brake service, suspension/leaf spring, pneumatic, chassis as boolean sub-category flags",
+   "problem": "No OSM tag exists for air brake or leaf spring at all. service:vehicle:suspension is 398 GLOBAL and car-dominated; underchassis is 8 global. Emitting these as boolean false would be a positive assertion ('this shop does not service air brakes') backed by zero evidence, which violates the repo rule that NULL renders as 'unknown', never as 'no'.",
+   "best_legal_alternative": "Model every sub-capability as a nullable tri-state and emit NULL by default. Only flip to true on an explicit tag or a high-precision name phrase, and record which signal set it in props so the assertion is traceable."
+  },
+  {
+   "field_or_claim": "'Mobile mechanic' / 'roadside breakdown' as reliable flags",
+   "problem": "NAICS 811111's index literally contains 'Mobile automotive and truck repair services', proving the business type exists \u2014 but there is no free per-business NAICS join, no OSM tag for mobile service, and the obvious name heuristic is booby-trapped because 'mobile' is a substring of 'automobile' (I hit 'Riverview Automobile Ltd.' this way). service:vehicle:towing is only 299 in the US and appeared on just 3% of my truck sample.",
+   "best_legal_alternative": "Populate the existing mobile_repair category ONLY on a word-boundary name match that excludes 'automobile', always flagged as inferred in flags[], and leave it NULL otherwise. Treat service:vehicle:towing=yes and Overture towing_service as the only affirmative roadside signals, accepting they are sparse."
+  },
+  {
+   "field_or_claim": "Foursquare category IDs for truck-specific POIs",
+   "problem": "I could not obtain a single real FSQ category id on the wire. The docs page returns 200 but does not inline the taxonomy; raw.githubusercontent.com paths under foursquare/fsq-os-places returned 404; the HuggingFace parquet resolve path returned 401. Inventing plausible ids would be fabrication.",
+   "best_legal_alternative": "Mark the FSQ branch of the classifier as NOT DESIGNED until the taxonomy file is actually retrieved from the correct HuggingFace release path. core.businesses already permits present_in='fsq' so the schema is ready, but no FSQ rows exist in the DB today (all 2,981 are Overture), so nothing is blocked by deferring this."
+  },
+  {
+   "field_or_claim": "Any claim that the shop list for a route is complete",
+   "problem": "Measured recall is low. The whole US has 272 shop=truck_repair and 529 service:vehicle:truck_repair=yes objects in OSM. Overture's national truck-repair count is unknown because only an NYC/NJ bbox was ever ingested (the single existing truck_repair row is a Cyrillic phantom at confidence 0.067). The US OSM backfill is currently not running at all.",
+   "best_legal_alternative": "Publish an explicit per-route and per-state coverage metric with a stated method, surface 'this list is not exhaustive' in the API envelope, and write one ops.source_runs row per fetch as the repo already requires so the coverage claim is auditable rather than asserted."
+  }
+ ],
+ "open_questions": [
+  "What is Overture's NATIONAL US count for categories.primary IN (truck_repair, trailer_repair, towing_service, truck_dealer)? This is the single biggest unknown in the recall picture \u2014 the DB only ever ingested an NYC/NJ bbox (2,981 rows, exactly 1 truck_repair, and that one is garbage). If Overture nationally holds tens of thousands of truck_repair places, Overture becomes the recall engine and OSM becomes the precision oracle, which would flip the priority of the whole build. This is cheap to answer with one national Overture pull filtered to the automotive>automotive_services_and_repair subtree.",
+  "The US OSM backfill is DEAD (no running process, no active systemd timers) and osm.ways currently covers Delaware only. Everything in the OSM half of this classifier is blocked until that is restarted. Is the intent to resume the incremental Overpass/Geofabrik backfill, or to switch to a full Geofabrik us-latest.osm.pbf import? The answer changes the design: a PBF import makes a national osm.repair_pois table trivial and removes all Overpass timeout problems (I hit 504s and 120s kills repeatedly on US-wide area queries), whereas incremental Overpass will need careful bbox tiling.",
+  "Should CONFIRMED_TRUCK vs LIKELY_TRUCK be exposed to API consumers as separate bands, or collapsed with a confidence score? This is a product decision with a precision/recall tradeoff attached: publishing only CONFIRMED gives ~750 US shops at very high precision; adding LIKELY multiplies coverage but imports name-heuristic risk. My recommendation is to expose the band explicitly and default the API to CONFIRMED+LIKELY with a filter, but the call belongs to the owner.",
+  "What is the correct HuggingFace release path for the FSQ OS Places categories parquet? The dataset landing page returns 200 but the release path I tried returned 401. Until this resolves, the FSQ branch of the classifier cannot be designed against real ids, and I refuse to guess them.",
+  "Does the buffer query need to distinguish 'shop is reachable by a truck' from 'shop is within N km of the route'? A shop 2 km away down a road tagged hgv=no or with a maxheight restriction is useless to a 13'6\" tractor-trailer. The repo already stores hgv, maxheight_in, maxweight_lb and maxwidth_in on osm.ways, so a truck-legal-access check on the connecting road is feasible \u2014 but it is a materially different (and much more valuable) query than a naive ST_DWithin buffer, and it is not in the current field list.",
+  "Should the AMBIGUOUS staging bucket be persisted as a physical table or a view? It is the LLM work queue and the human-correction surface, and quality.ai_decisions keys on (job, input_hash, decided_by), so the input canonicalisation function needs to be stable across pipeline runs or every re-run re-bills the LLM on unchanged rows. Pinning that canonicalisation is a small decision with a large cost implication."
+ ]
+}

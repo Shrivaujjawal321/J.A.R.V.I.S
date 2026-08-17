@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 19,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 13,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 7,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Mississippi",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

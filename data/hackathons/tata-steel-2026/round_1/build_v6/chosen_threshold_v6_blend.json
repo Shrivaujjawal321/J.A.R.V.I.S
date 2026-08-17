@@ -1,0 +1,13 @@
+{
+  "chosen_threshold_v6_blend": 0.018824147353124134,
+  "oof_score_v6_blend": 52.9126213592233,
+  "recall_at_T": 1.0,
+  "precision_at_T": 0.05825242718446602,
+  "blend_oof_auc": 0.8660987793958244,
+  "n_pos_oof": 1133,
+  "n_pos_test": 321,
+  "blend_weights": {
+    "v5_meta": 0.5,
+    "v6_ft_transformer": 0.5
+  }
+}

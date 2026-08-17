@@ -89,6 +89,33 @@ FEEDS = [
         "url": "https://raw.githubusercontent.com/taobojlen/anthropic-rss-feed/main/anthropic_news_rss.xml",
         "skip_if_404": True,
     },
+    # Added 2026-05-21 for daily-tech-news LinkedIn post mode.
+    # The original 5 feeds avg < 1 entry/day — too thin for a daily post.
+    {
+        "name": "TechCrunch AI",
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "skip_if_404": True,
+    },
+    {
+        "name": "VentureBeat AI",
+        "url": "https://venturebeat.com/category/ai/feed/",
+        "skip_if_404": True,
+    },
+    {
+        "name": "Hacker News — AI/ML (>100 points)",
+        "url": "https://hnrss.org/newest?q=AI+OR+LLM+OR+ML+OR+%22machine+learning%22&points=100",
+        "skip_if_404": True,
+    },
+    {
+        "name": "arXiv cs.LG (Machine Learning)",
+        "url": "http://export.arxiv.org/rss/cs.LG",
+        "skip_if_404": True,
+    },
+    {
+        "name": "MIT Technology Review",
+        "url": "https://www.technologyreview.com/feed/",
+        "skip_if_404": True,
+    },
 ]
 
 REQUEST_TIMEOUT = 20

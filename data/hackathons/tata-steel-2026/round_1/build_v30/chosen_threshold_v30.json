@@ -1,0 +1,60 @@
+{
+  "chosen_threshold": 0.02316297032622049,
+  "strategy": "maximize_(recall+precision)/2_exact_unique_thresholds_stage2_oof",
+  "predicted_lb_score": 57.0236,
+  "oof_score": 54.35356200527705,
+  "oof_recall": 1.0,
+  "oof_precision": 0.0870712401055409,
+  "oof_n_positives": 758,
+  "oof_total": 1352,
+  "v23_oof_baseline": 54.41,
+  "v4_oof_baseline": 54.31,
+  "delta_vs_v23": -0.056437994722948304,
+  "delta_vs_v4": 0.04356200527704601,
+  "stage2_oof_auc": 0.773697730840588,
+  "stage2_suspect_pool_size": 836,
+  "stage2_suspect_positives": 66,
+  "T_s1": 0.013,
+  "bootstrap_lower_ci": 53.43660649748796,
+  "bootstrap_upper_ci": 55.53328194661571,
+  "hard7_caught_at_T": 7,
+  "easy59_caught_at_T": 59,
+  "fp10_flagged_at_T": 10,
+  "coilid_473_proba": 0.023859594698299066,
+  "coilid_473_flagged": true,
+  "all_gates_pass": false,
+  "feature_groups": {
+    "v23_base_s2": [
+      "X14",
+      "X49",
+      "X41",
+      "X46",
+      "X48",
+      "X42",
+      "X18",
+      "X11",
+      "X11_X14",
+      "X49_X46_ratio",
+      "X41_X49_diff",
+      "v_ct_spread",
+      "v_ct_mean",
+      "v_ct_std",
+      "v_ct_range_sq"
+    ],
+    "group1_nn": [
+      "nn_anomaly_dist"
+    ],
+    "group2_x14": [
+      "X14_grade_dev",
+      "X14_grade_p75_excess",
+      "X14_iso_resid",
+      "X14_X18_consistency"
+    ],
+    "group3_symbolic": [
+      "X48_div_X49",
+      "X13_div_thermal",
+      "abs_X18_minus_880",
+      "v_ct_spread_x_X49"
+    ]
+  }
+}

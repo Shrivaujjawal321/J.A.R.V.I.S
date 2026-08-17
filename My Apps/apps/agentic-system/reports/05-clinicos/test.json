@@ -1,0 +1,28 @@
+{
+  "app": "05-clinicos",
+  "status": "yellow",
+  "phase": "done",
+  "build_retries": 0,
+  "fixes_applied": [],
+  "pages_tested": [
+    {"route": "/", "http_status": 200, "console_errors": []},
+    {"route": "/login", "http_status": 200, "console_errors": []},
+    {"route": "/dashboard", "http_status": 307, "redirect": "/login?callbackUrl=%2Fdashboard", "console_errors": []},
+    {"route": "/appointments", "http_status": 307, "redirect": "/login?callbackUrl=%2Fappointments", "console_errors": []},
+    {"route": "/patients", "http_status": 307, "redirect": "/login?callbackUrl=%2Fpatients", "console_errors": []},
+    {"route": "/doctors", "http_status": 307, "redirect": "/login?callbackUrl=%2Fdoctors", "console_errors": []},
+    {"route": "/prescriptions", "http_status": 307, "redirect": "/login?callbackUrl=%2Fprescriptions", "console_errors": []},
+    {"route": "/queue", "http_status": 307, "redirect": "/login?callbackUrl=%2Fqueue", "console_errors": []}
+  ],
+  "errors": [
+    {"phase": "navigate", "level": "warning", "message": "chrome-devtools MCP unavailable: another browser instance is using the profile. Fell back to HTTP curl checks instead of in-browser console-error inspection."}
+  ],
+  "notes": [
+    "Build succeeded on first attempt with Turbopack (Next.js 16.1.6).",
+    "Dev server started successfully on port 3005 (Ready in 92s, GET / 200).",
+    "Public routes (/ and /login) return 200; protected routes correctly redirect to /login (NextAuth middleware).",
+    "Console-error verification was not possible because the chrome-devtools MCP browser profile was locked by another running instance; HTTP-level checks all passed."
+  ],
+  "duration_seconds": 420,
+  "timestamp": "2026-04-28T15:19:00Z"
+}

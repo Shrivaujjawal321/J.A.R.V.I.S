@@ -1,0 +1,241 @@
+# Cycle 2 — Build Specification (Synthesis Output)
+# Generated 2026-05-23 from 16 C2 R-agent YAML reports.
+# Baseline floor: V23 OOF 54.41, cal_LB 57.08 (V4 banked 56.98).
+
+cycle: 2
+timestamp_utc: "2026-05-23T19:30:00Z"
+v4_banked_lb: 56.98
+v23_oof: 54.41
+v23_cal_lb_est: 57.08
+
+# ===== EMPIRICALLY CONFIRMED LIFTS (already measured on V23/V4 OOF data) =====
+
+confirmed_post_hoc_wins:
+
+  - id: C2_N04_rec_1
+    title: "Multi-band abstain on V23 OOF"
+    technique_class: threshold
+    measured_lift_cv: "+1.04 ± 0.21 OOF (5-fold CV)"
+    bands: "[0.04,0.055] ∪ [0.09,0.10] ∪ [0.27,0.33] ∪ [0.41,0.44]"
+    expected_new_oof: 55.45
+    expected_cal_lb: 58.12
+    risk: very_low  # recall=1.0 in every fold, 0/66 positives lost
+    rationale: |
+      THE strongest empirically-validated Cycle 2 finding. CV-validated (not just
+      in-sample). Pre-registered bands. Each band represents an "empty zone" in V23
+      OOF where flagging gives more FPs than TPs.
+
+  - id: C2_R14_rec_1
+    title: "V4+V26 global rank-blend with isolated threshold"
+    technique_class: tactics
+    measured_lift: "+0.38 OOF (vs V4), +0.28 OOF (vs V23)"
+    blend_method: "global rank average, then re-sweep threshold on blended distribution"
+    expected_oof: 54.69
+    expected_cal_lb: 57.36
+    risk: low  # bootstrap std 0.908, CI lower 53.66
+    rationale: |
+      V10 ban LIFTED. V10 failed because threshold carried; rank-blend with isolated
+      re-threshold structurally prevents that. V4 itself is a blend (LGB+XGB+CatBoost+LR).
+      V26's BorderlineSMOTE bias provides diversity despite solo regression.
+
+# ===== EMPIRICALLY FALSIFIED (negative results, do NOT build) =====
+
+falsified_recs:
+
+  - id: C2_R09 uLSIF/IWCV
+    evidence: "AV AUC 0.477 (train≈test), 0/49 PSI>0.25 post-Bonferroni. Hard-FP-10 are MORE train-like → IWCV moves boundary WRONG way."
+
+  - id: C2_R10 Mondrian conformal abstain
+    evidence: "11 configs tested. All regress -6 to -33 OOF. Hard-FP-10 confidently wrong (size=1 sets), not uncertain."
+
+  - id: C2_R15_rec_1 per-grade threshold
+    evidence: "In-sample +0.34, nested CV -1.39 (overfit ~4 positives/grade)."
+
+  - id: C2_R15_rec_3 bootstrap-conservative T
+    evidence: "25th-pctile = argmax — literal null lever."
+
+  - id: C2_N04_rec_2 per-grade abstain
+    evidence: "5-fold CV -7.76 ± 4.53 OOF, recall collapses 1.0 → 0.83."
+
+# ===== ARCHITECTURE PATH (medium-high conviction, longer build) =====
+
+architecture_recs:
+
+  - id: C2_N01
+    title: "NS1 — V4 replacement Stage-1 from scratch"
+    components:
+      - "LGB-RFL (r=0.5, q=0.3) — confirmed +0.0108 AUC vs V4 LGB"
+      - "TabICLv2 standalone (BSD-3, offline pip install tabicl)"
+      - "CatBoost with Optuna AUC objective (depth 6-8, lr 0.03-0.05)"
+      - "5-seed FT-Transformer deep ensemble with EMA/SWA (C2_N05)"
+    meta: "LR + isotonic calibration (NOT Platt)"
+    expected_oof_auc:
+      pessimistic: 0.892  # if TabICL fails
+      base: 0.905
+      optimistic: 0.922
+    expected_lift_vs_v23: "+0.5 to +2.5 OOF as Stage-1"
+    risk: medium  # TabICLv2 install + 4-component coordination
+    effort_hours: 4-6
+
+  - id: C2_R08_rec_1
+    title: "Cascade with NS1 Stage-1 (compound on N01)"
+    depends_on: C2_N01
+    expected_lift: "+2.2 OOF over V23 if NS1 AUC ≥ 0.92"
+    bundled: "CT features at Stage-1 (C2_R02) + within-pool z-scores Stage-2 (C2_N03) + X14 grade residual (C2_N02)"
+    expected_final_oof: "57.0 (range 55.5-59.5)"
+    expected_cal_lb: "59.7"
+
+# ===== FEATURE ENGINEERING PATH (conditional, medium conviction) =====
+
+fe_recs:
+
+  - id: C2_N06_rec_2
+    title: "Per-grade 5-NN anomaly distance on {X14,X18,X22,X23,X41,X8}"
+    measured_proxy_lift: "+0.033 AUC (0.766 → 0.799 in HistGB proxy)"
+    expected_oof_lift: "+0.3 to +0.7"
+    targets: "CoilID 473 (THERMAL defect signature)"
+    audit: "5/7 H7 above grade-median, 5/10 HFP-10 below (clean opposite)"
+
+  - id: C2_N02_rec_1
+    title: "DiCE counterfactual + X14-grade residual stack"
+    expected_oof_lift: "+0.3 to +0.8 (conditional on X14 consensus emerging)"
+    pre_registered: true
+
+  - id: C2_R13_rec_1
+    title: "OpenFE on V23 base, 3-stage noise filter"
+    expected_oof_lift: "20% chance +0.8-1.4, 40% null, 40% modest"
+    cv_safe: true
+    forbidden_ops: ["GroupBy*"]
+
+  - id: C2_R13b
+    title: "gplearn symbolic regression — X48/(X49+eps) signature"
+    expected_oof_lift: "+0.5 (CV-filtered across folds)"
+    sequence: "after C2_N02"
+
+# ===== SELECTED BUILDS FOR DISPATCH =====
+
+builds:
+
+  - build_id: V27
+    name: "Multi-band abstain on V23 OOF (post-hoc, no retraining)"
+    builder: statistician-agent
+    base: build_v23
+    output_dir: build_v27/
+    recommendations: [C2_N04_rec_1]
+    files_to_create:
+      - build_v27/build_v27.py
+      - build_v27/approach.md
+      - build_v27/oof_v27.parquet  # V23 OOF with abstain rule applied
+      - build_v27/chosen_threshold_v27.json
+      - build_v27/expected_submission.csv
+      - build_v27/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.41  # V23 floor
+      - bootstrap_lower_ci >= 53.0
+      - hard7_caught >= 1
+      - easy59_caught >= 58
+    expected_oof: 55.45
+    expected_cal_lb: 58.12
+    effort_hours: 0.5
+    rationale: "CV-validated +1.04 OOF; recall 1.0 every fold. THE highest-confidence Cycle 2 build."
+
+  - build_id: V28
+    name: "V4+V26 rank-blend with isolated threshold"
+    builder: statistician-agent
+    base: [build_v4, build_v26]
+    output_dir: build_v28/
+    recommendations: [C2_R14_rec_1]
+    files_to_create:
+      - build_v28/build_v28.py
+      - build_v28/approach.md
+      - build_v28/oof_v28.parquet
+      - build_v28/chosen_threshold_v28.json
+      - build_v28/expected_submission.csv
+      - build_v28/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.41
+      - bootstrap_lower_ci >= 53.0
+      - easy59_caught >= 58
+    expected_oof: 54.69
+    expected_cal_lb: 57.36
+    effort_hours: 0.5
+    rationale: "Empirically measured rank-blend with isolated threshold. V10 ban lifted (different mechanism)."
+
+  - build_id: V29
+    name: "NS1 from-scratch Stage-1 (TabICLv2 + LGB-RFL + CatBoost-Optuna + 5seed FT-EMA)"
+    builder: ml-engineer-agent
+    base: data_cache (NOT V4)
+    output_dir: build_v29/
+    recommendations: [C2_N01, C2_N05_rec_2 (EMA), C2_R02_rec_1 (CT features at Stage-1)]
+    files_to_create:
+      - build_v29/build_v29.py
+      - build_v29/approach.md
+      - build_v29/oof_v29.parquet
+      - build_v29/test_pred_v29.parquet
+      - build_v29/chosen_threshold_v29.json
+      - build_v29/expected_submission.csv
+      - build_v29/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.41
+      - bootstrap_lower_ci >= 53.0
+      - meta_oof_auc >= 0.884  # beat V4 meta
+    expected_meta_auc: 0.905
+    expected_oof: "55.5 (range 54.5-57.5)"
+    expected_cal_lb: "58.2"
+    effort_hours: 4-6
+    failure_modes:
+      - "TabICLv2 install fails → drop B, run A+C+D (3-component)"
+      - "TabICLv2 fold-1 AUC < 0.75 → abort, fallback to LGB-RFL standalone"
+    rationale: "THE big architecture swing. Replaces V4 entirely; not augmentation. If successful, unblocks V30 cascade."
+
+  - build_id: V30
+    name: "Feature-stack: 5-NN per-grade anomaly + DiCE X14-residual + OpenFE"
+    builder: data-engineer-agent
+    base: build_v23
+    output_dir: build_v30/
+    recommendations: [C2_N06_rec_2, C2_N02_rec_1, C2_R13_rec_1]
+    files_to_create:
+      - build_v30/build_v30.py
+      - build_v30/approach.md
+      - build_v30/oof_v30.parquet
+      - build_v30/chosen_threshold_v30.json
+      - build_v30/expected_submission.csv
+      - build_v30/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.41
+      - bootstrap_lower_ci >= 53.0
+      - hard7_recall_at_threshold >= 6  # CoilID 473 recovery target
+    expected_oof: "55.2 (range 54.2-56.5)"
+    effort_hours: 3
+    rationale: "Compound feature-engineering build targeting CoilID 473 + Hard-FP-10. Independent of V29."
+
+# ===== DISPATCH STRATEGY =====
+
+dispatch:
+  parallel: [V27, V28, V29, V30]  # 4 independent builds
+  rationale: |
+    V27/V28 are post-hoc and fast (30 min each, no training).
+    V29 is heavy (4-6h) but doesn't share files with others.
+    V30 builds on V23 OOF, independent of V29.
+    All 4 can run concurrently.
+
+# ===== DEFERRED TO CYCLE 3 (if needed) =====
+
+deferred_to_cycle_3:
+  - C2_R08_rec_1 cascade with NS1 Stage-1 — depends on V29 succeeding
+  - C2_R07 PReNet/DevNet 52nd feature — diagnostic gate first; high build cost
+  - C2_R13b gplearn X48/X49 — sequence after V30 confirms what worked
+  - C2_R15_rec_4 prevalence-anchored T — LB-only bet, save HE slot
+
+# ===== SUMMARY =====
+
+summary:
+  builds_to_dispatch: 4
+  technique_classes_covered: [threshold, tactics, architecture, feature_engineering]
+  highest_confidence_pick: V27 (CV-validated +1.04 OOF)
+  highest_leverage_pick: V29 (NS1 architecture, +0.5 to +2.5 OOF as Stage-1)
+  expected_best_oof: 55.5  # if V29 hits base case
+  expected_best_lb: 58.2
+  alternative_best_oof: 55.45  # V27 if V29 fails or matches
+  alternative_best_lb: 58.12
+  total_expected_active_time_hours: 6-8 (parallel)

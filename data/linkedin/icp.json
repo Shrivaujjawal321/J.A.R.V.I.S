@@ -8,19 +8,23 @@
     "geo_priority": ["India", "Global-remote", "United States"],
     "last_updated": "2026-05-13"
   },
+  "_cadence_note": "Boss target 2026-06-25: 3 posts/week + ~100 follows/week + steady connections. Daily follows 14 x7 = 98/wk. Daily conns 12 x7 = 84/wk (safely under LinkedIn ~100/wk invite cap). Posts gated to Mon/Wed/Fri = 3/wk. Afternoon batch disabled to keep weekly math clean — morning is the single daily batch.",
   "daily_targets": {
-    "follows": 50,
-    "connection_requests": 20,
+    "follows": 14,
+    "connection_requests": 12,
     "messages_first_degree": 0,
-    "intro_dms": 10,
+    "intro_dms": 5,
     "inmails_per_day": 0,
     "inmails_per_month_budget": 5,
-    "posts": 1,
-    "engagement_comments": 10
+    "posts": 3,
+    "posts_cadence": "weekly",
+    "post_weekdays": [0, 2, 4],
+    "engagement_comments": 8
   },
   "weekly_caps": {
-    "max_follows": 250,
-    "max_connection_invites": 150,
+    "max_follows": 100,
+    "max_connection_invites": 90,
+    "max_posts": 3,
     "max_inmails": 2
   },
   "categories": [

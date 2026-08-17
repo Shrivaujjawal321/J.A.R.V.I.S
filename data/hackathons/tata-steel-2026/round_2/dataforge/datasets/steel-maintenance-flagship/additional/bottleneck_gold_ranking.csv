@@ -1,0 +1,16 @@
+asset_id,process_stage,criticality,safety_class,downstream_units,min_buffer_hours,max_spare_lead_weeks,min_spare_stock,f_crit,f_safety,f_delay,f_spares,f_lead,priority_score,gold_rank
+BF.BLW.FAN01,iron_making,1,P1,6,6,14.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1
+MS.LDC.CRN01,steelmaking,1,P1,5,2,16.0,0.0,1.0,1.0,0.9,1.0,1.0,0.978,2
+RM.CONV.ORE01,raw_material_handling,2,P1,8,8,10.0,0.0,0.667,1.0,1.0,1.0,0.8333333333333334,0.8901,3
+CCM.SEG.07,casting,1,P2,3,24,20.0,0.0,1.0,0.66,0.7,1.0,1.0,0.849,4
+CCM.MOLD.01,casting,1,P1,3,24,14.0,1.0,1.0,1.0,0.7,0.0,1.0,0.784,5
+HSM.F3.WR.BRG01,hot_rolling,1,P2,1,72,18.0,0.0,1.0,0.66,0.233,1.0,1.0,0.7463,6
+HSM.F1.GBX01,hot_rolling,1,P2,1,72,40.0,0.0,1.0,0.66,0.233,1.0,1.0,0.7463,7
+HSM.STD.R1,hot_rolling,1,P2,1,72,20.0,0.0,1.0,0.66,0.233,1.0,1.0,0.7463,8
+RHF.ZONE.SOAK,reheating,2,P2,2,2,12.0,0.0,0.667,0.66,0.6,1.0,1.0,0.7338,9
+SP.SINT.FAN01,sintering,1,P2,7,10,8.0,1.0,1.0,0.66,1.0,0.0,0.6666666666666666,0.7317,10
+BF.CW.PMP02,iron_making,1,P2,6,6,6.0,1.0,1.0,0.66,1.0,0.0,0.5,0.715,11
+HSM.F1.MTR01,hot_rolling,1,P3,1,72,40.0,0.0,1.0,0.33,0.233,1.0,1.0,0.6638,12
+CRM.AGC.SV01,cold_rolling,1,P2,0,24,10.0,1.0,1.0,0.66,0.4,0.0,0.8333333333333334,0.6163,13
+EAF.AUX.HYD01,steelmaking,1,P4,5,2,6.0,1.0,1.0,0.0,0.9,0.0,0.5,0.528,14
+HSM.DSC.PMP01,hot_rolling,2,P3,1,72,8.0,1.0,0.667,0.33,0.233,0.0,0.6666666666666666,0.3872,15

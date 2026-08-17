@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis — Master Architecture</title>
+<style>
+  :root{
+    --bg:#f4f6fa;--panel:#ffffff;--panel-2:#eaeef5;--ink:#161b24;--muted:#5c6774;--border:#d3dae4;
+    --accent:#1f6feb;--accent-soft:#e3edff;
+    --green:#1a7f37;--green-bg:#e6f4ec;--red:#cf222e;--red-bg:#ffebeb;--amber:#9a6700;--amber-bg:#fbf2d7;
+    --violet:#7d4fd3;--violet-bg:#efe7ff;--teal:#0f766e;--teal-bg:#dcf3f0;--pink:#c02670;--pink-bg:#fde7f1;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0a0d12;--panel:#131923;--panel-2:#1b2230;--ink:#e7edf4;--muted:#98a4b3;--border:#2a3342;
+    --accent:#5aa2ff;--accent-soft:#132a4d;
+    --green:#4ecb6a;--green-bg:#0f2a18;--red:#ff7b72;--red-bg:#2f1416;--amber:#e3b341;--amber-bg:#2b2310;
+    --violet:#b28df5;--violet-bg:#221540;--teal:#38d0be;--teal-bg:#0b2a26;--pink:#f077ad;--pink-bg:#33101f;
+  }}
+  :root[data-theme="light"]{--bg:#f4f6fa;--panel:#ffffff;--panel-2:#eaeef5;--ink:#161b24;--muted:#5c6774;--border:#d3dae4;--accent:#1f6feb;--accent-soft:#e3edff;--green:#1a7f37;--green-bg:#e6f4ec;--red:#cf222e;--red-bg:#ffebeb;--amber:#9a6700;--amber-bg:#fbf2d7;--violet:#7d4fd3;--violet-bg:#efe7ff;--teal:#0f766e;--teal-bg:#dcf3f0;--pink:#c02670;--pink-bg:#fde7f1;}
+  :root[data-theme="dark"]{--bg:#0a0d12;--panel:#131923;--panel-2:#1b2230;--ink:#e7edf4;--muted:#98a4b3;--border:#2a3342;--accent:#5aa2ff;--accent-soft:#132a4d;--green:#4ecb6a;--green-bg:#0f2a18;--red:#ff7b72;--red-bg:#2f1416;--amber:#e3b341;--amber-bg:#2b2310;--violet:#b28df5;--violet-bg:#221540;--teal:#38d0be;--teal-bg:#0b2a26;--pink:#f077ad;--pink-bg:#33101f;}
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:30px 14px 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:960px;margin:0 auto;}
+  .themebtn{position:fixed;top:12px;right:12px;z-index:20;font-family:var(--mono);font-size:12px;cursor:pointer;background:var(--panel);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 11px;}
+
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  h1{font-size:clamp(24px,5vw,36px);margin:6px 0 6px;font-weight:800;letter-spacing:-.5px;}
+  .sub{color:var(--muted);font-size:14.5px;max-width:66ch;}
+  h2{font-size:20px;margin:44px 0 4px;display:flex;align-items:baseline;gap:9px;}
+  h2 .n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:6px;font-weight:700;}
+  .lead{color:var(--muted);font-size:13.5px;margin:2px 0 14px;}
+
+  /* architecture layers */
+  .arch{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+  .layer{border:2px solid var(--border);border-radius:14px;padding:14px 16px;background:var(--panel);}
+  .layer .ltitle{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:2px;}
+  .layer .ltag{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:999px;font-weight:700;letter-spacing:.4px;}
+  .layer .ldesc{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .boxes{display:flex;flex-wrap:wrap;gap:8px;}
+  .bx{flex:1 1 130px;min-width:120px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;}
+  .bx b{display:block;font-size:12.5px;}
+  .bx span{color:var(--muted);font-size:11px;}
+  .bx.hl{background:var(--accent-soft);border-color:var(--accent);}
+  .bx.hl b{color:var(--accent);}
+  .flow-arrow{text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:6px 0;}
+  .l-iface{border-color:var(--teal);}   .l-iface .ltag{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal);}
+  .l-daemon{border-color:var(--accent);} .l-daemon .ltag{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+  .l-agents{border-color:var(--violet);} .l-agents .ltag{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet);}
+  .l-mem{border-color:var(--pink);}     .l-mem .ltag{background:var(--pink-bg);color:var(--pink);border:1px solid var(--pink);}
+  .l-auto{border-color:var(--amber);}   .l-auto .ltag{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber);}
+  .l-safe{border-color:var(--red);}     .l-safe .ltag{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+
+  /* pipeline strip */
+  .pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:14px 0;}
+  .stage{flex:1 1 150px;min-width:150px;border-radius:12px;padding:11px 12px;border:2px solid var(--border);background:var(--panel);}
+  .stage .num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--muted);}
+  .stage b{display:block;font-size:14px;margin:2px 0;}
+  .stage p{margin:4px 0 0;font-size:11.5px;color:var(--muted);}
+  .stage .skip{margin-top:7px;font-size:10.5px;font-family:var(--mono);padding:3px 7px;border-radius:6px;background:var(--amber-bg);color:var(--amber);display:inline-block;}
+  .stage.worker{border-color:var(--accent);background:var(--accent-soft);}
+  .stage.worker b{color:var(--accent);font-size:15px;}
+  .parr{display:flex;align-items:center;font-family:var(--mono);color:var(--muted);font-size:14px;}
+
+  .note{background:var(--panel);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
+  .note b{color:var(--accent);}
+  .say{background:var(--green-bg);border-left:4px solid var(--green);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
+  .say b{color:var(--green);}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:14px 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px 15px;}
+  .card h3{margin:0 0 6px;font-size:14.5px;}
+  .card p,.card li{font-size:12.5px;color:var(--muted);margin:4px 0;}
+  .card ul{margin:4px 0;padding-left:18px;}
+  code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border);}
+
+  .cheat{overflow-x:auto;border:1px solid var(--border);border-radius:11px;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:540px;}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--panel-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+  .t-ok{color:var(--green);font-weight:700;} .t-no{color:var(--red);font-weight:700;}
+
+  footer{margin-top:48px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:14px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeToggle">◐ theme</button>
+<div class="wrap">
+
+  <div class="kicker">Interview Master Diagram</div>
+  <h1>Jarvis — Complete Architecture</h1>
+  <p class="sub">Ek hi page pe poora Jarvis — 6 layers, message journey, memory, automation, safety. Interviewer ko yehi order mein samjhao: <b>upar se neeche</b>.</p>
+
+  <!-- ================= THE 6-LAYER STACK ================= -->
+  <h2><span class="n">1</span> The Big Picture — 6 Layers</h2>
+  <p class="lead">Bolne ka order: "Jarvis has six layers — interfaces on top, then the daemon brain, agents, memory, automation, and safety wrapping everything."</p>
+
+  <div class="arch">
+
+    <div class="layer l-iface">
+      <div class="ltitle">🖥️ LAYER 1 — INTERFACES <span class="ltag">USER SE MILNE KA RAASTA</span></div>
+      <div class="ldesc">Boss jahan se baat karta hai. Sab raste ek hi daemon pe jaate hain.</div>
+      <div class="boxes">
+        <div class="bx"><b>Telegram Bot</b><span>bridge service — main raasta, phone se</span></div>
+        <div class="bx"><b>Voice</b><span>Whisper STT (sunna) + Piper TTS (bolna)</span></div>
+        <div class="bx"><b>CLI / Claude Code</b><span>terminal session</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ HTTP POST /chat ▼</div>
+
+    <div class="layer l-daemon">
+      <div class="ltitle">🧠 LAYER 2 — JARVIS-CORE DAEMON <span class="ltag">DIMAAG · FastAPI · 24×7</span></div>
+      <div class="ldesc">Hamesha chalne wala FastAPI service (port 8765). Auth: Max-subscription OAuth token — <b>no API key, no per-call cost</b>. Har message yahan 4-stage pipeline se guzarta hai (Section 2). State har 5 min disk pe save.</div>
+      <div class="boxes">
+        <div class="bx"><b>POST /chat</b><span>ek message → pipeline → reply</span></div>
+        <div class="bx hl"><b>POST /task</b><span>N workers PARALLEL (asyncio.gather)</span></div>
+        <div class="bx"><b>GET /health · /state</b><span>zinda hai? state kya hai?</span></div>
+        <div class="bx"><b>Goal endpoints</b><span>overnight autonomous goals</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ delegates via Claude Agent SDK ▼</div>
+
+    <div class="layer l-agents">
+      <div class="ltitle">👥 LAYER 3 — 90 SPECIALIST AGENTS <span class="ltag">MANAGER-WORKER PATTERN</span></div>
+      <div class="ldesc">"Jarvis is a manager, not a worker." Har agent = same base model + <b>alag system prompt + alag tools + alag permissions</b>. Manager sub-tasks parallel bhejta hai, results synthesize karta hai.</div>
+      <div class="boxes">
+        <div class="bx"><b>email-agent</b><span>Gmail tools — draft only, kabhi send nahi</span></div>
+        <div class="bx"><b>research-agent</b><span>web search + synthesis</span></div>
+        <div class="bx"><b>code / ml / security</b><span>engineering specialists</span></div>
+        <div class="bx"><b>+86 aur</b><span>resume, calendar, hackathon, browser…</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ reads / writes ▼</div>
+
+    <div class="layer l-mem">
+      <div class="ltitle">💾 LAYER 4 — MEMORY <span class="ltag">2 LAYERS + GRAPH</span></div>
+      <div class="ldesc">Isi se Jarvis "yaad" rakhta hai — chatbots se sabse bada farak.</div>
+      <div class="boxes">
+        <div class="bx"><b>📁 Structured files</b><span>facts / preferences / projects / people — pakki diary, har session load</span></div>
+        <div class="bx hl"><b>🔍 ChromaDB vector DB</b><span>purani baatein chunks mein · cosine similarity · <b>≥0.55</b> hi context mein · top-5 · 2000-token cap</span></div>
+        <div class="bx"><b>🕸️ Knowledge graph</b><span>entities + relations (kaun kisse juda)</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ alag se, apne alarm pe ▼</div>
+
+    <div class="layer l-auto">
+      <div class="ltitle">⏰ LAYER 5 — AUTOMATION <span class="ltag">SYSTEMD TIMERS = ALARM CLOCKS</span></div>
+      <div class="ldesc">Bina bole kaam. Har timer ek script chalata hai, result Telegram pe.</div>
+      <div class="boxes">
+        <div class="bx"><b>06:30 News</b><span>10 RSS feeds → AI digest</span></div>
+        <div class="bx"><b>08:00 LinkedIn</b><span>ICP search → drafts → approval → 10:00 Chrome se send</span></div>
+        <div class="bx"><b>09:00 Job outreach</b><span>hiring startups → verify email → SMTP send (cap 25)</span></div>
+        <div class="bx"><b>Overnight goals</b><span>goal → decompose → parallel sub-tasks → morning digest</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ har action isse guzarta hai ▼</div>
+
+    <div class="layer l-safe">
+      <div class="ltitle">🛡️ LAYER 6 — SAFETY: 4-TIER TRUST MODEL <span class="ltag">SAB PE LAAGU</span></div>
+      <div class="ldesc">Autonomy ke saath control. Irreversible kaam kabhi bina permission nahi.</div>
+      <div class="boxes">
+        <div class="bx"><b>Tier 1 — Auto</b><span>reads, drafts, research — free</span></div>
+        <div class="bx"><b>Tier 2 — Auto + log</b><span>file edits, drafts fill — audit log mein</span></div>
+        <div class="bx hl"><b>Tier 3 — Approval</b><span>SEND / SUBMIT / DELETE / PUBLISH — Boss ka haan zaroori</span></div>
+        <div class="bx"><b>Tier 4 — Never</b><span>system destroy, ToS violation — koi override nahi</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="say">🎤 <b>2-line summary (ratlo):</b> "Six layers: interfaces feed a FastAPI daemon; the daemon runs a 4-stage pipeline and delegates to 90 specialist agents; a two-layer memory makes it personal; systemd automations make it proactive; and a 4-tier safety model keeps irreversible actions behind my approval."</div>
+
+  <!-- ================= MESSAGE JOURNEY ================= -->
+  <h2><span class="n">2</span> Message Journey — 4-Stage Pipeline</h2>
+  <p class="lead">Har /chat message ka safar. Stage 1+2 PARALLEL (independent hain — latency bachti hai). Worker hi Jarvis ka dimaag hai; 1, 2, 4 helpers hain.</p>
+
+  <div class="pipe">
+    <div class="stage">
+      <div class="num">STAGE 1 · Haiku · 3s timeout</div>
+      <b>Intent</b>
+      <p>"Ye kya hai?" — task / question / feedback / urgent (8 categories + priority)</p>
+      <span class="skip">slash cmd → auto "task"</span>
+    </div>
+    <div class="parr">∥ parallel</div>
+    <div class="stage">
+      <div class="num">STAGE 2 · ChromaDB</div>
+      <b>Recall</b>
+      <p>Query embed → cosine ≥0.55 → top-5 chunks (max 2000 tokens) worker ko</p>
+      <span class="skip">skip: greeting · &lt;30 chars · slash</span>
+    </div>
+    <div class="parr">→</div>
+    <div class="stage worker">
+      <div class="num">STAGE 3 · main Claude</div>
+      <b>⭐ WORKER = JARVIS</b>
+      <p>Jarvis persona + intent + memory → sochta hai, kaam karta hai, 90 agents ko delegate karta hai. <b>Hamesha chalta hai — reply yahi banata hai.</b></p>
+    </div>
+    <div class="parr">→</div>
+    <div class="stage">
+      <div class="num">STAGE 4 · Haiku · 8s timeout</div>
+      <b>Critic</b>
+      <p>4 checks: intent? memory? claims? tone? → "revise" bola to EK revision</p>
+      <span class="skip">FAIL-OPEN: timeout → original reply jaata hai</span>
+    </div>
+  </div>
+
+  <div class="note">💡 <b>Design principle (interviewer ko bolo):</b> "Every helper stage has a <b>skip-path and a timeout</b> — trivial messages stay fast, and a failed helper can never block the reply. The system degrades gracefully, it never dies."</div>
+
+  <!-- ================= WHY DIFFERENT ================= -->
+  <h2><span class="n">3</span> Normal Chatbot vs Jarvis</h2>
+  <div class="cheat"><table>
+    <thead><tr><th>Sawaal</th><th>Normal chatbot</th><th>Jarvis</th></tr></thead>
+    <tbody>
+      <tr><td>Yaad rakhta hai?</td><td class="t-no">✗ stateless</td><td class="t-ok">✓ files + vector DB + graph</td></tr>
+      <tr><td>Kaam karta hai?</td><td class="t-no">✗ sirf jawab</td><td class="t-ok">✓ email, LinkedIn, browser, jobs</td></tr>
+      <tr><td>Specialist?</td><td class="t-no">✗ ek generalist</td><td class="t-ok">✓ 90 specialists, manager-worker</td></tr>
+      <tr><td>Khud ko check karta hai?</td><td class="t-no">✗</td><td class="t-ok">✓ critic + one revision pass</td></tr>
+      <tr><td>Khud kaam shuru karta hai?</td><td class="t-no">✗ reactive</td><td class="t-ok">✓ timers + overnight goals</td></tr>
+      <tr><td>Safety model?</td><td class="t-no">✗</td><td class="t-ok">✓ 4 tiers, Tier-3 approval</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================= DESIGN DECISIONS ================= -->
+  <h2><span class="n">4</span> Design Decisions — "Ye kyun, wo kyun nahi"</h2>
+  <div class="grid2">
+    <div class="card"><h3>✅ Claude Agent SDK + asyncio &nbsp;❌ LangChain</h3><p>Zaroorat thi: daemon + parallel fan-out. asyncio.gather ye cleanly karta hai. Framework = extra abstraction jo debug karni padti. <b>Deterministic, inspectable control flow.</b></p></div>
+    <div class="card"><h3>✅ ChromaDB local &nbsp;❌ cloud vector DB</h3><p>Personal data local rahe (privacy), free, no network dependency. Plant analogy: <b>on-prem for confidential data.</b></p></div>
+    <div class="card"><h3>✅ Files + vector DB dono &nbsp;❌ sirf vector</h3><p>Pakki facts (naam, preferences) <b>deterministic</b> chahiye — similarity search pe chhodna risky. Episodic recall ke liye vector best. Dono ka kaam alag.</p></div>
+    <div class="card"><h3>✅ Haiku critic &nbsp;❌ Opus critic</h3><p>Critic har reply pe chalta hai — <b>speed + cost</b> matter. Chhota model 4-rubric check ke liye kaafi.</p></div>
+    <div class="card"><h3>✅ OAuth token &nbsp;❌ API key</h3><p>Max subscription ka token = <b>zero per-token billing.</b> Personal system sustainable ho gaya.</p></div>
+    <div class="card"><h3>✅ systemd timers &nbsp;❌ apna scheduler</h3><p>OS-native, battle-tested, <code>Persistent=true</code> (laptop band tha to jaagte hi run). Apna scheduler likhna = reinventing the wheel.</p></div>
+  </div>
+
+  <!-- ================= NUMBERS ================= -->
+  <h2><span class="n">5</span> Numbers — depth dikhane ke liye</h2>
+  <div class="cheat"><table>
+    <thead><tr><th>Number</th><th>Kya</th></tr></thead>
+    <tbody>
+      <tr><td><b>90</b></td><td>specialist agents (manager-worker)</td></tr>
+      <tr><td><b>4</b></td><td>pipeline stages — intent ∥ recall → worker → critic</td></tr>
+      <tr><td><b>0.55</b></td><td>cosine similarity threshold (recall gate)</td></tr>
+      <tr><td><b>top-5 / 2000</b></td><td>chunks / token cap per recall</td></tr>
+      <tr><td><b>3s / 8s</b></td><td>intent / critic hard timeouts (fail-open)</td></tr>
+      <tr><td><b>4</b></td><td>safety tiers (Tier-3 = approval, Tier-4 = never)</td></tr>
+      <tr><td><b>5 min</b></td><td>state disk-sync (crash-safe)</td></tr>
+      <tr><td><b>8765</b></td><td>daemon port (localhost)</td></tr>
+      <tr><td><b>06:30 / 08:00 / 09:00</b></td><td>news / LinkedIn / job-outreach timers (IST)</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================= CLOSING LINE ================= -->
+  <h2><span class="n">6</span> The Tata Steel Closing Line</h2>
+  <div class="say">🎤 <b>Jab poochein "iska humse kya lena-dena?":</b><br>
+  "The same patterns transfer directly to industrial AI — manager-worker orchestration became my EDITH supervisor, RAG memory became manuals retrieval, the critic became my NLI faithfulness gate, and tiered safety is exactly human-in-the-loop for plant actions. <b>Jarvis was my lab — EDITH is the industrial version.</b>"</div>
+
+  <footer>Jarvis Master Architecture · interview edition · 6 layers · sab kuch ek page pe</footer>
+</div>
+<script>
+(function(){var b=document.getElementById('themeToggle'),r=document.documentElement;b.addEventListener('click',function(){var c=r.getAttribute('data-theme');if(!c)c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',c==='dark'?'light':'dark');});})();
+</script>
+</body>
+</html>

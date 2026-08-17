@@ -1,0 +1,124 @@
+{
+  "report_id": "INC-20260611-093836",
+  "kind": "incident",
+  "asset_id": "HSM.F1.GBX01",
+  "scenario_id": "SCN-038",
+  "title": "Incident report \u2014 HSM.F1.GBX01 (gear_tooth_fatigue_crack)",
+  "generated_at": "2026-06-11T15:10:25.007354",
+  "summary": "Incident report \u2014 HSM.F1.GBX01 (gear_tooth_fatigue_crack)",
+  "risk_band": "HIGH",
+  "rul": 632.0,
+  "rul_days": 26.3,
+  "confidence": 0.5406,
+  "confidence_label": "unverified",
+  "reasoning_mode": "edith-deep (live)",
+  "findings": {
+    "diagnosis": {
+      "key": "diagnosis",
+      "title": "Diagnosis",
+      "brief": "Probable fault: gear_tooth_fatigue_crack (scenario SCN-038) \u2014 ML class NORMAL.",
+      "detail": "ML fault classifier: NORMAL.\nSensors over threshold:\n\u2022 Oil viscosity = 216.601 (WARNING, limit 180)",
+      "sources": [
+        "SPEC/ground_truth_spine.json"
+      ]
+    },
+    "rca": {
+      "key": "rca",
+      "title": "Probable Root Cause",
+      "brief": "Root cause: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+      "detail": "Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "SOP-02_gearbox-oil-gear-service.md"
+      ]
+    },
+    "predictor": {
+      "key": "predictor",
+      "title": "Remaining Useful Life & Early Warning",
+      "brief": "RUL \u2248 632.0 cycles (~26.3 days) \u2014 monitor; anomaly=0.4898.",
+      "detail": "Estimated RUL: 632.0 cycles (~26.3 days).\nRUL band: monitor.\nAnomaly score: 0.49.",
+      "sources": [
+        "condition_monitoring/rul_trajectories_long.csv"
+      ]
+    },
+    "prioritizer": {
+      "key": "prioritizer",
+      "title": "Risk & Priority",
+      "brief": "Risk: HIGH (score 7.0/14).",
+      "detail": "Risk level: HIGH (score 7.0/14).\nSafety class: P2 \u00b7 process criticality: 1.\n\u2022 process-criticality 1 -> +3\n\u2022 safety-class P2 -> +2\n\u2022 P(failure)=0.00 -> +0\n\u2022 RUL band 'monitor' -> +0\n\u2022 key spare out-of-stock, 36-wk lead -> +2\nSpares lead time: up to 36.0 weeks.",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ]
+    },
+    "recommender": {
+      "key": "recommender",
+      "title": "Recommended Actions",
+      "brief": "5 action steps; 1 part(s) need ordering now.",
+      "detail": "1. Immediate controlled stop (no deferral)\n2. Remove gearbox via crane to repair bay\n3. Replace gear wheel + bearings; set backlash 0.1-0.3mm\n4. Prussian-blue contact >70% face\n5. Run-in low load before full\nOrder now: Custom large-module gear wheel M20+ (HSM mill drive) (GEAR-WHL-M20)\nParts cost: INR 10,395,750.\nSpares / procurement:\n\u2022 ORDER NOW: GEAR-WHL-M20 (Custom large-module gear wheel M20+ (HSM mill drive)) \u2014 36-week lead, supplier Flender / Renk OEM\n\u2022 ISSUE FROM STORE: BRG-GBX-SET (1 on hand)",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "SOP-02_gearbox-oil-gear-service.md",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ]
+    }
+  },
+  "sections": [
+    {
+      "key": "diagnosis",
+      "title": "Diagnosis",
+      "brief": "Probable fault: gear_tooth_fatigue_crack (scenario SCN-038) \u2014 ML class NORMAL.",
+      "detail": "ML fault classifier: NORMAL.\nSensors over threshold:\n\u2022 Oil viscosity = 216.601 (WARNING, limit 180)",
+      "sources": [
+        "SPEC/ground_truth_spine.json"
+      ]
+    },
+    {
+      "key": "rca",
+      "title": "Probable Root Cause",
+      "brief": "Root cause: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+      "detail": "Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "SOP-02_gearbox-oil-gear-service.md"
+      ]
+    },
+    {
+      "key": "predictor",
+      "title": "Remaining Useful Life & Early Warning",
+      "brief": "RUL \u2248 632.0 cycles (~26.3 days) \u2014 monitor; anomaly=0.4898.",
+      "detail": "Estimated RUL: 632.0 cycles (~26.3 days).\nRUL band: monitor.\nAnomaly score: 0.49.",
+      "sources": [
+        "condition_monitoring/rul_trajectories_long.csv"
+      ]
+    },
+    {
+      "key": "prioritizer",
+      "title": "Risk & Priority",
+      "brief": "Risk: HIGH (score 7.0/14).",
+      "detail": "Risk level: HIGH (score 7.0/14).\nSafety class: P2 \u00b7 process criticality: 1.\n\u2022 process-criticality 1 -> +3\n\u2022 safety-class P2 -> +2\n\u2022 P(failure)=0.00 -> +0\n\u2022 RUL band 'monitor' -> +0\n\u2022 key spare out-of-stock, 36-wk lead -> +2\nSpares lead time: up to 36.0 weeks.",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ]
+    },
+    {
+      "key": "recommender",
+      "title": "Recommended Actions",
+      "brief": "5 action steps; 1 part(s) need ordering now.",
+      "detail": "1. Immediate controlled stop (no deferral)\n2. Remove gearbox via crane to repair bay\n3. Replace gear wheel + bearings; set backlash 0.1-0.3mm\n4. Prussian-blue contact >70% face\n5. Run-in low load before full\nOrder now: Custom large-module gear wheel M20+ (HSM mill drive) (GEAR-WHL-M20)\nParts cost: INR 10,395,750.\nSpares / procurement:\n\u2022 ORDER NOW: GEAR-WHL-M20 (Custom large-module gear wheel M20+ (HSM mill drive)) \u2014 36-week lead, supplier Flender / Renk OEM\n\u2022 ISSUE FROM STORE: BRG-GBX-SET (1 on hand)",
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "SOP-02_gearbox-oil-gear-service.md",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ]
+    }
+  ],
+  "sources": [
+    "SPEC/ground_truth_spine.json",
+    "condition_monitoring/rul_trajectories_long.csv",
+    "SOP-02_gearbox-oil-gear-service.md",
+    "knowledge_docs/spare_parts_catalog.csv"
+  ],
+  "markdown": "# EDITH Maintenance Report \u00b7 INC-20260611-093836\n_Generated 2026-06-11 09:38 UTC \u00b7 persona EDITH \u00b7 grounded in the steel-maintenance-flagship dataset_\n\n## 1. Asset\n- **Asset**: `HSM.F1.GBX01` \u2014 Hot strip mill F1 main-drive reduction gearbox (forced-lube, ISO VG 220)\n- **Equipment class**: mill_gearbox\n- **Process stage**: hot_rolling\n- **Process criticality**: 1 (1 = most critical)\n- **Manufacturer / model**: Flender / H4SH-mill drive\n  \n  _source: SPEC/ground_truth_spine.json_\n\n## 2. Diagnosis\n- **Probable failure mode**: gear_tooth_fatigue_crack (scenario `SCN-038`)\n- **Safety class**: P2 (P1 = most severe)\n- **ML fault classifier**: class `NORMAL` P(failure)=0.0\n- **Sensor threshold breaches**:\n    - `JSR.HR.STD1.GBX01.OIL.VISC` = 216.601 \u2192 **WARNING** (warn 180, alarm 265)\n  \n  _source: condition_monitoring/by_equipment + ML fault classifier_\n\n## 3. Root Cause Analysis\n- **Root cause**: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.\n  \n  _source: SPEC/ground_truth_spine.json + failure_analysis_reports_\n\n## 4. Remaining Useful Life (RUL) & Early Warning\n- **Estimated RUL**: 632.0 cycles (~26.3 days)\n- **RUL band**: monitor\n- **Anomaly score**: 0.4898 (is_anomaly=False)\n  \n  _source: condition_monitoring/rul_trajectories_long.csv (ML RUL regressor)_\n\n## 5. Risk Classification\n- **Risk band**: **HIGH**\n- **Risk score**: 7.0 / 14\n- **Contributing factors** (transparent scoring):\n    - process-criticality 1 -> +3\n    - safety-class P2 -> +2\n    - P(failure)=0.00 -> +0\n    - RUL band 'monitor' -> +0\n    - key spare out-of-stock, 36-wk lead -> +2\n    - _(includes engineer-feedback adjustment: +0.78 pts \u2014 FR6)_\n  \n  _source: criticality \u00d7 safety \u00d7 ML \u00d7 RUL \u00d7 spares lead-time + feedback weight_\n\n## 6. Prioritized Recommended Actions\n- **1.** Immediate controlled stop (no deferral)\n- **2.** Remove gearbox via crane to repair bay\n- **3.** Replace gear wheel + bearings; set backlash 0.1-0.3mm\n- **4.** Prussian-blue contact >70% face\n- **5.** Run-in low load before full\n  \n  _source: SPEC correct_resolution + maintenance SOP_\n\n## 7. Spare-Procurement Strategy\n- ORDER NOW: GEAR-WHL-M20 (Custom large-module gear wheel M20+ (HSM mill drive)) \u2014 36-week lead, supplier Flender / Renk OEM\n- ISSUE FROM STORE: BRG-GBX-SET (1 on hand)\n\n- **Total parts cost**: INR 10395750\n- **Max procurement lead-time**: 36.0 weeks\n- **Procurement action required**: True\n  \n  _source: knowledge_docs/spare_parts_catalog.csv + SPEC spares_required_\n\n## 8. Estimated Downtime & Cost Impact\n- **Downtime (hours)**: {'planned': 0, 'unplanned': 168}\n- **Cost impact**: {'inr': 50100000, 'usd': 600000, 'range_usd': [500000, 3000000], 'note': 'Point estimate raised into the cited range. Per research/machinery/20 sec2F, HSM gearbox failure production loss during a 5-21 day swap is $500k-$3M (OxMaint hot strip mill gearbox case); $600k reflects a ~7-day swap of the custom large-module gear wheel (36-week lead spare) plus secondary-damage repair. Prior $300k point estimate was below its own range floor and unsupported.'}\n  \n  _source: SPEC/ground_truth_spine.json \u2014 scenario_\n\n## 9. EDITH Narrative (synthesised)\n# VULCAN Maintenance Report\n**Asset:** HSM.F1.GBX01 | **Scenario:** SCN-038 | **Generated:** 2026-06-11\n**Safety Class:** P2 | **Risk Level:** \ud83d\udd34 HIGH\n\n---\n\n## 1. Diagnosis\n\nAsset is a Flender H4SH mill-drive reduction gearbox (6,000 kW, ISO VG 220) classified Criticality-1 [8]. Active failure mode is **gear_tooth_fatigue_crack** [1]. Oil viscosity sensor `JSR.HR.STD1.GBX01.OIL.VISC` reads **216.601** \u2014 in WARNING band (warn 180, alarm 265) [2]. The ML fault classifier currently returns NORMAL (P=0.9999) [2]; however, ML confidence does not override the confirmed failure mode \u2014 chip-detector alarm or spall confirmation is an **immediate-stop event, no deferral permitted** [8].\n\n---\n\n## 2. Root Cause\n\nTooth-root fatigue crack initiated by a prior **high-torque cobble event**; chunky spall debris now present in the oil circuit [1][4]. Cobble events are the primary tooth fatigue initiator on this asset; CMMS should flag any torque exceedance >110% rated for >5 seconds as a precursor trigger [9].\n\n---\n\n## 3. Remaining Useful Life\n\n| Parameter | Value |\n|---|---|\n| Estimated RUL | **632 cycles (~26.3 days)** [3] |\n| RUL Band | **MONITOR** [3] |\n| Anomaly Score | 0.4898 \u2014 not anomalous [3] |\n\n> \u26a0\ufe0f RUL trajectory is a statistical estimate. Given confirmed spall debris and a 36-week spare lead time [6], **do not use remaining RUL as justification for deferral.** A catastrophic fracture will eliminate any remaining cycle budget instantly.\n\n---\n\n## 4. Risk Classification\n\n**Overall Risk: HIGH (Score 7/10)** [5]\n\n| Factor | Contribution |\n|---|---|\n| Process criticality (Criticality-1) | +3 [5] |\n| Safety class P2 | +2 [5] |\n| P(failure) from ML = 0.00 | +0 [5] |\n| RUL band = MONITOR | +0 [5] |\n| Key spare GEAR-WHL-M20 out-of-stock, 36-wk lead | +2 [5] |\n\nThe spare stockout is the dominant risk amplifier. Without the gear wheel in hand, any fracture event locks the asset for up to 36 weeks [6].\n\n---\n\n## 5. Recommended Actions\n\nExecute **SOP-02 Option B (Major Overhaul)** [8]. Steps in sequence [4][6]:\n\n1. **Immediate controlled stop** \u2014 no deferral once spall or crack is confirmed [4][8]\n2. **Remove gearbox via crane** to repair bay [4][6]\n3. Inspect all gear teeth under workshop lighting; classify damage per **AGMA 2101-D04** (pitting, spalling, micro-pitting, scuffing, tooth-root fracture); photograph every tooth with reference-mark numbering [10]\n4. Remove damaged gear wheel/pinion via hydraulic press; if shrink-fit, apply localised induction heat to gear boss only \u2014 **no direct flame** (annealing risk) [10]\n5. Inspect shaft gear seat for fretting/wear; measure vs OEM tolerance; regrind + chrome-spray if worn [10]\n6. **Replace gear wheel + bearings** \u2014 replace bearings as an opportunity task regardless of bearing condition; bearing cost is negligible vs gearbox removal labour [11]\n7. **Set backlash 0.1\u20130.3 mm** \u2014 measure with dial gauge at minimum 8 positions around circumference; confirm against Flender H4SH drawing [11]\n8. **Prussian-blue contact check** \u2014 apply to 3\u20135 adjacent teeth, rotate under light torque; contact must be **>70% face width and >60% tooth height** [11]\n9. **Run-in at low load** before returning to full drive train torque [4][6]\n\n**Planned downtime:** 0 h planned / **168 h unplanned** if fracture occurs before controlled intervention [1].\n\n---\n\n## 6. Spare Procurement\n\n| Action | Part | Description | Status | Lead Time |\n|---|---|---|---|---|\n| **ORDER NOW** | `GEAR-WHL-M20` | Custom large-module gear wheel M20+ (HSM mill drive) \u2014 Flender / Renk OEM | \u274c Out of stock | **36 weeks** [6][9] |\n| **ISSUE FROM STORE** | `BRG-GBX-SET` | Gearbox bearing set | \u2705 1 on hand | Immediate [6] |\n\n> GEAR-WHL-M20 must be ordered immediately. Waiting for further degradation evidence means operating without a recovery path. Per recurrence prevention guidance, the order trigger should be raised as soon as ferrous particles first trend above 5 ppm \u2014 waiting until fracture is operationally indefensible given the 36-week lead [9].\n\n---\n\n## 7. Cost Impact\n\n| Item | Value |\n|---|---|\n| Total parts cost | **INR 1,03,95,750** [6] |\n| Unplanned downtime cost (point estimate) | **USD 600,000 (INR 5,01,00,000)** [1] |\n| Downtime cost range (5\u201321 day swap) | **USD 500,000 \u2013 3,000,000** [1] |\n| Unplanned downtime hours | **168 h** [1] |\n\nThe USD 600k estimate reflects a ~7-day gear wheel swap plus secondary-damage repair; the range extends to USD 3M if the fracture event causes cascading damage requiring extended shutdown [1].\n\n---\n\n## 8. Recurrence Prevention\n\n- Monthly **ferrographic oil analysis** \u2014 mandatory; ferrography detects spall particles 2\u20134 weeks before GMF alarm escalates [9]\n- Implement **kidney-loop filtration**, target ISO 4406 < 16/14/11 continuously [9]\n- Connect **torque measurement to CMMS**; auto-raise work order if torque exceeds 110% rated for >5 seconds [9]\n- Enforce **run-in procedure** after every gear replacement [9]\n\n---\n\n**VULCAN Decision:** Initiate controlled stop and Option B overhaul. Issue `BRG-GBX-SET` from store now. Place emergency procurement for `GEAR-WHL-M20` today \u2014 36-week lead means every day of delay extends the risk window by one day.\n\n## 10. Explainability\n- **Confidence**: unverified (faithfulness 1.0)\n- **LLM rung**: claude\n- **Reasoning-trace steps**: 14\n- **Grounded sources**: SPEC/ground_truth_spine.json, condition_monitoring/rul_trajectories_long.csv, SOP-02_gearbox-oil-gear-service.md, knowledge_docs/spare_parts_catalog.csv"
+}

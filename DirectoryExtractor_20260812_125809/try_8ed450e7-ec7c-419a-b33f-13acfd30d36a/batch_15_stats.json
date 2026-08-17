@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Kansas",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 1,
+    "status": "completed"
+  }
+]

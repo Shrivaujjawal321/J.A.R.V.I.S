@@ -1,0 +1,17 @@
+{
+  "blend_weights": {
+    "v5_meta": 0.9,
+    "v6_ft_transformer": 0.1
+  },
+  "chosen_threshold": 0.0259201296892036,
+  "oof_score": 54.11471321695761,
+  "recall_at_T": 1.0,
+  "precision_at_T": 0.08229426433915212,
+  "bootstrap_ci_95_low": 53.951977623699975,
+  "bootstrap_ci_95_high": 54.296875,
+  "corrected_lb_estimate": 56.78471321695761,
+  "corrected_lb_ci_low": 56.621977623699976,
+  "corrected_lb_ci_high": 56.966875,
+  "n_pos_test": 161,
+  "blend_oof_auc": 0.8859983976624723
+}

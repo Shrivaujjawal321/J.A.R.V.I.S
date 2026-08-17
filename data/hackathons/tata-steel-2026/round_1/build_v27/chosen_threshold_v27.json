@@ -1,0 +1,55 @@
+{
+  "chosen_threshold": 0.027633213388146373,
+  "strategy": "multi_band_abstain_on_v23_oof_post_hoc",
+  "abstain_bands": [
+    [
+      0.04,
+      0.055
+    ],
+    [
+      0.09,
+      0.1
+    ],
+    [
+      0.27,
+      0.33
+    ],
+    [
+      0.41,
+      0.44
+    ]
+  ],
+  "predicted_lb_score": 58.1336,
+  "oof_score": 55.4635761589404,
+  "oof_recall": 1.0,
+  "oof_precision": 0.10927152317880795,
+  "oof_tp": 66,
+  "oof_fp": 538,
+  "oof_fn": 0,
+  "oof_n_predicted_positive": 604,
+  "oof_total": 1352,
+  "v23_baseline_score": 54.41176470588235,
+  "v23_threshold": 0.027633213388146373,
+  "delta_vs_v23": 1.0518114530580505,
+  "v4_oof_baseline": 54.31,
+  "delta_vs_v4": 1.1535761589403961,
+  "bootstrap_n": 1000,
+  "bootstrap_seed": 20260523,
+  "bootstrap_lower_ci": 54.337056737588654,
+  "bootstrap_upper_ci": 56.73722172641861,
+  "paired_delta_mean": 1.0546926966621348,
+  "paired_delta_ci_lower": 0.8065856807913823,
+  "paired_delta_ci_upper": 1.347358217115347,
+  "subsample_stability_std": 0.2248436979767231,
+  "subsample_scores": [
+    55.172414,
+    55.532359,
+    55.56701,
+    55.749487,
+    55.193483
+  ],
+  "n_oof_abstained": 144,
+  "n_oof_abstained_positive": 0,
+  "n_oof_abstained_negative": 144,
+  "option_b_semantics": "abstained_rows_oof_proba_set_to_zero_in_parquet"
+}

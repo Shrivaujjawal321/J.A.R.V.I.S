@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/*
+  AltBrief — 2026 Fintech Dark Palette
+  Reference: research/07_fintech_ui_references_2026.md
+  Color system: OKLCH for perceptual uniformity
+  Target: "Bloomberg Terminal for the AI age"
+  sweet spot: Perplexity (citation trust) + AlphaSense (dual-pane) + Linear (calm SaaS polish)
+*/
+
+@theme {
+  /* ── Base Surfaces ── */
+  --color-bg-base: oklch(11% 0.02 255);       /* #0A0E1A navy-black */
+  --color-surface-1: oklch(15% 0.02 255);     /* #111827 cards */
+  --color-surface-2: oklch(19% 0.02 255);     /* #1F2937 hover */
+  --color-surface-3: oklch(23% 0.02 255);     /* elevated cards */
+  --color-border: oklch(30% 0.02 255);        /* #374151 */
+  --color-border-subtle: oklch(22% 0.015 255);
+
+  /* ── Accent ── */
+  --color-accent: oklch(62% 0.18 255);        /* blue — trust, data */
+  --color-accent-dim: oklch(45% 0.14 255);
+  --color-accent-glow: oklch(62% 0.18 255 / 0.15);
+
+  /* ── Semantic Signal Colors ── */
+  --color-bullish: oklch(72% 0.18 162);       /* emerald-500 */
+  --color-bullish-dim: oklch(55% 0.14 162);
+  --color-bullish-bg: oklch(72% 0.18 162 / 0.1);
+  --color-bearish: oklch(62% 0.22 25);        /* red-500 */
+  --color-bearish-dim: oklch(50% 0.18 25);
+  --color-bearish-bg: oklch(62% 0.22 25 / 0.1);
+  --color-neutral: oklch(78% 0.16 85);        /* amber-500 */
+  --color-neutral-dim: oklch(62% 0.14 85);
+  --color-neutral-bg: oklch(78% 0.16 85 / 0.1);
+
+  /* ── Text ── */
+  --color-text-primary: oklch(98% 0.005 255); /* #F9FAFB */
+  --color-text-secondary: oklch(65% 0.01 255);/* #9CA3AF */
+  --color-text-muted: oklch(45% 0.01 255);    /* #6B7280 */
+  --color-mono-live: oklch(82% 0.14 165);     /* emerald-300 — terminal feel */
+
+  /* ── Gold tier (peer-reviewed signals) ── */
+  --color-gold: oklch(78% 0.16 85);           /* amber-500 */
+  --color-gold-bg: oklch(78% 0.16 85 / 0.12);
+  --color-gold-border: oklch(78% 0.16 85 / 0.3);
+
+  /* ── Severity ── */
+  --color-severity-high: oklch(62% 0.22 25);
+  --color-severity-medium: oklch(78% 0.16 85);
+  --color-severity-low: oklch(72% 0.18 162);
+
+  /* ── Fonts ── */
+  --font-sans: "Geist Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* ── Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* ── Timing ── */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+}
+
+/* ── Base reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(40% 0.02 255);
+}
+
+/* ── Focus ring (WCAG 2.2 AA) ── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--color-accent-glow);
+  color: var(--color-text-primary);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Terminal overlay gradient mask ── */
+.terminal-mask {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
+
+/* ── Cursor blink ── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: cursor-blink 1.1s step-end infinite;
+}
+
+/* ── Number counter roll ── */
+@keyframes count-in {
+  from { transform: translateY(0.5em); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.count-in {
+  animation: count-in 400ms var(--ease-out-expo) both;
+}
+
+/* ── Live pulse dot ── */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+.live-dot {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Scan line for terminal aesthetic ── */
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
+}
+
+/* ── Gold shimmer for alpha_tier="gold" ── */
+@keyframes gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-gold-bg) 25%,
+    oklch(82% 0.18 85 / 0.2) 50%,
+    var(--color-gold-bg) 75%
+  );
+  background-size: 200% auto;
+  animation: gold-shimmer 3s linear infinite;
+}

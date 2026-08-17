@@ -1,0 +1,46 @@
+# test_cases.yaml — Gate definitions for cyclical V23+ evaluation
+# NOTE: V4 achieves 100% recall on OOF (all 66 positives >= V4 threshold).
+# Hard-7 are the 7 LOWEST-proba Y=1 rows (most precarious, barely above threshold).
+# The plan description "V4 missed these 7" is inaccurate for V4 itself; the gate
+# tests whether the NEW model keeps catching these marginal cases.
+
+set_A:
+  description: 7 most-precarious true defects under V4 (lowest OOF proba, barely above threshold)
+  fixture: hard7.csv
+  per_row_pass_if: new_oof_proba > 0.5 * v4_threshold
+  aggregate_gate: at_least 1 of 7
+
+set_B:
+  description: 10 hardest false-positive non-defects under V4
+  fixture: hard_fp10.csv
+  per_row_pass_if: new_oof_proba < new_chosen_threshold
+  aggregate_gate: at_least 5 of 10
+
+set_C:
+  description: 59 true defects V4 solidly catches (regression guard)
+  fixture: easy59.csv
+  per_row_pass_if: new_oof_proba > new_chosen_threshold
+  aggregate_gate: at_least 58 of 59
+
+set_D:
+  description: OOF score gate
+  oof_score_min: 54.31
+  bootstrap_n: 1000
+  bootstrap_seed: 20260523
+  bootstrap_lower_ci_min: 53.0
+
+set_E:
+  description: Stability across bootstrap subsamples
+  n_bootstraps: 5
+  subsample_frac: 0.8
+  max_std: 1.5
+
+set_F:
+  description: Calibrated LB estimate
+  formula: oof_score + 2.67
+  blend_penalty: -8.47
+  min_calibrated: 56.98
+
+v4_chosen_threshold: 0.014283071897747676
+v4_oof_score: 54.31
+v4_lb_score: 56.98

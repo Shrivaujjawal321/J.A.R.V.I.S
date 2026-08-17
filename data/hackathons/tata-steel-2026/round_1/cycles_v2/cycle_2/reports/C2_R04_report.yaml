@@ -1,0 +1,432 @@
+agent_id: C2_R04
+topic: tabicl-v2-standalone-stage1
+cycle: 2
+timestamp_utc: '2026-05-23T17:30:00Z'
+status: ok
+
+research_summary: |
+  Cycle 2 reframe: TabICLv2 as REPLACEMENT for the entire V4 3-model stack (LGB+XGB+CatBoost+LR meta),
+  NOT a 4th augmentation member. This is necessary because V4 CatBoost OOF 0.8756 is irreproducible
+  (fresh retrains hit 0.8622, confirmed Cycle 1 structural finding). V4 is a frozen black box.
+  Stacking into it is unsafe. C1_R04_rec_1 was rejected for "architecture slot taken"; the situation
+  has fundamentally changed -- the V4 slot IS the problem.
+
+  Key Cycle 2 deep-dive findings:
+
+  1. INFERENCE LATENCY (critical new data):
+     mindfulmodeler.substack.com CPU benchmark: breast-cancer dataset (455 rows, 31 cols) on CPU
+     M1 MacBook Air = approximately 15 seconds for TabICLv2 with n_estimators=8.
+     Our fold: ~1082 train + ~270 val, 49 features.
+     Proportional estimate: 15 * (1082/455) * (49/31) = approximately 56 seconds per fold.
+     5 folds = approximately 4.7 minutes CPU wall time. FEASIBLE for a hackathon build.
+     Halving n_estimators from 8 to 4 cuts to approximately 2.4 minutes total.
+     RAM without KV cache (kv_cache=False, default): approximately 0.67 GB per fold (safe on 16GB laptop).
+     With KV cache: 48.8 KB per cell on CPU. 1082*49=53018 cells = approximately 2.6 GB. Avoid KV cache.
+
+  2. OOF AUC EXPECTED RANGE for 1082-row fold, 49 features, 4.88% imbalance:
+     TabICLv2 zero-shot on TALENT/TabArena: approximately 80% win rate over tuned GBDTs (ICML 2026).
+     On SMALL datasets (<2K rows), the ICL advantage is LARGER than on large datasets because tuned
+     GBDTs overfit at n=1000 whereas ICL is intrinsically regularised (no gradient updates).
+     V4 CatBoost standalone ceiling: approximately 0.8890 AUC. V4 meta (3-model stack): 0.884 AUC.
+     Fresh-retrain ceiling: 0.8622 (Cycle 1 confirmed).
+     TabICLv2 standalone OOF AUC honest range:
+       LOW 0.840: if synthetic pretraining mismatches anonymized steel sensor features
+       POINT 0.875: on-par with V4 individual models; ICL advantage at small n expected
+       HIGH 0.910: if ICL inductive bias captures the sparse positive manifold better than trees
+
+  3. CALIBRATION:
+     TabICLv2 raw probabilities exhibit majority-class bias at pi1=0.0488.
+     Option A: tau=pi1 threshold correction on OOF before meta-LR fitting.
+     Option B (recommended): raw probas into meta-LR + downstream score-aware threshold sweep.
+     Option B preferred because sweep directly optimises (R+P)/2 criterion.
+     Do NOT apply isotonic recalibration on 1352 rows / 66 positives -- too few samples.
+
+  4. CASCADE PAIRING:
+     If TabICLv2 standalone OOF AUC >= 0.890 (confirmed by empirical run), use as Stage-1
+     for V23-style cascade. C1_R08 Stage-2 design (subtle features X14/X49/X41/X46/X48 for
+     Hard-FP-10 targeting) is still valid and pairs cleanly with a non-V4 Stage-1.
+
+  5. EXACT PACKAGE AND CALL:
+     pip install tabicl
+     checkpoint auto-downloaded: tabicl-classifier-v2-20260212.ckpt
+     TabICLClassifier(n_estimators=8, device=None, kv_cache=False, random_state=42)
+     device=None: auto-selects CUDA if available, else CPU.
+
+  6. FALLBACK --
+     If TabICLv2 OOF AUC < 0.82 after fold 1: abort and use LGB-RFL standalone.
+     LGB-RFL confirmed +0.0108 AUC over V4-LGB in Cycle 1. Standalone non-V4 LGB-RFL
+     avoids the V4 frozen-black-box trap. V24 failure was caused by V4 stack contamination,
+     not by RFL loss function itself.
+
+recommendations:
+  - id: C2_R04_rec_1
+    title: TabICLv2 standalone Stage-1 vs V4
+    technique_class: architecture
+    description: |
+      Abandon the V4 3-model stack entirely. Build a fresh Stage-1 using TabICLv2 (pip install
+      tabicl, BSD 3-Clause, offline after first checkpoint download) as the SOLE base model,
+      collecting 5-fold StratifiedKFold OOF probas, then applying score-aware threshold sweep
+      identical to V4. This eliminates the V4 CatBoost irreproducibility at root. TabICLv2
+      trained on 1082-row folds is well within its 300-48K pretraining range. Zero hyperparameter
+      tuning required. sklearn-compatible interface. CPU wall time approximately 4.7 minutes
+      total (5 folds). Expected standalone OOF AUC 0.84-0.91 (point 0.875). Diagnostic gate:
+      if OOF AUC < 0.82 after fold 1, abort and switch to LGB-RFL fallback (rec_3).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: |
+        C1_R04_rec_1 proposed TabICLv2 as 4th member added TO V4 stack (V4 retained). THIS
+        proposal REMOVES V4 entirely. Different architectural decision. V6 FT-Transformer =
+        random-init from-scratch training with backprop on 1352 rows. TabICLv2 = pre-trained
+        ICL, zero gradient updates at inference. Not the same model family. V9/V21 = TabPFN v2
+        (auth-blocked, different model). No EXHAUSTED overlap.
+    expected_lift_oof:
+      point: 0.6
+      low: -0.5
+      high: 2.5
+      reasoning: |
+        V23 baseline OOF = 54.41 (calibrated LB est 57.08).
+        TabICLv2 standalone AUC 0.875 (point) vs V4 meta 0.884 -- slight discriminative gap
+        but reproducible. Threshold sweep on this metric should produce approximately 54.0-54.5
+        OOF standalone. Gain comes from combining with LGB-RFL (rec_2): expected +0.6-1.2 OOF.
+        LOW -0.5: TabICLv2 AUC 0.84, barely helps, meta worse than V23.
+        HIGH +2.5: TabICLv2 AUC 0.91+, paired with LGB-RFL = meta AUC 0.90+, OOF approximately
+        57, calibrated LB approximately 59.7.
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies:
+        - tabicl>=0.2.0
+        - torch>=2.0
+        - python>=3.10
+      notes: |
+        Drop-in. TabICLClassifier sklearn interface (fit / predict_proba). CPU time approximately
+        56s per fold, 5 folds = approximately 4.7 min. n_estimators=4 cuts to approximately 2.4 min.
+        RAM approximately 0.67 GB per fold (kv_cache=False). First run downloads checkpoint
+        approximately 500MB; subsequent runs fully offline. Effort: 1h fold loop, 1h debug, 1h verify.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        arxiv:2602.11139 (TabICLv2, ICML 2026): surpasses RealTabPFN-2.5 on TabArena/TALENT,
+        approximately 80% win rate over tuned GBDTs zero-shot.
+        arxiv:2502.05564 (TabICL v1, ICML 2025): on par with TabPFN v2 across 200 datasets,
+        1.5x faster on small datasets.
+        mindfulmodeler.substack.com CPU benchmark: 455-row dataset approximately 15s on CPU.
+        Extrapolated: 1082-row/49-feat fold approximately 56s.
+        Mission Lane Tech Blog (enterprise credit risk, 2M rows): TabICL approximately 84% of
+        tuned LGBM AUC zero-shot. ICL competitive even at large scale; stronger advantage at
+        small n where GBDTs overfit more.
+        Confidence=3 not 4: no published result for TabICLv2 on approximately 1082-row, 49-feature,
+        4.88% imbalance industrial anonymized sensor data. Synthetic pretraining mismatch is a risk.
+    failure_modes:
+      - TabICLv2 pre-trained on SYNTHETIC tabular data. Anonymized X1-X49 features may have statistical signatures (correlated blocks, heavy skew, integer codes) not matching synthetic priors. Result -- near-uniform OOF probas, AUC approximately 0.5-0.6. DIAGNOSTIC -- check OOF AUC after fold 1. If AUC < 0.75 abort immediately.
+      - Hard-7 loss risk -- if TabICLv2 assigns low proba to 7 borderline positives (stealth in X1-X49 space per AD findings), recall drops. Mitigation -- threshold sweep applied; ensure all hard-7 above final threshold.
+      - CPU RAM spike if kv_cache=True -- 48.8 KB per cell * 53018 cells = approximately 2.6 GB per fold. Keep kv_cache=False (default) to stay at approximately 0.67 GB.
+      - Checkpoint download failure in offline environments. Pre-download -- run TabICLClassifier(allow_auto_download=True).fit(X_dummy, y_dummy) on tiny data first.
+      - n_estimators=8 default = 8 stochastic forward passes. Set random_state=42 for reproducibility.
+    code_sketch: |
+      # pip install tabicl
+      from tabicl import TabICLClassifier
+      import numpy as np
+      from sklearn.model_selection import StratifiedKFold
+      from sklearn.metrics import roc_auc_score, recall_score, precision_score
+
+      tabicl_oof = np.zeros(len(X_train))
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          X_tr = X_train.iloc[tr_idx]
+          X_val = X_train.iloc[val_idx]
+          y_tr = y_train.iloc[tr_idx]
+          clf = TabICLClassifier(
+              n_estimators=8,   # use 4 to halve CPU time to approximately 2.4 min total
+              device=None,      # auto: CUDA if available, else CPU
+              kv_cache=False,   # caps RAM at approximately 0.67 GB per fold
+              random_state=42,
+              verbose=False,
+          )
+          clf.fit(X_tr, y_tr)
+          tabicl_oof[val_idx] = clf.predict_proba(X_val)[:, 1]
+          fold_auc = roc_auc_score(y_train.iloc[val_idx], tabicl_oof[val_idx])
+          print(f"Fold {fold}: AUC = {fold_auc:.4f}")
+          if fold == 0 and fold_auc < 0.75:
+              raise RuntimeError(f"TabICLv2 diagnostic FAIL (AUC={fold_auc:.4f}). Switch to LGB-RFL fallback.")
+
+      global_auc = roc_auc_score(y_train, tabicl_oof)
+      print(f"TabICLv2 standalone OOF AUC: {global_auc:.4f}")
+
+      # Score-aware threshold sweep
+      best_score, best_thresh = 0.0, 0.5
+      for t in np.unique(tabicl_oof):
+          y_pred = (tabicl_oof >= t).astype(int)
+          r = recall_score(y_train, y_pred, zero_division=0)
+          p = precision_score(y_train, y_pred, zero_division=0)
+          s = (r + p) / 2 * 100
+          if s > best_score:
+              best_score, best_thresh = s, t
+      print(f"TabICLv2 standalone OOF score: {best_score:.2f} at T={best_thresh:.5f}")
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_R04_rec_2
+    title: TabICLv2 + LGB-RFL 2-model meta
+    technique_class: architecture
+    description: |
+      Build a clean 2-model meta-stack: TabICLv2 OOF (rec_1) + LGB-RFL OOF (Cycle 1 confirmed
+      +0.0108 AUC over V4-LGB) -- Logistic Regression meta-learner + Platt scaling + threshold
+      sweep. Directly replaces the V4 3-model stack with a reproducible, V4-independent
+      architecture. Key argument: a TabICLv2 (ICL prior, Bayesian posterior inference) + LGB-RFL
+      (gradient boosted trees with robust focal loss) pair offers MORE diversity than 3 correlated
+      GBDTs (LGB+XGB+CatBoost all learn similar functions). Expected meta OOF AUC 0.890-0.905.
+      If OOF AUC >= 0.890, pair with V23 Stage-2 cascade (C1_R08) for Hard-FP-10 targeting.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: |
+        V4/V5/V3 used LGB+XGB+CatBoost 3-model stack. This uses TabICLv2+LGB-RFL (2 models,
+        completely different model families). LGB-RFL = LGB with Robust Focal Loss (r=0.5, q=0.3),
+        different from standard scale_pos_weight LGB. V24 tried LGB-RFL INSIDE V4 stack
+        (contaminated). Standalone clean 2-model non-V4 meta has not been tried. Not exhausted.
+    expected_lift_oof:
+      point: 1.2
+      low: 0.0
+      high: 3.5
+      reasoning: |
+        V23 baseline OOF = 54.41 (calibrated LB est 57.08).
+        If TabICLv2 AUC=0.875 and LGB-RFL AUC=0.870, the 2-model meta with high diversity
+        should reach meta AUC 0.895-0.905. That 1.1-2.1% AUC lift over V4 meta (0.884) should
+        translate to approximately 1-2 OOF score points at 4.88% imbalance.
+        POINT +1.2: OOF approximately 55.6, calibrated LB approximately 58.3 (new submission candidate).
+        HIGH +3.5: TabICLv2 AUC 0.91+, meta 0.92+, OOF approximately 57+, LB approximately 59.7.
+        LOW 0.0: if TabICLv2 fails diagnostic, fallback rec_3 matches V23 approximately.
+    feasibility:
+      score: 4
+      effort_hours: 4.0
+      dependencies:
+        - tabicl>=0.2.0
+        - lightgbm>=4.0
+        - scikit-learn>=1.4
+        - torch>=2.0
+      notes: |
+        Build on rec_1. Additional: LGB-RFL OOF in same fold loop (V24 code exists, remove V4
+        dependency). Total CPU time approximately 4.7 min (TabICLv2) + approximately 2 min (LGB-RFL)
+        = approximately 7 minutes. Acceptable. 2-column X_meta for LR meta-learner (L2 C=0.1).
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Diversity argument: ICL prior (TabICLv2) + GBDT with focal loss (LGB-RFL) are more
+        orthogonal than LGB+XGB+CatBoost. Higher diversity in meta-stack implies better
+        meta-learner generalization (Ting & Witten 1999, stacking with heterogeneous learners).
+        V4 empirical: 3-GBDT stack meta AUC 0.884 only marginally above best individual 0.889
+        (CatBoost) because all three share inductive bias. TabICLv2+LGB-RFL should show larger
+        complementarity. LGB-RFL +0.0108 AUC confirmed: Cycle 1 V24 finding.
+        Confidence=3: no published result for ICL+GBDT 2-model meta on similar small imbalanced
+        industrial data. Diversity gain is theory-backed but not empirically verified on THIS dataset.
+    failure_modes:
+      - If TabICLv2 OOF probas are near-uniform (synthetic prior mismatch), the 2nd meta column carries no information. Meta-LR degrades to LGB-RFL standalone. MITIGATION -- check TabICLv2 OOF AUC before fitting meta-LR. If < 0.82, drop TabICLv2 column.
+      - V10 disaster reminder: DO NOT mean-blend raw probabilities from two independently calibrated models. Always use LR meta-learner on OOF columns. Never direct blend.
+      - Meta-overfitting: 2-column LR meta on 1352 rows / 66 positives. Keep L2 C=0.1.
+    code_sketch: |
+      # Run rec_1 loop first to get tabicl_oof, then in same fold loop:
+      lgb_rfl_oof = np.zeros(len(X_train))
+      # LGB-RFL params confirmed in Cycle 1 V24 (r=0.5, q=0.3 Robust Focal Loss)
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          # TabICLv2 OOF already collected above
+          lgb = LGBMClassifier(n_estimators=500, learning_rate=0.05, num_leaves=31,
+                               min_child_samples=10, subsample=0.8, colsample_bytree=0.8,
+                               reg_alpha=0.1, reg_lambda=1.0, random_state=42)
+          # apply RFL custom objective (r=0.5, q=0.3) -- see V24 code
+          lgb.fit(X_train.iloc[tr_idx], y_train.iloc[tr_idx])
+          lgb_rfl_oof[val_idx] = lgb.predict_proba(X_train.iloc[val_idx])[:, 1]
+
+      # 2-column meta stack (NEVER direct blend)
+      X_meta = np.column_stack([tabicl_oof, lgb_rfl_oof])
+      # Use out-of-fold meta predictions (nested CV) to avoid train-OOF leakage
+      meta_oof = np.zeros(len(X_train))
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          lr = LogisticRegression(C=0.1, max_iter=1000, random_state=42)
+          lr.fit(X_meta[tr_idx], y_train.iloc[tr_idx])
+          meta_oof[val_idx] = lr.predict_proba(X_meta[val_idx])[:, 1]
+      # Threshold sweep on meta_oof
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_R04_rec_3
+    title: LGB-RFL standalone Stage-1 fallback
+    technique_class: architecture
+    description: |
+      If TabICLv2 diagnostic fails (fold-1 OOF AUC < 0.75), abort TabICLv2 entirely and use
+      LGB-RFL (LightGBM with Robust Focal Loss r=0.5, q=0.3) as SOLE non-V4 Stage-1. This is
+      the minimum-risk floor. Cycle 1 V24 confirmed LGB-RFL gives +0.0108 AUC over V4-LGB.
+      V24's OOF regression (53.40) was caused by running LGB-RFL INSIDE the V4 stack (which
+      has the irreproducibility problem), NOT by the loss function. A clean standalone 5-fold
+      LGB-RFL build, separate from V4, has never been attempted. Expected standalone OOF AUC
+      approximately 0.87-0.88. Lower ceiling than rec_2 but fully reproducible and safe.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V24
+      note: |
+        V24 tried LGB-RFL INSIDE V4 stack (failed due to V4 reproducibility gap, score 53.40).
+        This is LGB-RFL as STANDALONE Stage-1, no V4 dependency. V24's failure was a V4 problem,
+        not a RFL problem. Standalone clean LGB-RFL build has NOT been tried. Not exhausted.
+    expected_lift_oof:
+      point: 0.3
+      low: -0.3
+      high: 1.5
+      reasoning: |
+        LGB-RFL standalone AUC approximately 0.870-0.875. Threshold sweep on (R+P)/2 metric
+        should give OOF approximately 53.7-54.5. Marginally better than V23 (54.41) if clean.
+        PRIMARY value is as the 2nd member of rec_2 stack, not as a standalone submission.
+        HIGH +1.5: if RFL's focal weighting separates the hard-7 borderline positives that are
+        at the edge of the loss landscape, OOF could reach 55+. Speculative.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - lightgbm>=4.0
+        - scikit-learn>=1.4
+      notes: |
+        V24 code already exists. Refactor: remove V4 stack dependency, run LGB-RFL in clean
+        5-fold loop, collect OOF, apply threshold sweep. 1.5 hours including testing.
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Cycle 1 V24 empirical: LGB with Robust Focal Loss (r=0.5, q=0.3) gave +0.0108 AUC
+        over V4-LGB on same fold indices. Cleanest Cycle 1 empirical result. The -0.91 OOF
+        in V24 was caused by V4 CatBoost irreproducibility contaminating the stack, not by
+        LGB-RFL itself. Confidence=4: component-level AUC advantage confirmed; system-level
+        standalone OOF not yet measured.
+    failure_modes:
+      - LGB-RFL standalone likely underperforms V4 3-model meta-stack (0.884 AUC) because diversity from XGB+CatBoost is lost. Primary use: fallback or 2nd member of rec_2.
+      - RFL hyperparams (r=0.5, q=0.3) were Cycle 1 best-found. Quick Optuna sweep (5 trials) may improve: r in [0.3, 0.5, 0.7], q in [0.2, 0.3, 0.4].
+    code_sketch: |
+      # FALLBACK -- run if TabICLv2 fold-1 AUC < 0.75
+      from lightgbm import LGBMClassifier
+      import numpy as np
+      from sklearn.model_selection import StratifiedKFold
+
+      lgb_rfl_oof = np.zeros(len(X_train))
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          clf = LGBMClassifier(n_estimators=500, learning_rate=0.05, num_leaves=31,
+                               min_child_samples=10, subsample=0.8, colsample_bytree=0.8,
+                               reg_alpha=0.1, reg_lambda=1.0, random_state=42)
+          # Robust Focal Loss custom objective: r=0.5, q=0.3 (from V24)
+          clf.fit(X_train.iloc[tr_idx], y_train.iloc[tr_idx])
+          lgb_rfl_oof[val_idx] = clf.predict_proba(X_train.iloc[val_idx])[:, 1]
+      # Threshold sweep -> OOF score -> if > 54.41 consider submission
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+calibration_note: |
+  TabICLv2 raw probabilities exhibit majority-class bias at pi1=0.0488.
+  Option A: tau=pi1=0.0488 threshold correction on OOF before meta-LR fitting.
+  Option B (recommended): raw probas into meta-LR + downstream score-aware threshold sweep.
+  Option B preferred: sweep directly optimises (R+P)/2 criterion which is our exact metric.
+  Do NOT apply isotonic recalibration on 1352 rows / 66 positives -- too few samples.
+  Reference: arxiv:2605.21742 confirms tau=pi1 is best for PFN family. TabICLv2 shares
+  the ICL prior structure and likely has similar calibration behavior under imbalance.
+
+cascade_pairing:
+  condition: tabicl_plus_lgb_rfl_meta_oof_auc >= 0.890
+  stage1_source: rec_2 meta OOF probas (TabICLv2 + LGB-RFL)
+  stage1_threshold_strategy: low_threshold_wide_net_then_stage2_prunes
+  stage2_design: C1_R08 -- second LGB trained on suspect pool using subtle features X14/X49/X41/X46/X48
+  stage2_goal: suppress Hard-FP-10 (CoilIDs 689,642,247,189,279,757,188,651,467,690)
+  stage2_gate: ">=3 of 10 Hard-FP-10 below Stage-2 threshold (Cycle 2 relaxed gate)"
+  expected_combined_oof_over_v23: +1.0 to +4.0 points
+  note: |
+    V23 cascade ceiling was +0.1 OOF because V4 Stage-1 was already near its feature-space
+    limit. A fresh Stage-1 at AUC 0.890+ provides a higher-quality suspect pool, allowing
+    Stage-2 to make more surgical Hard-FP-10 decisions. The cascade architecture itself is
+    sound; the bottleneck was always V4.
+
+fallback_map:
+  if_tabicl_fold1_auc_lt_0.75:
+    action: abort_tabicl
+    use: rec_3 LGB-RFL standalone
+  if_tabicl_oof_auc_0.82_to_0.87:
+    action: keep_tabicl_in_meta_stack
+    use: rec_2 TabICLv2 plus LGB-RFL 2-model meta
+  if_tabicl_oof_auc_gte_0.87:
+    action: tabicl_as_primary_stage1
+    use: rec_2 as meta then cascade if meta AUC >= 0.890
+
+oof_auc_honest_analysis:
+  v4_meta_oof_auc: 0.884
+  v4_meta_irreproducible: true
+  fresh_catboost_retrain_oof_auc: 0.8622
+  lgb_rfl_component_auc_advantage: +0.0108
+  tabicl_standalone_point_estimate: 0.875
+  tabicl_standalone_range: [0.840, 0.910]
+  tabicl_plus_lgb_rfl_meta_point_estimate: 0.890
+  tabicl_plus_lgb_rfl_meta_range: [0.865, 0.920]
+  beats_v4_meta_probability: 0.55
+  note: |
+    On small datasets (<2K rows) ICL methods tend to win over tuned GBDTs because GBDTs
+    overfit at small n. Our 1082-row training fold is in this regime. Counterbalancing risk:
+    the 7 hard positives are stealth in X1-X49 space (confirmed by exhausted AD methods).
+    TabICLv2 inductive prior does not add new feature information; it offers a different
+    function approximation over the same feature space. If hard-7 are noise-adjacent to Y=0,
+    no foundation model rescues them without new features.
+
+v23_baseline_oof: 54.41
+v4_banked_lb: 56.98
+calibrated_lb_formula: OOF_score + 2.67
+submission_gate: calibrated_LB_est > 57.08
+
+assessment_of_null_topic:
+  is_null: false
+  reason: |
+    Three concrete, buildable, non-overlapping recommendations produced. TabICLv2 as Stage-1
+    REPLACEMENT is the key Cycle 2 architectural pivot addressing the V4 frozen-black-box
+    structural finding. LGB-RFL standalone fallback provides a safe non-V4 floor. All
+    recommendations are novel relative to EXHAUSTED V1-V22 catalog.
+
+primary_recommendation: C2_R04_rec_1
+primary_recommendation_reasoning: |
+  Entry point: run TabICLv2 5-fold OOF collection first. Check AUC diagnostic after fold 1
+  (approximately 56 seconds on CPU). Entire decision tree collapses to ONE measurement:
+  If AUC >= 0.82: proceed to rec_2 (2-model meta with LGB-RFL) and cascade pairing.
+  If AUC < 0.75: abort immediately, fall back to rec_3 (LGB-RFL standalone).
+  The build risk is time cost (approximately 5 minutes) not compute cost (CPU-only, no GPU needed).
+
+build_sequence: |
+  1. pip install tabicl (downloads checkpoint approximately 500MB on first run)
+  2. Run TabICLClassifier 5-fold OOF: n_estimators=8, device=None, kv_cache=False, random_state=42
+  3. After fold 1 (approximately 56s): if AUC < 0.75 ABORT, go to step 8
+  4. Complete 5 folds (approximately 4.7 min total). Apply threshold sweep. Print OOF score.
+  5. In parallel: run LGB-RFL standalone OOF (V24 code, remove V4 dependency, approximately 2 min)
+  6. Build 2-model meta (tabicl_oof + lgb_rfl_oof) via LR meta + Platt + threshold sweep
+  7. If meta OOF > 54.41 AND calibrated LB est > 57.08: candidate for submission
+  8. FALLBACK -- LGB-RFL standalone OOF + threshold sweep. If OOF > 54.41: also a candidate.
+  9. If best build meta OOF AUC >= 0.890: attach C1_R08 Stage-2 cascade for Hard-FP-10 targeting
+  10. Submit best build (1 of 3 daily slots).
+
+cross_topic_links:
+  - C2_N01: Stage-1 replacement is the N01 topic; TabICLv2 rec_1 IS the N01 candidate solution.
+  - C2_N03: Stage-1 replacement automatically enables cascade; C1_R08 Stage-2 design is reusable.
+  - C2_R08: What is minimum Stage-1 AUC for cascade to yield +1 OOF? That threshold determines whether TabICLv2 at 0.875 suffices or 0.890+ is needed to unlock cascade value.
+  - C2_R07: Deep SAD / PReNet semi-sup -- if TabICLv2 ICL prior captures hard-7 better than trees, anomaly-detection approaches may stack cleanly on top to further suppress Hard-FP-10.
+  - C2_R10: Mondrian conformal + abstain rule could be applied to TabICLv2 OOF for uncertainty-based filtering -- abstain on borderline uncertain FPs, keep recall at 100%.
+
+sources:
+  - 'arxiv:2602.11139 -- TabICLv2: A better, faster, scalable, and open tabular foundation model (ICML 2026)'
+  - 'arxiv:2502.05564 -- TabICL: A Tabular Foundation Model for In-Context Learning on Large Data (ICML 2025)'
+  - 'arxiv:2605.21742 -- Correcting Class Imbalance in Prior-Data Fitted Networks for Tabular Classification (2025)'
+  - 'GitHub: https://github.com/soda-inria/tabicl (TabICLv2 BSD 3-Clause, checkpoint tabicl-classifier-v2-20260212.ckpt)'
+  - 'tabicl.readthedocs.io: n_estimators=8 default, kv_cache=False default, device=None auto-selects CUDA/CPU'
+  - 'mindfulmodeler.substack.com/making-tabular-foundation-models-faster: 455-row dataset approximately 15s CPU;
+    n_estimators 8->4 halves time; KV cache RAM 48.8 KB per cell on CPU; ensemble=1 is 0.06s GPU'
+  - 'mindfulmodeler.substack.com/a-regression-example-with-tabiclv2: CPU M1 MacBook 614-row 8-feat,
+    TabICLRegressor(n_estimators=8, device=cpu) inference 2.84s; CPU inference confirmed viable'
+  - 'Mission Lane Tech Blog: TabICL approximately 84% of tuned LGBM AUC zero-shot on 2M-row credit risk'
+  - 'Cycle 1 empirical: LGB-RFL +0.0108 AUC over V4-LGB (V24 finding, confirmed structural)'
+  - 'Cycle 1 empirical: V4 CatBoost OOF 0.8756 irreproducible, fresh retrain = 0.8622 (confirmed structural)'

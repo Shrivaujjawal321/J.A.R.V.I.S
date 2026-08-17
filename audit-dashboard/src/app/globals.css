@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ── OKLCH Design Tokens (dark-first) ─────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:              oklch(0.10 0.005 255);
+  --surface:         oklch(0.14 0.005 255);
+  --surface-raised:  oklch(0.18 0.005 255);
+  --surface-overlay: oklch(0.22 0.005 255);
+  --border:          oklch(0.22 0.005 255);
+  --border-muted:    oklch(0.18 0.005 255);
+
+  /* Text */
+  --text:            oklch(0.94 0.005 255);
+  --text-muted:      oklch(0.60 0.005 255);
+  --text-subtle:     oklch(0.40 0.005 255);
+
+  /* Accent */
+  --accent:          oklch(0.64 0.19 255);
+  --accent-muted:    oklch(0.64 0.19 255 / 0.15);
+
+  /* Severity */
+  --critical:        oklch(0.62 0.22 27);
+  --critical-bg:     oklch(0.62 0.22 27 / 0.12);
+  --critical-border: oklch(0.62 0.22 27 / 0.30);
+  --high:            oklch(0.68 0.18 45);
+  --high-bg:         oklch(0.68 0.18 45 / 0.12);
+  --high-border:     oklch(0.68 0.18 45 / 0.30);
+  --medium:          oklch(0.75 0.16 72);
+  --medium-bg:       oklch(0.75 0.16 72 / 0.12);
+  --medium-border:   oklch(0.75 0.16 72 / 0.30);
+  --low:             oklch(0.68 0.15 255);
+  --low-bg:          oklch(0.68 0.15 255 / 0.12);
+  --low-border:      oklch(0.68 0.15 255 / 0.30);
+  --info:            oklch(0.58 0 0);
+  --info-bg:         oklch(0.58 0 0 / 0.12);
+  --info-border:     oklch(0.58 0 0 / 0.30);
+
+  /* Status */
+  --confirmed:       oklch(0.62 0.22 27);
+  --fp:              oklch(0.55 0 0);
+  --needs-manual:    oklch(0.75 0.16 72);
+  --unverified:      oklch(0.55 0 0);
+
+  /* Scanner agreement (gold) */
+  --gold:            oklch(0.78 0.18 85);
+  --gold-bg:         oklch(0.78 0.18 85 / 0.15);
+}
+
+.light {
+  --bg:              oklch(0.97 0.005 255);
+  --surface:         oklch(1.00 0 0);
+  --surface-raised:  oklch(0.96 0.005 255);
+  --surface-overlay: oklch(0.93 0.005 255);
+  --border:          oklch(0.88 0.005 255);
+  --border-muted:    oklch(0.92 0.005 255);
+  --text:            oklch(0.12 0.005 255);
+  --text-muted:      oklch(0.45 0.005 255);
+  --text-subtle:     oklch(0.60 0.005 255);
+}
+
+/* ── Tailwind v4 @theme mapping ────────────────────────────────── */
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-critical: var(--critical);
+  --color-high: var(--high);
+  --color-medium: var(--medium);
+  --color-low: var(--low);
+  --color-info: var(--info);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+html {
+  color-scheme: dark;
+  background-color: var(--bg);
+  color: var(--text);
+}
+html.light {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Focus ring ─────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar (dark, thin) ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-overlay); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
+
+/* ── Mono for code / paths / IDs ─────────────────────────────────── */
+code, pre, kbd, .mono {
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

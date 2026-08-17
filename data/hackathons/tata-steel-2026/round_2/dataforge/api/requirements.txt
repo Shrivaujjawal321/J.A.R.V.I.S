@@ -1,0 +1,43 @@
+# DataForge API — Requirements
+# Install into project venv:
+#   /home/ujjwal/Documents/J.A.R.V.I.S./.venv/bin/pip install -r requirements.txt
+
+# ---- Core (required) ----
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9     # FastAPI file upload
+pydantic>=2.7.0
+pandas>=2.2.0
+numpy>=1.26.0
+scipy>=1.13.0
+scikit-learn>=1.4.0
+lightgbm>=4.3.0
+statsmodels>=0.14.0
+polars>=1.0.0                # fast fingerprinting + dedup
+
+# ---- Optional (graceful degradation if missing) ----
+# cleanlab>=2.7.0            # better label quality detection (falls back to cross-val disagreement)
+# great-expectations>=0.18   # extended schema checks (not used in core path)
+# ydata-profiling>=4.9       # profile reports (not in core path)
+
+# ---- v2 additions (security + relevance + ranking) ----
+python-magic>=0.4.27         # libmagic binding for file-type sniffing (requires libmagic1 system lib)
+openpyxl>=3.1.0              # safe XLSX parse (read_only + data_only, no formula eval)
+slowapi>=0.1.9               # per-IP rate limiting for FastAPI
+
+# ---- sentence-transformers (optional: relevance gate embedding similarity) ----
+# Graceful fallback to KB-only mode if unavailable or OOM.
+# sentence-transformers>=2.7.0  # uncomment to enable embedding similarity
+# (BAAI/bge-small-en-v1.5 is downloaded on first use; ~130 MB)
+# Already installed in Boss's venv; uncomment for HF Space deployment
+
+# ---- Supabase integration (v2.1) ----
+supabase>=2.9.0              # Supabase Python client (storage3 + postgrest + gotrue bundled)
+PyJWT>=2.12.0                # JWT verification (ES256 via cryptography dep)
+cryptography>=41.0.0         # ES256/RS256 key support for PyJWT
+psycopg2-binary>=2.9.0       # Direct Postgres pool for DDL + service-role queries
+python-dotenv>=1.0.0         # .env loading
+
+# ---- Optional LLM review rewrites ----
+# anthropic>=0.28.0          # used if ANTHROPIC_API_KEY set
+# google-generativeai>=0.7   # used if GEMINI_API_KEY set

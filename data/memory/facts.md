@@ -42,11 +42,7 @@ last_reviewed: 2026-05-15
 - **Brother:** Ratnesh Sharma — *mentor*, important guide in life decisions
 - **Close friends:** Shub, Hariom, Navya, Anisha
 
-## Health
 
-- Hair fall issue
-- Tanning on neck
-- No known allergies
 
 ---
 

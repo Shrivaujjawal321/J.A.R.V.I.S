@@ -1,0 +1,20 @@
+doc_id,doc_type,title,asset_ids,related_docs
+PID-01,pid,P&ID — Hot Strip Mill Finishing/Roughing Area,HSM.F1.MTR01;HSM.F1.GBX01;HSM.F3.WR.BRG01;HSM.STD.R1,MAN-001;MAN-002;MAN-003;MAN-008;ELEC-01;ELEC-02;LUBE-01;SOP-01;SOP-02;SOP-08
+PID-02,pid,P&ID — Continuous Caster 1 Mould & Strand-Guide,CCM.MOLD.01;CCM.SEG.07,MAN-006;MAN-007;SOP-06;SOP-07;FTA-03;LUBE-01
+PID-03,pid,P&ID — BF Blower House & Cooling-Water + Sinter Fan,BF.BLW.FAN01;BF.CW.PMP02;SP.SINT.FAN01,MAN-005;MAN-004;SOP-05;SOP-04;FTA-01;LUBE-01
+PID-04,pid,P&ID — Walking-Beam Reheating Furnace Soak Zone,RHF.ZONE.SOAK,MAN-010;LUBE-01
+PID-05,pid,P&ID — EAF Auxiliary HPU & Cold-Mill AGC Servo Hydraulics,EAF.AUX.HYD01;CRM.AGC.SV01,MAN-011;MAN-013;ELEC-02;LUBE-01
+PID-06,pid,P&ID — Raw-Material Ore Conveyor & Ladle-Crane Handling,RM.CONV.ORE01;MS.LDC.CRN01,MAN-009;MAN-012;ELEC-03;SOP-09;SOP-10;FTA-05;LUBE-01;LOTO-EX-03
+ELEC-01,electrical_schematic,Electrical Schematic — F1 MV Motor + ACS6000 VFD,HSM.F1.MTR01,MAN-003;PID-01;FTA-04;SOP-03;LOTO-EX-01
+ELEC-02,electrical_schematic,Electrical/Control Schematic — Cold-Mill AGC Hydraulic Servo Loop,CRM.AGC.SV01,MAN-013;PID-05;PID-01
+ELEC-03,electrical_schematic,Electrical/Control Schematic — Ladle Crane Hoist Drive & Safety,MS.LDC.CRN01,MAN-012;PID-06;SOP-10;FTA-05;LOTO-EX-03
+LUBE-01,lubrication_chart,Master Lubrication Chart — All 15 Flagship Assets,HSM.F3.WR.BRG01;HSM.F1.GBX01;HSM.F1.MTR01;HSM.DSC.PMP01;BF.BLW.FAN01;CCM.SEG.07;CCM.MOLD.01;HSM.STD.R1;RM.CONV.ORE01;RHF.ZONE.SOAK;EAF.AUX.HYD01;BF.CW.PMP02;SP.SINT.FAN01;MS.LDC.CRN01;CRM.AGC.SV01,MAN-001;MAN-002;MAN-011;MAN-013;PID-01;PID-05;SOP-02
+FTA-01,fault_tree,Fault-Tree Analysis — Rolling-Bearing Outer-Race Spall (BPFO),HSM.F3.WR.BRG01;BF.CW.PMP02;SP.SINT.FAN01;BF.BLW.FAN01,MAN-001;PID-01;PID-03;SOP-01;LUBE-01
+FTA-02,fault_tree,Fault-Tree Analysis — Gearbox Tooth Fatigue Crack,HSM.F1.GBX01,MAN-002;PID-01;SOP-02;LUBE-01
+FTA-03,fault_tree,Fault-Tree Analysis — Continuous-Caster Breakout (Sticking),CCM.MOLD.01,MAN-007;PID-02;SOP-07;LUBE-01
+FTA-04,fault_tree,Fault-Tree Analysis — Motor Stator Winding Insulation Failure,HSM.F1.MTR01,MAN-003;ELEC-01;PID-01;SOP-03;LOTO-EX-01
+FTA-05,fault_tree,Fault-Tree Analysis — Ladle-Crane Wire-Rope Failure,MS.LDC.CRN01,MAN-012;ELEC-03;PID-06;SOP-10;LOTO-EX-03
+LOTO-TEMPLATE,loto_template,Lock-Out / Tag-Out (LOTO) Permit — Blank Template,,LOTO-EX-01;LOTO-EX-02;LOTO-EX-03
+LOTO-EX-01,loto_permit,LOTO Worked Example — F1 MV Motor Swap Isolation,HSM.F1.MTR01,LOTO-TEMPLATE;SOP-03;ELEC-01;FTA-04;MAN-003
+LOTO-EX-02,loto_permit,LOTO Worked Example — Descale Pump Mechanical-Seal Isolation,HSM.DSC.PMP01,LOTO-TEMPLATE;SOP-04;MAN-004;PID-01
+LOTO-EX-03,loto_permit,LOTO Worked Example — Ladle-Crane Wire-Rope / Brake Isolation,MS.LDC.CRN01,LOTO-TEMPLATE;SOP-10;ELEC-03;FTA-05;PID-06

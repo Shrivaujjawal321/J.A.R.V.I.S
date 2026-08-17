@@ -46,6 +46,14 @@ Find {n_profiles} candidate profiles matching this ICP category:
 {exclude_block}
 
 ## Instructions
+0. The `chrome-devtools` MCP server may be in "still connecting" state at session
+   start — its tools (mcp__chrome-devtools__*) load asynchronously. If they are
+   not yet visible:
+   - Call `ToolSearch` with query `select:mcp__chrome-devtools__list_pages,mcp__chrome-devtools__navigate_page,mcp__chrome-devtools__take_snapshot,mcp__chrome-devtools__click,mcp__chrome-devtools__evaluate_script`
+     to wait for the MCP server to surface its tools.
+   - If ToolSearch still returns no results after one attempt, retry it ONCE
+     more before declaring the MCP unavailable. Do NOT abort on the first
+     "still connecting" system reminder.
 1. Use mcp__chrome-devtools__list_pages to confirm a LinkedIn tab is open.
 2. Navigate to LinkedIn People search with title + company + geo filters set
    for this category. Example URL pattern:

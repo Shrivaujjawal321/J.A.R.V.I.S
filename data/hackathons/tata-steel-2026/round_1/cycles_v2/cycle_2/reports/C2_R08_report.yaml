@@ -1,0 +1,476 @@
+agent_id: C2_R08
+topic: cascade-with-stronger-stage-1
+cycle: 2
+timestamp_utc: "2026-05-23T17:00:00Z"
+status: ok
+
+# V23 post-mortem: cascade worked architecturally (5/6 gates) but Stage-1=V4 (AUC 0.884,
+# fresh retrain only 0.8622) capped Stage-2. Root causes:
+#   1. Pool too large (836 vs projected 700): V4 probability mass too wide
+#   2. X14 t-stat within FULL suspect pool = -1.44 (not 5.02 -- that was vs hard_fp10 ONLY)
+#   3. X43 falsified: no composition features, Stage-2 capped at AUC 0.72
+# Fix: replace V4 Stage-1 with N01 (target AUC >= 0.920) to shrink pool + raise prevalence.
+
+stage1_sensitivity_analysis:
+  v4_reference:
+    stage1_auc: 0.884
+    suspect_pool_size: 836
+    tp_in_pool: 66
+    fp_in_pool: 770
+    pool_prevalence_pct: 7.9
+    fpr_at_recall100: 0.599
+    stage2_auc_achieved: 0.720
+    oof_score: 54.41
+
+  hypothetical_n01_stronger:
+    stage1_auc: 0.920
+    reasoning: |
+      At fixed TPR=1.0, ROC operating point shifts left as AUC rises.
+      Linear partial-AUC extrapolation in TPR=[0.90,1.0] region:
+        V4 at AUC=0.884: FPR(TPR=1.0) approx 60%  -> 770 FP in pool
+        N01 at AUC=0.920: FPR(TPR=1.0) approx 40-48% -> ~510-615 FP in pool
+      Conservative estimate: pool shrinks from 836 to ~580-680 rows.
+    suspect_pool_size_low: 576
+    suspect_pool_size_mid: 636
+    suspect_pool_size_high: 681
+    pool_prevalence_pct_low: 9.7
+    pool_prevalence_pct_mid: 10.4
+    pool_prevalence_pct_high: 11.5
+    stage2_auc_ceiling_pred: |
+      Two effects compound:
+        (a) Fewer negatives -> less dilution of subtle-feature signal
+        (b) Higher prevalence -> Stage-2 training more balanced -> better calibration
+      V23 empirical anchor (AUC=0.72 -> score=54.41) projected forward:
+        Pool shrink 836->636 = 24% reduction in negatives
+        Predicted Stage-2 AUC: 0.74-0.77 (same feature set, cleaner problem)
+      Secondary lever: hard-FP-10 rows may not even enter Stage-2 if N01 pushes
+      their Stage-1 probas below T_s1. V4 assigned them probas 0.53-0.78; a
+      well-calibrated AUC-0.92 Stage-1 may rank 2-4 of them below threshold.
+
+  hard_fp10_filter_analysis:
+    v4_stage1_probas_hard_fp10: |
+      All 10 hard FPs have V4 OOF probas 0.53-0.78 (well above T_s1=0.013).
+      Hard FPs are hard BECAUSE they look like TPs on dominant features (X13, X10, X32).
+      Stage-1 AUC 0.92 globally does NOT guarantee these specific outliers are filtered.
+    honest_assessment: |
+      Realistic expectation: N01 AUC 0.92 filters 2-4 of hard-FP-10 at Stage-1
+      (those on the margin of the dominant-feature signal). The remaining 6-8 still
+      enter Stage-2. Stage-2 remains the primary hard-FP-10 treatment.
+      Set B gate target (>=3 hard FPs avoided) could be met by Stage-1 filtering
+      alone if N01 delivers AUC >= 0.93 + good calibration.
+
+  cascade_ceiling_table:
+    # Empirical anchor: V23 AUC=0.72 on 836-row pool -> score 54.41
+    # Projected forward with pool-size scaling
+    entries:
+      - s1_auc: 0.884
+        pool_size: 836
+        s2_auc: 0.720
+        predicted_score: 54.41
+        note: "V23 observed (empirical anchor)"
+      - s1_auc: 0.900
+        pool_size: 756
+        s2_auc: 0.730
+        predicted_score: 55.1
+        note: "modest Stage-1 improvement"
+      - s1_auc: 0.920
+        pool_size: 636
+        s2_auc: 0.750
+        predicted_score: 56.5
+        note: "N01 target AUC; calibrated LB ~59.2"
+      - s1_auc: 0.930
+        pool_size: 580
+        s2_auc: 0.770
+        predicted_score: 57.8
+        note: "upper N01 range; calibrated LB ~60.5"
+      - s1_auc: 0.950
+        pool_size: 490
+        s2_auc: 0.800
+        predicted_score: 60.0
+        note: "aspirational; needs Stage-1 breakthrough"
+    key_insight: |
+      The cascade ceiling is a Stage-1 quality problem, not a Stage-2 design problem.
+      Every 0.01 AUC gain in Stage-1 is worth ~0.5-0.7 OOF cascade points because
+      the pool shrinks and Stage-2 sees a cleaner problem.
+      V23's bottleneck: Stage-1 = V4 produced 836-row pool where X14 t-stat = -1.44
+      (weak). Smaller pool with N01 raises the t-stat of subtle features by eliminating
+      the medium-signal negatives that diluted it.
+
+recommendations:
+  - id: C2_R08_rec_1
+    title: "Nested-OOF Cascade with N01 Stage-1 (V27)"
+    technique_class: architecture
+    description: |
+      Replace V4's frozen OOF probas as Stage-1 with N01's fresh higher-AUC stack
+      (target AUC >= 0.920). Cascade architecture is unchanged from V23; only the
+      Stage-1 OOF source changes. N01 delivers oof_n01.parquet; V27 cascade builds
+      Stage-2 on top of the resulting smaller suspect pool. T_s1 must be re-calibrated
+      to min(N01 positive OOF probas) - 0.002 (not a fixed 0.013) to guarantee 100%
+      Stage-1 recall with N01's probability scale. Stage-2 CV, features, and model
+      config carry forward from V23 with targeted additions (rec_2).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V23
+      why_still_novel: |
+        V23 is the only cascade build and used V4 frozen OOF (AUC 0.884).
+        Replacing Stage-1 with N01 (target AUC >= 0.920) is an untested combination.
+        No V1-V22 build used a non-V4 Stage-1 in a two-stage cascade.
+    expected_lift_oof:
+      point: 2.2
+      low: 0.5
+      high: 4.5
+      reasoning: |
+        Conservative (N01 AUC 0.910): pool ~700 rows, Stage-2 AUC ~0.73 -> score ~55.0
+          -> delta +0.6 OOF, calibrated LB ~57.7.
+        Mid (N01 AUC 0.920): pool ~636 rows, Stage-2 AUC ~0.75 -> score ~56.5
+          -> delta +2.2 OOF, calibrated LB ~59.2.
+        High (N01 AUC 0.930 + 2-4 hard-FP-10 filtered at Stage-1): pool ~560 rows,
+          Stage-2 AUC ~0.77 -> score ~57.8, calibrated LB ~60.5.
+        Point estimate anchored at mid case (N01 likely in 0.91-0.93 range per N01 agent).
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - V23 code (build_v23.py -- reuse Stage-2 block directly)
+        - N01 output: oof_n01.parquet + test_n01.parquet
+        - scikit-learn>=1.4
+        - catboost>=1.2
+      notes: |
+        Code surgery, not redesign. Patch build_v23.py:
+          1. Replace load path for Stage-1 OOF parquet
+          2. Recompute T_s1 = min(n01_oof[y_train==1]) - 0.002
+          3. Log pool size -- if >900, Stage-1 hasn't improved enough; hold.
+          4. All else unchanged from V23.
+        Parallel dependency: N01 must complete Stage-1 training first.
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Mathematical derivation in stage1_sensitivity_analysis: pool shrink 24%
+        at Stage-1 AUC 0.920 is principled (partial-AUC extrapolation).
+        Pool prevalence rise 7.9%->10.4% directly improves Stage-2 training balance.
+        V23 empirical anchor: Stage-2 AUC=0.72 on 836-row pool -> score 54.41.
+        Viola and Jones (2001) CVPR cascade paper: each stage FPR reduction compounds,
+        smaller pool in Stage-2 gives cleaner problem even without Stage-2 changes.
+        Confidence=4: principled argument + empirical V23 anchor, model extrapolation only.
+    failure_modes:
+      - |
+        N01 AUC improvement real but probability estimates poorly calibrated:
+        hard-FP-10 probas not actually reduced even with higher AUC.
+        Mitigation: check Brier score + ECE on N01 OOF. Calibrate N01 OOF with
+        Isotonic Regression before computing suspect pool.
+      - |
+        N01 produces lower absolute probability values (different scale than V4):
+        min(positive OOF proba) may be very small (e.g. 0.001).
+        This makes suspect pool larger, not smaller. Always set T_s1 =
+        min(positive OOF) - eps, not fixed 0.013. Log pool size before proceeding.
+        If pool > 900, Stage-1 has not improved enough -- abort V27, wait for better N01.
+      - |
+        N01 Stage-1 uses X14/X49/X41 as features: Stage-2 feature set becomes
+        redundant (Stage-1 already extracted that signal). Check N01 feature set
+        before finalizing Stage-2. If overlap: substitute CT_dev + force-block diff
+        (rec_2) as primary Stage-2 discriminators.
+      - |
+        Bootstrap CI widening: Stage-2 fold size shrinks (127 rows/fold vs V23's 167).
+        Monitor fold AUC std -- if std > 0.08, reduce depth to 2 or increase l2 to 15.
+    code_sketch: |
+      import numpy as np, pandas as pd
+      from catboost import CatBoostClassifier
+      from sklearn.model_selection import StratifiedKFold, cross_val_predict
+
+      # ONLY CHANGE vs V23: swap Stage-1 OOF source
+      n01_oof = pd.read_parquet("build_n01/oof_n01.parquet")
+      s1_proba = n01_oof.sort_values("CoilID").set_index("CoilID").loc[
+          X_train.index, "oof_proba"
+      ].values
+
+      # Re-calibrate T_s1 for N01 probability scale
+      min_pos_proba = s1_proba[y_train == 1].min()
+      T_S1 = min_pos_proba - 0.002
+      suspect_mask = s1_proba > T_S1
+      print(f"N01 pool: {suspect_mask.sum()} rows (target <=700, abort if >900)")
+
+      # Stage-2 features (same as V23 + rec_2 additions)
+      S2_BASE = ["X14","X49","X41","X46","X48","X42","X18","X11"]
+      def build_s2_feats(X, mask):
+          Xs = X.loc[mask, S2_BASE].copy()
+          Xs["X11_X14"] = Xs["X11"] * Xs["X14"]
+          Xs["X49_X46"] = Xs["X49"] / (Xs["X46"] + 1e-9)
+          Xs["X41_X49_diff"] = Xs["X41"] - Xs["X49"]
+          # Grade z-scores within suspect pool (R08_rec_2)
+          for feat in ["X14", "X49", "X41"]:
+              grp = Xs.groupby("X11")[feat]
+              Xs[f"{feat}_gz"] = (
+                  (Xs[feat] - grp.transform("mean")) /
+                  grp.transform("std").clip(lower=1e-9)
+              )
+          # CT_dev (rec_2 new)
+          grade_ct_mean = Xs.groupby("X11")["X14"].transform("mean")
+          Xs["CT_dev"] = Xs["X14"] - grade_ct_mean
+          return Xs
+
+      X_s2 = build_s2_feats(X_train, suspect_mask)
+      y_s2 = y_train[suspect_mask]
+      stage2 = CatBoostClassifier(
+          depth=3, l2_leaf_reg=10, iterations=500, learning_rate=0.02,
+          auto_class_weights="Balanced", random_state=42, verbose=0
+      )
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+      s2_oof = cross_val_predict(stage2, X_s2, y_s2, cv=skf, method="predict_proba")[:,1]
+      final_oof = np.zeros(len(y_train))
+      final_oof[suspect_mask] = s2_oof
+    test_case_impact:
+      hard7_recall: medium
+      hard7_reasoning: |
+        T_s1 = min(positive N01 OOF) - 0.002 guarantees all 7 enter suspect pool.
+        Stage-2 must classify them positive on X14/X49/X41. CoilID 473 was at
+        proba=T in V23; N01 probas may shift it. Conservative T_s1 offset (0.002)
+        provides margin. Stage-2 OOF threshold sweep will trade off hard-7 recall
+        vs precision. Risk: medium due to CoilID 473 fragility.
+      hard_fp_avoidance: high
+      hard_fp_reasoning: |
+        Two levers: (1) 2-4 hard-FP-10 eliminated at Stage-1 if N01 AUC >= 0.93;
+        (2) smaller pool gives Stage-2 cleaner signal on remaining hard FPs.
+        Primary Cycle 2 driver for Set B gate improvement.
+      easy59_regression_risk: low
+      easy59_reasoning: |
+        N01 (stronger Stage-1) will keep or raise easy-59 probas. T_s1 below min
+        positive proba guarantees all 66 TPs in pool. Low risk.
+
+  - id: C2_R08_rec_2
+    title: "Grade-Stratified CT_dev + Force-Block Diff in Stage-2"
+    technique_class: feature_engineering
+    description: |
+      Replace V23's CT-spread family (max-min of X4,X5,X6,X14) with two targeted
+      additions to Stage-2: (1) CT_dev = X14 minus per-grade mean of X14 within
+      the suspect pool -- captures whether this coil's coiling temperature is
+      anomalous FOR ITS GRADE, not globally; (2) X29_X33_diff = X29 minus X33 --
+      a within-stand force differential using the confirmed stand-axis block
+      (adjacent corr 0.9526). V23's CT-spread had unexpected direction (TPs higher
+      spread) and didn't shift precision. CT_dev is grade-relative, more informative.
+      Both features are added inside build_s2_feats(), zero new dependencies.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V23
+      why_still_novel: |
+        V23 used global CT-spread in Stage-2. CT_dev = X14 - per-grade mean(X14)
+        is grade-stratified (R02_rec_3 proposed this but it was deferred in Cycle 1).
+        Force-block differential (X29-X33) was never tried in any Stage-2.
+    expected_lift_oof:
+      point: 0.8
+      low: 0.0
+      high: 2.0
+      reasoning: |
+        Additive to rec_1. If N01 Stage-1 gets Stage-2 to AUC ~0.75 (pool ~636),
+        CT_dev + force-block diff could push Stage-2 to AUC ~0.77-0.78.
+        CT_dev rationale: grade-conditional coiling temp anomaly is mechanically
+        relevant. V23's CT-spread t-stat=3.51 within pool (correct direction for TPs)
+        but direction was unexpected (TPs have HIGHER thermal spread -- they are
+        thermally stressed coils). CT_dev may show cleaner grade-normalized signal.
+        Standalone (without rec_1): negligible. Same pool, same Stage-2 ceiling.
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies:
+        - pandas>=2.0
+        - numpy>=1.26
+      notes: |
+        15 lines inside build_s2_feats(). Implement in same V27 build as rec_1.
+        Conditional: if N01 Stage-1 used X14 as a feature with high weight, CT_dev
+        (which is a linear function of X14) adds redundant signal. SHAP check post-
+        training: if CT_dev SHAP < 0.001, drop it. Keep X29_X33_diff independent.
+        Constraint: check Pearson(X29, X13) in suspect pool -- if > 0.85, drop
+        X29_X33_diff (re-encodes dominant Stage-1 signal, not helpful).
+    confidence:
+      score: 3
+      evidence_anchor: |
+        CT_dev: grade-conditional normalization is standard practice in industrial
+        quality control. R02_rec_3 (Cycle 1) proposed grade-stratified CT deviation
+        with conf=4 -- deferred due to Cycle 1 slot allocation, not because it was
+        weak. This rec is the implementation vehicle for that proposal.
+        X29-X33 force block: Cycle 1 confirmed adjacent corr 0.9526 vs far 0.7991
+        (structural finding in prior_cycle_summary.yaml). Within the suspect pool,
+        inter-stand force differentials may reveal specific mill configurations.
+        Confidence=3: mechanically motivated, not yet empirically grounded in Stage-2.
+    failure_modes:
+      - |
+        CT_dev per-grade: grade groups in suspect pool may have <5 rows.
+        Fall back to global X14 mean for grade groups with n<5.
+      - |
+        X29-X33 correlation with X13 in suspect pool: if Pearson > 0.85 within pool,
+        drop this feature -- it re-encodes Stage-1 signal.
+      - |
+        Feature count creep: adding CT_dev + X29_X33_diff + grade z-scores pushes
+        Stage-2 feature count to ~18. For 636-row pool, overfitting risk rises.
+        Run SHAP after V27 training; drop any feature with mean |SHAP| < 0.001.
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_R08_rec_3
+    title: "Three-Zone Stage-2 Abstain (Conformal-Style)"
+    technique_class: threshold
+    description: |
+      Implement a three-region Stage-2 decision instead of single threshold sweep:
+      predict 1 if Stage-2 proba >= T_high, predict 0 if proba <= T_low, and
+      predict 0 (abstain = not flagged) if T_low < proba < T_high. The abstain
+      zone targets the hard-FP-10 range (V23 Stage-2 probas 0.40-0.82). Calibrate
+      T_high / T_low on Stage-2 OOF probas with constraint: recall >= 99% must hold.
+      For hackathon scoring, abstain rows map to 0. This is a conformal-prediction-
+      inspired rule: high-confidence positives flagged, high-confidence negatives
+      cleared, ambiguous middle zone abstained (conservative prediction).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      why_still_novel: |
+        All V1-V22 builds including V23 use a single threshold sweep.
+        Three-zone abstain in Stage-2 is untested. R10 Mondrian conformal targets
+        Stage-1 calibration; this applies the same concept at Stage-2 where hard-FP-10
+        probas (0.40-0.82 in V23) overlap with low-proba TPs.
+    expected_lift_oof:
+      point: 1.5
+      low: -0.5
+      high: 3.5
+      reasoning: |
+        V23 hard-FP-10 Stage-2 probas: 0.40-0.82.
+        If T_high=0.65: rows with proba < 0.65 abstain (predict 0).
+          ~5-6 of 10 hard FPs below 0.65 (estimated from 0.40-0.82 range).
+          ~0-2 TPs in this zone (most TPs have higher Stage-2 proba).
+        Conservative calculation on N01 pool (636 rows, pool prevalence 10.4%):
+          Remove 5 hard FPs: n_pos goes from ~622 to ~617 predicted positives.
+          If 0 TPs lost: precision = 66/617 = 10.7%, recall=100% -> score=55.35
+          If 1 TP lost: recall=98.5%, precision=65/617=10.5% -> score=54.5
+        High end: T_high=0.70 on 580-row pool with AUC 0.77:
+          6-7 hard FPs cleared, 0 TPs lost -> score ~58.
+        Risk: if TPs and hard FPs mix in 0.40-0.65 zone (Stage-2 AUC=0.72 means
+        they do), recall collapse is likely. Implement ONLY after rec_1 validated
+        and only if Stage-2 AUC >= 0.75.
+    feasibility:
+      score: 4
+      effort_hours: 1.0
+      dependencies:
+        - numpy>=1.26
+      notes: |
+        Modified threshold sweep in Stage-2 OOF loop. Enumerate T_high x T_low grid
+        (T_high in [0.55, 0.60, 0.65, 0.70, 0.75], T_low in [0.20, 0.25, 0.30]).
+        For each pair: compute preds, enforce recall >= 99%, compute (R+P)/2.
+        Pick pair maximizing score under recall constraint.
+        Constraint: require T_high > median(positive Stage-2 OOF proba) to avoid
+        abstaining on the bulk of TPs. 1h to implement in V27 if rec_1 validates.
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Angelopoulos and Bates (2021) "A Gentle Introduction to Conformal Prediction"
+        arXiv:2107.07511. Three-way prediction sets with guaranteed coverage.
+        Application to this cascade: reasoning-only adaptation. Key empirical gap:
+        V23 Stage-2 proba distribution for hard-FP-10 specifically (0.40-0.82)
+        vs TPs was not directly tabulated. Need to check after V27 Stage-2 OOF
+        whether TPs and hard FPs actually separate in Stage-2 probability space.
+        Confidence=2: theoretically motivated, not yet grounded in V27 Stage-2 distribution.
+    failure_modes:
+      - |
+        Abstain zone catches TPs: Stage-2 AUC=0.72 means hard FPs and low-proba TPs
+        overlap in 0.40-0.65 range. Forcing 0 in that zone collapses recall.
+        Hard gate: enforce recall >= 99% on OOF. If no (T_high, T_low) pair satisfies
+        it, skip rec_3 entirely for this build.
+      - |
+        Over-optimistic OOF: abstain tuned on OOF may fail on test (different
+        Stage-2 proba distribution). Check bootstrap CI on abstain-zone score:
+        if CI lower < 53.5, too unstable.
+      - |
+        Two free parameters (T_high, T_low) overfit on 66 OOF positives.
+        Regularize: require T_high > median(positive Stage-2 OOF proba) as hard constraint.
+    test_case_impact:
+      hard7_recall: medium
+      hard7_reasoning: |
+        Hard-7 are precarious TPs. Some may have Stage-2 probas near T_high boundary.
+        CoilID 473 is highest risk. Must explicitly verify all Hard-7 Stage-2 probas
+        exceed T_high before finalizing thresholds. Recall constraint (>=99%) enforces this.
+      hard_fp_avoidance: high
+      hard_fp_reasoning: |
+        Primary target. Hard-FP-10 Stage-2 probas 0.40-0.82 in V23. T_high ~0.65-0.70
+        should catch 5-6 below threshold. This is Set B gate's primary fix mechanism
+        at Stage-2 (complementary to Stage-1 filtering in rec_1).
+      easy59_regression_risk: low
+      easy59_reasoning: |
+        Easy-59 have high Stage-2 probas (straightforward TPs). All expected above
+        T_high. Low regression risk.
+
+implementation_sequence:
+  step_1:
+    action: "Wait for N01 to deliver oof_n01.parquet + test_n01.parquet"
+    blocker: "C2_N01 must complete Stage-1 training first"
+    eta_hours: "3-5 (N01 training)"
+  step_2:
+    action: "V27 build: patch build_v23.py to use oof_n01.parquet as Stage-1 + add rec_2 features"
+    effort_hours: 1.5
+    implements:
+      - C2_R08_rec_1
+      - C2_R08_rec_2
+    gate_check: |
+      V27 OOF must exceed 54.41 (V23 floor).
+      Pool size must be <=700 (if pool >900, N01 Stage-1 hasn't improved -- abort).
+      Log Stage-2 fold AUC std -- if std > 0.08, reduce depth to 2.
+  step_3:
+    action: "If V27 OOF >= 55.5 AND Stage-2 AUC >= 0.75, add conformal abstain sweep"
+    effort_hours: 1.0
+    implements:
+      - C2_R08_rec_3
+    gate_check: "Recall >= 99% at all (T_high, T_low) pairs. Bootstrap CI lower >= 53.5."
+  step_4:
+    action: "Submit V27 if calibrated LB >= 57.5 (i.e. OOF >= 54.83)"
+    submission_budget_cost: 1
+
+architecture_v27_spec:
+  stage_1:
+    source: "N01 OOF probas (build_n01/oof_n01.parquet)"
+    threshold: "T_s1 = min(n01_oof[y==1]) - 0.002 (dynamic, not fixed)"
+    expected_pool_size: "580-680 rows (down from V23 836)"
+    abort_condition: "pool > 900 -> Stage-1 not strong enough, do not proceed to Stage-2"
+  stage_2:
+    training_data: "suspect pool rows only"
+    features_base: ["X14","X49","X41","X46","X48","X42","X18","X11"]
+    features_engineered: ["X11*X14","X49/(X46+eps)","X41-X49"]
+    features_grade_z: ["X14_gz","X49_gz","X41_gz (within suspect pool, by X11)"]
+    features_new_rec2: ["CT_dev = X14 - per-grade mean(X14)","X29_X33_diff (if Pearson(X29,X13)<0.85)"]
+    features_conditional_drop: "Drop any feature with Pearson>0.85 with N01 Stage-1 features"
+    model: "CatBoost(depth=3, l2_leaf_reg=10, iterations=500, lr=0.02, auto_class_weights=Balanced)"
+    cv: "5-fold StratifiedKFold(seed=42)"
+  stage_3_abstain:
+    optional: true
+    trigger: "V27 OOF >= 55.5 AND Stage-2 AUC >= 0.75"
+    rule: "predict 0 if Stage-2 proba < T_high AND proba > T_low"
+    constraint: "recall >= 99% on OOF"
+
+bootstrap_requirements:
+  stage2_fold_auc_std_max: 0.08
+  oof_score_ci_lower_min: 53.5
+  note: |
+    Smaller Stage-2 training pool (~636 vs V23 836) increases fold variance.
+    Each Stage-2 fold has ~127 rows (vs V23 167). Monitor fold AUC std closely.
+    If std > 0.08: reduce CatBoost depth to 2, increase l2 to 15.
+    Do not submit V27 if bootstrap CI lower bound < 53.5.
+
+cross_topic_links:
+  - C2_N01: |
+      CRITICAL dependency. C2_R08 cascade cannot be built until N01 delivers
+      oof_n01.parquet. N01 AUC target >= 0.920 maps to cascade score ~56.5 OOF
+      (calibrated LB ~59.2). Timeline: N01 completes -> V27 starts ~1.5h after.
+      Coordinate: N01 must expose feature list so C2_R08 can check Stage-2 overlap.
+  - C2_R02: |
+      CT_dev (grade-stratified coiling temp deviation) is the Cycle 1 R02_rec_3
+      proposal carried into Cycle 2. C2_R08_rec_2 implements it in Stage-2.
+  - C2_R01: |
+      X29-X33 force-block confirmed in Cycle 1 as a structural finding. C2_R08_rec_2
+      adds X29_X33_diff to Stage-2 conditional on low correlation with N01 Stage-1.
+  - C2_R10: |
+      R10 Mondrian conformal targets Stage-1 calibration uncertainty. If R10 delivers
+      conformal prediction bands for Stage-1, C2_R08_rec_3 abstain rule could use
+      those bands instead of hand-tuned T_high/T_low -- the principled version.
+  - C2_N02: |
+      N02 counterfactual analysis for hard-FP-10 will identify which features flip
+      them to negative. Those features should be added to Stage-2 feature set if
+      not already present. N02 output directly informs Stage-2 feature refinement
+      and may replace or supplement CT_dev / force-block diff.

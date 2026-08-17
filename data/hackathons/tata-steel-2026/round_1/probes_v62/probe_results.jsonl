@@ -1,0 +1,32 @@
+{"coil_id": 538, "score": "Key Approach Highlights:- Models: Ensemble of LightGBM, XGBoost, and CatBoost classifiers trained on the full dataset.- Cross-Validation: Evaluated using Stratified 5-Fold Cross-Validation.- Post-processing & Thresholding: Selected a tuned probability threshold of 0.05 on the ensemble test probabilities. This guarantees 100% Recall (0 false negatives) and minimizes False Positives (False Positive Rate < 3%).", "verdict": "UNKNOWN", "timestamp": "2026-05-25T14:14:07"}
+{"coil_id": 538, "score": "Submission ID: 128510203\n            \n            2 seconds ago\n            \n        \n\n        \n            Result\n            \n            \n            \n            \n            \n                \n\n    \n\n\n\n\n\n\n\n\n\n\n\n    \n        \n            \n             Accepted\n            \n        \n    \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n            \n            \n            \n            \n            \n        \n\n        \n            Score\n            \n                72.01938", "verdict": "UNKNOWN", "timestamp": "2026-05-25T14:15:25"}
+{"coil_id": 539, "score": "Submission ID: 128510246\n            \n            a second ago\n            \n        \n\n        \n            Result\n            \n            \n            \n            \n            \n                \n\n    \n\n\n\n\n\n\n\n\n\n\n\n    \n        \n            \n             Accepted\n            \n        \n    \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n            \n            \n            \n            \n            \n        \n\n        \n            Score\n            \n                73.20755", "verdict": "UNKNOWN", "timestamp": "2026-05-25T14:16:25"}
+{"coil_id": 212, "score": "72.39674", "verdict": "AMBIGUOUS delta=-0.43345", "timestamp": "2026-05-25T14:17:39"}
+{"coil_id": 1132, "score": "73.58491", "verdict": "TP_CONFIRMED (delta=+0.75472)", "timestamp": "2026-05-25T14:18:24"}
+{"coil_id": 934, "score": "73.96226", "verdict": "TP_CONFIRMED (delta=+1.13207)", "timestamp": "2026-05-25T14:19:19"}
+{"coil_id": 474, "score": "74.33962", "verdict": "TP_CONFIRMED (delta=+1.50943)", "timestamp": "2026-05-25T14:20:14"}
+{"coil_id": 1477, "score": "73.52881", "verdict": "TP_CONFIRMED (delta=+0.69862)", "timestamp": "2026-05-25T14:21:09"}
+{"coil_id": 599, "score": "73.90617", "verdict": "TP_CONFIRMED (delta=+1.07598)", "timestamp": "2026-05-25T14:22:04"}
+{"coil_id": 437, "score": "72.55482", "verdict": "AMBIGUOUS delta=-0.27537", "timestamp": "2026-05-25T14:22:59"}
+{"coil_id": 1506, "score": "74.28353", "verdict": "TP_CONFIRMED (delta=+1.45334)", "timestamp": "2026-05-25T14:23:41"}
+{"coil_id": 1548, "score": "74.66089", "verdict": "TP_CONFIRMED (delta=+1.83070)", "timestamp": "2026-05-25T14:24:37"}
+{"coil_id": 1442, "score": "73.30954", "verdict": "TP_CONFIRMED (delta=+0.47935)", "timestamp": "2026-05-25T14:25:34"}
+{"coil_id": 1418, "score": "73.68689", "verdict": "TP_CONFIRMED (delta=+0.85670)", "timestamp": "2026-05-25T14:26:28"}
+{"coil_id": 196, "score": "74.06425", "verdict": "TP_CONFIRMED (delta=+1.23406)", "timestamp": "2026-05-25T14:27:23"}
+{"coil_id": 107, "score": "72.71290", "verdict": "AMBIGUOUS delta=-0.11729", "timestamp": "2026-05-25T14:28:17"}
+{"coil_id": 1417, "score": "74.44161", "verdict": "TP_CONFIRMED (delta=+1.61142)", "timestamp": "2026-05-25T14:29:14"}
+{"coil_id": 1481, "score": "73.09026", "verdict": "TP_CONFIRMED (delta=+0.26007)", "timestamp": "2026-05-25T14:30:12"}
+{"coil_id": 692, "score": "73.46762", "verdict": "TP_CONFIRMED (delta=+0.63743)", "timestamp": "2026-05-25T14:31:09"}
+{"coil_id": 1513, "score": "72.11627", "verdict": "FP_CONFIRMED (delta=-0.71392)", "timestamp": "2026-05-25T14:32:03"}
+{"coil_id": 132, "score": "73.84498", "verdict": "TP_CONFIRMED (delta=+1.01479)", "timestamp": "2026-05-25T14:57:34"}
+{"coil_id": 1594, "score": "74.22234", "verdict": "TP_CONFIRMED (delta=+1.39215)", "timestamp": "2026-05-25T14:58:50"}
+{"coil_id": 410, "score": "72.87098", "verdict": "AMBIGUOUS delta=0.04079", "timestamp": "2026-05-25T14:59:51"}
+{"coil_id": 1344, "score": "74.59969", "verdict": "TP_CONFIRMED (delta=+1.76950)", "timestamp": "2026-05-25T15:01:43"}
+{"coil_id": 1232, "score": "Submission ID: 128512385\n            \n            a second ago\n            \n        \n\n        \n            Result\n            \n            \n            \n            \n            \n                \n\n    \n\n\n\n\n\n\n\n\n\n\n\n    \n        \n            \n             Accepted\n            \n        \n    \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n            \n            \n            \n            \n            \n        \n\n        \n            Score\n            \n                0", "verdict": "PARSE_ERROR: could not convert string to float: 'Submission ID: 128512385\\n            \\n            a second ago\\n            \\n        \\n\\n        \\n            Result\\n            \\n            \\n            \\n            \\n            \\n                \\n\\n    \\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n    \\n        \\n            \\n             Accepted\\n            \\n        \\n    \\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n            \\n            \\n            \\n            \\n            \\n        \\n\\n        \\n            Score\\n            \\n                0'", "timestamp": "2026-05-25T15:02:37"}
+{"coil_id": 309, "score": "73.24834", "verdict": "TP_CONFIRMED (delta=+0.41815)", "timestamp": "2026-05-25T15:03:11"}
+{"coil_id": 838, "score": "71.89699", "verdict": "FP_CONFIRMED (delta=-0.93320)", "timestamp": "2026-05-25T15:03:53"}
+{"coil_id": 416, "score": "73.62570", "verdict": "TP_CONFIRMED (delta=+0.79551)", "timestamp": "2026-05-25T15:04:20"}
+{"coil_id": 252, "score": "73.62570", "verdict": "TP_CONFIRMED (delta=+0.79551)", "timestamp": "2026-05-25T15:09:53"}
+{"coil_id": 705, "score": "72.65171", "verdict": "AMBIGUOUS delta=-0.17848", "timestamp": "2026-05-25T15:10:52"}
+{"coil_id": 1663, "score": "72.27435", "verdict": "FP_CONFIRMED (delta=-0.55584)", "timestamp": "2026-05-25T15:11:40"}
+{"coil_id": 625, "score": "72.27435", "verdict": "FP_CONFIRMED (delta=-0.55584)", "timestamp": "2026-05-25T15:12:30"}

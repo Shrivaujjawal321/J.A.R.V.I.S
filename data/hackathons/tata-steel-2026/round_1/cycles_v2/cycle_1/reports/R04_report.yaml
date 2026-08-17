@@ -1,0 +1,251 @@
+agent_id: R04
+topic: tabpfn-and-tabicl
+cycle: 1
+timestamp_utc: '2026-05-23T12:00:00Z'
+status: ok
+research_summary: "Performed deep-dive on pre-trained tabular foundation models as alternatives to V9s auth-blocked TabPFN\
+  \ v2.\n\n1. TabPFN v1 (ICLR 2023, arxiv:2207.01848): Original automl/TabPFN is pure Apache 2.0, runs fully locally.\n  \
+  \ NEW PriorLabs pip package (tabpfn>=2) introduced mandatory browser login.\n   Auth-free: pin tabpfn<2 (version 0.1.x).\
+  \ Hard limits: <=1000 training rows, <=100 numerical features.\n   Our 1082-row fold training split EXCEEDS limit by 8%.\
+  \ Workaround: subsample to 900 rows, keep all positives.\n   Imbalance: TabPFN exhibits majority-class bias at pi1=0.05.\
+  \ Best correction: threshold tau=pi1 (arxiv:2605.21742).\n   Standalone AUC ~0.939 normalized ROC AUC (Nature 2024 / PMC11711098).\n\
+  \n2. TabICL / TabICLv2 (soda-inria, ICML 2025/2026, arxiv:2502.05564 / 2602.11139):\n   BSD 3-Clause license. pip install\
+  \ tabicl. Offline after first checkpoint download. CPU-capable.\n   Pre-trained on 300-48K samples (our 1082-row fold comfortably\
+  \ within range). SOTA on TALENT (200 datasets).\n   Outperforms TabPFN v2 in speed (up to 10x) while matching accuracy.\
+  \ No hyperparameter tuning.\n   No native imbalance handling documented; threshold post-processing recommended.\n   CPU\
+  \ memory for ~1350 rows: ~0.67GB. Inference time: estimated under 60s per fold.\n\n3. TabDPT (layer6ai-labs, NeurIPS 2025,\
+  \ arxiv:2410.18164): Apache 2.0. pip install tabdpt.\n   HuggingFace (Layer6/TabDPT) ungated. Retrieval-based ICL on 123\
+  \ REAL datasets.\n   Risk: real-data pretraining may hurt on anonymized industrial sensors (domain shift).\n\n4. VERDICT:\
+  \ TabICLv2 >> TabPFN v1 (truncation caveat) >> TabDPT.\n   TabICL: no row-limit issue, cleaner BSD license, better 2026\
+  \ benchmarks, simpler install.\n\n5. ANTI-OVERLAP vs EXHAUSTED: FT-Transformer (V6) = from-scratch; TabICL = pre-trained\
+  \ ICL = DIFFERENT.\n   TabPFN v2 (V9,V21) = auth-blocked. tabpfn<2 = original v1, no auth = explicitly NOT exhausted."
+recommendations:
+- id: R04_rec_1
+  title: TabICLv2 OOF meta-feature stack
+  technique_class: architecture
+  description: 'Add TabICLv2 (BSD-3, offline, pip install tabicl) as 4th base model alongside LGB/XGB/CatBoost inside existing
+    5-fold StratifiedKFold harness. TabICLv2 performs in-context learning in a single forward pass -- no hyperparameter tuning,
+    no gradient updates. On our 1082-row fold training split (within its 300-48K pretraining range), produces calibrated probability
+    estimates with different inductive bias than GBDTs (Bayesian inference over synthetic priors vs feature splits). OOF probas
+    fed as 4th column to existing LR meta-learner. TabICLv2 surpasses RealTabPFN-2.5 on TabArena/TALENT (~80% win rate over
+    tuned CatBoost/LightGBM). Key differentiation for hard7 defects: orthogonal inductive bias may assign higher probability
+    to borderline positives that trees underestimate. CRITICAL: do NOT blend probabilities directly (V10 disaster). Use only
+    as meta-feature input to LR.'
+  novel_vs_v1_v22: true
+  dedup_check:
+    conflicts_with: []
+    note: V6 built FT-Transformer from scratch (random init, trained on 1352 rows). TabICLv2 is PRE-TRAINED, zero-shot ICL.
+      Completely different operation. V9/V21 tried TabPFN v2 (auth-blocked). TabICL != TabPFN. No overlap.
+  expected_lift_oof:
+    point: 1.2
+    low: 0.3
+    high: 3.0
+    reasoning: 'TabICLv2 standalone matches TabPFN v2 on TALENT. Adding complementary base to meta-learner could shift precision.
+      Low: model adds noise. High: TabICLv2 catches 1-2 hard7 with higher confidence, enabling slightly higher threshold,
+      improving precision 3-5pp = 1.5-2.5 OOF score points.'
+  feasibility:
+    score: 4
+    effort_hours: 2.0
+    dependencies:
+    - tabicl>=0.2.0
+    - torch>=2.0 (CPU inference)
+    - python>=3.10
+    notes: 'Drop-in addition. TabICL sklearn-compatible fit/predict_proba interface. Only change: add TabICLClassifier to
+      base_models, collect OOF in same fold loop, append as 4th column. CPU inference for 1082 rows estimated <60s per fold
+      (~5min total). GPU not required. First run downloads checkpoint; subsequent runs fully offline.'
+  confidence:
+    score: 3
+    evidence_anchor: 'arxiv:2602.11139 (TabICLv2, ICML 2026) -- surpasses RealTabPFN-2.5 on TabArena/TALENT, 80% win rate
+      over tuned GBDTs.
+
+      arxiv:2502.05564 (TabICL v1, ICML 2025) -- on par with TabPFN v2 across 200 datasets.
+
+      GitHub: https://github.com/soda-inria/tabicl (BSD 3-Clause, offline-capable).
+
+      Mission Lane credit risk: TabICL captures ~84% of tuned LGBM skill zero-shot (20K-row imbalanced binary).
+
+      Confidence=3 not 4: no published result on ~1350-row, 49-feature, 5% imbalance industrial sensor data.'
+  failure_modes:
+  - TabICLv2 pre-trained on SYNTHETIC data. Anonymized steel sensor features may not match synthetic priors -- could produce
+    near-uniform probabilities.
+  - TabICLv2 and CatBoost may make identical errors on hard7 borderline positives if both fail on same feature patterns.
+  - 'Recall=100% hard constraint: if TabICLv2 assigns low prob to even ONE hard7 positive and meta-LR overweights it, recall
+    drops. Mitigation: keep threshold sweep, never trust TabICLv2 alone.'
+  - 'Class imbalance: TabICLv2 has no documented native imbalance handling. Majority-class bias likely at pi1=0.0488. Mitigation:
+    apply tau=pi1 threshold correction (see R04_rec_3).'
+  code_sketch: "from tabicl import TabICLClassifier\nimport numpy as np\n\ntabicl_oof = np.zeros(len(X_train))\nskf = StratifiedKFold(n_splits=5,\
+    \ shuffle=True, random_state=42)\n\nfor fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):\n    X_tr,\
+    \ X_val = X_train.iloc[tr_idx], X_train.iloc[val_idx]\n    y_tr = y_train.iloc[tr_idx]\n    clf = TabICLClassifier(model='v2',\
+    \ device='auto', random_state=42)\n    clf.fit(X_tr, y_tr)\n    tabicl_oof[val_idx] = clf.predict_proba(X_val)[:, 1]\n\
+    \n# Append as 4th meta-feature alongside LGB/XGB/CatBoost OOF:\nX_meta = np.column_stack([lgb_oof, xgb_oof, cat_oof, tabicl_oof])\n\
+    # then train LR meta-learner and threshold sweep as in V4"
+  test_case_impact:
+    hard7_recall: medium
+    hard_fp_avoidance: medium
+    easy59_regression_risk: low
+- id: R04_rec_2
+  title: TabPFN v1 pinned auth-free meta-feature
+  technique_class: architecture
+  description: 'Install TabPFN v1 via pip install ''tabpfn<2'' (pins to 0.1.x, original ICLR 2023 implementation, pure Apache
+    2.0, no browser auth, no TABPFN_TOKEN required). Hard limit <=1000 training rows. Workaround: subsample to 900 per fold,
+    keeping ALL positives (~53 per fold) + random 847 negatives. Collect OOF probas, add as 5th meta-feature. TabPFN v1 inductive
+    bias (prior over Bayesian classifiers via synthetic priors) is orthogonal to both GBDTs AND TabICL. Best used AFTER R04_rec_1
+    for diversity. Published AUC: 0.939 normalized ROC AUC (CC18 small datasets). Imbalance correction: tau=pi1=0.0488.'
+  novel_vs_v1_v22: true
+  dedup_check:
+    conflicts_with:
+    - V9
+    - V21
+    note: V9/V21 attempted tabpfn>=2 (PriorLabs, requires browser login, BLOCKED). pip install 'tabpfn<2' installs original
+      automl/TabPFN v1.0.0 with zero auth requirement. Different package, different weights, different auth story. BASE_BRIEF.md
+      explicitly calls TabPFN v1 NOT exhausted.
+  expected_lift_oof:
+    point: 0.8
+    low: 0.1
+    high: 2.0
+    reasoning: 'Lower than TabICL. Row-truncation workaround loses information. TabPFN v1 older than TabICLv2 on 2026 benchmarks.
+      Best use: secondary diversity signal after TabICL. Run R04_rec_1 first; add TabPFN only if TabICL disappoints.'
+  feasibility:
+    score: 3
+    effort_hours: 2.5
+    dependencies:
+    - 'tabpfn<2  # pins to 0.1.x, no auth'
+    - torch>=1.11
+    notes: 'Slightly harder than TabICL due to subsample workaround. Ensure subsampling inside CV fold; ALL positives in training
+      fold retained. Test: verify OOF probe exists for every y=1 row index. If pip install tabpfn<2 fails (yanked), install
+      from GitHub tag: pip install git+https://github.com/PriorLabs/TabPFN.git@v1.0.0'
+  confidence:
+    score: 3
+    evidence_anchor: 'arxiv:2207.01848 (TabPFN, ICLR 2023 Oral) -- outperforms all previous methods on datasets up to 10K
+      samples.
+
+      GitHub: https://github.com/PriorLabs/TabPFN/tree/v1.0.0 (Apache 2.0, original v1).
+
+      pip: tabpfn<2 installs 0.1.x (confirmed via PyPI history).
+
+      arxiv:2605.21742 -- thresholding at tau=pi1 is correct imbalance correction for PFNs; oversampling degrades.
+
+      Confidence=3: subsample workaround introduces variance; no published result for TabPFN v1 on ~900-row, 49-feature, 5%
+      imbalance industrial sensor data.'
+  failure_modes:
+  - 'Subsampling 1082 to 900 rows: trivially safe since ~53 positives per fold << 900 budget. All positives always retained.'
+  - TabPFN v1 slow on CPU. N_ensemble_configurations=32 on 900 rows may take 30-120s per fold. Reduce to 8 for speed.
+  - 'tabpfn 0.1.x versions yanked on PyPI for no max python version. Fallback: pip install git+https://github.com/PriorLabs/TabPFN.git@v1.0.0'
+  - Adding both TabICL and TabPFN v1 = 5-input LR meta-learner on 1352 rows / 66 positives. Meta-overfitting risk low for
+    L2-regularized LR, but monitor OOF vs LB calibration delta.
+  code_sketch: "# Install: pip install 'tabpfn<2'\n# OR: pip install git+https://github.com/PriorLabs/TabPFN.git@v1.0.0\n\
+    from tabpfn import TabPFNClassifier\nimport numpy as np\n\ntabpfn_oof = np.zeros(len(X_train))\n\nfor fold, (tr_idx, val_idx)\
+    \ in enumerate(skf.split(X_train, y_train)):\n    X_tr_full = X_train.iloc[tr_idx]; y_tr_full = y_train.iloc[tr_idx]\n\
+    \    pos_idx = np.where(y_tr_full == 1)[0]\n    neg_idx = np.where(y_tr_full == 0)[0]\n    n_neg_keep = min(900 - len(pos_idx),\
+    \ len(neg_idx))\n    rng = np.random.default_rng(42 + fold)\n    neg_keep = rng.choice(neg_idx, size=n_neg_keep, replace=False)\n\
+    \    keep = np.concatenate([pos_idx, neg_keep])\n    X_tr = X_tr_full.iloc[keep]; y_tr = y_tr_full.iloc[keep]\n    clf\
+    \ = TabPFNClassifier(device='cpu', N_ensemble_configurations=32)\n    clf.fit(X_tr, y_tr)\n    tabpfn_oof[val_idx] = clf.predict_proba(X_val)[:,\
+    \ 1]\n# Threshold sweep handles calibration downstream"
+  test_case_impact:
+    hard7_recall: medium
+    hard_fp_avoidance: low
+    easy59_regression_risk: low
+- id: R04_rec_3
+  title: Tau-pi1 imbalance correction for ICL
+  technique_class: calibration
+  description: When using any tabular ICL foundation model (TabICL or TabPFN v1) on our 4.88% imbalance ratio, apply threshold
+    tau=pi1=0.0488 to raw model probabilities BEFORE feeding to meta-learner. PFN-family models exhibit majority-class calibration
+    bias under imbalance -- probabilities are systematically suppressed for the minority class. Setting the decision threshold
+    to the true class prior pi1 corrects this bias without distorting the training distribution (SMOTE and oversampling DEGRADE
+    PFN performance per arxiv:2605.21742). Tested at pi1=0.05 (exact match to our 4.88% regime). This is a dependency of R04_rec_1
+    and R04_rec_2 -- always apply when using PFN/ICL models.
+  novel_vs_v1_v22: true
+  dedup_check:
+    conflicts_with: []
+    note: V4 does threshold sweeping on FINAL meta-learner output. This is tau correction on BASE MODEL output from a foundation
+      model, BEFORE meta-learner. Different stage, different model, not tried anywhere in V1-V22.
+  expected_lift_oof:
+    point: 0.3
+    low: 0.0
+    high: 0.8
+    reasoning: Correctness fix, not fundamental architectural gain. Corrects majority-class bias in ICL model probabilities
+      before meta-LR training. Without tau correction this lift is 0 (bias propagates). Dependency of rec_1 and rec_2 -- implement
+      always when using PFN/ICL models.
+  feasibility:
+    score: 5
+    effort_hours: 0.25
+    dependencies:
+    - numpy (already present)
+  confidence:
+    score: 4
+    evidence_anchor: 'arxiv:2605.21742 (Correcting Class Imbalance in Prior-Data Fitted Networks, 2025) -- evaluated TabPFN-2.5
+      across 11 imbalanced datasets with pi1=0.05. Thresholding at tau=pi1 achieved best performance, drastic increase in
+      minority class performance. Oversampling (SMOTE) and upsampling degraded PFN performance. Direct match to our regime:
+      pi1=0.0488 ~= 0.05. Confidence=4 (not 5): study on TabPFN-2.5; transferability to TabICLv2 assumed but not proven.'
+  failure_modes:
+  - If TabICL probabilities are already well-calibrated, applying tau correction may artificially inflate minority scores
+    and harm meta-LR. Check calibration curve of TabICL OOF probas vs true labels before deciding.
+  code_sketch: 'pi1 = y_train.mean()  # = 0.0488 for our dataset
+
+    # Option A: binarize at tau=pi1 before meta-LR:
+
+    tabicl_oof_corrected = (tabicl_oof >= pi1).astype(float)
+
+    # Option B: keep raw probas, meta-LR learns scale naturally
+
+    # Option C: isotonic/Platt recalibration on tabicl_oof
+
+    # Simplest: use raw; if AUC of tabicl_oof poor, apply Option A'
+  test_case_impact:
+    hard7_recall: high
+    hard_fp_avoidance: medium
+    easy59_regression_risk: low
+assessment_of_null_topic:
+  is_null: false
+  reason: 'Three concrete, novel, buildable recommendations found. TabICLv2 is primary: BSD-3, offline, SOTA 2026, zero overlap
+    with EXHAUSTED list. TabPFN v1 pinned is explicitly open per BASE_BRIEF. Tau correction is novel calibration from 2025
+    paper matching our exact imbalance regime.'
+primary_recommendation: R04_rec_1
+primary_recommendation_reasoning: 'TabICLv2 is highest-confidence, lowest-friction option:
+
+  - No row-count workaround needed (unlike TabPFN v1 1000-row limit)
+
+  - BSD 3-Clause license (cleaner than Apache 2.0+attribution or non-commercial)
+
+  - pip install tabicl, sklearn interface, CPU-capable, offline after first download
+
+  - SOTA 2026 benchmark (ICML 2026, TabArena win rate ~80%)
+
+  - Orthogonal inductive bias to GBDT stack
+
+  - Expected OOF lift: +0.3 to +3.0 points (point estimate +1.2)
+
+  - Always pair with R04_rec_3 (tau correction) for free calibration improvement'
+build_sequence: '1. pip install tabicl (BSD-3, offline)
+
+  2. Add TabICLClassifier inside existing 5-fold loop, collect OOF
+
+  3. Apply tau=pi1 correction to TabICL OOF probas (R04_rec_3)
+
+  4. Append as 4th column to X_meta for LR meta-learner
+
+  5. Re-run threshold sweep; check hard7 recall still = 100%
+
+  6. If OOF score improves >= 0.5 points: submit
+
+  7. If TabICL disappoints: add TabPFN v1 (pip install ''tabpfn<2'') as 5th base'
+cross_topic_links:
+- 'R05: TabICL as 4th base directly feeds into any meta-learner R05 recommends. Include TabICL OOF if R05 suggests richer
+  meta-architecture.'
+- 'R01: TabICL benefits from same V5 physics features (X13/X14 ratio, Ar3 deviation, campaign_zero). Use V4+V5 feature matrix
+  as input.'
+- 'R09: tau=pi1 correction (R04_rec_3) applies to foundation model probas BEFORE meta-LR. Does not conflict with Platt scaling
+  at final meta-learner output.'
+sources:
+- 'arxiv:2207.01848 -- TabPFN: A Transformer That Solves Small Tabular Classification Problems in a Second (Hollmann et al.,
+  ICLR 2023 Oral)'
+- 'arxiv:2502.05564 -- TabICL: A Tabular Foundation Model for In-Context Learning on Large Data (Qu et al., ICML 2025)'
+- 'arxiv:2602.11139 -- TabICLv2: A better, faster, scalable, and open tabular foundation model (ICML 2026)'
+- 'arxiv:2410.18164 -- TabDPT: Scaling Tabular Foundation Models on Real Data (NeurIPS 2025)'
+- arxiv:2605.21742 -- Correcting Class Imbalance in Prior-Data Fitted Networks for Tabular Classification (2025)
+- Nature 2024 / PMC11711098 -- Accurate predictions on small data with a tabular foundation model
+- 'GitHub: https://github.com/soda-inria/tabicl (TabICL, BSD 3-Clause)'
+- 'GitHub: https://github.com/PriorLabs/TabPFN/tree/v1.0.0 (TabPFN v1, Apache 2.0)'
+- 'GitHub: https://github.com/layer6ai-labs/TabDPT-inference (TabDPT, Apache 2.0)'
+- 'HuggingFace: https://huggingface.co/Layer6/TabDPT (TabDPT weights, Apache 2.0, ungated)'
+- 'Mission Lane Tech Blog -- TabICL Under the Microscope: Benchmarking Tabular Foundation Models for Enterprise Credit Risk'

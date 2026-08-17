@@ -1,0 +1,28 @@
+{
+  "app": "02-invoflow",
+  "status": "green",
+  "phase": "done",
+  "build_retries": 0,
+  "fixes_applied": [],
+  "pages_tested": [
+    {"route": "/", "http_status": 200, "console_errors": []},
+    {"route": "/login", "http_status": 200, "console_errors": []},
+    {"route": "/register", "http_status": 200, "console_errors": []},
+    {"route": "/dashboard", "http_status": 307, "console_errors": [], "note": "redirect to /login (auth-gated)"},
+    {"route": "/clients", "http_status": 307, "console_errors": [], "note": "redirect to /login (auth-gated)"},
+    {"route": "/invoices", "http_status": 307, "console_errors": [], "note": "redirect to /login (auth-gated)"},
+    {"route": "/payments", "http_status": 307, "console_errors": [], "note": "redirect to /login (auth-gated)"},
+    {"route": "/settings", "http_status": 307, "console_errors": [], "note": "redirect to /login (auth-gated)"}
+  ],
+  "errors": [
+    "chrome-devtools MCP browser profile was locked by another running instance; browser-based console-error inspection was skipped. Fell back to HTTP smoke testing — all public routes returned 200, all auth-protected routes returned the expected 307 redirect, no 5xx responses observed."
+  ],
+  "notes": [
+    "next.js build succeeded on first try (28 routes, 16.4s compile).",
+    "prisma generate succeeded against the postgres (Neon) datasource.",
+    "dev server (Next 16.1.6 / Turbopack) ready in ~16s on port 3002.",
+    "Build emitted a deprecation warning: 'middleware' file convention is deprecated, use 'proxy' instead — non-blocking."
+  ],
+  "duration_seconds": 90,
+  "timestamp": "2026-04-28T00:00:00Z"
+}

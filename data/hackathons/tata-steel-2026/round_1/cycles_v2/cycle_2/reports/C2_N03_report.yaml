@@ -1,0 +1,359 @@
+agent_id: C2_N03
+topic: stage-2-features-non-chemistry
+cycle: 2
+timestamp_utc: "2026-05-23T16:30:00Z"
+status: ok
+
+# V23 Stage-2 AUC = 0.7204 (mean across 5 folds; range 0.6688-0.8072)
+# Suspect pool: 836 rows, 66 positives, 770 negatives (7.9% prevalence)
+# Stage-2 features used: X14, X49, X41, X46, X48, X42, X18, X11,
+#   interactions X11*X14, X49/(X46+eps), X41-X49, CT-spread x4
+# X43 chemistry gate FALSIFIED — no chemistry path available
+# Hard-FP-10 Stage-2 probas: 0.40-0.82 — binding Set B constraint
+# KEY INVERSION: hard_fp_feature_stats shows Hard-FPs are HIGHER than TPs
+#   on X14 (619 vs 604), X49 (0.055 vs 0.034), X41 (0.477 vs 0.372),
+#   X46 (0.00186 vs 0.00128), X48 (0.0089 vs 0.0041).
+#   This means Stage-2's TP-discriminating features are MORE elevated
+#   in Hard-FPs — fundamental inversion that basic feature engineering alone
+#   cannot fully resolve.
+
+recommendations:
+
+  - id: C2_N03_rec_1
+    title: "Within-suspect-pool z-scores"
+    technique_class: feature_engineering
+    description: |
+      V23 uses raw X14, X49, X41, X46, X48 values standardized to the
+      full 1352-row population. Stage-2 runs on the 836-row suspect pool
+      whose mean/std differ from population stats. Compute within-pool
+      z-scores for X14, X49, X41, X46, X48, X42 using pool-level
+      mean/std (computed from full 836-row pool before CV loop — avoids
+      tiny-fold noise). These give the model a local coordinate system:
+      "how extreme is this suspect relative to OTHER suspects?" rather than
+      vs all coils. Hard-FP-10 have X14=619 vs pop-TP=604 but their
+      within-pool position may differ from their population z-score.
+      Cheap to add, cannot regress, fills a genuine normalization gap.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: 0.3
+      high: 1.5
+      reasoning: |
+        Each +0.01 Stage-2 AUC ~ +0.15 to +0.25 OOF point (empirical from V23
+        mechanics). Expect pool z-scores to give +0.02 to +0.04 AUC
+        improvement => +0.5 to +1.0 OOF. Conservative point: +0.8.
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy, pandas]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Standard practice in two-stage cascade models; within-pool
+        normalization is documented in Platt scaling / isotonic
+        recalibration literature. Empirical ground: fp_vs_tp_feature_stats
+        shows X14 t_tp_fp=-2.43 on full population but
+        hard_fp_feature_stats X14 t_abs=5.02 vs hard FPs specifically.
+        The spread between pool members IS the signal — normalizing within
+        pool amplifies it.
+    failure_modes:
+      - "If Hard-FPs have similar within-pool z-scores to TPs on these
+        features (they already showed this on raw values), z-scoring
+        adds no discriminative signal."
+      - "836 rows is small; pool z-scores may be noisy within CV folds.
+        Use full-pool stats, not fold-specific."
+    code_sketch: |
+      subtle = ['X14','X49','X41','X46','X48','X42']
+      pool_mu = suspect_X[subtle].mean()
+      pool_sd = suspect_X[subtle].std().replace(0, 1)
+      for f in subtle:
+          suspect_X[f'{f}_pool_z'] = (suspect_X[f] - pool_mu[f]) / pool_sd[f]
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_N03_rec_2
+    title: "Subtle-feature anomaly score as Stage-2 input"
+    technique_class: feature_engineering
+    description: |
+      Fit IsolationForest on training Y=0 suspect rows using only subtle
+      features (X14, X49, X41, X46, X48, X42). Score all suspect rows to
+      produce subtle_anomaly_score. V4 already uses a global iso_score
+      (all 49 features, full population) — this is DIFFERENT: it asks
+      specifically "is this row anomalous on the temperature-sensitive /
+      chemistry-proxy dimensions?" The key hypothesis: Hard-FP-10 are
+      anomalous on Stage-1 dominant features (X13/X10/X32/X15) but may
+      be NORMAL on subtle features. If so, their subtle_anomaly_score
+      is LOW while TPs (genuinely anomalous on subtle dims) score HIGH.
+      This contrast — high Stage-1 proba + low subtle anomaly — is the
+      exact discriminator Stage-2 currently lacks. If C2_R07 Deep SAD
+      ships a trained model on subtle features, use that score instead.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V4_iso_score]
+      conflicts_clarification: |
+        V4 iso_score: all 49 features, full 1352-row population.
+        This rec: 6 subtle features only, fit on suspect-pool Y=0 train rows.
+        Different scope, different semantic, meaningfully novel.
+    expected_lift_oof:
+      point: 1.2
+      low: 0.4
+      high: 2.5
+      reasoning: |
+        If subtle_anomaly_score correctly separates TPs from Hard-FP-10:
+        Stage-2 AUC could improve +0.04 to +0.06 (0.72->0.76-0.78).
+        At 0.76-0.78, OOF lift ~+1.0 to +2.0 points. Upper end requires
+        the "Hard-FPs are normal on subtle dims" hypothesis to hold.
+        Honest point estimate: +1.2.
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies: [scikit-learn>=1.4]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Ruff et al. "Deep SAD" ICLR 2020 (arxiv 1906.02694);
+        Liu et al. "Isolation Forest" ICDM 2008.
+        The specific pattern of subtle-feature-restricted anomaly score
+        as a cascade Stage-2 feature is reasoning-based (no direct
+        citation for this exact configuration). Confidence limited by
+        uncertainty on whether Hard-FP-10 actually score low on subtle
+        IsoForest.
+    failure_modes:
+      - "Hard-FP-10 are ALSO anomalous on subtle features (they are
+        elevated on X14/X49/X41/X46/X48 per hard_fp_feature_stats).
+        If this makes their subtle_anomaly_score HIGH, the feature
+        conflates them with TPs rather than separating them."
+      - "IsoForest with n=~600 (Y=0 train suspects) and 6 features
+        may overfit or produce unstable scores. Use n_estimators=300,
+        max_samples=min(256, n)."
+      - "Dependency on R07 Deep SAD if using that variant."
+    code_sketch: |
+      from sklearn.ensemble import IsolationForest
+      subtle = ['X14','X49','X41','X46','X48','X42']
+      # Fit on train fold Y=0 suspects only
+      iso = IsolationForest(n_estimators=300, contamination='auto',
+                            random_state=42)
+      iso.fit(X_train_sus.loc[y_train_sus==0, subtle])
+      # Negate: higher score = more anomalous
+      val_score = -iso.score_samples(X_val_sus[subtle])
+      X_val_sus['subtle_anomaly'] = val_score
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: C2_N03_rec_3
+    title: "Pairwise Stage-2 product interactions (X14xX49, X41xX46)"
+    technique_class: feature_engineering
+    description: |
+      V23 includes X49/(X46+eps) and X41-X49 but NOT multiplicative cross-
+      terms. Hard-FP-10 are simultaneously elevated on X14 AND X49
+      (hfp means: 619.3, 0.0551 vs tp means: 604.1, 0.0338). Their
+      JOINT elevation is the pattern — rows high on both are more likely
+      FP. Product X14*X49 captures this. Similarly X41*X46 (both elevated
+      in Hard-FPs: 0.477/0.00186 vs 0.372/0.00128). CatBoost depth=3 can
+      partially learn these but an explicit product feature removes the
+      depth constraint. Interaction_search.csv computed population-level
+      interactions; suspect-pool interactions for X14*X49 are untested.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.5
+      low: 0.1
+      high: 1.0
+    feasibility:
+      score: 5
+      effort_hours: 0.25
+      dependencies: [pandas]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Explicit pairwise interactions in shallow GBMs documented in
+        Chen & Guestrin XGBoost NeurIPS 2016; practical guidance in
+        Goldstein et al. "Feature Engineering" O'Reilly 2022.
+        Joint elevation signal grounded in hard_fp_feature_stats data.
+        Confidence 3: depth=3 CatBoost likely already captures this
+        implicitly.
+    failure_modes:
+      - "Depth=3 CatBoost may already model these interactions via two
+        splits. Explicit product may be redundant."
+      - "X14 and X49 show the inversion (HFPs > TPs on both), so product
+        X14*X49 also inverted — model still needs to learn the inverse
+        boundary, same fundamental problem."
+    code_sketch: |
+      suspect_df['X14_X49'] = suspect_df['X14'] * suspect_df['X49']
+      suspect_df['X41_X46'] = suspect_df['X41'] * suspect_df['X46']
+      suspect_df['X49_X48'] = suspect_df['X49'] * suspect_df['X48']
+      stage2_feats += ['X14_X49', 'X41_X46', 'X49_X48']
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_N03_rec_4
+    title: "Suspect-pool HDBSCAN cluster ID (categorical meta-feature)"
+    technique_class: feature_engineering
+    description: |
+      Run HDBSCAN on suspect pool's pool-z-scored subtle features
+      (X14_pool_z, X49_pool_z, X41_pool_z, X46_pool_z, X48_pool_z).
+      Add cluster ID as categorical feature and cluster membership
+      probability as continuous feature in Stage-2. Hypothesis: the
+      836-row suspect pool contains at least 2 natural groups — genuine
+      high-temperature TPs versus extreme-process-outlier FPs. If
+      HDBSCAN finds this structure without supervision, cluster ID
+      becomes a near-deterministic Stage-2 discriminator. High-variance
+      rec: if clusters align with labels, major lift; if not, noise.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.6
+      low: 0.0
+      high: 2.0
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies: [hdbscan>=0.8]
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Campello et al. HDBSCAN TKDD 2015. Cluster IDs as categorical
+        features: common Kaggle pattern for tabular meta-features.
+        Confidence LOW: 836 rows is marginal for stable density-based
+        clustering; unknown whether subtle-feature clusters align with
+        Y labels in the suspect pool.
+    failure_modes:
+      - "Hard-FP-10 may cluster WITH TPs since they are MORE extreme
+        on subtle features (not between TPs and negatives)."
+      - "Cluster instability: HDBSCAN noise label (-1) may dominate
+        in a 836-row 5-dim space."
+      - "No CV-safe issue since clustering is unsupervised (computed
+        once on full pool)."
+    code_sketch: |
+      import hdbscan
+      feats = ['X14_pool_z','X49_pool_z','X41_pool_z','X46_pool_z','X48_pool_z']
+      clu = hdbscan.HDBSCAN(min_cluster_size=20, min_samples=8,
+                             prediction_data=True)
+      suspect_df['hdb_cluster'] = clu.fit_predict(suspect_X[feats])
+      suspect_df['hdb_prob']    = clu.probabilities_
+      # -1 = noise class; CatBoost handles as separate category
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_N03_rec_5
+    title: "Suspect-pool production-neighbor suspect-density feature"
+    technique_class: feature_engineering
+    description: |
+      Within the suspect pool sorted by X35 (cumulative production counter),
+      for each suspect row compute: count of OTHER suspect rows within a
+      ±5 production-rank window that also have Stage-1 proba above the
+      pool median. This encodes "is this coil part of a dense suspect
+      cluster in production sequence, or an isolated spike?" fp_vs_tp stats
+      show X35 t_tp_fp=-7.77 — TPs come MUCH EARLIER in total production
+      history than FPs. Within the suspect pool, if TPs tend to occur in
+      dense windows (same roll state) while Hard-FPs are isolated extreme
+      events, this density feature separates them. Different from V4's
+      prev5_defect_rate: uses suspect-pool membership + Stage-1 proba
+      (unsupervised signal), not Y labels.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V4_prev5_defect_rate]
+      conflicts_clarification: |
+        V4 prev5_defect_rate uses Y=1 label information (CV-unsafe, special
+        handling applied). This rec uses Stage-1 threshold membership
+        (unsupervised) — no label leakage at all.
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.2
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies: [pandas, numpy]
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Temporal density features in time-series anomaly detection:
+        common pattern (Bagnall et al. DAMI 2017). The specific
+        "within-suspect-pool density" variant is reasoning-based.
+        Confidence LOW: unknown whether TPs cluster in dense production
+        windows WITHIN the suspect pool; X35 temporal separation may
+        already be captured by V4's lag/roll features.
+    failure_modes:
+      - "Within 836-row pool sorted by X35, neighbors are always other
+        suspects by construction — density may be uniform, making the
+        feature uninformative."
+      - "If most suspects are isolated in X35 space (campaign gaps), all
+        density values are 0 or 1 — binary at best."
+      - "V25's roll-campaign ordinal features (which regressed -0.43 OOF)
+        may already exhaust this temporal signal."
+    code_sketch: |
+      sus_sorted = suspect_df.sort_values('X35').reset_index(drop=True)
+      med_s1 = sus_sorted['stage1_proba'].median()
+      w = 5
+      sus_sorted['suspect_density'] = (
+          sus_sorted['stage1_proba']
+          .rolling(window=2*w+1, center=True, min_periods=1)
+          .apply(lambda x: (x > med_s1).sum() - 1)
+      )
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+honest_ceiling_analysis:
+  current_stage2_auc: 0.7204
+  target_auc_for_r08_projection: 0.82
+  required_gain: 0.10
+
+  per_rec_auc_contribution:
+    rec_1_pool_z: "+0.02 to +0.04 AUC"
+    rec_2_subtle_anomaly: "+0.03 to +0.06 AUC (hypothesis-dependent)"
+    rec_3_pairwise_products: "+0.01 to +0.02 AUC"
+    rec_4_hdbscan: "+0.00 to +0.05 AUC (high variance)"
+    rec_5_density: "+0.00 to +0.03 AUC (very uncertain)"
+
+  combined_realistic_auc: 0.76
+  combined_optimistic_auc: 0.82
+  combined_oof_lift:
+    realistic: "+1.0 to +2.5 OOF points"
+    optimistic: "+4.0 OOF (all recs firing, AUC 0.82)"
+
+  can_0_72_to_0_82_be_achieved: |
+    Unlikely from feature engineering alone without NEW Stage-1.
+    The fundamental obstacle: Hard-FP-10 are MORE extreme than TPs on
+    every subtle feature (rec_2 hypothesis may be violated). If Hard-FPs
+    are also anomalous on subtle dims (which their elevated X14/X49 values
+    suggest), no Stage-2 feature can cleanly separate them — the model
+    sees "very high temperature-proxy row" = positive, but hard FPs ARE
+    very high. Resolution requires either: (a) chemistry data (falsified
+    via X43), or (b) a feature that captures "extreme on Stage-1 features
+    but expected given grade/thickness" i.e. a residual that R07/R10 address
+    architecturally. RECOMMENDATION: bundle rec_1 + rec_2 + rec_3 (~2.5h
+    total), target AUC 0.75-0.77. Accept that 0.82 requires N01/N03
+    new Stage-1.
+
+  priority_order:
+    1: "rec_1 + rec_3 bundle (45 min, near-zero regression risk)"
+    2: "rec_2 subtle anomaly score (1.5h, highest leverage for Set B)"
+    3: "rec_4 HDBSCAN (2h, high variance, try if 1+2 insufficient)"
+    4: "rec_5 density (1.5h, lowest confidence, V25 precedent is bad)"
+
+cross_topic_links:
+  - C2_R07: "Deep SAD should expose per-row subtle-feature anomaly scores as
+    Parquet output. rec_2 upgrades from IsoForest to Deep SAD if R07 delivers."
+  - C2_N01: "New Stage-1 (AUC>0.884) shrinks suspect pool from 836 to ~700 rows,
+    increases pool prevalence 7.9%->9.5%. All recs here become more effective."
+  - C2_N02: "Counterfactual FE on Hard-FP-10 may identify which features flip
+    them. If it identifies a NEW subtle feature not in current Stage-2 set,
+    add it alongside these recs."
+  - C2_R10: "Mondrian conformal abstain rule complements rec_2: high Stage-1
+    proba + uncertain Stage-2 = abstain. Architectural complement to
+    feature additions."

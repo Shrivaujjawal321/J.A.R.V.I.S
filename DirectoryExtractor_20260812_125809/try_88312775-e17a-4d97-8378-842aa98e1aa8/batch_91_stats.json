@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Texas",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

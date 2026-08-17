@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fare Engine — Indicative Ride Prices</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f8; color: #1a2332; min-height: 100vh;
+  }
+  header {
+    background: #102a43; color: #fff; padding: 16px 24px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header span { font-size: 13px; color: #9fb3c8; }
+  .wrap { max-width: 1060px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: 400px 1fr; gap: 20px; }
+  @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+
+  .panel { background: #fff; border: 1px solid #d9e2ec; border-radius: 10px; padding: 20px; }
+  .panel h2 { font-size: 15px; margin-bottom: 14px; color: #334e68; }
+
+  .field { position: relative; margin-bottom: 12px; }
+  .field label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #486581; margin-bottom: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.green { background: #2f9e44; } .dot.red { background: #e03131; }
+  .field input {
+    width: 100%; padding: 11px 12px; font-size: 14px;
+    border: 1px solid #bcccdc; border-radius: 8px; outline: none;
+  }
+  .field input:focus { border-color: #2f6ad9; box-shadow: 0 0 0 3px rgba(47,106,217,.12); }
+  .suggestions {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+    background: #fff; border: 1px solid #bcccdc; border-radius: 8px; margin-top: 4px;
+    max-height: 220px; overflow-y: auto; box-shadow: 0 8px 20px rgba(16,42,67,.12);
+  }
+  .suggestions div { padding: 10px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f0f4f8; }
+  .suggestions div:hover { background: #f0f6ff; }
+  .suggestions .sub { color: #829ab1; font-size: 11px; }
+
+  .swap { display: flex; justify-content: center; margin: -4px 0 8px; }
+  .swap button {
+    background: #fff; border: 1px solid #bcccdc; border-radius: 50%; width: 32px; height: 32px;
+    cursor: pointer; font-size: 14px; color: #486581;
+  }
+  .swap button:hover { background: #f0f6ff; }
+
+  .go {
+    width: 100%; padding: 13px; font-size: 15px; font-weight: 700; color: #fff;
+    background: #2f6ad9; border: none; border-radius: 8px; cursor: pointer; margin-top: 4px;
+  }
+  .go:hover { background: #2558b8; }
+  .go:disabled { background: #9fb3c8; cursor: wait; }
+
+  .summary {
+    display: none; margin-top: 16px; padding: 12px 14px; background: #f0f6ff;
+    border: 1px solid #c9ddff; border-radius: 8px; font-size: 13px; color: #334e68;
+  }
+  .summary b { color: #102a43; }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    background: #d3f9d8; color: #2b8a3e; margin-left: 6px; vertical-align: 1px;
+  }
+  .badge.est { background: #fff3bf; color: #997404; }
+  .badge.peak { background: #ffe3e3; color: #c92a2a; }
+
+  #map { height: 240px; border-radius: 8px; margin-top: 16px; display: none; border: 1px solid #d9e2ec; }
+
+  .cards { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    display: flex; align-items: center; gap: 14px; background: #fff;
+    border: 1px solid #d9e2ec; border-radius: 10px; padding: 14px 18px;
+  }
+  .card .icon { font-size: 30px; width: 44px; text-align: center; }
+  .card .info { flex: 1; }
+  .card .info .name { font-weight: 700; font-size: 15px; }
+  .card .info .meta { font-size: 12px; color: #829ab1; margin-top: 2px; }
+  .card .price { font-size: 18px; font-weight: 800; color: #102a43; white-space: nowrap; }
+  .card .price small { display: block; font-size: 11px; font-weight: 500; color: #829ab1; text-align: right; }
+  .card.na { opacity: .55; }
+  .card.na .price { font-size: 13px; font-weight: 600; color: #c92a2a; }
+  .cheapest { border-color: #2f9e44; background: #f4fce3; }
+  .cheapest .tag { font-size: 10px; font-weight: 700; color: #2b8a3e; background: #d3f9d8; padding: 2px 7px; border-radius: 8px; margin-left: 6px; }
+
+  .placeholder { text-align: center; color: #829ab1; font-size: 14px; padding: 60px 20px; }
+  .error { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: #ffe3e3; color: #c92a2a; font-size: 13px; }
+  .disclaimer { font-size: 11px; color: #829ab1; margin-top: 14px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧮 Fare Engine</h1>
+  <span>Indicative ride prices — bike · auto · cab · sedan · SUV</span>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <h2>Where are you going?</h2>
+    <div class="field">
+      <label><span class="dot green"></span> Pickup location</label>
+      <input id="pickup" type="text" placeholder="Search pickup — e.g. Connaught Place" autocomplete="off">
+      <div class="suggestions" id="pickup-sug" style="display:none"></div>
+    </div>
+    <div class="swap"><button id="swap" title="Swap pickup and drop">⇅</button></div>
+    <div class="field">
+      <label><span class="dot red"></span> Drop location</label>
+      <input id="drop" type="text" placeholder="Search drop — e.g. IGI Airport" autocomplete="off">
+      <div class="suggestions" id="drop-sug" style="display:none"></div>
+    </div>
+    <button class="go" id="go">Get indicative fares</button>
+    <div class="error" id="error"></div>
+    <div class="summary" id="summary"></div>
+    <div id="map"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Indicative fares</h2>
+    <div class="cards" id="cards">
+      <div class="placeholder">Select pickup and drop locations,<br>then press <b>Get indicative fares</b>.</div>
+    </div>
+    <div class="disclaimer" id="disclaimer"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const state = { pickup: null, drop: null };
+let map = null, routeLayer = null, markers = [];
+
+function debounce(fn, ms) {
+  let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+function setupAutocomplete(inputId, sugId, key) {
+  const input = document.getElementById(inputId);
+  const sug = document.getElementById(sugId);
+
+  const search = debounce(async () => {
+    const q = input.value.trim();
+    state[key] = null;
+    if (q.length < 2) { sug.style.display = 'none'; return; }
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      sug.innerHTML = '';
+      if (!data.results || !data.results.length) { sug.style.display = 'none'; return; }
+      data.results.forEach(r => {
+        const div = document.createElement('div');
+        div.innerHTML = `<b>${r.name}</b><div class="sub">${r.display}</div>`;
+        div.onclick = () => {
+          state[key] = r;
+          input.value = r.display;
+          sug.style.display = 'none';
+        };
+        sug.appendChild(div);
+      });
+      sug.style.display = 'block';
+    } catch (e) { sug.style.display = 'none'; }
+  }, 300);
+
+  input.addEventListener('input', search);
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target) && !sug.contains(e.target)) sug.style.display = 'none';
+  });
+}
+
+setupAutocomplete('pickup', 'pickup-sug', 'pickup');
+setupAutocomplete('drop', 'drop-sug', 'drop');
+
+document.getElementById('swap').onclick = () => {
+  const p = document.getElementById('pickup'), d = document.getElementById('drop');
+  [p.value, d.value] = [d.value, p.value];
+  [state.pickup, state.drop] = [state.drop, state.pickup];
+};
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+document.getElementById('go').onclick = async () => {
+  document.getElementById('error').style.display = 'none';
+  if (!state.pickup || !state.drop) {
+    showError('Pickup aur drop dono select karo — list mein se choose karna zaroori hai.');
+    return;
+  }
+  const btn = document.getElementById('go');
+  btn.disabled = true; btn.textContent = 'Calculating…';
+  try {
+    const p = state.pickup, d = state.drop;
+    const res = await fetch(`/api/estimate?from_lat=${p.lat}&from_lon=${p.lon}&to_lat=${d.lat}&to_lon=${d.lon}`);
+    if (!res.ok) { const err = await res.json(); throw new Error(err.detail || 'Estimation failed'); }
+    render(await res.json());
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Get indicative fares';
+  }
+};
+
+function render(data) {
+  const r = data.route;
+  const srcBadge = r.source === 'osrm'
+    ? '<span class="badge">road route</span>'
+    : '<span class="badge est">estimated (routing offline)</span>';
+  const peakBadge = data.time_band.multiplier > 1
+    ? `<span class="badge peak">${data.time_band.name.replace('_',' ')} ×${data.time_band.multiplier}</span>` : '';
+  const summary = document.getElementById('summary');
+  summary.innerHTML = `<b>${r.distance_km} km</b> · approx <b>${Math.round(r.duration_min)} min</b>${srcBadge}${peakBadge}`;
+  summary.style.display = 'block';
+
+  const cards = document.getElementById('cards');
+  cards.innerHTML = '';
+  let cheapestDone = false;
+  data.fares.forEach(f => {
+    const div = document.createElement('div');
+    if (!f.available) {
+      div.className = 'card na';
+      div.innerHTML = `<div class="icon">${f.icon}</div>
+        <div class="info"><div class="name">${f.label}</div><div class="meta">${f.seats} seat${f.seats>1?'s':''}</div></div>
+        <div class="price">${f.reason}</div>`;
+    } else {
+      const isCheapest = !cheapestDone; cheapestDone = true;
+      div.className = 'card' + (isCheapest ? ' cheapest' : '');
+      div.innerHTML = `<div class="icon">${f.icon}</div>
+        <div class="info"><div class="name">${f.label}${isCheapest ? '<span class="tag">CHEAPEST</span>' : ''}</div>
+        <div class="meta">${f.seats} seat${f.seats>1?'s':''}</div></div>
+        <div class="price">₹${f.fare_low} – ₹${f.fare_high}<small>indicative</small></div>`;
+    }
+    cards.appendChild(div);
+  });
+  document.getElementById('disclaimer').textContent = data.disclaimer;
+  drawMap(data);
+}
+
+function drawMap(data) {
+  const el = document.getElementById('map');
+  el.style.display = 'block';
+  if (!map) {
+    map = L.map('map', { zoomControl: false, attributionControl: false });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  }
+  if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+  markers.forEach(m => map.removeLayer(m)); markers = [];
+
+  const p = state.pickup, d = state.drop;
+  markers.push(L.circleMarker([p.lat, p.lon], { radius: 7, color: '#2f9e44', fillOpacity: 1 }).addTo(map));
+  markers.push(L.circleMarker([d.lat, d.lon], { radius: 7, color: '#e03131', fillOpacity: 1 }).addTo(map));
+
+  if (data.route.geometry) {
+    routeLayer = L.geoJSON(data.route.geometry, { style: { color: '#2f6ad9', weight: 4 } }).addTo(map);
+    map.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
+  } else {
+    routeLayer = L.polyline([[p.lat, p.lon], [d.lat, d.lon]], { color: '#2f6ad9', dashArray: '6 8', weight: 3 }).addTo(map);
+    map.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
+  }
+  setTimeout(() => map.invalidateSize(), 100);
+}
+</script>
+</body>
+</html>

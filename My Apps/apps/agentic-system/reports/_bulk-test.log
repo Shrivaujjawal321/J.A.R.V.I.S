@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════════════
+  Agentic system — testing 11 app(s)
+  Root:         /home/ujjwal/Documents/10 saas app/apps
+  Allow yellow: false
+  Skip publish: true
+═══════════════════════════════════════════════════════════
+
+── 01-hiresync-ai ─────────────────────────────────────────────
+[tester] 01-hiresync-ai on port 3001 — starting
+[tester] 01-hiresync-ai → green
+
+── 02-invoflow ─────────────────────────────────────────────
+[tester] 02-invoflow on port 3002 — starting
+[tester] 02-invoflow → green
+
+── 03-feedbackloop ─────────────────────────────────────────────
+[tester] 03-feedbackloop on port 3003 — starting
+[tester] 03-feedbackloop → yellow
+
+── 04-learnforge ─────────────────────────────────────────────
+[tester] 04-learnforge on port 3004 — starting
+[tester] 04-learnforge → yellow
+
+── 05-clinicos ─────────────────────────────────────────────
+[tester] 05-clinicos on port 3005 — starting
+[tester] 05-clinicos → yellow
+
+── 06-propstack ─────────────────────────────────────────────
+[tester] 06-propstack on port 3006 — starting
+[tester] 06-propstack → red
+
+── 07-shipdash ─────────────────────────────────────────────
+[tester] 07-shipdash on port 3007 — starting
+[tester] 07-shipdash → red
+
+── 08-teampulse ─────────────────────────────────────────────
+[tester] 08-teampulse on port 3008 — starting
+[tester] 08-teampulse → red
+
+── 09-contentforge ─────────────────────────────────────────────
+[tester] 09-contentforge on port 3009 — starting
+[tester] 09-contentforge → red
+
+── 10-complimate ─────────────────────────────────────────────
+[tester] 10-complimate on port 3010 — starting

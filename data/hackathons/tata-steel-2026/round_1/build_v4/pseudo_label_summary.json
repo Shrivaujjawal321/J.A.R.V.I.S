@@ -1,0 +1,9 @@
+{
+  "pseudo_meta_auc": 0.8513831943069889,
+  "pseudo_best_score": 52.44082840236687,
+  "pseudo_best_T": 0.001,
+  "pseudo_best_R": 1.0,
+  "pseudo_best_P": 0.04881656804733728,
+  "n_pseudo_pos": 0,
+  "n_pseudo_neg": 226
+}

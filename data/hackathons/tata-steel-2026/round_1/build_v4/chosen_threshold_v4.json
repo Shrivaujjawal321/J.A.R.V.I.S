@@ -1,0 +1,38 @@
+{
+  "chosen_threshold": 0.014283071897747676,
+  "strategy": "maximize_(recall+precision)/2_exact_unique_thresholds",
+  "predicted_lb_score": 54.308093994778076,
+  "oof_recall": 1.0,
+  "oof_precision": 0.08616187989556136,
+  "oof_n_positives": 766,
+  "oof_total": 1352,
+  "oof_positive_rate": 0.5665680473372781,
+  "comparison": {
+    "T_max_score": {
+      "threshold": 0.014283071897747676,
+      "score": 54.308093994778076,
+      "recall": 1.0,
+      "precision": 0.08616187989556136,
+      "n_pos": 766,
+      "test_n_pos": 154
+    },
+    "T_balanced": {
+      "threshold": 0.2765206829705582,
+      "score": 44.66173361522199,
+      "recall": 0.5909090909090909,
+      "precision": 0.3023255813953488,
+      "n_pos": 129,
+      "test_n_pos": 29
+    },
+    "T_v2_style": {
+      "threshold": 0.001,
+      "test_n_pos": 339
+    }
+  },
+  "v2_lb_score_for_reference": 50.19,
+  "v3_predicted_lb": 53.35,
+  "delta_vs_v2": 4.118093994778079,
+  "delta_vs_v3": 0.9580939947780749,
+  "top10_target": 70.0,
+  "on_track_for_top10": false
+}

@@ -1,0 +1,9 @@
+{
+  "chosen_threshold_v6": 0.00666750967502594,
+  "oof_score_v6": 52.53261703760552,
+  "recall_at_T": 1.0,
+  "precision_at_T": 0.05065234075211052,
+  "n_pos_oof": 1303,
+  "n_pos_test": 339,
+  "global_oof_auc": null
+}

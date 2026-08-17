@@ -1,0 +1,39 @@
+{
+  "meta_oof_auc": 0.8751001460954804,
+  "v5_meta_auc": 0.8886,
+  "delta_meta_auc": -0.013499853904519576,
+  "chosen_threshold": 0.011972370916225487,
+  "chosen_score_oof": 53.530023187015274,
+  "recall_at_T": 0.9848484848484849,
+  "precision_at_T": 0.08575197889182058,
+  "n_pos_test": 160,
+  "bootstrap_ci_oof": [
+    51.45262417052842,
+    55.09822834522594
+  ],
+  "calibration_correction": 2.67,
+  "lb_estimate_corrected": 56.200023187015276,
+  "v4_actual_lb": 56.98113,
+  "base_aucs": {
+    "lgb": 0.8693922582710927,
+    "xgb": 0.8544568422859979,
+    "cat": 0.8729632807996757
+  },
+  "v14_new_features": [
+    "v14_temp_vs_lower_limit",
+    "v14_RM_err_abs",
+    "v14_FM_err_abs",
+    "v14_X48_direct",
+    "v14_high_Si",
+    "v14_campaign_wear",
+    "v14_MnS_ratio_X45_X46",
+    "v14_MnS_ratio_X41_X46",
+    "v14_hot_shortness",
+    "v14_cold_bar",
+    "v14_total_offsets",
+    "v14_coiler_cold",
+    "v14_width_pull_score",
+    "v14_grade_x_temp_gap",
+    "v14_grade_x_RM_err"
+  ]
+}

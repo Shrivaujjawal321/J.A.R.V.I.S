@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 887,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 896,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 284,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 157,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 104,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 742,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 34,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 115,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 5,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  }
+]

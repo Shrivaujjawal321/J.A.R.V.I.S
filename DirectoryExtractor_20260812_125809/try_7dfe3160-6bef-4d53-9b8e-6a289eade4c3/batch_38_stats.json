@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 824,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 873,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 318,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 153,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 130,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 628,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 22,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 532,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 7,
+    "status": "completed"
+  }
+]

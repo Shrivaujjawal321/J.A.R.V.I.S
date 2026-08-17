@@ -1,0 +1,30 @@
+# Jarvis AuditAgent — gitleaks config.
+# Extends gitleaks' built-in default ruleset (keeps ALL secret rules) and adds a
+# path allowlist that gitleaks applies DURING the file walk — so it never even
+# reads these dirs. Without it, gitleaks --no-git reads every file in
+# node_modules (8+ min / timeout on a JS project). With it: ~10s.
+#
+# IMPORTANT: patterns are UNANCHORED substrings (Go regexp). Anchored forms like
+# `(^|/)node_modules/` do NOT trigger the walk-skip — verified empirically.
+# Keep patterns distinctive so we never over-match real source (false negatives).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Skip dependencies / build output / lockfiles — high-volume, low-signal."
+paths = [
+  '''node_modules''',
+  '''\.next''',
+  '''\.nuxt''',
+  '''\.venv''',
+  '''\.git/''',
+  '''\.cache''',
+  '''dist/''',
+  '''build/''',
+  '''coverage/''',
+  '''\.min\.js''',
+  '''\.bundle\.js''',
+  '''package-lock\.json''',
+  '''yarn\.lock''',
+  '''pnpm-lock\.yaml''',
+]

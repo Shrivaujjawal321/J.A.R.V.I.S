@@ -1,0 +1,558 @@
+agent_id: C2_R13b
+topic: gplearn-symbolic-regression-interpretable-fe
+cycle: 2
+parent_rec: R13_rec_2
+timestamp_utc: "2026-05-23T17:00:00Z"
+status: ok
+
+# =====================================================================
+# PREAMBLE — WHY THIS DRILL EXISTS
+# =====================================================================
+# C1 ranked gplearn SymbolicTransformer BELOW OpenFE (rec_2 vs rec_1).
+# C1 downgrade reasons:
+#   (a) GP at population_size=500, 20 gen, 10 inputs is slow and noisy
+#   (b) Fitness = correlation with y, not (R+P)/2
+#   (c) High rediscovery risk (V4 already has X13/X36, X13*X10)
+#
+# Cycle 2 task: re-examine with upgraded config (pop=2000, 30 gen,
+# 15-input restricted search), interpretability-based prune pass,
+# and honest CV-stratified overfitting budget.  The key question:
+# Does gplearn's INTERPRETABILITY advantage justify its cost vs OpenFE?
+#
+# Answer: YES, specifically for the Hard-FP-10 problem — but ONLY if
+# evolved expressions are SHAP-pruned and physically plausible.
+# OpenFE can discover the same correlation signal but you cannot prune
+# its spurious features post-hoc without guessing.  gplearn gives you
+# the formula; you can reject log(X13/0.001) as overfit nonsense.
+# =====================================================================
+
+# =====================================================================
+# SECTION 1 — UPGRADED CONFIGURATION ANALYSIS
+# =====================================================================
+
+configuration_analysis:
+  proposed_params:
+    population_size: 2000
+    n_components: 10
+    hall_of_fame: 100
+    function_set: ["add", "sub", "mul", "div", "sqrt", "log", "abs"]
+    generations: 30
+    parsimony_coefficient: 0.001
+    max_samples: 1.0
+    n_jobs: -1
+    random_state: 42
+    metric: pearson
+
+  input_feature_restriction:
+    strategy: "top-15 SHAP from V4"
+    features:
+      - X13_over_X36    # rank 1 engineered ratio
+      - X36             # roll campaign position
+      - X14             # coiling temperature
+      - X13_minus_X36   # rank 3 engineered diff
+      - X16             # unknown numerical
+      - X18             # finishing temperature (Ar3 range, physics key)
+      - X40             # integer categorical (13 unique)
+      - X23             # unknown numerical
+      - X48             # elevated in hard FP cluster (0.0089 vs 0.0041)
+      - X21             # unknown numerical
+      - X6              # coiling temperature family (520-760 C)
+      - iso_score       # V4 isolation forest meta-score
+      - X38             # unknown numerical
+      - X7              # unknown numerical
+      - X49             # elevated in hard FP (0.055 vs 0.034)
+    rationale: |
+      Restricting to 15 inputs reduces the effective search space from
+      O(51^2 * 7) = 18207 candidate tree primitives to O(15^2 * 7) = 1575.
+      This improves convergence speed ~12x and reduces spurious term discovery.
+      Critically, the 15 features include BOTH the primary signal cluster
+      (X13_over_X36, X36, X14, X18) AND the hard-FP discriminating cluster
+      (X48, X49, X14, X40 -- the features where hard FPs deviate most from
+      true positives).  This is the correct search scope.
+
+  parsimony_coefficient_assessment:
+    proposed_value: 0.001
+    verdict: TOO_LOW_FOR_THIS_DATASET
+    recommended_value: 0.005
+    reasoning: |
+      Default parsimony=0.001 was designed for 10k+ row regression datasets.
+      At 1352 rows / 66 positives:
+        - Pearson fitness is computed on the full fold train (~1082 rows,
+          ~53 positives).  Signal-to-noise is ~1:20 for the positive class.
+        - GP trees at pop=2000 over 30 generations WILL bloat toward complex
+          expressions (depth 5-8) that fit the 53-positive training distribution
+          but do not generalize.  Bloat is especially severe when fitness plateau
+          is hit early (typically gen 10-15 on noisy targets).
+        - parsimony=0.001 penalises a depth-5 tree by only 0.005 fitness units,
+          negligible when fitness variance is 0.02-0.05 across programs.
+        - Setting 0.005 adds 0.025 penalty per extra depth level, meaningfully
+          biasing selection toward simpler 2-3 node expressions like X13/X18
+          or log(X36+1) rather than X13*sqrt(X48/(X18-X36+X14)).
+      Evidence: gplearn docs example uses parsimony=0.0005 with pop=2000 on a
+      100-row dataset.  Proportional scaling to 1352 rows suggests 0.002-0.010
+      range.  We pick 0.005 as middle ground.
+
+  runtime_estimate:
+    dataset_size: 1352
+    fold_train_size: 1082
+    population_size: 2000
+    generations: 30
+    n_jobs: 8
+    per_fold_estimate_minutes:
+      low: 12
+      mid: 20
+      high: 35
+    five_fold_total_minutes:
+      low: 60
+      mid: 100
+      high: 175
+    notes: |
+      GitHub issue reference: pop=1000, gen=30 on cancer dataset (569 rows)
+      ran in 19s.  Cancer has 30 features; ours has 15.  Scaling factor:
+      (1082/569) * (2000/1000) * 1.0 (fitness complexity ~equal) ~= 3.8x
+      gives ~72s/fold, ~360s total = 6 min optimistic.  However Pearson
+      fitness on imbalanced target (53/1082 positives) is much noisier,
+      causing slower convergence per generation.  Practical multiplier
+      2-5x gives 12-35 min/fold, 60-175 min total.
+      VERDICT: feasible within 8-day deadline if run overnight.
+      Do NOT run interactively.
+
+# =====================================================================
+# SECTION 2 — OVERFITTING BUDGET
+# =====================================================================
+
+overfitting_budget:
+  dataset_stats:
+    train_rows: 1352
+    positives: 66
+    prevalence: 0.0488
+    fold_train_positives_per_fold: 53
+    folds: 5
+
+  gp_overfitting_mechanics: |
+    SymbolicTransformer fitness = Pearson(transformed_feature, y_labels).
+    Problem: with 53 positives in fold-train, the fitness landscape has
+    MANY local optima.  Simple random interactions between features can
+    achieve Pearson r=0.10-0.20 purely by chance, enough to be selected.
+    Over 30 generations at pop=2000:
+      - Early gens 1-8: discover genuine broad-signal features (X13/X18,
+        X36-based ratios already in V4).
+      - Mid gens 9-20: start exploiting noise.  Expressions with specific
+        numerical constants dominate.
+      - Late gens 21-30: deep trees that fit training positives exactly
+        but fail on held-out fold.
+    hall_of_fame=100 + n_components=10 pruning reduces redundancy but does
+    NOT prune overfit features.
+
+  cross_fold_consistency_filter:
+    description: |
+      MANDATORY: each fold gets its own independent SymbolicTransformer.
+      The 5 ST instances discover DIFFERENT expressions (seed-dependent,
+      converges to different local optima).  This is a FEATURE:
+      cross-fold expression consistency is an overfitting signal.
+      If expression X appears in 4/5 folds, it is likely real.
+      If it appears in 1/5, it is noise.
+    threshold: ">=3 of 5 folds"
+    implementation: |
+      After fitting 5 fold-STs, collect the string representation of
+      each discovered formula.  Canonicalize (sort commutative operands).
+      Count fold-frequency.  Retain only features with fold_frequency >= 3.
+      Strict but justified for 1352-row / 66-positive regime.
+
+  shap_prune_protocol:
+    description: |
+      For each retained expression feature, compute SHAP values on full
+      OOF predictions.  Compare SHAP magnitude to V4 bottom-quartile
+      features (the weakest 13 of V4's 51 features).
+      If SHAP(new_feature) < V4_bottom_quartile_SHAP, drop it.
+    auc_gate: |
+      Gate by per-feature AUC >= 0.65 on OOF predictions (marginal AUC
+      computed by adding only that feature to a baseline LGB).
+    interpretability_prune: |
+      PHYSICAL PLAUSIBILITY FILTER (gplearn key advantage over OpenFE):
+        REJECT: expressions with large numeric constants (e.g. X18 - 891.3)
+                -- these are memorised training-set constants, not physics.
+        REJECT: depth > 4 tree expressions.
+        KEEP: log(X13/X18), sqrt(X36), X13*(X18-X14), X48/X49
+              -- these map to plausible physical ratios.
+      This filter is IMPOSSIBLE with OpenFE (black-box feature names like
+      'feature_0012_combined').  It is the primary justification for
+      using gplearn despite its lower expected raw lift.
+
+# =====================================================================
+# SECTION 3 — TARGET EXPRESSION CLASSES
+# =====================================================================
+
+target_expression_classes:
+  - class: temperature_ratio
+    exemplar: "X13 / (X18 - X14)"
+    physics_mapping: |
+      X18=finishing temp (~880C), X14=coiling temp (~640C).
+      Ratio encodes the thermal gradient between finishing stand and coiler.
+      Larger gradient = faster cooling = higher martensite risk = alpha defect.
+    already_in_v4: partial
+    novelty: medium
+
+  - class: campaign_position_log_interaction
+    exemplar: "log(X36 + 1) * X13"
+    physics_mapping: |
+      X36=roll campaign position.  log(X36+1) compresses the heavy tail
+      (rolls 0-100 are fresh/worn differently from 2000-4380).  Multiplied
+      by X13 (roll force proxy) = effective force-wear compound.
+    already_in_v4: partial
+    novelty: medium
+
+  - class: hard_fp_discriminator
+    exemplar: "X48 / (X49 + epsilon)"
+    physics_mapping: |
+      Hard-FP-10 have elevated X48 (0.0089 vs 0.0041 true positives)
+      AND elevated X49 (0.055 vs 0.034).  True positives have LOWER X48
+      and LOWER X49.  Ratio X48/X49 captures simultaneous elevation of
+      both -- the hard-FP signature, NOT the true-positive signature.
+    already_in_v4: false
+    novelty: high
+    set_b_relevance: HIGHEST_PRIORITY
+
+  - class: finishing_temp_deviation
+    exemplar: "abs(X18 - 880)"
+    physics_mapping: |
+      X18=finishing temperature (858-918C, centered on Ar3 ~880C).
+      Distance from Ar3 transition = how far from the alpha/gamma phase
+      boundary during rolling.  Defects cluster near the boundary.
+    already_in_v4: false
+    novelty: medium
+
+  - class: coiling_temp_threshold
+    exemplar: "X6 - 600"
+    physics_mapping: |
+      X6=coiling temperature (520-760C).  Coiling below ~600C risks
+      excessive dislocation density -> alpha defects.  GP may discover
+      this threshold as a subtracted offset.
+    already_in_v4: false
+    novelty: medium_low
+
+# =====================================================================
+# SECTION 4 — gplearn vs OpenFE COMPARISON
+# =====================================================================
+
+gplearn_vs_openfe:
+  openfe_advantages:
+    - "Faster: 10-30 min total vs 60-175 min for gplearn 5-fold"
+    - "LightGBM-residual fitness is closer to tree-model utility than Pearson"
+    - "Broader operator coverage at lower noise floor"
+    - "Better benchmarked on Kaggle-style tabular (ICML 2023)"
+
+  gplearn_advantages:
+    - name: human_readable_prune
+      verdict: DECISIVE_ADVANTAGE_FOR_HARD_FP_INVESTIGATION
+      description: |
+        gplearn produces "X48 / X49" -- you can READ it, check if it maps
+        to physical intuition, and REJECT "X13 * (X18 - X7 * X48 + 3.14)"
+        as nonsense.  OpenFE features are named 'combined_feature_0018'
+        with no formula.  You cannot distinguish a real physics ratio from
+        a spurious 5-way interaction.
+
+    - name: overfitting_visibility
+      verdict: MATERIAL_ADVANTAGE
+      description: |
+        When GP overfits, it produces expressions with specific constants
+        (e.g. X13 - 127.34) -- visually obvious as data-memorisation.
+        OpenFE overfits silently; you only see degraded OOF score.
+
+    - name: hard_fp_10_target
+      verdict: TARGETED_ADVANTAGE
+      description: |
+        Hard-FP-10 are not separable by V4's 51 features at current
+        precision.  The hope is a specific short formula involving X48,
+        X49, X14, X40 capturing "elevated-X48-AND-elevated-X49 but not
+        extreme-X13" -- the hard FP signature.  gplearn's constrained
+        function search on 15 SHAP features with physical plausibility
+        filter is the safest way to look for this formula without
+        manufacturing noise.
+
+  recommendation: |
+    gplearn is COMPLEMENTARY to OpenFE, not a competitor.  Run both
+    if time permits.  If only one slot: OpenFE for raw OOF lift;
+    gplearn for Set B (Hard-FP-10) improvement.  Given Set B is the
+    binding constraint in Cycle 2, gplearn gets priority over OpenFE.
+
+# =====================================================================
+# SECTION 5 — FULL RECOMMENDATION
+# =====================================================================
+
+recommendations:
+  - id: C2_R13b_rec_1
+    title: "gplearn ST: 15-SHAP, parsimony=0.005, fold-consistent prune"
+    technique_class: feature_engineering
+    description: |
+      Run gplearn SymbolicTransformer (pop=2000, gen=30, n_components=10,
+      parsimony=0.005) restricted to the 15 V4 SHAP-top features.
+      Key upgrades from C1 rec_2: (a) parsimony raised 0.001->0.005 to
+      aggressively penalise depth >3 trees on small-n; (b) function_set
+      adds 'abs' to enable deviation features like abs(X18-mean); (c)
+      cross-fold expression consistency filter -- only retain expressions
+      appearing in >=3/5 folds; (d) physical plausibility filter -- reject
+      expressions with learned constants or depth > 4.  Target output is
+      2-5 short interpretable formulas; primary target is at least ONE
+      expression from the hard-FP discriminator class (X48/X49 or similar).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      cycle_1_parent: R13_rec_2
+      upgrade_vs_parent: |
+        C1 rec_2 had pop=500, gen=20, top-10 features, parsimony=0.05.
+        This uses pop=2000 (4x breadth), gen=30 (+50% depth), 15 features
+        (correct SHAP selection), parsimony=0.005 (corrected from C1's
+        overkill 0.05), adds cross-fold consistency filter and physical
+        plausibility audit.
+    expected_lift_oof:
+      point: 0.5
+      low: 0.0
+      high: 1.5
+      rationale: |
+        Upgraded over C1 rec_2 estimate (point 0.4, high 1.2) because:
+          1. Larger pop+gen genuinely explores more of expression space.
+          2. Including X48, X49, X40 (hard-FP cluster features) in input
+             set opens the possibility of discovering Set B discriminating
+             expressions not in V4 at all.
+          3. Physical plausibility + fold-consistency filters reduce noise
+             features that inflate training-set lift but degrade OOF.
+        Low 0.0 remains: if hard-FP-10 are truly inseparable in the
+        15-feature subspace, GP finds nothing novel.  Zero Set B improvement
+        is the realistic base case based on C1 structural findings.
+        High 1.5: discovering X48/(X49+eps) and embedding it in new
+        Stage-1 bumps Set B from 0/10 toward 2-3/10, converting to
+        genuine LB lift via precision improvement at high recall.
+    feasibility:
+      score: 3
+      effort_hours: 4.5
+      dependencies:
+        - "gplearn==0.4.2  # NOT installed -- pip install gplearn==0.4.2"
+        - scikit-learn>=1.4
+        - shap>=0.42
+        - numpy>=1.24
+      notes: |
+        3.0h install + code + overnight run; 1.5h expression audit + SHAP
+        prune.  gplearn NOT currently installed (confirmed).  Feasibility 3
+        not 4: long runtime blocks daytime iteration; expression audit
+        requires human judgment on physical plausibility.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Stephens T. "gplearn: Genetic Programming in Python."
+        GitHub: https://github.com/trevorstephens/gplearn (BSD 3-Clause).
+        PyPI: gplearn 0.4.2.
+
+        Tran et al. "Improving Generalization of Genetic Programming for
+        High-Dimensional Symbolic Regression with Shapley Value Based Feature
+        Selection." Data Science and Engineering, Springer, 2024.
+        DOI: 10.1007/s41019-024-00270-x. Shows SHAP pre-filtering improves
+        GP generalization on high-dimensional tabular data.
+
+        Bertschinger et al. "Interpretable Genetic Programming with
+        SHAP-guided Multi-objective Optimization." Evolutionary Intelligence,
+        Springer, 2025. DOI: 10.1007/s12065-025-01125-8.  Directly validates
+        SHAP attribution + GP interpretability for overfitting pruning.
+
+        Confidence 3 (not 4): direct evidence on imbalanced binary classification
+        with <100 positives is absent.  SHAP+GP synergy established in regression
+        literature; classification with 66 positives is an extrapolation.
+    failure_modes:
+      - id: fm1_fitness_misalignment
+        description: |
+          Pearson correlation fitness on binary y with 4.88% positives is weak
+          signal (typical r=0.05-0.20).  GP selects spuriously correlated
+          expressions just above the noise floor.
+        mitigation: |
+          Cross-fold consistency filter (>=3/5 folds) eliminates single-fold
+          lucky correlations.  Physical plausibility prune removes constant-heavy
+          trees.  SHAP AUC gate (>0.65) eliminates marginal features.
+
+      - id: fm2_rediscovery
+        description: |
+          V4 already contains X13_over_X36, X13_minus_X36.  GP with access to
+          these engineered features WILL rediscover variants of them.
+        mitigation: |
+          Post-generation: correlate each discovered expression feature with
+          existing V4 features.  If Spearman r > 0.85 with any existing V4
+          feature, discard.  Canonicalize expression strings to catch algebraic
+          equivalents.
+
+      - id: fm3_runtime
+        description: |
+          5-fold x 60-175 min/fold = 60-175 min total.  Blocks other experiments
+          if run on same machine during working hours.
+        mitigation: |
+          Dispatch as overnight batch job.  Serialize 5 folds (each uses n_jobs=-1
+          internally, cannot parallelize folds without additional scaffolding).
+
+      - id: fm4_seed_variance
+        description: |
+          GP is stochastic.  Two runs with different random_state produce
+          different expression sets.  OOF lift is seed-dependent.
+        mitigation: |
+          If time permits: run 3 seeds per fold (random_state=42,43,44), take
+          union of expressions, apply fold-consistency filter across 15 runs.
+          If tight: single seed, accept higher variance.
+
+      - id: fm5_hard_fp_may_be_inseparable
+        description: |
+          All 4 Cycle 1 builds failed Set B.  Structural feature-space issue.
+          If X48/X49/X14/X40 do not jointly separate hard FPs, no GP expression
+          over these 15 features will find the boundary either.
+        mitigation: |
+          Accept this risk explicitly.  gplearn here is a DISCOVERY tool:
+          if it fails Set B too, this is conclusive evidence that Hard-FP-10
+          are fundamentally inseparable within X1-X49 space, and N02
+          (counterfactual FE) should be the sole remaining hope.
+
+    code_sketch: |
+      # pip install gplearn==0.4.2
+
+      import numpy as np
+      from gplearn.genetic import SymbolicTransformer
+      from sklearn.model_selection import StratifiedKFold
+      from collections import Counter
+
+      TOP15 = [
+          "X13_over_X36", "X36", "X14", "X13_minus_X36", "X16",
+          "X18", "X40", "X23", "X48", "X21", "X6",
+          "iso_score", "X38", "X7", "X49"
+      ]
+      X = train_df[TOP15].values.astype(float)
+      y = train_df["Y"].values
+
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+      fold_expressions = []
+
+      for fold_i, (tr_idx, val_idx) in enumerate(skf.split(X, y)):
+          gp = SymbolicTransformer(
+              population_size=2000,
+              generations=30,
+              hall_of_fame=100,
+              n_components=10,
+              function_set=("add", "sub", "mul", "div", "sqrt", "log", "abs"),
+              parsimony_coefficient=0.005,  # KEY: raised from default 0.001
+              max_samples=0.9,              # subsampling reduces overfit
+              metric="pearson",
+              random_state=42,
+              n_jobs=-1,
+              verbose=0
+          )
+          gp.fit(X[tr_idx], y[tr_idx])
+          formulas = [str(prog) for prog in gp._programs[-1] if prog is not None]
+          fold_expressions.append(formulas)
+
+      # Cross-fold consistency filter (>=3/5 folds to pass)
+      all_formulas = [f for fold in fold_expressions for f in fold]
+      formula_counts = Counter(all_formulas)
+      stable = [f for f, cnt in formula_counts.items() if cnt >= 3]
+      print(f"Stable expressions: {len(stable)}")
+      for f in stable:
+          print(f"  [{formula_counts[f]}/5 folds]  {f}")
+
+      # Physical plausibility filter: manually review stable list
+      # REJECT: depth>4, expressions with numeric constants >10
+      # KEEP: short 2-3 variable ratios/products
+
+      # SHAP AUC gate: for each surviving expression,
+      # compute marginal AUC contribution on OOF (standard lgb wrapper)
+
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium_high
+      easy59_regression_risk: low
+      notes: |
+        First gplearn rec to assign medium_high to Set B (Hard-FP-10 avoidance).
+        Upgrade justified by:
+          1. Explicit inclusion of X48, X49 (hard-FP cluster markers) in input.
+          2. Physical plausibility filter allows human rejection of spurious
+             X48/X49 expressions vs plausible ones.
+          3. Cross-fold consistency filter reduces spurious single-fold Set B
+             improvements.
+        Hard-7 recall stays low: hard-7 coils are stealth in X1-X49 space
+        regardless of engineered features (confirmed by AD null result and
+        4x Cycle 1 cascade failures).
+        Easy-59 regression risk is low: gplearn adds NEW features without
+        replacing existing V4 signals.
+
+# =====================================================================
+# SECTION 6 — INTEGRATION WITH CYCLE 2 BUILDS
+# =====================================================================
+
+cycle_2_integration:
+  primary_use_case: |
+    gplearn output feeds into a NEW Stage-1 build (N03 stage-1-replacement),
+    NOT into the frozen V4 stack.  Workflow:
+      1. Run gplearn 5-fold to discover stable expressions.
+      2. Add <=5 surviving expressions to the 15-feature input set.
+      3. Rebuild Stage-1 from scratch (LGB-RFL or TabICLv2 per N01/N03)
+         on the augmented feature set.
+      4. Run full V4-style CV to measure OOF delta.
+    Do NOT append gplearn features to V4 and retrain V4's CatBoost.
+    CatBoost OOF 0.8756 cannot be reproduced (confirmed C1 finding).
+
+  sequencing_recommendation: |
+    Run N02 (counterfactual FE) FIRST to identify which feature dimensions
+    matter for Hard-FP-10.  N02 takes ~1-2h.  Then re-examine gplearn
+    input list to confirm those dimensions are included, and run gplearn
+    overnight.  Morning: audit expressions against N02 counterfactual
+    targets.
+
+  synergies:
+    - N02_hard_fp_counterfactual: |
+        N02 identifies minimal feature changes for Hard-FP-10.  If N02
+        identifies "lower X48 by 0.003" as key counterfactual, gplearn's
+        X48/(X49+eps) expression directly operationalises that finding.
+    - N03_stage1_replacement: |
+        gplearn expressions are drop-in features for any Stage-1 model.
+        LGB-RFL (+0.0108 AUC, C1 confirmed) can be augmented with 2-3
+        gplearn expressions without architectural change.
+    - R10_mondrian_conformal: |
+        Mondrian conformal targets Hard-FP-10 via abstain rule.  If gplearn
+        discovers a strong X48/X49 expression, the conformal predictor can
+        use it as an additional nonconformity feature.
+    - R13_rec_1_openfe: |
+        OpenFE for breadth, gplearn for interpretable depth.  Run both
+        if time permits; gplearn gets priority for Set B work.
+
+  what_NOT_to_do:
+    - "Do NOT run gplearn on all 51 V4 features -- search space too large,
+       convergence too slow, rediscovery rate too high."
+    - "Do NOT use parsimony=0.001 (default) -- will produce depth-6+ trees
+       that memorise 53-positive fold-train."
+    - "Do NOT skip cross-fold consistency filter -- single-fold GP expressions
+       on 66 positives are overwhelmingly noise."
+    - "Do NOT add gplearn features to frozen V4 -- CatBoost OOF 0.8756 cannot
+       be reproduced; any modification will regress."
+    - "Do NOT interpret Pearson fitness as predictive power -- Pearson r=0.15
+       on binary y is nearly uncorrelated; always validate with held-out AUC."
+
+# =====================================================================
+# SECTION 7 — VERDICT
+# =====================================================================
+
+verdict:
+  recommend: true
+  priority_within_cycle_2: medium
+  timing: |
+    Dispatch AFTER N02 returns target feature dimensions (1-2h).
+    Run gplearn overnight.  Audit expressions next morning.
+  one_liner: |
+    gplearn at pop=2000/gen=30 on 15 SHAP features with parsimony=0.005,
+    cross-fold consistency filter (>=3/5 folds), and physical plausibility
+    prune is the ONLY technique that can discover AND audit interpretable
+    formulas targeting Hard-FP-10.  Its edge over OpenFE is not raw lift
+    but the ability to prune overfit expressions before they reach the model
+    -- critical at 1352 rows / 66 positives where spurious correlation is
+    the dominant failure mode.
+
+cross_topic_links:
+  - N02_hard_fp_counterfactual: "N02 identifies target feature dims; gplearn
+    operationalises them as closed-form expressions -- run N02 first"
+  - N03_stage1_replacement: "gplearn expressions plug directly into new Stage-1
+    without touching frozen V4"
+  - R10_mondrian_conformal: "gplearn X48/X49 expression can strengthen conformal
+    abstain signal on hard FP cluster"
+  - R13_rec_1_openfe: "OpenFE for breadth; gplearn for interpretable depth.
+    Run both if time permits; gplearn takes Set B priority."

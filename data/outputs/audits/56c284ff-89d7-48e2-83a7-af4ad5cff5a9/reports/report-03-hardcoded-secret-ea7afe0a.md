@@ -1,0 +1,118 @@
+# Hardcoded Secret in `...kathons/tata-steel-2026/demo-target/config.py:2` leading to service credential exposure
+
+---
+
+## TL;DR / Summary
+
+A hardcoded credential or secret key was found at `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py:2`. The value is committed in the repository and visible to anyone with read access, enabling direct authentication or impersonation against the associated service.
+
+---
+
+## Severity
+
+- **CVSS v4.0 vector:** `CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N`
+- **Rating / Score:** High (8.8)
+- **Why this severity:** AV:N, AC:L, PR:N — the credential is accessible to anyone with repo read access. VC:H/VI:H because the associated service is fully compromised once the key is used.
+
+---
+
+## Vulnerability Details
+
+- **Type:** Hardcoded Secret
+- **CWE:** CWE-798: USE OF HARD-CODED CREDENTIALS
+- **OWASP:** UNKNOWN
+
+---
+
+## Affected Asset
+
+- **File / Component:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py:2`
+- **Target:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target`
+- **Audit ID:** `56c284ff-89d7-48e2-83a7-af4ad5cff5a9`
+
+---
+
+## Description (Bug + Root Cause)
+
+A hardcoded credential or secret key was found at `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py:2`. The value is committed in the repository and visible to anyone with read access, enabling direct authentication or impersonation against the associated service.
+
+---
+
+## Steps to Reproduce
+
+> Deterministic, numbered, copy-pasteable. A triager with zero context must reproduce on the first try.
+
+1. Confirm the secret is present at `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py:2` (scanner: semgrep, rule: generic.secrets.security.detected-aws-access-key-id-value.detected-aws-access-key-id-value).
+2. Verify the secret is committed to version history: `git log --all -p -- /home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py | grep [masked `
+3. Identify which service or system the credential authenticates against (infer from surrounding code or key prefix).
+4. Perform a benign identity check to confirm the credential is currently active:
+5.     AWS key: `aws sts get-caller-identity` (do not access resources).
+6.     Generic token: a read-only API call (e.g. GET /user or /me endpoint).
+7. Document: the key is valid, committed, and the associated service.
+8. Expected: credentials managed via environment variables or a secrets manager. Actual: plaintext credential in source code.
+9. IMPORTANT: do not use the credential beyond the identity check. Report and rotate immediately.
+
+---
+
+## Proof of Concept
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py:2`
+**Scanner:** semgrep  |  **Rule:** generic.secrets.security.detected-aws-access-key-id-value.detected-aws-access-key-id-value
+
+**Masked secret value:**
+```
+[masked — see evidence]
+```
+
+**Evidence (masked):**
+```
+AWS Access Key ID Value detected. This is a sensitive credential and should not be hardcoded here. Instead, read this value from an environment variable or keep it in a separate, private file.
+```
+
+**Git history confirmation:**
+```bash
+git log --all -p -- /home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py
+```
+
+**Confirm active credential (benign identity check only):**
+```bash
+# Example for AWS — identity echo, no resource access
+AWS_ACCESS_KEY_ID=<key> AWS_SECRET_ACCESS_KEY=<secret> aws sts get-caller-identity
+```
+
+Do NOT use the credential to access, modify, or exfiltrate data.
+Full secret value is withheld from this report; rotate immediately upon triage.
+
+
+> Defensive / authorized testing only. PoC is designed to confirm the vulnerability for the asset owner's triager. All secret values are masked. No weaponized payloads.
+
+---
+
+## Impact / Business Impact
+
+Any party with repository read access — including collaborators, CI/CD systems, and anyone who has cloned or forked the repo — holds the credential. The associated service is fully compromised until the credential is rotated. Historical Git commits preserve the secret even after file deletion.
+
+---
+
+## Remediation / Recommended Fix
+
+**Primary fix:** Immediately rotate the exposed credential. Remove the hardcoded value and replace with an environment variable or secret manager reference (e.g. AWS Secrets Manager, Vault, Doppler). Purge the secret from Git history using `git filter-repo` or BFG Repo Cleaner.
+
+**Defense-in-depth:** Add a pre-commit hook (`gitleaks` or `detect-secrets`) to block future secret commits. Configure your CI/CD pipeline to fail on secret detection (GitHub Advanced Security / GitLab Secret Detection). Audit all forks and clones to determine exposure scope.
+
+---
+
+## References
+
+- https://cwe.mitre.org/data/definitions/798.html
+- https://cwe.mitre.org/data/definitions/259.html
+- https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
+- https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure
+- https://trufflesecurity.com/blog/trufflehog-detectors
+
+---
+
+*Generated by AuditAgent (Jarvis). Defensive-only. Authorized targets only.*  
+*Platform hint: HackerOne / Bugcrowd / Intigriti — submit to the program channel for the affected asset*  
+*Generated: 2026-06-05 12:57 UTC*  
+*LLM-enriched: False*

@@ -1,0 +1,119 @@
+part_id,name,fits_equipment_class,fits_asset_ids,on_hand_qty,min_qty,lead_time_weeks,unit_cost,supplier,criticality,in_stock
+BRG-LRG-300,Large-bore roller bearing >300mm OD (4-row cylindrical),rolling_mill_work_roll_bearing|bf_sinter_fan_blower,HSM.F3.WR.BRG01|SP.SINT.FAN01,1,1,8,12000,SKF India,A,TRUE
+SEAL-LAB-01,Labyrinth seal set (split type grease-packed),rolling_mill_work_roll_bearing|large_induction_motor_vfd,HSM.F3.WR.BRG01|HSM.F1.MTR01,2,2,2,600,Freudenberg India,B,TRUE
+CPL-EL-01,Coupling element spider/grid insert,rolling_mill_work_roll_bearing|mill_gearbox,HSM.F3.WR.BRG01|HSM.F1.GBX01,1,1,2,450,Rexnord India,B,TRUE
+LUBE-NOZ-01,Oil-film bearing lube nozzle (stainless),rolling_mill_work_roll_bearing,HSM.F3.WR.BRG01,4,4,1,120,SKF India,C,TRUE
+OFB-LINER-01,Oil-film bearing white-metal liner (Babbitt reclaim),rolling_mill_work_roll_bearing,HSM.F3.WR.BRG01,0,1,14,28000,SKF / Glacier Bearings,A,FALSE
+OFB-SLEEVE-01,Oil-film bearing brass sleeve (OEM),rolling_mill_work_roll_bearing,HSM.F3.WR.BRG01,0,1,18,45000,SKF OEM,A,FALSE
+BRG-OFB-OIL,Oil-film bearing circulating oil ISO VG 220 (200L drum),rolling_mill_work_roll_bearing,HSM.F3.WR.BRG01,6,4,1,320,Shell / Castrol India,C,TRUE
+TEMP-RTD-BRG,PT100 bearing temperature RTD sensor,rolling_mill_work_roll_bearing|cooling_descaling_pump|bf_sinter_fan_blower,HSM.F3.WR.BRG01|HSM.DSC.PMP01|BF.BLW.FAN01|BF.CW.PMP02,8,4,1,180,Endress+Hauser India,B,TRUE
+AE-SENSOR-01,Acoustic emission transducer (broadband 100-500 kHz),rolling_mill_work_roll_bearing|cooling_descaling_pump,HSM.F3.WR.BRG01|HSM.DSC.PMP01,2,2,4,950,Mistras Group / PCB,B,TRUE
+FLT-GBX-01,Gearbox oil filter element (duplex changeover),mill_gearbox,HSM.F1.GBX01,3,2,0,180,Pall India / Hydac,C,TRUE
+OIL-VG220,ISO VG 220 EP gear oil (200L drum),mill_gearbox,HSM.F1.GBX01,4,4,0,900,Shell Omala / Castrol India,C,TRUE
+GEAR-WHL-M20,Custom large-module gear wheel M20+ (HSM mill drive),mill_gearbox,HSM.F1.GBX01,0,1,36,120000,Flender / Renk OEM,A,FALSE
+BRG-GBX-SET,Gearbox input+output shaft bearing set (4-row tapered roller),mill_gearbox,HSM.F1.GBX01,1,1,3,4500,SKF India,A,TRUE
+CHIP-DET-01,Magnetic chip detector plug (gearbox oil return),mill_gearbox,HSM.F1.GBX01,4,4,1,220,Parker / Spectro,B,TRUE
+OIL-SAMPLE-KIT,Oil sample kit (bottles + mailer + ICP-OES form) × 12,mill_gearbox|eaf_bof_auxiliary|hydraulics_agc_servo,HSM.F1.GBX01|EAF.AUX.HYD01|CRM.AGC.SV01,24,12,0,60,Spectro Scientific,C,TRUE
+GASKET-GBX-01,Gearbox inspection-cover gasket set,mill_gearbox,HSM.F1.GBX01,4,4,1,90,Flexitallic India,C,TRUE
+PINION-SHAFT-01,Input pinion shaft assembly (OEM Flender H4SH),mill_gearbox,HSM.F1.GBX01,0,1,40,85000,Flender OEM,A,FALSE
+CPL-RIGFLANGE-01,Rigid flange coupling (gearbox-motor side),mill_gearbox|large_induction_motor_vfd,HSM.F1.GBX01|HSM.F1.MTR01,1,1,6,3200,Rexnord / Voith India,B,TRUE
+MTR-MV-6000,MV insurance spare motor 6000 kW ABB AMI 630,large_induction_motor_vfd,HSM.F1.MTR01,1,1,40,450000,ABB India,A,TRUE
+RWND-KIT-MV,MV rewind materials (wire/resin/wedge/slot liner) Class F,large_induction_motor_vfd,HSM.F1.MTR01,1,1,3,15000,Gubbi / PGKR Rewind Services,B,TRUE
+BRG-MTR-SET,Motor DE+NDE bearing set SKF 6326/6226,large_induction_motor_vfd,HSM.F1.MTR01,1,1,1,2800,SKF India,A,TRUE
+AEGIS-RING-01,AEGIS SGR shaft grounding ring (VFD bearing protection),large_induction_motor_vfd,HSM.F1.MTR01,2,2,2,380,Electro Static Technology,B,TRUE
+VFD-IGBT-MOD,ACS6000 IGBT power module stack (MV inverter),large_induction_motor_vfd,HSM.F1.MTR01,0,1,16,65000,ABB OEM,A,FALSE
+WIND-TEMP-RTD,Stator winding PT100 embedded RTD (per phase set × 3),large_induction_motor_vfd,HSM.F1.MTR01,3,3,2,420,Heraeus Electro-Nite,B,TRUE
+MCSA-PROBE-01,MCSA current clamp + logger (Fluke/SKF),large_induction_motor_vfd,HSM.F1.MTR01,1,1,3,1800,Fluke India,B,TRUE
+INSUL-CLASS-F,Class-F slot insulation paper 0.3mm (per metre roll),large_induction_motor_vfd,HSM.F1.MTR01,10,5,1,45,Nomex / Dupont India,C,TRUE
+IMP-DSC-01,Descaling pump impeller (KSB Multitec HP erosion-grade),cooling_descaling_pump,HSM.DSC.PMP01,1,1,8,8000,KSB India OEM,A,TRUE
+SEAL-MECH-DSC,Mechanical seal cartridge SiC/SiC 200-bar rated,cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,2,2,2,1500,EagleBurgmann India,A,TRUE
+SLV-SHAFT-01,Pump shaft sleeve (duplex SS hardened),cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,1,1,3,700,KSB India,B,TRUE
+IMP-CW-01,Cooling pump impeller double-suction (KSB Omega),cooling_descaling_pump,BF.CW.PMP02,1,1,6,6500,KSB India OEM,A,TRUE
+WRING-CW-01,Wear ring set (pump casing + impeller),cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,2,2,4,400,KSB India,B,TRUE
+BRG-PMP-SET,Pump radial + thrust bearing set (SKF 6320/NU320),cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,2,2,2,1200,SKF India,B,TRUE
+COUP-PMP-01,Pump-motor flexible coupling (Bibby/Rexnord),cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,1,1,4,850,Rexnord India,B,TRUE
+GSKT-PMP-01,Pump casing O-ring/gasket set (HP-grade EPDM),cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,4,4,1,130,Freudenberg India,C,TRUE
+PRESS-GAUGE-HP,Pressure gauge 0-250 bar (HP descaling service),cooling_descaling_pump,HSM.DSC.PMP01,4,4,1,280,Wika India,C,TRUE
+ASV-VLV-01,Anti-surge valve Koso/Fisher (pneumatic actuated),bf_sinter_fan_blower,BF.BLW.FAN01,0,1,12,45000,Flowserve / Koso India,A,FALSE
+BRG-JRNL-PAD,Journal bearing tilting-pad set (OEM Siemens/MAN),bf_sinter_fan_blower,BF.BLW.FAN01,1,1,12,25000,Siemens / Renk OEM,A,TRUE
+BRG-THRUST-PAD,Thrust bearing Babbitt pad set (axial),bf_sinter_fan_blower,BF.BLW.FAN01,1,1,12,18000,Siemens OEM,A,TRUE
+FAN-BLADE-SET,Fan blade set (axial 28 MW blower),bf_sinter_fan_blower,BF.BLW.FAN01,0,1,12,35000,MAN Energy OEM,A,FALSE
+BAL-WT-01,Balancing weights set (threaded bolt type),bf_sinter_fan_blower,BF.BLW.FAN01|SP.SINT.FAN01,5,5,0,50,Local fabrication,C,TRUE
+PROX-PROBE-01,Bently Nevada 3300 XL proximity probe + driver,bf_sinter_fan_blower,BF.BLW.FAN01,4,4,3,1200,Baker Hughes / Bently Nevada,A,TRUE
+SURGE-CTRL-CARD,Anti-surge controller card (Compressor Controls Corp),bf_sinter_fan_blower,BF.BLW.FAN01,0,1,14,22000,CCC / Emerson India,A,FALSE
+INLET-FILTER-BF,Blast furnace blower inlet filter cartridge,bf_sinter_fan_blower,BF.BLW.FAN01,6,4,1,480,Donaldson / Mann+Hummel,B,TRUE
+BRG-LRG-FAN,Large roller bearing for sinter fan (TLT-Turbo radial),bf_sinter_fan_blower,SP.SINT.FAN01,1,1,8,9500,FAG / Schaeffler India,A,TRUE
+VIB-SENSOR-01,Vibration velocity sensor (4-20mA ICP) ISO 20816,bf_sinter_fan_blower|large_induction_motor_vfd|cooling_descaling_pump,SP.SINT.FAN01|BF.BLW.FAN01|HSM.F1.MTR01|HSM.DSC.PMP01,8,4,1,650,IMI / PCB Piezotronics,B,TRUE
+ROLL-SEG-STD,Strand guide roll standard diameter (SMS Concast),continuous_caster_segment|continuous_caster_mould,CCM.SEG.07|CCM.MOLD.01,2,2,12,9000,SMS Concast OEM,A,TRUE
+BRG-SEG-01,Segment roll bearing (spherical roller sealed),continuous_caster_segment,CCM.SEG.07,4,4,8,1200,SKF / FAG India,A,TRUE
+NOZ-SPRAY-01,Secondary cooling spray nozzle (Spraying Systems H-VeeJet),continuous_caster_segment,CCM.SEG.07,50,30,0,35,Spraying Systems India,C,TRUE
+ROLL-SEG-LRG,Strand guide roll large diameter (bending/straightening zone),continuous_caster_segment,CCM.SEG.07,1,1,14,14000,SMS Concast OEM,A,TRUE
+HYD-CYLD-SEG,Segment clamping hydraulic cylinder seal kit,continuous_caster_segment,CCM.SEG.07,4,4,4,620,Parker India / Trelleborg,B,TRUE
+WATER-HOSE-CC,Flexible cooling water hose + quick-connector set,continuous_caster_segment|continuous_caster_mould,CCM.SEG.07|CCM.MOLD.01,10,8,1,180,Parker Hannifin India,B,TRUE
+BRG-SEG-GREASE,Segment bearing grease (high-temp water-resist EP) 18kg pail,continuous_caster_segment,CCM.SEG.07,6,4,1,280,Molykote / Klüber India,C,TRUE
+SEG-FRAME-01,Complete segment frame assembly (pre-set),continuous_caster_segment,CCM.SEG.07,0,1,20,180000,SMS Concast OEM,A,FALSE
+MOLD-CU-STD,Mould copper plates slab standard format (Cu-Cr-Zr),continuous_caster_mould,CCM.MOLD.01,1,1,14,55000,SMS Concast OEM,A,TRUE
+SEN-NOZ-01,Submerged entry nozzle alumina-graphite (consumable),continuous_caster_mould,CCM.MOLD.01,8,8,0,800,Vesuvius India,C,TRUE
+MOLD-OSC-BRG,Mould oscillator bearing set (linear guide),continuous_caster_mould,CCM.MOLD.01,2,2,6,2200,THK / INA India,B,TRUE
+MOLD-TC-ARRAY,Mould thermocouple array (Type K 12-point replacement),continuous_caster_mould,CCM.MOLD.01,2,2,3,3500,Heraeus Electro-Nite India,A,TRUE
+MOLD-FLUX-01,Mould powder / casting flux (25kg bag),continuous_caster_mould,CCM.MOLD.01,40,20,0,420,Imerys / Foseco India,C,TRUE
+MOLD-COAT-01,Mould release coating (graphite spray) 500ml,continuous_caster_mould,CCM.MOLD.01,12,8,0,85,Local supplier,C,TRUE
+LEVEL-SNSR-01,Mould level sensor (eddy-current type),continuous_caster_mould,CCM.MOLD.01,1,1,6,8500,ABB / Siemens India,B,TRUE
+WR-HSS-PREP,Prepared work roll pair HSS grade (roll shop ready),hot_strip_mill_stand,HSM.STD.R1,4,2,0,80000,Nippon Steel / Villares (roll shop),A,TRUE
+CHOCK-SEAL-01,Roll chock seal set (nitrile/polyurethane),hot_strip_mill_stand,HSM.STD.R1,4,4,6,350,Trelleborg / Freudenberg India,B,TRUE
+BU-ROLL-PREP,Backup roll pair (work-hardened forged steel - roll-shop ground),hot_strip_mill_stand,HSM.STD.R1,0,1,20,1000000,Villares / Nippon Steel OEM,A,FALSE
+BRG-CHOCK-RU,Roll chock back-up roll bearing (4-row TRB),hot_strip_mill_stand,HSM.STD.R1,1,1,10,18000,SKF India,A,TRUE
+LOAD-CELL-01,Rolling force load cell (100 MN range),hot_strip_mill_stand,HSM.STD.R1,1,1,8,12000,HBM / Vishay India,B,TRUE
+AGC-POSN-SNSR,AGC screwdown position transducer (LVDT),hot_strip_mill_stand,HSM.STD.R1,2,2,4,1800,Moog / Balluff India,B,TRUE
+WR-GRIND-DISC,Work roll grinding wheel (CBN) for roll shop,hot_strip_mill_stand,HSM.STD.R1,6,4,2,3200,Saint-Gobain Abrasives India,C,TRUE
+SCRWDWN-NUT,Screwdown nut (bronze-alloy press-fit),hot_strip_mill_stand,HSM.STD.R1,0,1,14,9500,Primetals OEM,A,FALSE
+IDLER-STD-1600,Standard carrying idler 1600mm belt (CEMA C6),raw_material_conveyor,RM.CONV.ORE01,40,20,0,90,TRF Ltd / Fenner Dunlop India,C,TRUE
+IDLER-TRAIN-01,Self-aligning training idler 1600mm,raw_material_conveyor,RM.CONV.ORE01,6,4,4,320,TRF Ltd India,B,TRUE
+BELT-SEC-1600,Belt section EP630/4 1600mm (made-to-order 10m),raw_material_conveyor,RM.CONV.ORE01,0,1,10,18000,Fenner Dunlop / Bridgestone India,A,FALSE
+VULC-KIT-01,Belt vulcanising kit (hot splice) complete,raw_material_conveyor,RM.CONV.ORE01,2,2,0,600,Flexco India,B,TRUE
+BELT-CLAMP-01,Mechanical belt fastener set (Flexco alligator),raw_material_conveyor,RM.CONV.ORE01,4,4,0,280,Flexco India,C,TRUE
+RIP-LOOP-01,Rip detector embedded loop cable (per 10m),raw_material_conveyor,RM.CONV.ORE01,2,2,4,1200,Fenner RipScan / Phoenix,B,TRUE
+CONV-MTR-BRG,Conveyor drive motor bearing set (SKF 6318/6316),raw_material_conveyor,RM.CONV.ORE01,2,2,2,680,SKF India,B,TRUE
+PLOUGH-SCRAPER,Belt cleaner primary scraper blade (polyurethane),raw_material_conveyor,RM.CONV.ORE01,4,4,0,380,Martin Engineering India,C,TRUE
+IDLER-IMPT-01,Impact idler (garland type at chute loading zone),raw_material_conveyor,RM.CONV.ORE01,8,6,3,550,TRF Ltd India,B,TRUE
+CONV-GEAR-OIL,Conveyor drive gearbox oil ISO VG 150 (20L),raw_material_conveyor,RM.CONV.ORE01,4,4,0,280,Castrol Optigear,C,TRUE
+BURN-NOZ-01,Burner nozzle assembly (steel-grade low-NOx),reheating_furnace,RHF.ZONE.SOAK,4,4,4,1500,Hauck / Elster Kromschroder,B,TRUE
+FLAME-SCAN-01,Flame scanner UV/IR dual-channel,reheating_furnace,RHF.ZONE.SOAK,2,2,3,900,Fireye / Honeywell India,B,TRUE
+REFRAC-CAST-01,Refractory castable / gunning mix (high-alumina) 25kg bag,reheating_furnace,RHF.ZONE.SOAK,10,8,2,1200,Calderys India / RHI Magnesita,B,TRUE
+O2-SENSOR-01,Zirconia flue-gas O2 sensor (in-situ probe),reheating_furnace,RHF.ZONE.SOAK,2,2,4,2800,ABB / Ametek Land India,B,TRUE
+THERMO-TYPE-S,Type S (Pt-10Rh/Pt) thermocouple 1600°C rated (each),reheating_furnace,RHF.ZONE.SOAK,12,8,1,950,Heraeus Electro-Nite India,B,TRUE
+GAS-REGUL-01,Fuel gas pressure regulator (BMS certified),reheating_furnace,RHF.ZONE.SOAK,2,2,6,3500,Emerson Fisher India,B,TRUE
+REFRAC-ANCH-01,Refractory anchor studs (stainless Inconel) × 100,reheating_furnace,RHF.ZONE.SOAK,200,100,2,12,Local fabrication,C,TRUE
+BMS-CTRL-01,Burner management system controller card (EN 746-2 listed),reheating_furnace,RHF.ZONE.SOAK,0,1,10,18000,Siemens / Honeywell India,A,FALSE
+WALK-BEAM-BRG,Walking beam eccentric shaft bearing set,reheating_furnace,RHF.ZONE.SOAK,1,1,12,7500,SKF India,B,TRUE
+FLT-HYD-10,Hydraulic filter element 10 µm absolute (return line),eaf_bof_auxiliary|hydraulics_agc_servo,EAF.AUX.HYD01|CRM.AGC.SV01,6,6,0,120,Pall / Hydac India,C,TRUE
+KID-LOOP-01,Kidney-loop offline filtration unit (portable 3+10 µm),eaf_bof_auxiliary|hydraulics_agc_servo,EAF.AUX.HYD01|CRM.AGC.SV01,1,1,3,8500,Hydac / Parker India,B,TRUE
+COOL-CORE-01,Hydraulic oil cooler core (brazed plate heat exchanger),eaf_bof_auxiliary,EAF.AUX.HYD01,1,1,6,3200,Alfa Laval India,B,TRUE
+OIL-HYD-ISO46,Hydraulic oil ISO VG 46 (200L drum),eaf_bof_auxiliary|hydraulics_agc_servo,EAF.AUX.HYD01|CRM.AGC.SV01,4,4,0,720,Shell Tellus / Castrol India,C,TRUE
+FLT-HYD-003,Hydraulic filter element 3 µm absolute (servo circuit pressure),hydraulics_agc_servo,CRM.AGC.SV01,4,4,0,220,Pall / Hydac India,B,TRUE
+FLT-SERVO-3,Servo filter element 3 µm absolute (Pall HC9800),hydraulics_agc_servo,CRM.AGC.SV01,4,4,0,220,Pall India,B,TRUE
+SERVO-VLV-D661,Moog D661 series servo valve (AGC screwdown),hydraulics_agc_servo,CRM.AGC.SV01,1,1,10,14000,Moog India,A,TRUE
+SERVO-VLV-REBUILT,Moog D661 servo valve (exchange/rebuilt),hydraulics_agc_servo,CRM.AGC.SV01,1,1,6,7500,Moog India authorized repair,A,TRUE
+HYD-PUMP-PIST,Hydraulic piston pump (Rexroth A10V) cartridge kit,hydraulics_agc_servo|eaf_bof_auxiliary,CRM.AGC.SV01|EAF.AUX.HYD01,2,2,4,2800,Bosch Rexroth India,B,TRUE
+INLINE-PART-SNS,Inline particle sensor (ISO 4406 live monitor),hydraulics_agc_servo|eaf_bof_auxiliary,CRM.AGC.SV01|EAF.AUX.HYD01,1,1,6,9500,Hydac / Parker India,B,TRUE
+WATER-SNSR-PPM,Water-in-oil sensor (capacitive ppm),eaf_bof_auxiliary,EAF.AUX.HYD01,2,2,4,1400,Hydac / Parker India,B,TRUE
+ACCUM-BLADDER,Hydraulic accumulator bladder (Hydac SBO),eaf_bof_auxiliary|hydraulics_agc_servo,EAF.AUX.HYD01|CRM.AGC.SV01,3,2,4,680,Hydac India,B,TRUE
+ROPE-CRN-01,Wire rope 6×36 IWRC 60mm (custom length/spec per crane),ladle_crane,MS.LDC.CRN01,1,1,6,9000,WireRope Corp / Usha Martin,A,TRUE
+SOCK-WEDGE-01,Wedge socket rope termination (BS EN 13411-4),ladle_crane,MS.LDC.CRN01,4,4,0,350,Crosby / Acco India,B,TRUE
+BRAKE-PAD-01,Crane brake friction shoe/disc set (hoist + travel),ladle_crane,MS.LDC.CRN01,4,4,4,450,Carlisle / Scanreco India,B,TRUE
+BRAKE-THR-01,Electro-hydraulic brake thruster (Demag / Decel),ladle_crane,MS.LDC.CRN01,1,1,8,2200,Konecranes / Decel India,B,TRUE
+CRANE-GBX-OIL,Hoist gearbox oil ISO VG 220 (20L),ladle_crane,MS.LDC.CRN01,4,4,0,380,Castrol India,C,TRUE
+MFL-HEAD-01,Magnetic flux leakage rope inspection head,ladle_crane,MS.LDC.CRN01,1,1,8,18000,Eddyfi / NDT Global India,A,TRUE
+HOOK-ASSY-01,Hoist hook block assembly (SWL rated),ladle_crane,MS.LDC.CRN01,0,1,16,35000,Konecranes OEM,A,FALSE
+CRANE-BRG-HOIST,Hoist drum shaft bearing set (FAG 23240),ladle_crane,MS.LDC.CRN01,1,1,6,3800,FAG / Schaeffler India,B,TRUE
+ROPE-LUBR-01,Wire rope lubricant (penetrating type) 25L drum,ladle_crane,MS.LDC.CRN01,4,4,0,350,Castrol Molub-Alloy India,C,TRUE
+VIB-ACCL-01,Accelerometer sensor (MEMS 4-20mA 2-wire loop),rolling_mill_work_roll_bearing|large_induction_motor_vfd|mill_gearbox,HSM.F3.WR.BRG01|HSM.F1.MTR01|HSM.F1.GBX01,10,6,2,480,PCB / Wilcoxon Research India,B,TRUE
+GREASE-LITHO,Lithium-complex bearing grease NLGI 2 (18kg pail),rolling_mill_work_roll_bearing|hot_strip_mill_stand|raw_material_conveyor,HSM.F3.WR.BRG01|HSM.STD.R1|RM.CONV.ORE01,8,4,0,320,Molykote / Castrol India,C,TRUE
+SEAL-VITON-01,Viton O-ring assortment kit (hydraulic pressure service),hydraulics_agc_servo|eaf_bof_auxiliary|cooling_descaling_pump,CRM.AGC.SV01|EAF.AUX.HYD01|HSM.DSC.PMP01,6,4,1,380,Parker India,C,TRUE
+BRG-ANGULAR-01,Angular contact ball bearing pair pump thrust SKF 7320,cooling_descaling_pump,HSM.DSC.PMP01|BF.CW.PMP02,2,2,2,980,SKF India,B,TRUE
+LASER-ALIGN-KT,Shaft laser alignment kit (Pruftechnik Rotalign Touch),rolling_mill_work_roll_bearing|large_induction_motor_vfd|cooling_descaling_pump,HSM.F3.WR.BRG01|HSM.F1.MTR01|HSM.DSC.PMP01,1,1,4,12000,Pruftechnik / Rotalign India,B,TRUE
+INFRA-CAM-01,Infrared thermal camera 320×240 (portable),reheating_furnace|raw_material_conveyor|ladle_crane,RHF.ZONE.SOAK|RM.CONV.ORE01|MS.LDC.CRN01,1,1,3,8500,FLIR / Fluke India,B,TRUE
+ULTR-TESTER-01,Ultrasound detector (airborne/structure-borne),raw_material_conveyor|rolling_mill_work_roll_bearing,RM.CONV.ORE01|HSM.F3.WR.BRG01,1,1,2,4200,UE Systems India,B,TRUE
+INDUCTION-HTR,Bearing induction heater 0-120°C controlled (SKF TIH 100),rolling_mill_work_roll_bearing|mill_gearbox|large_induction_motor_vfd,HSM.F3.WR.BRG01|HSM.F1.GBX01|HSM.F1.MTR01,1,1,2,6500,SKF India,B,TRUE
+HYD-PULLER-01,Hydraulic bearing puller set (100 kN),rolling_mill_work_roll_bearing|mill_gearbox,HSM.F3.WR.BRG01|HSM.F1.GBX01,1,1,1,3800,SKF / Enerpac India,B,TRUE
+LOTO-KIT-01,LOTO lockout-tagout kit (multi-energy) per station,rolling_mill_work_roll_bearing|large_induction_motor_vfd|cooling_descaling_pump,HSM.F3.WR.BRG01|HSM.F1.MTR01|HSM.DSC.PMP01,10,10,0,280,Brady India,C,TRUE

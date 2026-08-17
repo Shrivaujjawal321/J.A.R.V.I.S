@@ -1,0 +1,167 @@
+# Security Audit Report
+
+**Audit ID:** `5e4d363b-c648-4d20-8b26-881d71d515b9`  
+**Target:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy`  
+**Generated:** 2026-06-05 11:17 UTC  
+**Scanners:** semgrep, trivy, osv, gitleaks, trufflehog
+
+## Summary
+
+| Severity | Count |
+|---|---|
+| Critical | 17 |
+| High | 1 |
+| Medium | 0 |
+| Low | 0 |
+| Info | 0 |
+
+## Top Findings
+
+### 1. [CRITICAL] gitleaks.slack-webhook-url
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/_types.py` line 2475  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'slack-webhook-url': hook...XXXX (match: hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXX)
+```
+
+### 2. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/_experimental/out/_next/static/chunks/0ac09b227f50edb4.js` line 20  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...-key (match: curl -X POST "your-proxy-url/v1/responses" \\
+  -H "Authoriz)
+```
+
+### 3. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/model_management_endpoints.py` line 1017  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': LITE..._KEY (match: curl:
+
+    ```bash
+    curl -L -X POST 'http://0.0.0.0:4000/)
+```
+
+### 4. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 861  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl --location 'http://localhost:4000/v1/mcp/server' \
+    )
+```
+
+### 5. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 865  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl --location 'http://localhost:4000/v1/mcp/server?team_id)
+```
+
+### 6. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 1003  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl --location 'http://localhost:4000/v1/mcp/server/health')
+```
+
+### 7. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 1007  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl --location 'http://localhost:4000/v1/mcp/server/health?)
+```
+
+### 8. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 1262  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl --location 'http://localhost:4000/v1/mcp/server/server_)
+```
+
+### 9. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 1808  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl -X "DELETE" --location 'http://localhost:4000/v1/mcp/se)
+```
+
+### 10. [CRITICAL] gitleaks.curl-auth-header
+
+**Location:** `/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/management_endpoints/mcp_management_endpoints.py` line 2130  
+**CVSS 4.0:** 9.3  
+**CWE:** CWE-798  
+**OWASP:** SECRETS  
+**Status:** needs_manual  
+**Confidence:** 50%  
+
+**Evidence:**
+```
+Secret detected by rule 'curl-auth-header': your...here (match: curl -X "PUT" --location 'http://localhost:4000/v1/mcp/serve)
+```
+
+---
+
+*Generated by AuditAgent (Jarvis). Defensive-only. Authorized targets only. This report may contain false positives; confirm findings manually before acting.*

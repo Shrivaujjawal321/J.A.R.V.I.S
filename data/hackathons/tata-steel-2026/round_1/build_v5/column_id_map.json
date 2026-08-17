@@ -1,0 +1,198 @@
+{
+  "X1": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X2": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X3": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X4": {
+    "category": "coiling_temp_520_740C",
+    "confidence": "high"
+  },
+  "X5": {
+    "category": "coiling_temp_520_740C",
+    "confidence": "high"
+  },
+  "X6": {
+    "category": "coiling_temp_520_740C",
+    "confidence": "high"
+  },
+  "X7": {
+    "category": "strip_width_mm_500_2000",
+    "confidence": "medium"
+  },
+  "X8": {
+    "category": "strip_width_mm_500_2000",
+    "confidence": "medium"
+  },
+  "X9": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X10": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X11": {
+    "category": "integer_categorical_grade_or_code",
+    "confidence": "high"
+  },
+  "X12": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X13": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X14": {
+    "category": "coiling_temp_520_740C",
+    "confidence": "high"
+  },
+  "X15": {
+    "category": "final_thickness_mm_1_10",
+    "confidence": "medium"
+  },
+  "X16": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X17": {
+    "category": "entry_finish_temp_1000_1250C",
+    "confidence": "high"
+  },
+  "X18": {
+    "category": "finishing_temp_820_950C",
+    "confidence": "high"
+  },
+  "X19": {
+    "category": "strip_width_mm_500_2000",
+    "confidence": "medium"
+  },
+  "X20": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X21": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X22": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X23": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X24": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X25": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X26": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X27": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X28": {
+    "category": "final_thickness_mm_1_10",
+    "confidence": "medium"
+  },
+  "X29": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X30": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X31": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X32": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X33": {
+    "category": "specific_force_kNmm_5_20",
+    "confidence": "medium"
+  },
+  "X34": {
+    "category": "large_scale_weight_or_length",
+    "confidence": "medium"
+  },
+  "X35": {
+    "category": "large_scale_weight_or_length",
+    "confidence": "medium"
+  },
+  "X36": {
+    "category": "large_scale_weight_or_length",
+    "confidence": "medium"
+  },
+  "X37": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X38": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X39": {
+    "category": "integer_categorical_grade_or_code",
+    "confidence": "high"
+  },
+  "X40": {
+    "category": "integer_categorical_grade_or_code",
+    "confidence": "high"
+  },
+  "X41": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X42": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X43": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X44": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X45": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X46": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X47": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X48": {
+    "category": "unknown",
+    "confidence": "low"
+  },
+  "X49": {
+    "category": "unknown",
+    "confidence": "low"
+  }
+}

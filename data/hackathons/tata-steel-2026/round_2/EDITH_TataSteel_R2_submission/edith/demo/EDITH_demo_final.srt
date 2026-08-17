@@ -1,0 +1,47 @@
+1
+00:00:06,000 --> 00:00:17,250
+THE EDITH — agentic maintenance copilot · Tata Steel AI Hackathon R2
+
+2
+00:00:17,250 --> 00:00:27,750
+Plain-language verdict — what's wrong, how urgent, what to do
+
+3
+00:00:27,750 --> 00:00:38,620
+Early gear-tooth wear detected — guided steps for the engineer
+
+4
+00:00:38,620 --> 00:00:51,250
+Live monitoring — ISO-grounded thresholds · self-explaining alerts
+
+5
+00:00:51,250 --> 00:00:59,980
+Ask EDITH — state-aware suggestions
+
+6
+00:00:59,980 --> 00:02:20,150
+PS-format answer: diagnosis · root cause · RUL · risk · actions — all cited
+
+7
+00:02:20,150 --> 00:02:32,640
+"How EDITH decided" — full multi-agent reasoning trace
+
+8
+00:02:32,640 --> 00:02:39,030
+Feedback loop — EDITH learns from the engineer
+
+9
+00:02:39,030 --> 00:02:46,020
+Automatic per-machine digital logbook
+
+10
+00:02:46,020 --> 00:02:53,550
+Role-based alert routing — operator / engineer / manager
+
+11
+00:02:53,550 --> 00:03:56,890
+One-click structured report — shareable link + branded PDF
+
+12
+00:03:56,890 --> 00:04:10,030
+Fast · grounded · explainable — THE EDITH

@@ -1,0 +1,25 @@
+{
+  "oof_auc": 0.7977579056505961,
+  "v5_baseline_auc": 0.8886,
+  "delta_vs_v5": -0.09084209434940382,
+  "chosen_threshold": 0.008687396094209297,
+  "chosen_score_oof": 52.84952746107019,
+  "recall_at_T": 0.9848484848484849,
+  "precision_at_T": 0.07214206437291898,
+  "n_pos_test": 201,
+  "bootstrap_ci_oof": [
+    50.84003587364755,
+    54.303865420511094
+  ],
+  "lb_estimate_corrected": 55.51952746107019,
+  "specialist_grades": [
+    158,
+    159,
+    160,
+    161,
+    162
+  ],
+  "specialist_coverage_train": 0.367603550295858,
+  "specialist_coverage_test": 0.3421828908554572,
+  "v4_actual_lb": 56.98113
+}

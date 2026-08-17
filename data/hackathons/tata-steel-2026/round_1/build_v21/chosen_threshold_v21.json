@@ -1,0 +1,26 @@
+{
+  "v21_standalone_oof_auc": 0.5,
+  "v21_standalone_score_oof": 52.44082840236687,
+  "v5_baseline_auc": 0.8886,
+  "delta_vs_v5": -0.38859999999999995,
+  "fold_aucs": [
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "best_blend_weight": 0.0,
+  "best_blend_auc": 0.8836832555728356,
+  "best_blend_score_oof": 53.71285065232796,
+  "chosen_threshold": 0.022168946835518615,
+  "recall_at_T": 0.9848484848484849,
+  "precision_at_T": 0.08940852819807428,
+  "n_pos_test": 145,
+  "bootstrap_ci_oof": [
+    51.62285213042936,
+    55.33722688328243
+  ],
+  "lb_estimate_corrected": 56.38285065232796,
+  "v4_actual_lb": 56.98113
+}

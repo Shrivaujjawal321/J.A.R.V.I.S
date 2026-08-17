@@ -1,0 +1,116 @@
+{
+  "version": "V6",
+  "model_type": "FT-Transformer (hand-rolled) + V5 tree-stack blend",
+  "training": {
+    "fold_aucs": [
+      0.817531305903399,
+      0.8518621456364647,
+      0.83507931756959,
+      0.9353486979946124,
+      0.8653097874887759
+    ],
+    "mean_fold_auc": 0.8610262509185684,
+    "std_fold_auc": 0.04047520041366093,
+    "global_oof_auc": 0.8425114284367784,
+    "total_train_min": 8.18,
+    "architecture": {
+      "d_token": 96,
+      "n_blocks": 3,
+      "n_heads": 4,
+      "d_ffn": 192,
+      "attn_drop": 0.2,
+      "ffn_drop": 0.2
+    }
+  },
+  "standalone_v6": {
+    "oof_score": 52.53261703760552,
+    "threshold": 0.00666750967502594,
+    "recall": 1.0,
+    "precision": 0.05065234075211052
+  },
+  "blend_5050": {
+    "oof_score": 52.9126213592233,
+    "oof_auc": 0.8660987793958244,
+    "threshold": 0.018824147353124134
+  },
+  "blend_9010_HEADLINE": {
+    "oof_score": 54.11471321695761,
+    "oof_auc": 0.8859983976624723,
+    "threshold": 0.0259201296892036,
+    "bootstrap_ci_95": [
+      53.951977623699975,
+      54.296875
+    ],
+    "corrected_lb_estimate": 56.78471321695761,
+    "corrected_lb_ci": [
+      56.621977623699976,
+      56.966875
+    ],
+    "n_pos_test": 161
+  },
+  "v5_reference": {
+    "oof_score": 53.7006,
+    "oof_auc": 0.8886,
+    "v4_actual_lb": 56.98,
+    "v4_oof_predicted": 54.31,
+    "observed_lb_bias": 2.67
+  },
+  "diversity": {
+    "v5_v6_correlation_all": 0.6730708275860297,
+    "v5_v6_correlation_positives": 0.5748852705338396,
+    "hard_defects_v5_low": 10,
+    "v6_rescues_on_hard": 6,
+    "v6_rescue_coil_ids": [
+      72,
+      473,
+      708,
+      709,
+      1153,
+      1436
+    ]
+  },
+  "threshold_sensitivity": [
+    {
+      "delta": -0.005,
+      "T": 0.0209201296892036,
+      "score": 53.39506172839506,
+      "R": 1.0,
+      "P": 0.06790123456790123,
+      "n_pos": 972
+    },
+    {
+      "delta": -0.002,
+      "T": 0.023920129689203602,
+      "score": 53.81944444444444,
+      "R": 1.0,
+      "P": 0.0763888888888889,
+      "n_pos": 864
+    },
+    {
+      "delta": 0,
+      "T": 0.0259201296892036,
+      "score": 54.11471321695761,
+      "R": 1.0,
+      "P": 0.08229426433915212,
+      "n_pos": 802
+    },
+    {
+      "delta": 0.002,
+      "T": 0.0279201296892036,
+      "score": 52.72888031508721,
+      "R": 0.9696969696969697,
+      "P": 0.08488063660477453,
+      "n_pos": 754
+    },
+    {
+      "delta": 0.005,
+      "T": 0.0309201296892036,
+      "score": 53.023855577047065,
+      "R": 0.9696969696969697,
+      "P": 0.09078014184397164,
+      "n_pos": 705
+    }
+  ],
+  "calibration_note": "V4 actual LB was 56.98 vs OOF prediction 54.31 = +2.67 systematic upward bias on test set. Applied to V6 blend 90/10 OOF=54.11 -> estimated LB 56.78.",
+  "verdict": "V6 FT-Transformer standalone is weaker than V5 (OOF 52.53 vs 53.70). However, 90/10 blend (V5=0.9, V6=0.1) achieves OOF 54.11 (+0.41 vs V5). V6 rescues 2-3 hard defects V5 misses, adding marginal diversity. Recommended submission: 90/10 blend."
+}

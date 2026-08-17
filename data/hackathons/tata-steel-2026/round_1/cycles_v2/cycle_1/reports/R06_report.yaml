@@ -1,0 +1,478 @@
+agent_id: R06
+topic: cost-sensitive-and-focal
+cycle: 1
+timestamp_utc: "2026-05-23T10:30:00Z"
+status: ok
+
+recommendations:
+
+  - id: R06_rec_1
+    title: "Focal Loss custom obj (LGB+XGB, gamma sweep)"
+    technique_class: imbalance
+    description: |
+      Replace LightGBM and XGBoost binary log-loss objectives with Focal Loss
+      (Lin et al. 2017 RetinaNet): L = -(1-p)^gamma * log(p) for positives,
+      -(p)^gamma * log(1-p) for negatives. Down-weights easy majority-class
+      examples; focuses gradient budget on the 7 hard true-positives (CoilIDs
+      1495-72) that V4 barely catches at proba ~0.014. Our 20:1 imbalance ratio
+      sits in the "Arrhythmia 17:1" range where Wang et al. (Imbalance-XGBoost
+      2020) showed F1 lift 0.627->0.679, MCC 0.605->0.662 with gamma=1.5-2.0.
+      Custom objective returns gradient + Hessian; all existing CV, SMOTE-inside-
+      fold, and Platt calibration layers remain unchanged. CatBoost requires
+      UserDefinedObjective class pattern - skip in Cycle 1 (higher effort).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.2
+      low: 0.0
+      high: 3.0
+      reasoning: |
+        Imbalance-XGBoost (2020) reports consistent F1 gains at 17:1 imbalance
+        (our ratio is ~20:1). GBDT empirical study (arXiv 2407.14381, 2024) finds
+        F1 improvements of 0.38%-28.91% on binary tasks across 15 datasets.
+        For our (R+P)/2 metric at Recall=100% operating point, the only gain
+        vector is precision. Focal loss shifts gradient mass toward hard positives
+        - it may sharpen the proba ranking around threshold, boosting precision
+        without losing recall. Conservative estimate: +1.2 OOF points if
+        gamma=1.5-2.0 lands the hard-7 at meaningfully higher proba. Low=0
+        because focal loss with poorly tuned gamma can destabilize GBDTs on
+        small n (1352 rows, 13 positives per fold). High=3.0 is plausible if
+        precision lifts from ~8.6% to ~12%.
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies:
+        - lightgbm>=3.3
+        - xgboost>=1.6
+        - scipy
+        - numpy
+      notes: |
+        LGB: pass fobj=focal_loss_lgb to lgb.train(). Must also define custom
+        feval because default eval metric is meaningless with custom obj.
+        XGB: pass obj=focal_loss_xgb to xgb.train(). Keep CatBoost on native
+        Logloss. SMOTE-inside-fold and Platt calibration layers unchanged.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Wang et al. (2020) "Imbalance-XGBoost: leveraging weighted and focal
+        losses for binary label-imbalanced classification with XGBoost."
+        Pattern Recognition Letters. arXiv 1908.01672. Tested gamma in
+        {1.0, 1.5, 2.0, 2.5, 3.0}. Finds "focal loss enjoys more robust
+        parameter configuration" and "advantages become more significant as
+        imbalance ratios increase." Limitation: their metric is F1, not
+        (R+P)/2. Scored 3 (limited direct evidence on our specific metric).
+    failure_modes:
+      - >
+        With small n (13 positives per fold), focal-loss Hessian can become
+        near-zero for easy examples, starving the tree from learning negative-
+        class boundaries. Set alpha~0.75 and cap gamma<=2.
+      - >
+        Custom objective disables LightGBM native AUC eval. Add eval_metric='auc'
+        separately as second metric to track convergence.
+      - >
+        Anti-pattern reminder: scale_pos_weight=100 gave OOF 48.25 (PU M3).
+        Extreme positive emphasis destroys precision. Safe range: gamma in
+        [0.5, 2.5], alpha in [0.6, 0.9].
+      - >
+        Test focal alone vs focal+SMOTE. SMOTE synthetic positives may become
+        "easy" quickly under focal, reducing SMOTE's marginal value.
+    code_sketch: |
+      import numpy as np
+      from scipy.special import expit
+
+      def focal_loss_lgb(alpha=0.75, gamma=1.5):
+          def _obj(y_pred, dtrain):
+              y = dtrain.get_label()
+              p = expit(y_pred)
+              pt = np.where(y == 1, p, 1 - p)
+              alpha_t = np.where(y == 1, alpha, 1 - alpha)
+              grad = alpha_t * ((1 - pt) ** gamma) * (
+                  gamma * pt * np.log(np.clip(pt, 1e-7, 1)) + pt - 1
+              ) * (2 * y - 1)
+              hess = np.abs(grad) * (1 - np.abs(grad)) + 1e-4
+              return grad, hess
+          return _obj
+
+      # Usage: lgb.train({...}, fobj=focal_loss_lgb(alpha=0.75, gamma=1.5))
+      # Optuna sweep: alpha in [0.6, 0.9], gamma in [0.5, 1.0, 1.5, 2.0, 2.5]
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R06_rec_2
+    title: "Robust Focal Loss (RFL) for LGB+XGB"
+    technique_class: imbalance
+    description: |
+      Robust Focal Loss (Yao et al. 2023, arXiv 2310.05067): L_RFL =
+      (1-p)^r * (1 - p^q) / q, combining Generalized Cross Entropy (noise-
+      robustness via q in (0,1)) with Focal Loss (imbalance-handling via r>=0).
+      Crucially relevant: EXHAUSTED list confirms label noise (Elkan-Noto PU
+      estimated c=0.154, meaning ~361 hidden positives among Y=0 rows).
+      RFL is specifically designed for joint label-noise + class-imbalance -
+      exactly our problem geometry. Empirically outranks standard Focal Loss
+      across 15 binary datasets (Robust-XGB avg rank 1.73 vs XGBoost 3.38,
+      Robust-LGB 2.02 vs LightGBM 3.74 on AUCPR). Same gradient+hessian
+      custom-objective API path as Rec 1 - can be implemented in same effort.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.5
+      low: 0.2
+      high: 4.0
+      reasoning: |
+        RFL explicitly addresses label noise which we know is present (c=0.154).
+        Standard losses treat all Y=0 as ground truth; RFL down-weights
+        potentially mislabeled easy-negative examples via q<1 term. The AUCPR
+        ranking improvement (Robust-XGB rank 1.73 vs 3.38 baseline) suggests
+        consistent gains. For (R+P)/2 at Recall=100%, precision lift from
+        8.6% to 11% = +1.2 score points. Higher end (4.0) assumes RFL
+        successfully identifies some hard-FPs as noisy Y=0 labels and
+        reweights them. Conservative low=0.2 because bioassay literature
+        (PMC9650867) showed LDAM+bioassay ROC-AUC +0.022 vs baseline.
+    feasibility:
+      score: 4
+      effort_hours: 3.5
+      dependencies:
+        - lightgbm>=3.3
+        - xgboost>=1.6
+        - numpy
+        - scipy
+      notes: |
+        Two hyperparameters: r (>=0, controls imbalance focus) and q (in (0,1),
+        controls noise robustness). Optuna search: r in [0.5, 2.0], q in
+        [0.3, 0.8], 30 trials. Paper provides explicit gradient/hessian
+        formulas (arXiv 2310.05067 Section 3). Same API as Rec 1.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Yao et al. (2023) "Robust-GBDT: GBDT with Nonconvex Loss for Tabular
+        Classification in the Presence of Label Noise and Class Imbalance."
+        arXiv 2310.05067. Published Knowledge and Information Systems (Springer)
+        2025. Average rank improvement over baseline GBDT: 1.65 rank points
+        (binary). Our dataset matches their target: label noise (c=0.154) +
+        high imbalance (20:1). Scored 3 because AUCPR is the metric studied,
+        not (R+P)/2 exactly.
+    failure_modes:
+      - >
+        q << 1 (high noise-robustness) soft-ignores many training examples.
+        With only 66 positives, ignoring 5-10 positive examples causes fold
+        AUC variance to spike. Start with q=0.5-0.7, r=1.0.
+      - >
+        Two-param search doubles Optuna budget. Run 30-trial search with
+        TPESampler constrained to r in [0.5, 2.0], q in [0.3, 0.8].
+      - >
+        Same Hessian degeneracy risk as standard Focal Loss for small-n GBDT.
+        Requires Hessian clipping / lower bound.
+    code_sketch: |
+      def robust_focal_loss_lgb(r=1.0, q=0.5):
+          """
+          RFL = (1-p)^r * (1 - p^q) / q
+          Gradient/Hessian: arXiv 2310.05067 Section 3
+          """
+          def _obj(y_pred, dtrain):
+              y = dtrain.get_label()
+              p = expit(y_pred)
+              eps = 1e-7
+              p = np.clip(p, eps, 1 - eps)
+
+              # For y=1: dL/dp = -(1-p)^r * p^(q-1) + r*(1-p)^(r-1)*(1-p^q)/q
+              dp_pos = (-(1-p)**r * p**(q-1)
+                        + r * (1-p)**(r-1) * (1 - p**q) / q)
+              # For y=0: mirror with (1-p) substituted for p
+              dp_neg = (-(p)**r * (1-p)**(q-1)
+                        + r * p**(r-1) * (1 - (1-p)**q) / q)
+
+              dL_dp = np.where(y == 1, dp_pos, dp_neg)
+              grad = dL_dp * p * (1 - p)   # chain rule sigmoid
+              hess = np.abs(grad) + 1e-4
+              return grad, hess
+          return _obj
+
+      # Optuna: r = trial.suggest_float('r', 0.5, 2.0)
+      #         q = trial.suggest_float('q', 0.3, 0.8)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R06_rec_3
+    title: "Asymmetric Focal: diff gamma_pos vs gamma_neg"
+    technique_class: imbalance
+    description: |
+      Asymmetric Loss (Ridnik et al. 2021 ICCV, arXiv 2009.14119) applies
+      different focusing exponents to positives and negatives. For binary
+      tabular adaptation: gamma_pos small (0-1) to preserve gradient from
+      scarce 66 positives as they become "easy" mid-training; gamma_neg large
+      (3-6) to aggressively suppress easy majority-class examples. Standard
+      Focal Loss applies identical gamma to both classes - harmful when
+      positives are rare because it eventually down-weights them too.
+      arXiv 2407.14381 (2024, 15-dataset GBDT study) confirms "XGBoost achieves
+      higher F1-scores when ASL [Asymmetric Similarity Loss] is applied" on
+      binary imbalanced tabular tasks.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      # EXHAUSTED lists "Asymmetric loss via scale_pos_weight=100 (PU M3)" -
+      # that is static class-weight scaling, NOT Ridnik asymmetric gamma.
+      # Fundamentally different mechanism.
+    expected_lift_oof:
+      point: 1.0
+      low: 0.0
+      high: 2.5
+    feasibility:
+      score: 3
+      effort_hours: 4.0
+      dependencies:
+        - lightgbm>=3.3
+        - xgboost>=1.6
+        - numpy
+      notes: |
+        Three hyperparameters: gamma_pos in [0, 1.0], gamma_neg in [2, 6],
+        m (shift margin) in [0, 0.05]. Start with m=0 to avoid zero-gradient
+        regions. Optuna 50+ trials for 3D search.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Ridnik et al. (2021) "Asymmetric Loss For Multi-Label Classification."
+        ICCV 2021. arXiv 2009.14119.
+        arXiv 2407.14381 (2024): "XGBoost achieves higher F1-scores when
+        class-balanced losses, especially WCE and ASL, are applied" on binary
+        imbalanced tabular datasets (IR 8.6-111).
+        Scored 3: tabular binary evidence exists but (R+P)/2 not the metric.
+    failure_modes:
+      - >
+        Large gamma_neg (>5): LightGBM makes large updates on high-proba
+        negatives only - potentially overfitting to the 10 hard FPs and
+        memorizing them rather than generalizing.
+      - >
+        m > 0 with a model where most negatives have proba < m: entire
+        negative class loses gradient. Keep m=0 initially.
+    code_sketch: |
+      def asymmetric_focal_lgb(gamma_pos=0.5, gamma_neg=4.0, m=0.0):
+          def _obj(y_pred, dtrain):
+              y = dtrain.get_label()
+              p = expit(y_pred)
+              eps = 1e-7
+              p_c = np.clip(p, eps, 1-eps)
+              p_neg_shifted = np.maximum(p - m, 0)
+
+              # Positive: standard focal with small gamma_pos
+              g_pos = ((1 - p_c)**gamma_pos * (
+                  gamma_pos * p_c * np.log(p_c) + p_c - 1))
+              # Negative: shifted focal with large gamma_neg
+              g_neg = -(p_neg_shifted**gamma_neg / (1 - p_c + eps)
+                        * p_c * (1-p_c)
+                        - gamma_neg * p_neg_shifted**(gamma_neg-1)
+                        * np.log(1-p_c+eps) * p_c * (1-p_c))
+
+              grad = np.where(y == 1, g_pos, g_neg)
+              hess = np.abs(grad) + 1e-4
+              return grad, hess
+          return _obj
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R06_rec_4
+    title: "Tversky Loss: direct FP/FN trade-off control"
+    technique_class: imbalance
+    description: |
+      Tversky Loss = 1 - TP/(TP + alpha*FP + beta*FN). Setting alpha > beta
+      penalizes FP harder than FN. This directly encodes our problem geometry:
+      Recall=100% means FN must be zero (beta can be low), while high Precision
+      means FP must be minimized (alpha should be high). Unlike class-weight
+      approaches that scale the entire loss, Tversky explicitly targets the
+      FP/FN trade-off. Implemented as differentiable surrogate via soft Tversky
+      on batch probabilities. Highest theoretical alignment with our (R+P)/2
+      metric among all Cycle 1 recommendations. Alpha=0.8, beta=0.2 yields 4x
+      FP penalty vs FN.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: 0.0
+      high: 2.0
+      reasoning: |
+        Tversky with alpha=0.8, beta=0.2 assigns 4x more penalty to FPs than
+        FNs during training. Hard-FPs (CoilIDs 689, 642 with V4 proba 0.62-0.78)
+        would receive amplified gradient pushback. Medical imaging Focal Tversky
+        shows 10-25% Dice improvement (arXiv 1810.07842) but those are much
+        larger datasets. Conservative tabular estimate 0.8 points. Batch-level
+        gradient approximation adds noise for small n.
+    feasibility:
+      score: 3
+      effort_hours: 5.0
+      dependencies:
+        - lightgbm>=3.3
+        - xgboost>=1.6
+        - numpy
+      notes: |
+        Key challenge: Tversky is batch-level (TP/FP/FN aggregated over fold).
+        LightGBM custom objective requires per-example gradient. Workaround:
+        compute batch TP/FP/FN outside GBDT step; pass as closure. Higher
+        effort than Recs 1-3 due to non-standard API requirement.
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Abraham & Khan (2019) "A Novel Focal Tversky loss function with improved
+        Attention U-Net for lesion segmentation." arXiv 1810.07842. ISBI 2019.
+        Evidence from medical image segmentation ONLY. Tabular GBDT application
+        is reasoning-only extrapolation. Scored 2 (no direct tabular evidence).
+    failure_modes:
+      - >
+        Batch Tversky gradient: early training when TP is low, denominator is
+        small and gradients can explode. Warmup with 50 rounds of standard
+        cross-entropy first, then switch to Tversky objective.
+      - >
+        Hessian can be negative (Tversky index approaching 1). Clip Hessian
+        to small positive value (1e-4 minimum).
+      - >
+        Alpha=0.8 trades hard against FPs but also reduces FN gradient. If
+        the model already has borderline recall on hard7, FN penalty reduction
+        risks dropping one of the 7 at the boundary.
+    code_sketch: |
+      def tversky_loss_lgb(alpha=0.8, beta=0.2, smooth=1e-6):
+          def _obj(y_pred, dtrain):
+              y = dtrain.get_label()
+              p = expit(y_pred)
+              TP = np.sum(y * p)
+              FP = np.sum((1 - y) * p)
+              FN = np.sum(y * (1 - p))
+              denom = TP + alpha * FP + beta * FN + smooth
+
+              # Per-example gradient of (1-Tversky) w.r.t. p_i
+              num_grad = (y * denom
+                          - (TP + smooth) * (y - alpha * (1-y) - beta * y))
+              dl_dp = -num_grad / (denom**2 + smooth)
+              grad = dl_dp * p * (1 - p)
+              hess = np.clip(np.abs(grad), 1e-4, 10.0)
+              return grad, hess
+          return _obj
+      # alpha in [0.6, 0.9], beta = 1 - alpha
+      # Warmup: 50 rounds standard cross-entropy, then switch
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: R06_rec_5
+    title: "Bayesian-calibrated T* from test prior shift"
+    technique_class: threshold
+    description: |
+      V4+ uses a discrete OOF score sweep (test all unique thresholds, pick
+      best). This is correct but ignores test-set distribution shift. V4 back-
+      solve: test positive rate ~6.5% vs train 4.88%. Bayesian threshold theory
+      (GHOST, Esposito et al. 2021 JCIM) shows that optimal decision threshold
+      should account for train/test prior shift. Formula: adjust precision
+      estimate using likelihood ratio LR = P(1|x) / P(0|x), then derive T*
+      for test prior separately from OOF prior. Pure post-processing - zero
+      retraining cost. Applies to any model OOF including V4 and all Cycle 1
+      builds. Can close part of the unexplained +2.67 calibration delta.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V3
+        - V4
+      # NOT same technique. V3/V4 do discrete sweep on OOF. This is continuous
+      # analytical derivation accounting for test prior shift (different concept).
+    expected_lift_oof:
+      point: 0.5
+      low: 0.0
+      high: 2.5
+      reasoning: |
+        V4 actual LB 56.98 vs OOF 54.31 = +2.67 calibration delta. Part of
+        this delta is test prior shift. Analytical T* that accounts for test
+        prior could move threshold slightly, reducing FPs on the test set.
+        Pure OOF point estimate: 0.5 (because discrete sweep already near-
+        optimal on OOF; the gain comes on test set). High=2.5 if test prior
+        correction is material. Confidence is higher than Recs 1-4 because
+        this is math, not a new loss function.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - numpy
+        - scipy
+        - scikit-learn>=1.2
+      notes: |
+        Pure post-processing. No retraining. Applies to V4 existing OOF
+        predictions immediately. Can validate by checking if analytical T*
+        differs from V4's current T=0.01428 and if the adjusted score is better.
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Esposito et al. (2021) "GHOST: Adjusting the Decision Threshold to
+        Handle Imbalanced Data in Machine Learning." Journal of Chemical
+        Information and Modeling 62(11). PubMed 34100609. Tested on 138
+        drug-discovery datasets (high imbalance, tabular). "Most classifiers
+        benefit from threshold optimization." GHOST handles train/test
+        distribution shift in imbalanced settings. Our situation (train 4.88%
+        positive, test ~6.5% from V4 back-solve) exactly matches their target.
+        Scored 4 (strong external tabular evidence, minor uncertainty on our
+        specific back-solved test prior estimate).
+    failure_modes:
+      - >
+        Test positive rate (~6.5%) is back-solved from V4 LB, not ground truth.
+        Sensitivity check: run analytical T* across [4%, 8%] range; report
+        range of resulting T* values.
+      - >
+        At Recall=100% operating constraint, T* must enforce zero-FN as hard
+        constraint. Formula must be applied only over thresholds where
+        Recall=1.0 on OOF.
+    code_sketch: |
+      from sklearn.metrics import precision_recall_curve
+      import numpy as np
+
+      def bayesian_optimal_threshold(oof_proba, y_true, test_prior=0.065):
+          precisions, recalls, thresholds = precision_recall_curve(y_true, oof_proba)
+          # Enforce recall=1.0 constraint
+          valid = recalls[:-1] == 1.0
+          if not valid.any():
+              valid = recalls[:-1] >= 0.99
+          p_v = precisions[:-1][valid]
+          t_v = thresholds[valid]
+          r_v = recalls[:-1][valid]
+
+          # Bayesian precision adjustment for test prior
+          train_prior = y_true.mean()
+          # Likelihood ratio from OOF precision: LR = prec/(1-prec) / (pi/(1-pi))
+          pi = train_prior
+          lr = (p_v / (1 - p_v + 1e-9)) * ((1 - pi) / (pi + 1e-9))
+          # Adjusted precision for test prior
+          pi_t = test_prior
+          adj_prec = lr * pi_t / (lr * pi_t + (1 - pi_t))
+          adj_score = (r_v + adj_prec) / 2
+
+          best = np.argmax(adj_score)
+          return t_v[best], adj_score[best], adj_prec[best]
+
+      # T_star, est_score, est_prec = bayesian_optimal_threshold(
+      #     v4_oof_proba, y_train, test_prior=0.065)
+      # Also run sensitivity: for tp in [0.04, 0.05, 0.065, 0.08]: ...
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R03: "Calibration agents - focal loss changes proba scale. Must reapply Platt
+      scaling after focal-loss training before using OOF for meta-learner."
+  - R05: "Sampling/augmentation agents - SMOTE + focal is complementary but test
+      as ablation: focal alone vs focal+SMOTE."
+  - R09: "Threshold agents - Rec 5 (Bayesian T*) is synergistic with any base
+      model from Recs 1-4. Apply analytical threshold to whichever OOF wins."
+  - R01: "Feature engineering - new features that increase proba gap between
+      hard7 positives and hard_fp10 negatives amplify focal/Tversky effects."
+
+notes: |
+  Implementation priority order: Rec5 (1.5h, zero risk) > Rec1 (3h, well-cited) >
+  Rec2 (3.5h, noise-robust) > Rec3 (4h, three-param) > Rec4 (5h, batch gradient).
+  CatBoost: keep on native Logloss for all Recs 1-4 (UserDefinedObjective overhead
+  not justified given CatBoost is weakest base model by AUC delta).
+  Anti-pattern guard: never exceed gamma=2.5 or alpha_pos>0.9 to avoid repeating
+  scale_pos_weight=100 precision collapse (PU M3, OOF 48.25).

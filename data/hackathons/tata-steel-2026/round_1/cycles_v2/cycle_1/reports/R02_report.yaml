@@ -1,0 +1,200 @@
+agent_id: R02
+topic: physics-cooling-coiler
+cycle: 1
+timestamp_utc: "2026-05-23T11:45:00Z"
+status: ok
+
+recommendations:
+
+  - id: R02_rec_1
+    title: "CT-spread: max(X4,X5,X6,X14)-min(...)"
+    technique_class: feature_engineering
+    description: |
+      Hot strip mills log coiling temperature at multiple pyrometer positions along
+      the coiler entry: head-end, mid-strip, and tail-end. X4, X5, X6, and X14 are
+      all confirmed coiling temperatures (range 520-760 C per V5 physics analysis).
+      Their spread -- max(X4,X5,X6,X14) - min(X4,X5,X6,X14) -- captures longitudinal
+      thermal non-uniformity. Zhu et al. (MDPI Metals 2020) quantifies that head and
+      tail have higher cooling rates than the body, causing microstructure
+      heterogeneity and elevated defect probability. V5 used individual CT columns
+      and FT/CT ratio but never computed a multi-sensor spread.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.2
+      low: 0.4
+      high: 3.0
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy>=1.24, pandas>=2.0]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Zhu et al. (2020). MDPI Metals 10(3):382. DOI: 10.3390/met10030382.
+        "Improvement of Longitudinal Performance Uniformity of Hot-Rolled Coils
+        for Cold-Rolled DP980 Steel." Quote: "The average cooling rate of the
+        head and tail parts are higher than that of the body part during coil
+        cooling, which causes the longitudinal performance fluctuation."
+    failure_modes:
+      - X4/X5/X6 may be redundant sensors at same position (not head/body/tail)
+      - Spread correlates with X6 (strongest individual CT)
+      - With only 66 defects, good AUC features may not move (R+P)/2
+    code_sketch: |
+      ct_cols = ['X4', 'X5', 'X6', 'X14']
+      df['v_ct_spread']   = df[ct_cols].max(axis=1) - df[ct_cols].min(axis=1)
+      df['v_ct_mean']     = df[ct_cols].mean(axis=1)
+      df['v_ct_std']      = df[ct_cols].std(axis=1)
+      df['v_ct_range_sq'] = df['v_ct_spread'] ** 2
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R02_rec_2
+    title: "Thickness-normalized cooling rate (X18-min_CT)/X15"
+    technique_class: feature_engineering
+    description: |
+      ROT cooling intensity is (FT - CT) / residence_time where residence_time
+      scales inversely with strip thickness. The proxy (X18 - min(X4,X5,X6,X14))
+      / X15 uses: X18=finishing temp, multi-sensor min CT = coldest point reached,
+      X15=final thickness (AUC 0.800, drops in defects). V5's FT/CT ratio did NOT
+      divide by thickness.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V5]
+    expected_lift_oof:
+      point: 0.8
+      low: 0.2
+      high: 2.0
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [numpy>=1.24, pandas>=2.0]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        IspatGuru (2024). Cooling of Strip on Run-out Table in a Hot Strip Mill.
+        17.85 C/s example case; strip velocity is most significant factor for CT
+        accuracy.
+    failure_modes:
+      - X15 has 160 missing values (KNN-imputed); imputation noise for ~12% rows
+      - If X15 is NOT thickness, physics interpretation breaks
+      - V5 polynomial may already generate X18/X14 x X15 cross-terms
+    code_sketch: |
+      ct_cols = ['X4', 'X5', 'X6', 'X14']
+      df['v_min_ct']          = df[ct_cols].min(axis=1)
+      df['v_cool_drop']       = df['X18'] - df['v_min_ct']
+      df['v_cool_rate_proxy'] = df['v_cool_drop'] / (df['X15'] + 1e-3)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R02_rec_3
+    title: "Grade-stratified CT deviation: X14 - mean_CT(X11)"
+    technique_class: feature_engineering
+    description: |
+      Each steel grade (X11, 17 unique values) has a grade-specific optimal coiling
+      temperature target. Feature: CT_dev = X14 - mean(X14|X11), computed CV-safe
+      (per-fold train split). V5 built grade x Ar3_dev using X18 around fixed 890 C
+      reference; this uses X14 around a grade-stratified mean -- physically distinct:
+      Ar3 dev measures rolling regime; CT-dev measures post-rolling transformation.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V5]
+    expected_lift_oof:
+      point: 1.0
+      low: 0.3
+      high: 2.5
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies: [numpy>=1.24, pandas>=2.0]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        ISIJ International (2018). "Effects of Coiling Temperature on Microstructure
+        and Precipitation Behavior in Nb-Ti Microalloyed Steels." 58(6).
+        DOI: 10.2355/isijinternational.ISIJINT-2017-614. Shows: 560 C acicular
+        ferrite (defect-prone), 600 C mixed, 640 C optimal polygonal ferrite.
+        Grade-specific windows span ~80 C.
+    failure_modes:
+      - Some X11 grade codes may have <10 rows. Grade-mean CT noisy
+      - CV-safe implementation required (V4 prev_5_defect_rate pattern)
+      - V15 per-grade specialist MODELS hurt AUC; this is FEATURE-only mitigation
+    code_sketch: |
+      # Inside CV fold:
+      grade_ct_mean = df.loc[train_idx].groupby('X11')['X14'].mean()
+      df.loc[train_idx, 'v_ct_dev_grade'] = (
+          df.loc[train_idx, 'X14']
+          - df.loc[train_idx, 'X11'].map(grade_ct_mean)
+      )
+      df.loc[val_idx, 'v_ct_dev_grade'] = (
+          df.loc[val_idx, 'X14']
+          - df.loc[val_idx, 'X11'].map(grade_ct_mean).fillna(0)
+      )
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R02_rec_4
+    title: "Phase-risk flags: CT<600C and spread>30C"
+    technique_class: feature_engineering
+    description: |
+      For low-carbon HSLA, coiling below 600 C pushes the strip into bainite-
+      formation zone. Binary flag encodes non-linearity tree models cannot represent
+      with linear splits on X14 alone. Second flag for spread(X4,X5,X6,X14) > 30 C
+      captures thermal inhomogeneity. Both novel: V5 built Ar3 flags based on X18
+      (finishing temp), not coiling temperature thresholds.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.6
+      low: 0.1
+      high: 1.5
+    feasibility:
+      score: 5
+      effort_hours: 0.3
+      dependencies: [numpy>=1.24, pandas>=2.0]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Springer (2022). "Microstructure Evolution during Accelerated Cooling
+        Followed by Coiling of an Nb-Ti/HSLA Steel." DOI: 10.1007/s11665-021-05565-y.
+        Bainite fraction increases sharply below ~600 C coiling.
+    failure_modes:
+      - 600 C threshold is grade-family guideline; actual Bs is grade-dependent
+      - If no training defects triggered CT < 600 C, zero mutual information
+      - Rare binary conditions add noise not signal
+    code_sketch: |
+      ct_cols = ['X4', 'X5', 'X6', 'X14']
+      df['v_ct_spread']        = df[ct_cols].max(axis=1) - df[ct_cols].min(axis=1)
+      df['v_ct_min']           = df[ct_cols].min(axis=1)
+      df['v_flag_bainite_ct']  = (df['v_ct_min'] < 600).astype(int)
+      df['v_flag_wide_spread'] = (df['v_ct_spread'] > 30).astype(int)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R01: |
+      Any rolling-mechanics feature using X15 synergizes with R02_rec_2.
+      Combined (X18-min_CT)/(X15 x X13) may outperform either alone.
+  - R03: |
+      If R03 covers grade/chemistry on X11, R02_rec_3 should reuse the same
+      within-fold groupby infrastructure.
+  - R12: |
+      Rolling std of v_ct_spread over last 5 coils captures ROT cooling control
+      drift over time.
+
+notes_for_synthesis: |
+  Rec_1 (CT-spread) is the strongest: confidence 4, zero code complexity, direct
+  literature citation. Rec_3 (grade-stratified CT) is second-highest expected
+  lift but needs CV-safe implementation. Biot proxy was considered and downgraded
+  to sub-component of rec_2 (without confirmed ROT residence-time column, formula
+  reduces to (X18-X14)*X15 which is structurally covered by rec_2).

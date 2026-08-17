@@ -62,6 +62,14 @@ data/memory/graph.jsonl
 # Episodic memory vector DB — regenerable from source files, would bloat repo
 data/memory/chroma/
 
+# Stray desktop screenshots in repo root
+/Screenshot from *.png
+
+# ML training temp artifacts (auto-regenerated on next train)
+catboost_info/
+openfe_tmp_data.feather
+*_tmp_data.feather
+
 # Browser automation outputs
 # Screenshots — binary, large, regenerable
 data/browser/screenshots/

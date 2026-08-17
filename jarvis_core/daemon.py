@@ -138,6 +138,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# === AuditAgent router (mounted at /v1/audit) ===
+# Guarded import — if audit_agent package is missing, daemon still starts.
+try:
+    from .audit_agent.router import router as _audit_router
+    app.include_router(_audit_router)
+    # Expose JarvisState to the router via app.state
+    app.state.jarvis_state = state
+    log.info("AuditAgent router mounted at /v1/audit")
+except ImportError as _e:
+    log.warning("AuditAgent router not available: %s", _e)
+
 
 # === Routes ===
 

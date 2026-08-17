@@ -1,0 +1,260 @@
+{
+  "top_10_features": [
+    "X13",
+    "X10",
+    "X32",
+    "X30",
+    "X36",
+    "X31",
+    "X15",
+    "X34",
+    "X35",
+    "X39"
+  ],
+  "weakest_features": [
+    "X40",
+    "X47",
+    "X27",
+    "X26",
+    "X21",
+    "X48",
+    "X12",
+    "X20",
+    "X14",
+    "X3"
+  ],
+  "missingness_signal_columns": [],
+  "feature_clusters": {
+    "1": [
+      "X1",
+      "X2",
+      "X3",
+      "X11",
+      "X12",
+      "X16",
+      "X17",
+      "X18",
+      "X20",
+      "X21",
+      "X22",
+      "X23",
+      "X25",
+      "X26",
+      "X27",
+      "X28",
+      "X43",
+      "X44",
+      "X45",
+      "X46",
+      "X47",
+      "X48",
+      "X49"
+    ],
+    "3": [
+      "X4",
+      "X5",
+      "X6",
+      "X7",
+      "X8",
+      "X9",
+      "X10",
+      "X13",
+      "X15",
+      "X29",
+      "X30",
+      "X31",
+      "X32",
+      "X33"
+    ],
+    "2": [
+      "X14",
+      "X19",
+      "X24",
+      "X34",
+      "X35",
+      "X36",
+      "X37",
+      "X38",
+      "X39",
+      "X40",
+      "X41",
+      "X42"
+    ]
+  },
+  "feature_clusters_4way": {
+    "2": [
+      "X1",
+      "X2",
+      "X3",
+      "X11",
+      "X12",
+      "X17",
+      "X18",
+      "X20",
+      "X21",
+      "X22",
+      "X28",
+      "X43",
+      "X44",
+      "X45",
+      "X46",
+      "X47",
+      "X48",
+      "X49"
+    ],
+    "4": [
+      "X4",
+      "X5",
+      "X6",
+      "X7",
+      "X8",
+      "X9",
+      "X10",
+      "X13",
+      "X15",
+      "X29",
+      "X30",
+      "X31",
+      "X32",
+      "X33"
+    ],
+    "3": [
+      "X14",
+      "X19",
+      "X24",
+      "X34",
+      "X35",
+      "X36",
+      "X37",
+      "X38",
+      "X39",
+      "X40",
+      "X41",
+      "X42"
+    ],
+    "1": [
+      "X16",
+      "X23",
+      "X25",
+      "X26",
+      "X27"
+    ]
+  },
+  "recall_ceiling_at_precision_90": 0.18480000000000002,
+  "max_recall_ceiling_any_fold": 0.385,
+  "mean_precision_when_recall_100": 0.0488,
+  "distribution_shift_risk_features": [
+    "X32",
+    "X7"
+  ],
+  "high_corr_pairs": [
+    [
+      "X30",
+      "X31",
+      0.9681
+    ],
+    [
+      "X31",
+      "X32",
+      0.9567
+    ],
+    [
+      "X10",
+      "X13",
+      0.9556
+    ],
+    [
+      "X32",
+      "X33",
+      0.9481
+    ],
+    [
+      "X30",
+      "X32",
+      0.9467
+    ],
+    [
+      "X13",
+      "X31",
+      0.939
+    ],
+    [
+      "X29",
+      "X30",
+      0.9376
+    ],
+    [
+      "X10",
+      "X31",
+      0.9329
+    ],
+    [
+      "X10",
+      "X32",
+      0.9212
+    ],
+    [
+      "X31",
+      "X33",
+      0.9117
+    ]
+  ],
+  "high_priority_engineering_moves": [
+    "Add is_missing flag for columns: [] (chi-sq signal detected)",
+    "Interaction terms: X13 x X10 \u2014 top-2 AUC features multiplied",
+    "Stage-wise aggregate features: mean/std of each cluster group per coil",
+    "Outlier flag: add boolean 'is_outlier_Xk' for features with 5-sigma lift>1.5: []",
+    "Ratio features between correlated pairs may encode process deviation",
+    "log-transform right-skewed features before modeling to help tree splits"
+  ],
+  "cv_fold_results": [
+    {
+      "fold": 1,
+      "recall_at_precision_90": 0.231,
+      "auc_roc": 0.9231,
+      "precision_at_recall_100": 0.048,
+      "best_threshold": 0.1992
+    },
+    {
+      "fold": 2,
+      "recall_at_precision_90": 0.0,
+      "auc_roc": 0.8196,
+      "precision_at_recall_100": 0.0517,
+      "best_threshold": 0.5
+    },
+    {
+      "fold": 3,
+      "recall_at_precision_90": 0.077,
+      "auc_roc": 0.7809,
+      "precision_at_recall_100": 0.0481,
+      "best_threshold": 0.9902
+    },
+    {
+      "fold": 4,
+      "recall_at_precision_90": 0.231,
+      "auc_roc": 0.8794,
+      "precision_at_recall_100": 0.0481,
+      "best_threshold": 0.9461
+    },
+    {
+      "fold": 5,
+      "recall_at_precision_90": 0.385,
+      "auc_roc": 0.8411,
+      "precision_at_recall_100": 0.0481,
+      "best_threshold": 0.5662
+    }
+  ],
+  "best_single_feature": "X13",
+  "best_single_feature_auc": 0.8322,
+  "single_feature_recall_at_precision_90": 0.0,
+  "high_corr_pair_count_0_9": 12,
+  "sample_submission": {
+    "rows": 10,
+    "columns": [
+      "CoilID",
+      "Y"
+    ],
+    "is_truncated": true,
+    "test_set_rows": 339
+  }
+}

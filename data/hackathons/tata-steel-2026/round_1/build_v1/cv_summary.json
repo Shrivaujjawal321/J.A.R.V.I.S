@@ -1,0 +1,61 @@
+{
+  "fold_metrics": [
+    {
+      "fold": 1,
+      "auc": 0.8333333333333334,
+      "recall_at_05": 0.07692307692307693,
+      "prec_at_05": 0.2,
+      "recall_at_prec90": 0.0,
+      "thr_at_prec90": null,
+      "prec_at_recall1": 0.08387096774193549,
+      "best_round": 102
+    },
+    {
+      "fold": 2,
+      "auc": 0.8807670928293496,
+      "recall_at_05": 0.0,
+      "prec_at_05": 0.0,
+      "recall_at_prec90": 0.07142857142857142,
+      "thr_at_prec90": 0.40628284193759356,
+      "prec_at_recall1": 0.10071942446043165,
+      "best_round": 17
+    },
+    {
+      "fold": 3,
+      "auc": 0.8029033223585752,
+      "recall_at_05": 0.07692307692307693,
+      "prec_at_05": 0.2,
+      "recall_at_prec90": 0.0,
+      "thr_at_prec90": null,
+      "prec_at_recall1": 0.059907834101382486,
+      "best_round": 88
+    },
+    {
+      "fold": 4,
+      "auc": 0.9215803651601318,
+      "recall_at_05": 0.23076923076923078,
+      "prec_at_05": 0.6,
+      "recall_at_prec90": 0.0,
+      "thr_at_prec90": null,
+      "prec_at_recall1": 0.17567567567567569,
+      "best_round": 126
+    },
+    {
+      "fold": 5,
+      "auc": 0.8883567794073631,
+      "recall_at_05": 0.0,
+      "prec_at_05": 0.0,
+      "recall_at_prec90": 0.0,
+      "thr_at_prec90": null,
+      "prec_at_recall1": 0.11304347826086956,
+      "best_round": 1
+    }
+  ],
+  "oof_auc": 0.8265175078938687,
+  "oof_recall_at_prec90": 0.0,
+  "oof_thr_at_prec90": null,
+  "oof_prec_at_recall1": 0.05871886120996441,
+  "mean_fold_auc": 0.8653881786177507,
+  "mean_fold_recall_at_prec90": 0.014285714285714285,
+  "mean_fold_prec_at_recall1": 0.10664347604805897
+}

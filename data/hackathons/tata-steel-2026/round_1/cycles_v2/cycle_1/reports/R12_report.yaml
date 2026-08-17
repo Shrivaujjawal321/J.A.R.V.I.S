@@ -1,0 +1,359 @@
+agent_id: R12
+topic: sequence-temporal
+cycle: 1
+timestamp_utc: "2026-05-23T12:00:00Z"
+status: ok
+
+recommendations:
+
+  - id: R12_rec_1
+    title: "Roll-campaign wear position features"
+    technique_class: feature_engineering
+    description: |
+      X34 and X36 are roll campaign position counters (integers 0-4380;
+      15-18% zeros = campaign start/end, confirmed by V5 physics research).
+      V5 built is_any_campaign_zero (binary) and log(X34)/log(X36), but
+      never built the WITHIN-CAMPAIGN ORDINAL features: (a) coils_since_last_zero
+      -- how far into the current roll campaign this coil sits, (b) coils_to_next_zero
+      -- look-ahead distance to the next campaign end (computable from sorted
+      CoilID sequence since train+test are interleaved), (c) campaign_id -- which
+      sequential campaign this coil belongs to, and (d) normalized campaign position
+      = coils_since_last_zero / campaign_length. Roll wear is monotonic within a
+      campaign: late-campaign coils see degraded roll surface -> higher defect risk.
+      These features directly encode roll-wear trajectory which is physically causal
+      for surface defects and is NOT captured by the existing binary/log transforms.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V5
+      conflict_notes: |
+        V5 built v5_any_campaign_zero (binary) and v5_log_X34/v5_log_X36 (log scale).
+        The ordinal within-campaign counter and normalized position are strictly new.
+    expected_lift_oof:
+      point: 1.2
+      low: 0.4
+      high: 2.5
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - "pandas>=1.5 (already present)"
+        - "numpy>=1.24 (already present)"
+        - "No new libraries -- pure pandas cumcount on sorted CoilID"
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Roll wear as a within-campaign sequential effect is textbook HSM process
+        knowledge: Schey (2000) "Introduction to Manufacturing Processes" Ch.11
+        documents monotonic roll surface degradation across a campaign.
+        Tata Steel context: V5 physics research confirmed X34/X36 as campaign
+        counters with zero = campaign start. The 5.28x defect autocorrelation
+        (coilid_signal_analysis.md, chi2 p~0) validates sequence position matters;
+        this formalises the physical roll-wear mechanism that V5's binary flag
+        only partially captures. Confidence=4 (not 5) because exact campaign
+        segmentation depends on X34 vs X36 zero alignment not yet audited in raw parquet.
+    failure_modes:
+      - "X34 and X36 zeros may not co-align -- campaign IDs from X34 vs X36 may
+         differ. Mitigation: use (X34==0) | (X36==0) as campaign-start signal,
+         consistent with V5 v5_any_campaign_zero."
+      - "coils_to_next_zero requires forward scan. CV-safe: compute on the full
+         sorted CoilID sequence (train+test) using only X34/X36 values -- no Y used,
+         zero leakage."
+      - "Short campaigns (few coils between two zeros) give unstable normalized
+         position. Clamp campaign_length denominator to max(1, actual_length)."
+    code_sketch: |
+      import pandas as pd, numpy as np
+
+      def add_campaign_features(df_sorted_by_coilid):
+          # df must be sorted by CoilID (train+test concatenated, no Y needed)
+          campaign_start = (df_sorted_by_coilid['X34'] == 0) | (df_sorted_by_coilid['X36'] == 0)
+          df_sorted_by_coilid['campaign_id'] = campaign_start.cumsum()
+
+          grp = df_sorted_by_coilid.groupby('campaign_id')
+          df_sorted_by_coilid['coils_since_last_zero'] = grp.cumcount()
+          campaign_len = grp['campaign_id'].transform('count')
+          df_sorted_by_coilid['coils_to_next_zero'] = (
+              campaign_len - df_sorted_by_coilid['coils_since_last_zero'] - 1
+          )
+          df_sorted_by_coilid['norm_campaign_pos'] = (
+              df_sorted_by_coilid['coils_since_last_zero'] / campaign_len.clip(lower=1)
+          )
+          return df_sorted_by_coilid
+
+      # Usage: concatenate train+test sorted by CoilID, apply, then split back.
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+    test_case_notes: |
+      Hard7: CoilIDs 1495 and 1499 are 4 apart -- likely same late-campaign window.
+      High coils_since_last_zero for both would lift their defect score.
+      Hard FP pairs (188,189) and (689,690) are consecutive; if they sit at
+      early-campaign positions (low roll wear), norm_campaign_pos would lower
+      their defect proba -- genuine FP reduction.
+
+  - id: R12_rec_2
+    title: "HMM latent defect-state posterior meta-feature"
+    technique_class: feature_engineering
+    description: |
+      Model the coil production sequence as a 2-state Gaussian HMM where the
+      hidden state is "defect-prone process regime" vs "normal regime". Observations
+      are the top-ranked scalar features (X13, X10, X36, X14) at each CoilID step.
+      After fitting on training coils (hmmlearn GaussianHMM), run forward-backward
+      to extract per-coil P(state=defect-prone | observed sequence). This posterior
+      probability becomes a meta-feature fed into the stacking layer. Unlike V4's
+      hand-crafted rolling aggregates, the HMM learns the TRANSITION STRUCTURE:
+      that the defect-prone regime self-sustains (confirmed empirically: P(defect |
+      prev=defect)=0.258 vs 0.049 baseline, 5.28x lift). The HMM's transition
+      matrix directly models this persistence with a geometrically-distributed
+      run length determined by data, not a fixed window-5 heuristic.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: 0.2
+      high: 1.8
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - "hmmlearn>=0.3.0  # pip install hmmlearn"
+        - "scikit-learn>=1.4 (already present)"
+        - "numpy>=1.24 (already present)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        HMM for industrial process fault detection: Zidi, Moulahi, Alaya (2021)
+        "Fault detection in industrial processes using HMM" -- Applied Intelligence
+        51(10), Springer. DOI:10.1007/s10489-020-02119-y.
+        The 5.28x P(defect|prev=defect) lift on THIS dataset (coilid_signal_analysis.md)
+        is direct empirical evidence that a transition-matrix-based model is
+        structurally appropriate. Confidence=3 (not 4) because with only 66 positives
+        across 1352 steps the HMM emission parameters for the defect-prone state
+        are estimated from very sparse data; Gaussian emission may not generalize.
+    failure_modes:
+      - "HMM is unsupervised over X -- discovered states may not align with defect-prone
+         regime. Mitigation: warm-start emission means by Y=1 vs Y=0 conditional means."
+      - "CV safety: HMM must be fit INSIDE each CV fold on fold-train rows only, then
+         forward-backward run on fold-val and test rows using fold-trained params.
+         Fitting once on full train leaks fold-val structure through emission priors."
+      - "Degenerate solution risk: model may collapse to one dominant state. Monitor
+         per-fold state visit counts; if n_state=1 dominates (>95%), discard this fold's
+         posterior and use zero as the meta-feature."
+      - "Hard7 are stealth in feature space -- HMM posterior only lifts them if their
+         NEIGHBOURS show elevated signal. Moderate expected impact."
+    code_sketch: |
+      import numpy as np
+      from hmmlearn import hmm
+
+      def fit_hmm_metafeature(train_sorted, val_sorted, feature_cols, n_components=2):
+          X_train = train_sorted[feature_cols].values
+          lengths_train = [len(X_train)]
+
+          model = hmm.GaussianHMM(
+              n_components=n_components, covariance_type='full',
+              n_iter=100, tol=1e-4, random_state=42
+          )
+          # Warm-start: set means from Y-conditioned stats (train_sorted must have Y)
+          # model.means_ = np.array([y0_means, y1_means])
+          model.fit(X_train, lengths=lengths_train)
+
+          # Run posteriors on val sequence
+          X_val = val_sorted[feature_cols].values
+          _, posteriors = model.score_samples(X_val)
+          # posteriors shape: (n_val, n_components)
+          # Identify defect-prone state by which state mean is higher on X13
+          defect_state = np.argmax(model.means_[:, 0])  # X13 is col 0
+          return posteriors[:, defect_state]
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R12_rec_3
+    title: "PELT change-point distance features (Ruptures)"
+    technique_class: feature_engineering
+    description: |
+      Apply Ruptures library PELT (Pruned Exact Linear Time) change-point detection
+      to the X13 and X10 signals sorted by CoilID. PELT identifies breakpoints where
+      the signal distribution shifts -- corresponding to process regime changes (new
+      campaign, grade change, process upset). Meta-features: (a) distance_to_prev_changepoint,
+      (b) distance_to_next_changepoint, (c) in_shift_window binary (within W coils of
+      a changepoint). Coils near changepoints have non-stationary neighbours, associated
+      with transitional defect risk in HSM literature. Architecturally distinct from V4's
+      fixed rolling-5 window (hard boundaries vs rolling mean) and from HMM (deterministic
+      vs probabilistic regime assignment).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.5
+      low: 0.1
+      high: 1.2
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies:
+        - "ruptures>=1.1.9  # pip install ruptures"
+        - "numpy>=1.24 (already present)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Ruptures library: Truong, Oudre, Vayatis (2020) "Selective review of
+        offline change point detection methods" -- Signal Processing 167, Elsevier.
+        PELT algorithm: Killick, Fearnhead, Eckley (2012) "Optimal Detection of
+        Changepoints with a Linear Computational Cost" -- JASA 107:500.
+        Industrial sensor application: Aminikhanghahi & Cook (2017) "A survey of
+        methods for time series change point detection" -- KAIS 51(2).
+        X13 AUC=0.832 + its known sensitivity to process upsets supports
+        regime-change features. Confidence=3: changepoints are unsupervised and
+        may not align with defect windows.
+    failure_modes:
+      - "PELT penalty parameter pen= strongly affects breakpoint count. Too few: coarse;
+         too many: noisy distance features. Tune by OOF AUC sweep or use automatic
+         BIC-based penalty (model='rbf', pen=auto via elbow heuristic)."
+      - "CV safety: PELT runs on full sorted CoilID sequence (train+test) using only
+         X-values. Distance features are pure X transforms, no Y. No leakage."
+      - "Hard7 are spread across CoilID 72-1499. If changepoints cluster near them
+         by coincidence: helps. Otherwise: neutral."
+      - "CoilIDs 1-1691 confirmed no gaps (structural finding): full contiguous
+         sequence is clean for PELT."
+    code_sketch: |
+      import ruptures as rpt
+      import numpy as np, pandas as pd
+
+      def add_changepoint_features(df_sorted, signal_col='X13', pen=10, window=5):
+          signal = df_sorted[signal_col].values
+          algo = rpt.Pelt(model='rbf', min_size=3, jump=1).fit(signal)
+          breakpoints = algo.predict(pen=pen)  # list of end-indices; last == len(signal)
+
+          cp_positions = np.array(breakpoints[:-1])
+          n = len(signal)
+          dist_prev = np.full(n, 999.0)
+          dist_next = np.full(n, 999.0)
+          for i in range(n):
+              prevs = cp_positions[cp_positions <= i]
+              nexts = cp_positions[cp_positions > i]
+              if len(prevs): dist_prev[i] = i - prevs[-1]
+              if len(nexts): dist_next[i] = nexts[0] - i
+          df_sorted[f'{signal_col}_dist_prev_cp'] = np.clip(dist_prev, 0, 200)
+          df_sorted[f'{signal_col}_dist_next_cp'] = np.clip(dist_next, 0, 200)
+          df_sorted[f'{signal_col}_in_shift_window'] = (
+              (dist_prev < window) | (dist_next < window)
+          ).astype(int)
+          return df_sorted
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R12_rec_4
+    title: "Kalman filter innovations as anomaly meta-features"
+    technique_class: feature_engineering
+    description: |
+      For each top sensor column (X13, X10, X36), fit a simple Random Walk Kalman
+      filter over the coil sequence sorted by CoilID. The filter maintains a running
+      estimate of the expected sensor value given the smooth underlying process state.
+      The INNOVATION (x_observed minus x_predicted) measures how anomalous each coil
+      is relative to its local process trajectory. Large positive innovations in X13
+      or negative in X36 are physically associated with process upsets. Kalman innovations
+      are fundamentally different from V4's first-differences (delta-1): delta-1 is
+      x_t - x_{t-1} (raw finite difference); Kalman innovation is x_t - KF_prediction
+      which adapts prediction uncertainty across the sequence, weighting anomalies
+      higher in smooth segments and lower in already-noisy segments.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V4
+      conflict_notes: |
+        V4 has X13_diff1, X10_diff1, X36_diff1 (raw finite differences). Kalman
+        innovation != finite difference -- KF accounts for process noise and observation
+        noise separately. Conceptually related but architecturally distinct. Not an
+        exact conflict.
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.0
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies:
+        - "pykalman>=0.9.7  # pip install pykalman  (simpler API than filterpy)"
+        - "numpy>=1.24 (already present)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        KF innovations for industrial anomaly detection: Basseville & Nikiforov (1993)
+        "Detection of Abrupt Changes: Theory and Applications" -- Prentice-Hall.
+        Manufacturing application: Schneider, Gerstenberger, Lehr (2020) "Machine
+        tool condition monitoring using Kalman filter innovations" -- Journal of
+        Manufacturing Systems 55, Elsevier.
+        V4 diff-1 features already show SHAP signal (positive for X13_diff1),
+        suggesting innovations will also be informative. KF adds noise-model
+        calibration that should sharpen the signal vs raw finite differences.
+        Confidence=3: innovation magnitude depends on Q/R hyperparameters.
+    failure_modes:
+      - "KF Q (process noise) and R (observation noise) are hyperparameters.
+         Poorly tuned Q/R: flat innovations (large Q) or pure noise (small Q).
+         Tune via EM estimator in pykalman or grid search on OOF AUC."
+      - "CV safety: KF runs on full sorted CoilID sequence (train+test) using only
+         X-values. Innovation values are pure X transforms. No leakage."
+      - "Hard7 stealth defects: their sensor values look normal -> KF innovations
+         near zero -> low expected impact on hard recall."
+      - "pykalman EM can be slow on n=1352 but typically converges in <5s for
+         1D observations with 10 EM iterations."
+    code_sketch: |
+      from pykalman import KalmanFilter
+      import numpy as np
+
+      def kalman_innovations(df_sorted, col='X13'):
+          obs = df_sorted[col].values.reshape(-1, 1)
+          kf = KalmanFilter(
+              transition_matrices=[[1]],
+              observation_matrices=[[1]],
+              initial_state_mean=[obs[0, 0]],
+              em_vars=['transition_covariance', 'observation_covariance']
+          )
+          kf = kf.em(obs, n_iter=10)  # fit Q, R by EM on X sequence
+          state_means, _ = kf.smooth(obs)
+          innovations = obs.flatten() - state_means.flatten()
+          df_sorted[f'{col}_kf_innovation'] = innovations
+          df_sorted[f'{col}_kf_abs_innovation'] = np.abs(innovations)
+          return df_sorted
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        FP pairs (188,189) and (689,690) are consecutive coils with sustained high
+        model proba. If their KF innovation is LOW (smooth expected trajectory),
+        that contrast helps separate them from true defects which may have
+        high-innovation neighbours.
+
+cross_topic_links:
+  - R03: "Stacking/meta-learner: HMM posterior (R12_rec_2) and Kalman innovation
+          (R12_rec_4) are natural meta-features to add at the stacking layer."
+  - R07: "Threshold calibration: adding sequence features shifts OOF score
+          distribution -- threshold must be re-swept on new OOF probas."
+  - R11: "Categorical (X11/X39/X40): grade-conditioned Kalman filters (per-X11-grade
+          KF) would remove grade mean drift before computing innovations, sharpening
+          the anomaly signal."
+
+synthesis_priority: |
+  1. R12_rec_1 (roll-campaign features) -- FIRST: lightest weight, highest physical
+     confidence, no new libraries, CV-safe, directly targets V5's incomplete encoding
+     of roll-wear trajectory. Try in next build pass.
+  2. R12_rec_2 (HMM posterior) -- SECOND: highest potential lift if 2-state regime
+     structure is real (strong prior from 5.28x autocorrelation). Implement after
+     rec_1 confirms OOF gain. Needs hmmlearn install + CV-inside-fold care.
+  3. R12_rec_3 (PELT changepoints) -- THIRD: orthogonal to HMM, low effort, low risk.
+     Pair with rec_1 in same build pass if effort permits.
+  4. R12_rec_4 (Kalman innovations) -- LAST: most complex to tune. Only if gap remains.
+
+  DO NOT IMPLEMENT: LSTM, GRU, TFT, CRF over the coil sequence.
+  Reason: 1352 rows / 66 positives is effectively one short production sequence.
+  FT-Transformer (V6, exhausted) already demonstrated deep models overfit at this n
+  (OOF AUC 0.8425 vs tree stack 0.8886). Same failure mode applies to any recurrent
+  or attention-based sequence model. The sequence signal is real; exploiting it via
+  lightweight hand-engineered features is the correct approach at this data scale.

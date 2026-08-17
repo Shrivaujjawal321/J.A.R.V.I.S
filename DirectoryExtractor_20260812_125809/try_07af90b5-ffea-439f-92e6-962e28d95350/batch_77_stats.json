@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 11,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 13,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 4,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "New Hampshire",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

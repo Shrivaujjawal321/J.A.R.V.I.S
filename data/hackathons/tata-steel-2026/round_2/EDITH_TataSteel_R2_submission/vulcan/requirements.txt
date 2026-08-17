@@ -1,0 +1,19 @@
+# VULCAN — runtime dependencies (CPU-only, free). NO paid API key anywhere.
+# The reasoning brain is the Claude Max SUBSCRIPTION via claude-agent-sdk + the
+# CLAUDE_CODE_OAUTH_TOKEN resolved from the repo-root .env. Everything below is local.
+
+claude-agent-sdk>=0.1.8       # subscription brain (OAuth token, no key)
+sentence-transformers>=2.2    # bge-small embeddings (RAG) — ONNX/CPU
+flashrank>=0.2                # cross-encoder reranker — CPU
+chromadb>=0.4                 # local vector store
+polars>=0.20                  # fast CSV slicing for condition-monitoring
+pandas>=2.0
+scikit-learn>=1.3             # anomaly detection / classifiers
+lightgbm>=4.0                 # RUL / fault prediction (CPU)
+scipy>=1.10
+streamlit>=1.30              # demo UI
+fastapi>=0.110               # optional API surface
+uvicorn>=0.27
+
+# dev
+pytest>=7.4

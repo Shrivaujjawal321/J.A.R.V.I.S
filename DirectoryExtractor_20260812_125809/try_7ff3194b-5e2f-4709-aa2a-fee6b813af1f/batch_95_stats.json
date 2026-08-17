@@ -1,0 +1,110 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Washington",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  }
+]

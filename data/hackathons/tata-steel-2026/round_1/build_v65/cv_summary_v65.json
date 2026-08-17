@@ -1,0 +1,63 @@
+{
+  "oof_auc": 0.8724,
+  "mean_fold_auc": 0.8703,
+  "std_fold_auc": 0.0452,
+  "boot_ci": [
+    0.854,
+    0.8948
+  ],
+  "oof_rp2_k200": 47.3561,
+  "v4_baseline_rp2": 46.35,
+  "delta_rp2": 1.0061,
+  "best_k": 162,
+  "best_rp2": 49.046,
+  "est_lb_k200": 50.03,
+  "banked_lb": 72.83,
+  "tps_in_top200": 47,
+  "prox_importance_pct": 66.85,
+  "gates": {
+    "g1_pass": true,
+    "g2_pass": true,
+    "g3_pass": true,
+    "g4_pass": false,
+    "all_pass": false
+  },
+  "spearman": {
+    "V4": {
+      "r": 0.0696,
+      "p": 0.010501
+    },
+    "V40": {
+      "r": 0.8694,
+      "p": 0.0
+    }
+  },
+  "new_tp_candidates": [
+    2,
+    515,
+    474,
+    934,
+    1676,
+    229,
+    1477,
+    539,
+    1210,
+    692
+  ],
+  "seeds": [
+    42,
+    137,
+    1000
+  ],
+  "radii": [
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.3
+  ],
+  "n_prototypes": 138,
+  "n_prox_features": 13,
+  "n_v4_features": 51,
+  "n_total_features": 64
+}

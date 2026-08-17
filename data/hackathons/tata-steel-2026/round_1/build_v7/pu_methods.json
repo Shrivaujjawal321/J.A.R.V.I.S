@@ -1,0 +1,74 @@
+{
+  "phase_a": {
+    "c_hat": 0.1544,
+    "c_std": 0.0326,
+    "c_estimates_per_fold": [
+      0.1383,
+      0.1715,
+      0.1412,
+      0.2079,
+      0.113
+    ],
+    "p_labeled": 0.0488,
+    "p_true_estimated": 0.3162,
+    "n_hidden_positives_train": 361,
+    "n_hidden_positives_test": 107,
+    "noise_level": "HIGH"
+  },
+  "phase_b": {
+    "M1_ElkanNoto": {
+      "oof_auc": 0.8657,
+      "oof_score": 53.12,
+      "threshold": 0.0445,
+      "ci_lo": 52.51,
+      "ci_hi": 56.84
+    },
+    "M2_Spy": {
+      "oof_auc": 0.8097,
+      "oof_score": 51.15,
+      "threshold": 0.01,
+      "ci_lo": 48.47,
+      "ci_hi": 55.09
+    },
+    "M3_Asymmetric": {
+      "oof_auc": 0.8537,
+      "oof_score": 48.25,
+      "threshold": 0.01,
+      "ci_lo": 43.76,
+      "ci_hi": 54.75
+    },
+    "M4_SelfTraining": {
+      "oof_auc": 0.8447,
+      "oof_score": 47.98,
+      "threshold": 0.01,
+      "ci_lo": 40.62,
+      "ci_hi": 56.18
+    },
+    "M5_CoTraining": {
+      "oof_auc": 0.8591,
+      "oof_score": 49.47,
+      "threshold": 0.0149,
+      "ci_lo": 44.88,
+      "ci_hi": 55.37
+    }
+  },
+  "phase_c": {
+    "oof_auc": 0.8485,
+    "oof_score": 52.54,
+    "ci_lo": 52.01,
+    "ci_hi": 55.86,
+    "predicted_lb": 55.21
+  },
+  "comparison": {
+    "V5_OOF_baseline": 53.7,
+    "V4_LB_actual": 56.98,
+    "calibration_delta": 2.67,
+    "best_pu_standalone": {
+      "method": "M1",
+      "score": 53.12
+    },
+    "meta_blend_oof": 52.54,
+    "meta_blend_predicted_lb": 55.21,
+    "lift_over_v5": -0.5800000000000054
+  }
+}

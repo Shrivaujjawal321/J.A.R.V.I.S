@@ -1,0 +1,180 @@
+{
+ "checked": [
+  {
+   "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-07-22.0/theme=places/type=place/",
+   "http_status": "200 (S3 ListBucketResult)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "S3 list-type=2 on prefix release/2026-07-22.0/theme=places/ returned KeyCount=16, IsTruncated=false. First keys: part-00000-721bdadd-...zstd.parquet (642,712,932 B), part-00001 (943,424,032 B), part-00002 (937,741,772 B), part-00003 (948,463,526 B), LastModified 2026-07-22T17:37Z. Delimiter listing of release/ shows exactly two prefixes: release/2026-06-17.0/ and release/2026-07-22.0/. Keyless anonymous access worked with no credentials.",
+   "correction": "Release, path and 16-file count all hold. Researcher's rows=74,223,561 is independently corroborated: Overture's own docs table at https://docs.overturemaps.org/guides/places/ publishes July 2026 per-source feature counts (meta 60,591,049 + Microsoft 6,305,853 + Foursquare 4,748,001 + AllThePlaces 1,418,830 + BrightQuery 831,651 + PinMeTo 159,426 + DAC 149,700 + Krick 15,396 + RenderSEO 3,655) which sum to exactly 74,223,561. The 16,861,249-in-US-bboxes and the 6-of-16-CONUS-files figures were NOT independently verified here [UNVERIFIED]."
+  },
+  {
+   "url": "https://docs.overturemaps.org/attribution/",
+   "http_status": "200 (123,620 bytes)",
+   "claim_holds": "PARTIAL",
+   "evidence": "Places section retrieved verbatim: 'Data from Meta. Available under CDLA Permissive 2.0. / Microsoft ... / PinMeTo ... / Krick ... / RenderSEO ... / DAC ... / BrightQuery. Available under CDLA Permissive 2.0. / Data from Foursquare. Copyright 2024 Foursquare Labs, Inc. All rights reserved. Available under Apache 2.0 ... Changed: 2026-03-18. NOTICE.txt. / Data from AllThePlaces. Available under CC0 1.0.' CRITICAL: string counts on this page are 'share-alike' = 0, 'no OpenStreetMap' = 0, 'none of the' = 0. The researcher attributed a verbatim quote to this URL that does not appear on it.",
+   "correction": "The per-source license breakdown is exactly right. The MISATTRIBUTION: the quote 'It contains no OpenStreetMap data and carries none of the share-alike obligations of the Open Database License (ODbL)' lives at https://docs.overturemaps.org/guides/places/, NOT on /attribution/. The substance is genuine (I confirmed the sentence verbatim on the guides page), so the license conclusion stands \u2014 but the citation is wrong and would fail an audit. Note also a real structural signal the researcher did not use: Base, Buildings, Divisions and Transportation each carry an explicit 'License for theme: ODbL' line; the Places section has NO 'License for theme:' line and lists no OSM source at all. Use the guides/places URL as the citation of record."
+  },
+  {
+   "url": "https://docs.overturemaps.org/guides/places/",
+   "http_status": "200 (161,261 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim: 'The theme is published under the CDLA Permissive 2.0 and Apache 2.0 licenses. It contains no OpenStreetMap data and carries none of the share-alike obligations of the Open Database License (ODbL).' Also verbatim on confidence: 'The places theme includes an existence confidence score for each feature, a value between 0 and 1 representing the likelihood that the place exists. Confidence measures existence only, whether the record describes a real place rather than junk, and is independent of other attributes such as operating_status.'",
+   "correction": "UNFLAGGED MATERIAL RISK found on this same page \u2014 verbatim: 'The categories property in the places schema has been deprecated and will be removed in the September 2026 release, replaced by the new basic_category and taxonomy properties. All three properties will be available until then to ease the transition.' Overture's own DuckDB example carries the note 'this example uses the deprecated categories property, which will be removed in the September 2026 release.' EVERY Overture category count the researcher supplied (truck_repair 10,858, towing_service 21,870, tire_dealer_and_repair 42,817, automotive_repair 201,199, etc.) is measured on a field that disappears in roughly two months. The build must target taxonomy/basic_category, with categories used only as a transitional cross-check. The researcher labelled the taxonomy CSV 'legacy' but never surfaced the removal date."
+  },
+  {
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
+   "http_status": "200 (148,502 bytes, text/plain)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "wc -l = 2118 lines = 1 header ('Category code; Overture Taxonomy') + 2,117 data rows \u2014 exactly the claimed 2,117 category codes. Spot-checked every slug the researcher relies on and all exist: truck_repair, trailer_repair, towing_service, roadside_assistance, emergency_roadside_service, mobile_dent_repair, welders, welding_supply_store, tire_dealer_and_repair, tire_shop, tire_repair_shop, automotive_parts_and_accessories, b2b_truck_equipment_parts_and_accessories, automotive_repair.",
+   "correction": "Row count and slug existence hold exactly. Caveat inherited from the deprecation above: this CSV documents the property being removed in September 2026. Note 'automotive_repair_shop' (as written in the researcher's FSQ notes) is a Foursquare label, not an Overture slug \u2014 grep count 0 in this CSV; the Overture slug is 'automotive_repair'."
+  },
+  {
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/schema/places/place.yaml",
+   "http_status": "200 (6,137 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Grep for 'hour|open' returns only the operating_status field, whose description reads verbatim: 'Indicates the operating status of a place, can be one of [\"open\", \"permanently_closed\", \"temporarily_closed\"]. This is not an indication of 'opening hours' or that the place is open/closed at the current time-of-day or day-of-week.' enum: [open, permanently_closed, temporarily_closed].",
+   "correction": "Researcher's claim that Overture Places has NO opening_hours field is CONFIRMED from the canonical schema, and the schema explicitly disclaims operating_status as an hours proxy. Docs also confirm socials, phones, websites, emails, brand and confidence are present."
+  },
+  {
+   "url": "https://data.source.coop/fused/fsq-os-places/ (and https://source.coop/fused/fsq-os-places)",
+   "http_status": "200 (79,039 bytes XML listing) / 200 (repo page)",
+   "claim_holds": "PARTIAL",
+   "evidence": "Repo page states verbatim: 'Copyright 2024 Foursquare Labs, Inc. All rights reserved. Licensed under the Apache License, Version 2.0'. Contents listing: root -> 2024-11-19, 2024-12-03, 2025-01-10, 2025-02-06, README.md. So 2025-02-06 IS the newest release in the mirror, as claimed. BUT the page also shows 'Created 20 Nov 2024, Last Updated 21 Aug 2025'. Keyless anonymous S3-style listing works; keys like fsq-os-places/2024-11-19/places/0.parquet enumerate fine.",
+   "correction": "License (Apache-2.0) and release (2025-02-06) CONFIRMED, keyless access CONFIRMED. UNFLAGGED: this mirror is STALE \u2014 last touched 21 Aug 2025, newest data 2025-02-06, i.e. ~17 months old as of 2026-07-23. For a repo whose honesty rule is 'observed_at = when the fact was true in the world', ingesting this mirror silently would publish 2025-vintage POIs. Also: no NOTICE.txt exists at the root of this mirror (only README.md, which does carry the licence text) \u2014 so the researcher's 'preserve NOTICE.txt' instruction cannot be satisfied from this mirror; NOTICE.txt is present on the Hugging Face copy instead. The ~103.5M row figure was not independently verified [UNVERIFIED]."
+  },
+  {
+   "url": "https://huggingface.co/datasets/foursquare/fsq-os-places",
+   "http_status": "200 (page) / 200 (API) / 401 on raw README",
+   "claim_holds": "CONFIRMED",
+   "evidence": "HF API returns cardData.license = 'apache-2.0', tags include 'license:apache-2.0', private=false, gated='auto', downloads=4446, lastModified=2026-07-09T19:26:21Z. Sibling files include 'NOTICE.txt' at repo root plus release/dt=2024-12-03/places/parquet/places-*.zstd.parquet. Fetching raw/main/README.md unauthenticated returned HTTP 401, confirming the gate is real.",
+   "correction": "Apache-2.0, free-account gating ('free_key') and rows=unknown all hold, and NOTICE.txt genuinely exists here. Useful addition the researcher missed: lastModified 2026-07-09 means the HF copy is CURRENT while the source.coop mirror is 17 months stale \u2014 HF is the correct source if FSQ is used at all, at the cost of a gated (free) token."
+  },
+  {
+   "url": "https://docs.foursquare.com/data-products/docs/places-os-data-schema",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Full field list retrieved: fsq_place_id, name, latitude, longitude, address, locality, region, postcode, admin_region, post_town, po_box, country, date_created, date_refreshed, date_closed, tel, website, email, facebook_id, instagram, twitter, fsq_category_ids, fsq_category_labels, placemaker_url, unresolved_flags, geom, bbox. No hours field. No rating field. No review-count field.",
+   "correction": "Confirms three separate researcher claims at once: FSQ has NO hours field, FSQ carries no ratings/reviews, and facebook_id / instagram / twitter plus date_refreshed DO exist (supporting both the WhatsApp-substitute recommendation and the 'last_verified_date from date_refreshed' recommendation)."
+  },
+  {
+   "url": "https://overpass-api.de/api/interpreter",
+   "http_status": "406 on bare GET; 200 with descriptive User-Agent",
+   "claim_holds": "PARTIAL",
+   "evidence": "A bare curl GET (default UA, no query) returned HTTP 406 Not Acceptable from Apache/2.4.68. With a descriptive User-Agent and a real urlencoded query, HTTP 200: /api/status reported 'Rate limit: 2, 2 slots available now'. Count query over area ISO3166-1=US for shop=truck_repair returned nodes 69, ways 203, relations 0, TOTAL 272 \u2014 exactly the researcher's figure. Response carried verbatim: 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.' timestamp_osm_base 2026-07-23T08:50:02Z.",
+   "correction": "The 272 US shop=truck_repair count and the embedded ODbL copyright string are both CONFIRMED on the wire today. 'verified_live=true' is slightly overstated only in that the endpoint 406s without a proper User-Agent and enforces a 2-slot rate limit \u2014 both of which the repo's existing polite_get() choke point already satisfies. Treat as usable, ODbL/share-alike as stated."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/tag/stats?key=shop&value=truck_repair",
+   "http_status": "200 (341 bytes, application/json)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Exact JSON: {\"data_until\":\"2026-07-22T00:59:05Z\",\"total\":4,\"data\":[{\"type\":\"all\",\"count\":813},{\"type\":\"nodes\",\"count\":369},{\"type\":\"ways\",\"count\":441},{\"type\":\"relations\",\"count\":3}]}",
+   "correction": "813 worldwide / 369 nodes / 441 ways / 3 relations matches the researcher exactly, to the object. data_until 2026-07-22 confirms freshness."
+  },
+  {
+   "url": "https://www.alltheplaces.xyz/ + https://raw.githubusercontent.com/alltheplaces/alltheplaces/master/README.md + /LICENSE",
+   "http_status": "200 / 200 (6,095 bytes) / 200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "README verbatim: 'The data generated by our spiders is provided on our website and released under Creative Commons' CC-0 waiver.' and 'The spider software that produces this data (this repository) is licensed under the MIT license.' The LICENSE file opens verbatim: 'The data generated by our spiders and posted on our website (https://www.alltheplaces.xyz) is released under Creative Commons' CC-0 waiver. The spider software that produces the data is licensed under the MIT license.'",
+   "correction": "CC0-1.0 data / MIT code split is confirmed from two independent files in the project's own repo. No attribution obligation and no share-alike, as claimed. The '20+ million POIs / 4,100+ spiders' marketing figure and the 4,909-spider-file count were not re-counted here [UNVERIFIED], but they are not load-bearing."
+  },
+  {
+   "url": "https://data.ny.gov/resource/nhjr-rpi2.json",
+   "http_status": "200 (451,304 bytes default page); count query 200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "$select=count(*) returned [{\"count\":\"54563\"}] \u2014 exactly the claimed 54,563. Socrata view metadata at /api/views/nhjr-rpi2.json returns name='Facilities Licensed by the Department of Motor Vehicles (DMV)', license=null, licenseId=null, attribution='NYS DMV', attributionLink='http://www.dmv.ny.gov/repairshop.htm'.",
+   "correction": "Row count, null licence and 'NYS DMV' attribution all hold exactly as the researcher stated, including their honest flag that no licence is declared. The business_type breakdown and the 1,239 'TRUCK'-in-name figure were not re-derived [UNVERIFIED]."
+  },
+  {
+   "url": "https://data.ny.gov/terms-of-service",
+   "http_status": "404 (513,654-byte 404 page)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "curl -sSL returns HTTP 404. The researcher explicitly reported this as a 404 they could not verify rather than papering over it.",
+   "correction": "Holds. This is the researcher being appropriately honest \u2014 the NY portal terms genuinely could not be verified at that URL, so NY DMV data must be treated as tos=unknown."
+  },
+  {
+   "url": "https://data.nj.gov/resource/t6tk-mr48.json",
+   "http_status": "200 (507,668 bytes); count query 200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "$select=count(*) returned [{\"count\":\"1167\"}] \u2014 exactly as claimed. /api/views/t6tk-mr48.json returns name='Vehicle Inspection Facility Locations', license=null, licenseId=null, attribution='NJMVC'.",
+   "correction": "1,167 rows and 'no licence declared' both confirmed from the portal's own metadata. https://www.nj.gov/nj/legal.html is reachable (206 on ranged GET). tos=unknown is the right classification."
+  },
+  {
+   "url": "https://data.transportation.gov/api/catalog/v1?q=repair",
+   "http_status": "200 (596,544 bytes, application/json)",
+   "claim_holds": "REFUTED",
+   "evidence": "The API response field resultSetSize = 1072, NOT 21. Pulling limit=100 and listing names: only 3 of the top 100 are Takata assets. The rest include, verbatim: 'Vehicle Repair Shops Across New York State', 'Licensed Automobile Dealers And Repairers', 'NJ Private Inspection Facilities and Emission Repair Facilities', 'NJ Emission Repair Facilities', 'Certified Emissions Repair Facilities', 'Motor Vehicle Repair and Towing', 'Vehicle Repair and Towing Operators', 'Maryland Vehicle Emissions Inspection Program: Certified Emissions Repair Facilities', 'Facilities Licensed by the Department of Motor Vehicles (DMV)'. Narrower queries: q=truck+repair -> 19, q=repair+facility -> 132, q=maintenance+facility -> 302.",
+   "correction": "BOTH stated facts are wrong: it is 1,072 matches, not 21, and they are NOT 'all Takata airbag recall assets'. The researcher appears to have read a paginated result length instead of resultSetSize. Consequence: the sweeping conclusion 'zero repair-facility registries' is false as written, and REAL free legal sources were missed. I verified live counts and licences for the genuinely new ones: data.ct.gov/resource/apne-w8c6.json = 138 rows, licenseId='PUBLIC_DOMAIN', license={'name':'Public Domain'}, attribution='Department of Motor Vehicles', fields [license_num, business_name, business_address, city, state, zip_code, license_expiration, license_type, geocoded_column] \u2014 an explicitly public-domain, geocoded, licence-expiry-bearing repairer registry, which is a BETTER licence position than the NY DMV set the researcher built on. Also live: data.nj.gov/resource/9qpt-bnm4.json = 332; internaldata.maryland.gov/resource/57mj-cpp9.json = 151; data.montgomerycountymd.gov/resource/dngn-wp3e.json = 2,473 (Motor Vehicle Repair and Towing). CAVEAT I checked so you do not double-count: data.ny.gov/resource/icjc-x44x.json = 3,426 rows and is typed 'filter' \u2014 it is a saved view of nhjr-rpi2 (3,426 = exactly the RSB business_type bucket), NOT an additional source. Note also that data.transportation.gov federates other portals, so the researcher's narrower claim that FMCSA/USDOT itself publishes no repair-facility registry is still plausible \u2014 but the evidence they gave for it does not support it."
+  },
+  {
+   "url": "https://www2.census.gov/programs-surveys/cbp/datasets/2022/cbp22us.zip",
+   "http_status": "206 Partial Content (ranged GET), application/zip",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Ranged request returned HTTP 206 with Content-Type application/zip, confirming the object exists and is a real zip on the Census bulk server. Companion paths cbp22co.zip and zbp22detail.zip are referenced by the researcher on the same directory.",
+   "correction": "Availability confirmed. Public-domain status under 17 U.S.C. \u00a7105 is a correct characterisation of a Census Bureau work product. The 2,003 US-level NAICS rows and the 84,101 NAICS 811111 establishment count were not re-derived here [UNVERIFIED] \u2014 they would require downloading and parsing the zip."
+  },
+  {
+   "url": "https://www.census.gov/naics/2022NAICS/2022_NAICS_Index_File.xlsx",
+   "http_status": "200 (499,358 bytes, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Full 200 download of a real 499 KB XLSX with the correct Office Open XML content type.",
+   "correction": "Live and keyless. The 20,399-index-entry count was not re-derived [UNVERIFIED]."
+  },
+  {
+   "url": "https://ordsext.epa.gov/FLA/www3/state_files/national_combined.zip",
+   "http_status": "200 (HEAD)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "HEAD returns HTTP/1.1 200 OK, Content-Type: application/zip, Content-Length: 1355239400 (1.355 GB), Last-Modified: Wed, 08 Jul 2026 19:35:11 GMT.",
+   "correction": "Live, real, and only two weeks old \u2014 better than the researcher's 'verified availability but did not download'. Row count remains unknown, as they honestly said. The 1.35 GB size is worth knowing before anyone schedules this fetch."
+  },
+  {
+   "url": "https://sam.gov/data-services/Entity%20Information/Public%20V2",
+   "http_status": "200 (47,709 bytes, text/html)",
+   "claim_holds": "PARTIAL",
+   "evidence": "Full GET returns 200 and 47 KB of HTML, but after stripping script/style/tags the entire visible text content is ' SAM.gov --> '. It is an empty Angular single-page-application shell; no dataset listing, no file links, no metadata is served to a non-JS client.",
+   "correction": "'verified_live=true' is true only in the trivial sense that the URL returns 200. Nothing about the dataset \u2014 existence of extracts, format, size, licence \u2014 is observable at this URL without a rendering browser and, per SAM.gov's model, a registered API key. Classify as reachable-but-unverified rather than verified. Given rows=unknown and access=free_key, SAM.gov should not be counted as a load-bearing source for this task; it is an entity-registration database (UEI/CAGE), not a repair-facility registry, and would at best corroborate business existence."
+  },
+  {
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/PRISECROADS/",
+   "http_status": "200 (27,732 bytes, text/html)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Directory index lists 56 files matching tl_2024_*_prisecroads.zip (one per state/territory FIPS), e.g. tl_2024_01_prisecroads.zip, tl_2024_02_prisecroads.zip, tl_2024_04_prisecroads.zip.",
+   "correction": "Live, keyless, per-state as described. This is the strongest recommendation in the researcher's report and it survives verification: TIGER/Line is a US Government work in the public domain, so building the routes table on PRISECROADS avoids the ODbL derivative-database trap that OSM highways or Overture Transportation would create. 56 files = full national coverage."
+  },
+  {
+   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+   "http_status": "206 Partial Content (ranged GET), text/html",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Reachable, returns HTML of the ODbL 1.0 licence text page.",
+   "correction": "Holds; this is the canonical licence text and is correctly cited as such."
+  },
+  {
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline",
+   "http_status": "200 (37,487 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "I suspected the doubled '_Guideline_Guideline' was a typo and probed the 'corrected' URL .../Collective_Database_Guideline \u2014 that returned HTTP 404. The doubled URL as the researcher wrote it returns 200 with no redirect (url_effective identical to the request).",
+   "correction": "Vindicated. The odd-looking URL is genuinely the real page; the plausible-looking correction is the broken one. Sibling guidelines also confirmed live: Horizontal_Map_Layers_-_Guideline 200 (37,973 bytes), Geocoding_-_Guideline 200 (57,096 bytes)."
+  },
+  {
+   "url": "https://www.yelp.com/robots.txt",
+   "http_status": "200 (11,825 bytes, text/plain)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim from the file header, under a section literally titled 'AI / LLM Crawlers and Agents:': 'Use of any robot, spider, service search/retrieval application, or other automated device, process or means to access, retrieve, copy, scrape, or index any portion of the service or any content is prohibited, except as expressly permitted by Yelp.' The file also allow-lists only named Googlebot variants and carries multiple blanket 'Disallow: /' blocks.",
+   "correction": "Fully confirmed, and stronger than the researcher stated \u2014 Yelp added an explicit AI/LLM-agent clause. access=scrape_prohibited is correct; ratings/reviews/photos from Yelp are off the table."
+  },
+  {
+   "url": "https://cloud.google.com/maps-platform/terms/maps-service-terms",
+   "http_status": "200 (2,255,511 bytes)",
+   "claim_holds": "PARTIAL",
+   "evidence": "On this page, string counts are 'Place ID' = 0 and 'ratings' = 0. What IS present, verbatim at \u00a714.3: 'Caching. Customer may temporarily cache latitude and longitude values from the Places API for up to 30 consecutive calendar days, after which Customer must delete the cached latitude and longitude values.' A 'No Use With Non-Google Map' clause is present, and 21 separate '30 consecutive calendar days' caching-window instances appear across service tables.",
+   "correction": "The conclusion is right but the citation does not support it. The Place-ID rule is NOT in the Service Specific Terms; it is at https://developers.google.com/maps/documentation/places/web-service/policies, which I fetched (200) and which states verbatim: 'Note that the place ID, used to uniquely identify a place, is exempt from the caching restrictions. You can therefore store place ID values indefinitely.' So: 30-day cache limit CONFIRMED, no-use-with-non-Google-map CONFIRMED, Place-ID-only-storable CONFIRMED but from a different URL. Cite the policies page, not the service terms. The practical recommendation \u2014 store nothing from Google, generate https://www.google.com/maps/search/?api=1&query={lat},{lon} at render time from your own coordinates \u2014 is untouched by this and remains correct."
+  },
+  {
+   "url": "https://www.dca.ca.gov/data/all.shtml",
+   "http_status": "200 (29,371 bytes, text/html)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Page text lists only aggregate/statistical assets: 'AB2138 Criminal History Applications Data, Annual Enforcement Statistics, Annual Licensing Statistics, Division of Investigations (DOI) Enforcement Cases, Enforcement Performance Measures, License Population by County, Licensing Performance Measures, Military License Applications Data'. Grep for any href whose link text contains automotive / repair / BAR returned zero matches.",
+   "correction": "Confirmed \u2014 California DCA publishes no per-licensee list here, so the Bureau of Automotive Repair licensee roster is not available as open bulk data at this URL. tos=unknown is fair. Given CT publishes a public-domain repairer roster and CA does not, state-registry coverage will be patchy and must be modelled per-state rather than assumed national."
+  }
+ ],
+ "verdict_summary": "Broadly solid research with one hard refutation, one damaging misattribution, and one unflagged time-bomb. I probed 25+ endpoints; almost every measured number the researcher gave reproduced exactly on the wire (Overpass US shop=truck_repair = 272; taginfo 813/369/441/3; NY DMV 54,563; NJ MVC 1,167; Overture categories CSV 2,117; Overture S3 release 2026-07-22.0 with 16 place files). Overture's own docs table independently corroborates the 74,223,561 worldwide total to the row.\n\nTHE ONE REFUTED SOURCE \u2014 data.transportation.gov. Claimed \"21 catalog matches for 'repair', all Takata airbag recall assets, zero repair-facility registries.\" Actual resultSetSize = 1072, and only 3 of the top 100 are Takata. The top 100 contains multiple genuine repair-facility registries the researcher missed, and I verified them live: Connecticut \"Licensed Automobile Dealers And Repairers\" (data.ct.gov/resource/apne-w8c6.json, 138 rows) is explicitly licenseId=PUBLIC_DOMAIN with license_num, license_type, license_expiration and geocoded columns \u2014 a cleaner licence position than the NY DMV set the whole plan leans on. Also live: NJ Private Inspection/Emission Repair Facilities (332), Maryland Certified Emissions Repair Facilities (151), Montgomery County MD Motor Vehicle Repair and Towing (2,473). One trap I defused: the NY \"Vehicle Repair Shops Across New York State\" hit (3,426) is typed \"filter\" and is just the RSB slice of nhjr-rpi2 \u2014 not a new source, do not double-count. The narrower claim that FMCSA/USDOT itself has no repair registry may still hold, but the evidence offered for it is simply wrong.\n\nTHE MOST DAMAGING ERROR \u2014 a license quote attributed to a page that does not contain it. The researcher cited https://docs.overturemaps.org/attribution/ for the verbatim claim that Places \"contains no OpenStreetMap data and carries none of the share-alike obligations.\" That page contains zero occurrences of \"share-alike\" or \"no OpenStreetMap.\" The sentence is real, but it lives at https://docs.overturemaps.org/guides/places/. The license conclusion survives \u2014 I confirmed the quote verbatim, and the attribution page's Places section independently lists only CDLA-Permissive-2.0 / Apache-2.0 / CC0-1.0 sources with no OSM and, unlike Base/Buildings/Divisions/Transportation, no \"License for theme: ODbL\" line. So the permissive-Places strategy is sound; the citation of record must be fixed before anyone relies on it.\n\nTHE UNFLAGGED TIME-BOMB. On that same Overture guides page, verbatim: \"The categories property in the places schema has been deprecated and will be removed in the September 2026 release, replaced by the new basic_category and taxonomy properties.\" Every Overture count in the report (truck_repair 10,858, towing_service 21,870, tire_dealer_and_repair 42,817, automotive_repair 201,199) and the entire 2,117-row category CSV sit on a field with about two months to live. Build against taxonomy/basic_category and treat categories as a transitional cross-check only.\n\nTwo staleness/precision issues worth acting on. The Foursquare source.coop mirror is correctly licensed (Apache-2.0 confirmed on its own page) but shows \"Last Updated 21 Aug 2025\" with newest release 2025-02-06 \u2014 roughly 17 months stale, and ingesting it silently would violate the repo's observed_at rule; the Hugging Face copy is current (lastModified 2026-07-09) and is where NOTICE.txt actually lives, at the cost of a free gate (raw README returned 401, so the gate is real). And the Google claim is right but mis-cited: maps-service-terms has zero occurrences of \"Place ID\" or \"ratings\"; the indefinite Place-ID storage exemption is on the Places web-service policies page, which I confirmed verbatim.\n\nVindications worth recording. The suspicious-looking OSMF URL ending \"_Guideline_Guideline\" is genuinely correct \u2014 the plausible \"fix\" 404s. Yelp's prohibition is confirmed and now carries an explicit AI/LLM-agent clause. Overture Places having no opening_hours is confirmed from the canonical place.yaml, which even disclaims operating_status as an hours proxy. Foursquare's schema confirms no hours, no rating, no review count, while facebook_id/instagram/twitter and date_refreshed do exist \u2014 supporting both the WhatsApp-substitute and last_verified_date recommendations. TIGER/Line PRISECROADS is live with 56 state files, so the strongest structural recommendation in the report \u2014 build the routes table on public-domain federal geometry to avoid the ODbL derivative-database trap \u2014 survives verification intact. EPA FRS is real and fresh (1.355 GB, Last-Modified 2026-07-08). SAM.gov returns 200 but is an empty Angular shell whose entire visible text is \"SAM.gov -->\", so it should be downgraded to reachable-but-unverified and is in any case an entity-registration database, not a repair registry.\n\nNet: the licensing architecture (permissive Overture/FSQ/ATP core, ODbL OSM quarantined in osm.*, public-domain TIGER routes) is correct and now verified from primary sources. Fix the two citations, add the September 2026 categories migration to the plan, prefer the Hugging Face FSQ release over the stale mirror, and re-run the USDOT catalog sweep properly \u2014 Connecticut's public-domain repairer registry alone justifies it."
+}

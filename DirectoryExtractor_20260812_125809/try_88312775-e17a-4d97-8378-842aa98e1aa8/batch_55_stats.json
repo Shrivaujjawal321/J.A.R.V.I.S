@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 538,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 912,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 188,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 146,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 135,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 725,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 26,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 545,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  },
+  {
+    "origin": "Alaska",
+    "dest": "Connecticut",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "to": "careers@yellow.ai",
+    "subject": "Built agentic dialogue + memory recall — AI/ML Eng @ Yellow.ai?",
+    "body": "Hi Yellow.ai team,\n\nI built a production multi-turn dialogue loop in my Jarvis system — intent classification + semantic memory recall over ChromaDB (hybrid retrieval, real-time context injection) on a FastAPI/SSE backend. It's the same agentic-conversation design Yellow.ai runs at scale across 135+ languages.\n\nI'd love to bring that to your agent platform. 90-sec demo + code on my GitHub — would a 20-min call this week work?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "careers@scalenut.com",
+    "subject": "Built RAG hybrid search over 1,532 sources — roles at Scalenut?",
+    "body": "Hi Scalenut team,\n\nI built McpIndex — a production hybrid-search engine (BM25 + pgvector) over 1,532 sources with a 6-dimension quality-scoring pipeline, shipped end-to-end in 2 days. The same retrieval + ranking stack is exactly what powers strong AI content research at scale.\n\nI'd love to bring that to Scalenut's content platform (and I'm Delhi/Gurugram-local). 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "careers@signzy.com",
+    "subject": "Cost-aware ML classification — AI/ML Eng @ Signzy?",
+    "body": "Hi Signzy team,\n\nI built production gradient-boosted ensembles (LightGBM + CatBoost) for industrial defect detection under a strict precision-recall metric — including catching a calibration error that was quietly degrading my live leaderboard score. That cost-aware classification discipline maps directly to fraud / KYC risk models.\n\nI'd love to bring it to Signzy. Code + demo below — 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "careers@leena.ai",
+    "subject": "Built a 93-agent orchestrator — AI Eng @ Leena AI?",
+    "body": "Hi Leena AI team,\n\nI built Jarvis's agentic core: a manager agent decomposes a goal into tier-classified sub-tasks and routes them to specialist agents (IT support, HR-style queries, research, memory) running in parallel via asyncio — essentially enterprise back-office automation, on a FastAPI backend.\n\nThat's the architecture Leena productizes. I'd love to help build it at scale. Demo + code below — 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "hr@gnani.ai",
+    "subject": "Built a full voice pipeline (STT→NLU→TTS) — Applied ML @ Gnani?",
+    "body": "Hi Gnani team,\n\nI built an end-to-end voice loop in my Jarvis system — Whisper STT → intent classification → multi-agent routing → Piper TTS — with multilingual intent handling, over FastAPI SSE streaming. Gnani's voice-first models for Indian languages are exactly the problem I want to work on.\n\nI saw your Applied ML Engineer (GenAI) opening. Demo + code below — 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@limechat.ai",
+    "subject": "WhatsApp AI builder, Delhi-based — AI Eng @ LimeChat?",
+    "body": "Hi LimeChat team,\n\nI'm Delhi-based and I build exactly what LimeChat productizes: a name-triggered WhatsApp AI on Baileys + Claude (sandboxed, multi-session), plus a RAG recall layer (ChromaDB) and intent classification — running in my Jarvis system.\n\nD2C buying-journey automation on WhatsApp is the problem I'd love to own, and I can come by the Delhi-NCR office anytime. Code + demo below — 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@coulomb.ai",
+    "subject": "Time-series ML for failure prediction — roles at Coulomb?",
+    "body": "Hi Coulomb team,\n\nFor Tata Steel's national hackathon I spent weeks engineering time-series features and calibrating LightGBM/CatBoost ensembles for industrial failure/quality prediction — including fixing a calibration error where OOF-validated thresholds were degrading the live score.\n\nThat's the same shape as EV battery-degradation prediction. Small team, real ML problem — exactly where I want to be. Code + demo below — 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "srijan@peoplebox.ai",
+    "subject": "Built intent + semantic-recall pipelines — roles at Peoplebox?",
+    "body": "Hi Srijan,\n\nI built Jarvis's intent classifier + semantic recall layer — the same NLU + RAG-over-context pipelines that would power a context-aware AI interviewer like Nova. It runs in production with a self-correction critic on every response.\n\nPeoplebox's AI interviewer is exactly the kind of system I want to build. Demo + code below — would a 20-min call this week work?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "careers@olakrutrim.com",
+    "subject": "Built a Claude-SDK multi-agent orchestrator — roles at Krutrim?",
+    "body": "Hi Krutrim team,\n\nI built a multi-agent orchestrator on the Claude Agent SDK — a manager agent that decomposes goals and runs parallel workers via asyncio.gather, with persistent state and a self-correction loop. That's the orchestration layer your agent platform needs.\n\nI'd love to bring it to Krutrim. Code + demo below — would a 20-min call this week work?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  }
+]

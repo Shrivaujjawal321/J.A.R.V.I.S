@@ -1,0 +1,12 @@
+{
+  "name": "mySHIPR Carrier Console — Design System Builder",
+  "id": "myshipr-carrier-console-builder",
+  "api": "1.0.0",
+  "main": "part1-foundations-components.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "reasoning": "The build is fully offline. Fonts come from Figma's own font service via figma.loadFontAsync; no data leaves the file."
+  }
+}

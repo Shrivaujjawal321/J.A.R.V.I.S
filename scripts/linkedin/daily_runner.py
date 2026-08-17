@@ -104,12 +104,19 @@ def cmd_morning(args) -> None:
         _telegram_notify.safe_send(f"⚠️ Intro-DM drafting failed: {e}. Skipping DMs.")
         msg_drafts = []
 
-    # 4. Draft today's post
-    try:
-        post = post_generator.generate_today()
-    except Exception as e:
-        _telegram_notify.safe_send(f"⚠️ Post drafting failed: {e}.")
+    # 4. Draft today's post — ONLY on configured weekdays (Boss: 3 posts/week).
+    # post_weekdays default Mon/Wed/Fri (0,2,4) → exactly 3 posts/week. Other days skip.
+    post_weekdays = set(targets.get("post_weekdays", [0, 2, 4]))
+    today_wd = datetime.now(IST).weekday()
+    if today_wd not in post_weekdays:
         post = None
+        print(f"[morning] Not a post day (weekday={today_wd}); skipping post per 3/week cadence.")
+    else:
+        try:
+            post = post_generator.generate_today()
+        except Exception as e:
+            _telegram_notify.safe_send(f"⚠️ Post drafting failed: {e}.")
+            post = None
 
     # 5. Send to Telegram for approval (fullauto auto-approves; autopilot waits for /lp_approve_all)
     batch_id = telegram_approval.send_morning_batch(
@@ -125,8 +132,11 @@ def cmd_execute(args) -> None:
     """Execute the approved items from today's morning batch."""
     pf = preflight.run_preflight()
     if not pf.ok:
-        print(f"[execute] Preflight failed — aborting. {pf.note}", file=sys.stderr)
-        sys.exit(1)
+        # No live LinkedIn session is an operational gap, not a code failure —
+        # skip cleanly (exit 0) so systemd doesn't spam FAILURE. Preflight already
+        # pinged Telegram about the cause (logged out / Chrome down).
+        print(f"[execute] Preflight not ready — skipping cleanly. {pf.note}", file=sys.stderr)
+        return
     print(f"[execute] Preflight ok. {pf.note}")
 
     result = executor.execute_today()

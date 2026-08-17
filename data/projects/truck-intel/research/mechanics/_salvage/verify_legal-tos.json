@@ -1,0 +1,140 @@
+{
+ "checked": [
+  {
+   "url": "https://cloud.google.com/maps-platform/terms/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "2,392,460 bytes text/html. \u00a73.2.3 present verbatim: '(a) No Scraping... (iii) copy and save business names, addresses, or user reviews'; '(b) No Caching. Customer will not cache Google Maps Content except as expressly permitted under the Maps Service Specific Terms'; '(c)(iv) use latitude/longitude values from the Places API as an input for point-in-polygon analysis'; '(c)(vii) use Google Maps Content to improve machine learning and artificial intelligence models, including to train, test, validate or fine-tune the models'. All four sub-citations the researcher relied on match the source word-for-word."
+  },
+  {
+   "url": "https://cloud.google.com/maps-platform/terms/maps-service-terms",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "2,302,780 bytes. \u00a7A.3 verbatim: 'Google ID Caching. Customer may cache the Google ID values from the Services that return such field and allow caching, in accordance with its Documentation. For example, Customer may cache (a) place_id from Places API, Directions API, Geolocation API and Routes API, (b) pano_ID... (c) video_ID'. Confirms caching is limited to opaque IDs only \u2014 no business attributes."
+  },
+  {
+   "url": "https://developers.google.com/maps/documentation/urls/get-started",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim: 'You don't need a Google API key to use Maps URLs.' Documented scheme 'https://www.google.com/maps/search/?api=1 & parameters'; Example 2 uses bare coordinates: 'https://www.google.com/maps/search/?api=1&query=47.5951518%2C-122.3316393'. Page last updated 2026-07-20. Confirms the coordinate-only deep link is a documented, keyless, Google-content-free construction."
+  },
+  {
+   "url": "https://developers.google.com/maps/billing-and-pricing/march-2025",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "Verbatim: 'Google has replaced the USD $200 monthly recurring credit with a free monthly usage threshold for each Core Services SKU.' The $200-credit removal is confirmed exactly as claimed.",
+   "correction": "The researcher's label access=paid overstates it. A free tier still exists per-SKU (e.g. Geocoding: '10,000 free requests recurring monthly'), so a low-volume build would not necessarily incur a bill. The real disqualifier is not price but the ToS (\u00a73.2.3 storage/point-in-polygon bans) plus the requirement to operate under a Maps Platform billing account. Also newly surfaced and not mentioned by the researcher: 'Google is designating three services as Legacy status: Places API, Directions API, and Distance Matrix API' \u2014 any design naming 'Places API' is already citing a legacy product."
+  },
+  {
+   "url": "https://www.yelp.com/robots.txt",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "11,825 bytes text/plain. Terminal rule is 'User-Agent: *' / 'Disallow: /'. Explicit blanket blocks for GPTBot, ClaudeBot, CCBot, Google-Extended, anthropic-ai, Claude-Web, Meta-ExternalAgent. Header comment: 'Use of any robot, spider, service search/retrieval application, or other automated device... to access, retrieve, copy, scrape, or index any portion of the service or any content is prohibited, except as expressly permitted by Yelp.' Scraping prohibition holds unambiguously."
+  },
+  {
+   "url": "https://terms.yelp.com/developers/api_terms",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "Redirects to /developers/api_terms/20250909_en_us/ (9 Sep 2025 version). \u00a75(a) verbatim: 'cache, record, pre-fetch, or otherwise store any portion of the Yelp Content for a period longer than twenty-four (24) hours'. \u00a75(b) verbatim: 'use it to update or create your own database of business listing information'. Both restriction claims CONFIRMED (my first grep for '24 hours' missed it because the text spells it 'twenty-four (24) hours').",
+   "correction": "access='free_key' is REFUTED and stale. \u00a77.1: 'You may enroll in a thirty (30) day free trial... your API key access will be terminated on the 30th day of the trial unless you opt into a paid subscription program by providing credit card'. \u00a78.1 'Tiered Pricing Model... billed on a monthly basis in arrears'. \u00a77.3 forbids public launch during the trial. The product is also now named the 'Yelp Places API', not Fusion. So Yelp is a PAID API and is excluded by the project's no-paid-API constraint independently of the storage terms. (Note \u00a712 still contains vestigial text 'THE API IS BEING PROVIDED FREE OF CHARGE' \u2014 an internal inconsistency in Yelp's own document; \u00a77/\u00a78 are the operative commercial terms.)"
+  },
+  {
+   "url": "https://terms.yelp.com/developers/display_requirements/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "'Definitely don't!' list contains verbatim: 'Store data longer than 24 hours.' and 'Blend star rating content from Yelp with rating content from other sources. This means no aggregated \"overall ratings\" which utilize multiple sources of ratings. Yelp content must stand alone.' Also mandates Yelp-branded star sprite and prominent logo. Independently corroborates that a persisted, blended rating column is not achievable via Yelp."
+  },
+  {
+   "url": "https://www.yellowpages.com/robots.txt",
+   "http_status": "200",
+   "claim_holds": "REFUTED",
+   "evidence": "1,836 bytes. The generic rule is NOT a prohibition \u2014 it reads: 'User-agent: *' / 'Content-Signal: search=yes,ai-train=no,use=reference' / 'Allow: /'. Only nine named bots are disallowed (Amazonbot, Applebot-Extended, Bytespider, CCBot, ClaudeBot, CloudflareBrowserRenderingCrawler, Google-Extended, GPTBot, meta-externalagent).",
+   "correction": "robots.txt does NOT establish 'access=scrape_prohibited tos=prohibited' for YellowPages \u2014 it expressly Allows '/' for a self-identifying custom user-agent such as this project's polite_get. What it DOES establish is a Content-Signal reservation 'ai-train=no, use=reference', i.e. training is refused but indexing/reference is permitted. I then tried to substantiate the prohibition from the ToS instead: https://www.yellowpages.com/about/legal/terms-of-use returned HTTP 403 (blocked), and the parent Thryv terms page (200) surfaced no scraping clause in the fetched text. NET: the prohibition claim is unproven on the cited evidence and unverifiable on the ToS. The practical recommendation (don't build on YellowPages) may still be sound on other grounds \u2014 it is a proprietary aggregated directory with no data licence granting redistribution \u2014 but the repo must NOT record 'robots.txt forbids it', because that is factually false and would be an honesty-rule violation in the source registry."
+  },
+  {
+   "url": "https://www.justdial.com/robots.txt",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "940 bytes. 'User-agent: *' carries a targeted path list, not a blanket ban: Disallow: /functions/, /webmain/, /*/wcdata/, /_next/, /web-worker/, /us/, /ca/, /jd-trkr, /api/... Notably ClaudeBot, GPTBot, anthropic-ai, PerplexityBot, OAI-SearchBot are each explicitly 'Allow: /'.",
+   "correction": "'tos=prohibited / scrape_prohibited' overstates robots.txt, which blanket-blocks only Baiduspider, Yandex and ia_archiver. The one genuinely relevant line \u2014 which the researcher did not cite \u2014 is 'Disallow: /us/', i.e. Justdial's US section specifically IS disallowed. Either way the source is moot for this build: Justdial is an India consumer directory and this is a US-only platform. It belongs in the register as 'out of scope (India-only)', not as a ToS refusal."
+  },
+  {
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Endorsed by the OSMF board 2014-06-06. Verbatim: 'If you use OpenStreetMap data along with non-OpenStreetMap data for a given Feature Type, then the share-alike condition would apply regardless of whether some data for that Feature Type is in a different layer than the other data for that Feature Type.' Worked example is exactly the complement-the-gaps dedup case: 'if there are restaurants in the OpenStreetMap layer and you add additional restaurants in another layer, but you include only those restaurants not present in the OpenStreetMap layer... the restaurants added in your non-OpenStreetMap layer must be shared.' The researcher's quote is accurate to the character. One scoping nuance: the guideline's own preamble frames it as 'primarily relat[ing] to making and publicly publishing visual 2D maps, (a \"Produced Work\"...)', though the operative Feature-Type rule is stated generally."
+  },
+  {
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Doubled 'Guideline_Guideline' in the path is the genuine page title (oldid=3980), not a typo. Verbatim example: 'You have a proprietary list of restaurants for a country. You would like to complement your list with the corresponding data from OpenStreetMap removing any duplicate objects in the process. The resulting, combined database would not be covered by this guideline and you would, if the dataset is publicly used, have to consider that your proprietary data may be subject to the ODbL share-alike terms.' Operative rule confirmed: combination stays a Collective Database 'so long as the data used for a particular data type is either all OSM or all non-OSM within the same regional cut'. Also confirms 'Two data sets need not be physically separated to qualify as \"independent\"' \u2014 i.e. per-Feature-Type purity, not schema separation, is the actual test. This validates the repo's existing CHECK constraint present_in <@ ARRAY['overture','fsq'] as the thing actually doing the legal work."
+  },
+  {
+   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "Full licence text present. \u00a74.4 'Share alike', \u00a74.5 'Limits of Share Alike' with 4.5(b) 'Using this Database... to create a Produced Work does not create a Derivative Database for purposes of Section 4.4', and \u00a74.6 'Access to Derivative Databases... a copy in a machine readable form of: a. The entire Derivative Database' \u2014 all three section numbers cited by the researcher are correct.",
+   "correction": "The researcher's fallback advice ('if ODbL route geometry must be used, restrict output to ODbL \u00a74.5 Produced Works') is materially incomplete and would mislead the build. \u00a74.4(c), which the researcher did not cite, closes that escape hatch: 'A Derivative Database is Publicly Used and so must comply with Section 4.4. if a Produced Work created from the Derivative Database is Publicly Used.' So if route-buffer joins create a Derivative Database internally, publishing ANY public map/page from it triggers share-alike on the database itself plus the \u00a74.6 duty to hand over a machine-readable copy. The Produced-Work carve-out only protects you where no Derivative Database was formed in the first place. This strengthens rather than weakens the recommendation to source routes from public-domain federal geometry."
+  },
+  {
+   "url": "https://docs.overturemaps.org/attribution/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Page dated 'Last updated on May 15, 2026'. Base, Buildings, Divisions and Transportation each carry an explicit banner 'License for theme: ODbL' with '\u00a9 OpenStreetMap contributors'. Places carries NO theme-level licence line; it is per-source: Meta, Microsoft, PinMeTo, Krick, RenderSEO, DAC, BrightQuery each 'Available under CDLA Permissive 2.0'; Foursquare 'Copyright 2024 Foursquare Labs, Inc. All rights reserved. Available under Apache 2.0' with a NOTICE.txt requirement; AllThePlaces 'Available under CC0 1.0'. Researcher's licence mapping is exactly right \u2014 and this is the single most consequential claim in the set, so it is worth stating the operational consequence precisely: because Places is a per-provider licence mix and not one blanket licence, the shop table must carry a per-row source/licence column to know which obligation attaches. Transportation = ODbL is likewise confirmed, which independently validates the warning against deriving the routes table from Overture Transportation."
+  },
+  {
+   "url": "https://cdla.dev/permissive-2-0/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Full agreement text present. \u00a71.1 'A Data Recipient may use, modify, and share the Data'. \u00a72.1 'A Data Recipient may share Data, with or without modifications, so long as the Data Recipient makes available the text of this agreement with the shared Data.' \u00a73 'No Restrictions on Results' \u2014 \u00a73.1 'This agreement does not impose any restriction or obligations with respect to the use, modification, or sharing of Results.' Confirms no share-alike and no viral clause; the sole obligation is shipping the agreement text alongside shared data (note: it is the agreement text, not merely a courtesy credit line)."
+  },
+  {
+   "url": "https://docs.foursquare.com/data-products/docs/access-fsq-os-places",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "770,743 bytes. Licence block verbatim: 'Apache 2.0 \u2014 Copyright 2024 Foursquare Labs, Inc. All rights reserved. Licensed under the Apache License, Version 2.0... http://www.apache.org/licenses/LICENSE-2.0'. Page updated 4 months ago. Permissive storage/redistribution with attribution/NOTICE confirmed."
+  },
+  {
+   "url": "https://www.mapillary.com/terms?locale=en_US",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "\u00a711 duty CONFIRMED verbatim: 'If you are downloading individual images and serving them from your own servers, you must attribute the image(s) by visibly displaying the Mapillary logo and linking back to the Mapillary homepage or corresponding Mapillary image page.' The CC BY-SA statement is also present: 'Your use of any User Content provided by other users is subject to the Creative Commons Share Alike (CC BY-SA) license'.",
+   "correction": "Two defects in the researcher's flat claim license='CC BY-SA (user-contributed imagery), per ToS \u00a73(b)'. (1) The licence is NOT uniformly CC BY-SA \u2014 the same sentence continues 'unless we indicate otherwise. For instance, we may provide access to certain User Content (alone or in combination with other data sets) under a separate set of license terms (such as the Creative Commons Attribution NonCommercial Share Alike (CC BY-NC-SA license)'. Some Mapillary imagery is therefore NON-COMMERCIAL-restricted, so a blanket 'CC BY-SA' entry in the source register is a licence misstatement of exactly the damaging kind; per-image licence must be read at fetch time. (2) The pinpoint cite is off \u2014 the CC BY-SA sentence sits in the \u00a73 licence grant, which cross-refers to \u00a73(b) for a different restriction. Additionally the researcher missed \u00a712 'Use of the Mapillary Services for Commercial Purposes', which imposes further terms limiting commercial use to an enumerated list."
+  },
+  {
+   "url": "https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=39.12%7C-88.5434&ggsradius=5000&ggsnamespace=6&prop=imageinfo&iiprop=url%7Cextmetadata",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "35,088 bytes JSON, keys ['batchcomplete','query'], no warnings. Substance of the claim CONFIRMED and if anything understated: the 5 km Effingham IL result set is File:Effingham cross.jpg, File:Effingham Amtrak 1979.jpg, File:Heart Theatre Effingham.jpg, File:Effingham County Building and Jail.jpg, File:Heart Theater in Effingham Illinois, three Brad Halbrook politician photos, and two USDA NAIP aerial .tif tiles. Zero businesses of any kind, let alone truck repair. Commons is unusable as a shop-frontage photo source.",
+   "correction": "The row count 'rows=5... (limit was set to 5)' is wrong: the cited URL contains no ggslimit parameter, so the API default applied and returned 10 pages, not 5. Trivial as to the conclusion, but it shows the count was reported from intent rather than from the response actually received."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/key/stats?key=contact%3Awhatsapp",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Exact match on every figure, data_until 2026-07-22T00:59:05Z: contact:whatsapp all=17937, nodes=14960, ways=2867, relations=110, distinct values=11001. Sibling probes also match: key=whatsapp all=117 (claimed 117); tag shop=truck_repair all=813 (claimed 813; nodes 369 / ways 441 / relations 3). I independently re-ran the Overpass query rather than trusting the researcher's: area['ISO3166-1'='US'] with shop~^(car_repair|truck_repair|tyres)$ carrying contact:whatsapp OR whatsapp returned total=0 (nodes 0/ways 0/relations 0) at timestamp_osm_base 2026-07-23T09:02:21Z. The 'WhatsApp is empirically zero in the US' finding reproduces exactly. This was the best-evidenced item in the researcher's submission."
+  },
+  {
+   "url": "https://geodata.bts.gov/datasets/usdot::national-highway-freight-network-nhfn",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "The page returns 200 but is a 58,946-byte JavaScript SPA shell \u2014 it contains zero FeatureServer/MapServer URLs and no licence text in the served HTML. 'verified_live=true' against this URL therefore proves only that a hub page renders, not that any dataset exists behind it. I resolved the real service via the ArcGIS Hub v3 API: https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Highway_Freight_Network/FeatureServer/0 \u2014 owner USDOT_BTS, source 'Federal Highway Administration (FHWA)', access public, downloadable true, openData true.",
+   "correction": "Upgrade, not a refutation \u2014 the underlying claim is sound and now much stronger. Real count query (?where=1%3D1&returnCountOnly=true&f=json) returns count=12989 (not 'unknown'), esriGeometryPolyline, WGS84 wkid 4326, national extent xmin -159.40 / ymin 17.97 / xmax -65.63 / ymax 64.86 (includes AK/HI/PR), maxRecordCount 2000 so paging is required. Licence verified from the service's own copyrightText, not from assertion: 'This NTAD dataset is a work of the United States government as defined in 17 U.S.C. \u00a7 101 and as such are not protected by any U.S. copyrights. This work is available for unrestricted public use.' Note the metadata cites \u00a7101 (the definition) where the researcher cited \u00a7105 (the effect); both are legally apt, but the source text says \u00a7101. Two build-critical facts the researcher did not surface: (a) fields are OBJECTID, VERSION, YEAR_RECOR, STATE_CODE, BEGMP, ENDMP, ROUTEID, SIGN1, SIGNT1, SIGNN1, LNAME, NHS, NHFN_CODE, SOURCE, ST_NAME, LENGTH \u2014 ROUTEID/LNAME/SIGN* directly supply route_id and route_name, and BEGMP/ENDMP give milepost linear referencing for nearest_route_point; (b) the data is 'NHFN Version 2023.02.08', so under the repo honesty rule observed_at must be 2023-02-08, never the download date."
+  },
+  {
+   "url": "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "342,825 bytes, but the rendered text contains no occurrence of 'ZCTA', 'ZIP Code Tabulation', 'public domain' or 'copyright' \u2014 it is a navigational landing page. It does not itself substantiate either the public-domain licence or the county/ZCTA content the researcher attributed to it.",
+   "correction": "The substance is true but was cited to the wrong URL; I verified it against real endpoints instead. Bulk files exist and are live: https://www2.census.gov/geo/tiger/TIGER2024/ZCTA520/tl_2024_us_zcta520.zip \u2192 HTTP 200, content-type application/zip, last-modified Fri 27 Jun 2025 (range request returned 206, confirming a real byte-servable archive), and https://www2.census.gov/geo/tiger/TIGER2024/COUNTY/tl_2024_us_county.zip \u2192 HTTP 200 application/zip. Separately, the researcher's ZIP-vs-ZCTA caveat is CONFIRMED verbatim from Census at https://www.census.gov/programs-surveys/geography/guidance/geo-areas/zctas.html (HTTP 200): 'All 2020 ZCTA Codes are current valid USPS ZIP Codes (as of January 1, 2020)', 'Not all valid ZIP Codes are represented by a 2020 ZCTA', and 'the ZCTA represents the ZIP Code associated with the most addresses in that block' \u2014 i.e. a majority-rule approximation, exactly as the researcher warned. US vocabulary mapping (District\u2192County, PIN\u2192ZIP) is sound; ZCTA fallback must be flagged as derived."
+  },
+  {
+   "url": "https://docs.overturemaps.org/schema/reference/places/place/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Extra check I ran to test the researcher's 'Overture has no rating field' assertion rather than accept it. Schema field list is: geometry (Point), sources[], operating_status, categories (basic_category/taxonomy), confidence, websites, socials, emails, phones, brand, addresses (freeform/locality/postcode/region/country), names. There is NO rating and NO review-count field \u2014 assertion holds. 'confidence' is documented as 'A score between 0 and 1 indicating how confident we are that the place exists', explicitly a record-existence score, which validates the researcher's warning never to relabel it as a customer rating. Also confirms phones/emails/websites/socials and postcode DO exist, so the proposed fallbacks are real. CAVEAT the researcher did not flag: no opening-hours field appears in this schema reference, so the requested 'operating hours' and 'open 24x7' fields have no evident Overture carrier and should be treated as unresolved rather than assumed fillable."
+  }
+ ],
+ "verdict_summary": "All 20 claimed URLs are live (HTTP 200) \u2014 no 404s, no dead links. But \"verified_live=true\" was doing less work than it appears: on two entries it certified only that a JavaScript shell rendered, and on one it was reported from intent rather than from the actual response. Verdicts: 11 CONFIRMED, 8 PARTIAL, 1 REFUTED.\n\nTHE REFUTED ITEM \u2014 YellowPages.com robots.txt. The researcher recorded access=scrape_prohibited / tos=prohibited citing robots.txt. The file says the opposite for a self-identifying crawler: \"User-agent: *\" / \"Content-Signal: search=yes,ai-train=no,use=reference\" / \"Allow: /\". Only nine named AI bots are Disallowed. This project's polite_get UA would match the permissive \"*\" rule. I tried to rescue the conclusion from the ToS instead \u2014 yellowpages.com/about/legal/terms-of-use returns HTTP 403, and the parent Thryv terms page yielded no scraping clause. So the prohibition is unproven on the cited evidence and unverifiable on the ToS. Not scraping YellowPages remains the right call (proprietary aggregated directory, no licence granting redistribution, and an express ai-train=no reservation), but the reason recorded in the source registry must be corrected \u2014 writing \"robots.txt forbids it\" would itself breach the repo's honesty rules.\n\nTHE MOST DAMAGING NEAR-MISS \u2014 Mapillary licence. It was registered flatly as CC BY-SA. The ToS continues \"...unless we indicate otherwise... (such as the Creative Commons Attribution NonCommercial Share Alike (CC BY-NC-SA license)\". Some imagery is non-commercial-restricted, and \u00a712 adds further commercial-use terms the researcher never mentioned. A blanket CC BY-SA row is precisely the wrong-licence error class. Per-image licence must be read at fetch time.\n\nMOST CONSEQUENTIAL OMISSION \u2014 ODbL \u00a74.4(c). The researcher's fallback (\"if ODbL route geometry must be used, restrict output to \u00a74.5 Produced Works\") is unsafe as written. \u00a74.4(c) states a Derivative Database \"is Publicly Used and so must comply with Section 4.4 if a Produced Work created from the Derivative Database is Publicly Used\" \u2014 the carve-out does not survive once a Derivative Database has been formed, and \u00a74.6 then compels handing over a machine-readable copy. This makes the public-domain routes recommendation load-bearing, not merely preferable.\n\nALSO CORRECTED: Yelp is no longer a free-key API \u2014 \u00a77.1 gives a 30-day trial then a paid month-to-month subscription (\u00a78.1), with \u00a77.3 barring public launch during the trial, so it fails the no-paid-API constraint independently of its 24-hour storage cap (that cap itself is CONFIRMED verbatim, as is the Display Requirements \"Store data longer than 24 hours\" ban). Justdial's robots.txt is not a blanket ban either, though it does specifically Disallow /us/ \u2014 and it is an India directory, out of scope regardless. Google's March-2025 page still leaves a real free tier (10,000 Geocoding req/mo), so the disqualifier there is the ToS, not the price.\n\nSTRONGEST WORK, INDEPENDENTLY REPRODUCED: the taginfo/Overpass WhatsApp finding matched to the digit (17,937 / 117 / 813), and my own Overpass re-run returned total=0 US repair shops with any WhatsApp tag at 2026-07-23T09:02:21Z. All four Google \u00a73.2.3 sub-citations, both OSMF guidelines, ODbL \u00a74.4/4.5/4.6, CDLA-2.0, FSQ Apache-2.0 and the Maps-URLs keyless claim are verbatim-accurate. Overture's per-theme mapping is exactly right, with the operational nuance that Places carries no theme-level licence at all \u2014 it is a seven-provider CDLA/Apache/CC0 mix, so per-row licence tracking is mandatory.\n\nNET UPGRADE FOR THE BUILD: I resolved the BTS NHFN from a JS shell to a real service \u2014 services.arcgis.com/xOi1kZaI0eWDREZv/.../NTAD_National_Highway_Freight_Network/FeatureServer/0, count=12989 polylines (not \"unknown\"), public domain confirmed from the service's own copyrightText, with ROUTEID/LNAME/SIGN* supplying route_id and route_name and BEGMP/ENDMP supplying milepost referencing for nearest_route_point. Vintage is \"Version 2023.02.08\", so observed_at must be 2023-02-08. The routes table is buildable, contamination-free, today. One unresolved gap neither of us can fill from the checked sources: Overture Places has no opening-hours field, so \"operating hours\" and \"open 24x7\" should be marked unresolved rather than assumed fillable."
+}

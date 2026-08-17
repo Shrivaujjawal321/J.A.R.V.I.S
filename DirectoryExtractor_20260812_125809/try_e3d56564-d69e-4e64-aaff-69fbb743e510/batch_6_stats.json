@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 888,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 961,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 353,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 188,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 149,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 918,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 31,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 590,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 1,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Connecticut",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 7,
+    "status": "completed"
+  }
+]

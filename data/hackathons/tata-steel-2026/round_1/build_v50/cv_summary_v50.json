@@ -1,0 +1,97 @@
+{
+  "oof_auc": 0.86848,
+  "oof_auc_ci": [
+    0.82399,
+    0.90941
+  ],
+  "per_model_oof_auc": {
+    "lgb": 0.87171,
+    "xgb": 0.86717,
+    "cat": 0.85686
+  },
+  "fold_aucs": {
+    "lgb": [
+      0.84735,
+      0.88772,
+      0.80844,
+      0.91679,
+      0.90422
+    ],
+    "xgb": [
+      0.84884,
+      0.91801,
+      0.76743,
+      0.90183,
+      0.90901
+    ],
+    "cat": [
+      0.84526,
+      0.87882,
+      0.80994,
+      0.89644,
+      0.86082
+    ]
+  },
+  "mean_fold_auc": {
+    "lgb": 0.8729,
+    "xgb": 0.86902,
+    "cat": 0.85826
+  },
+  "est_lb": {
+    "K200": 24.86,
+    "K216": 24.86,
+    "best": 26.09,
+    "best_k": 145,
+    "legacy_delta": 89.52
+  },
+  "oof_tp": {
+    "K200": 44,
+    "K216": 46,
+    "total_pos": 66
+  },
+  "spearman": {
+    "v4_meta": 0.7698422226365531,
+    "v46_proba": 0.9845328824710367,
+    "v40_proba": 0.023568300969656085,
+    "v41_proba": 0.8120886542210718
+  },
+  "n_features": {
+    "v4_clean_base": 46,
+    "dropped_from_v4": 5,
+    "static_physics": 29,
+    "sims_residuals": 7,
+    "total": 82
+  },
+  "dropped_raw_cols": [
+    "X29",
+    "X30",
+    "X30_over_X35",
+    "X31",
+    "X32",
+    "X33",
+    "X4",
+    "X5",
+    "X6",
+    "X7",
+    "X8",
+    "X9"
+  ],
+  "gates": {
+    "oof_auc_gte_091": false,
+    "oof_auc_gt_v4_0_8837": false,
+    "oof_auc_gt_v46_0_8627": true,
+    "shap_sims_in_top10": true,
+    "shap_zener_in_top10": false,
+    "spearman_v4_lt_085": true,
+    "est_lb_k200_gte_75": false
+  },
+  "references": {
+    "v4_oof_auc": 0.8837,
+    "v4_lb": 56.98,
+    "v46_oof_auc": 0.86268,
+    "v46_lb": "N/A (gates failed)",
+    "peer_oof_auc": 0.9534,
+    "peer_lb": 77.67,
+    "v44_banked_lb": 72.83
+  }
+}

@@ -1,0 +1,326 @@
+agent_id: C2_R13
+topic: openfe-feature-search-v23-base
+cycle: 2
+timestamp_utc: "2026-05-23T17:45:00Z"
+status: ok
+
+# ===========================================================================================
+# PREAMBLE: WHY C1_R13_rec_1 (OpenFE) WAS REJECTED AND WHAT CHANGED
+# ===========================================================================================
+# Cycle 1 rejection reason: feature_eng slot was taken by R02_rec_1 (CT-spread, V23).
+# Context shift for Cycle 2:
+#   - V23 IS now the base. OOF 54.41 vs V4 54.31; calibrated LB 57.08 vs 56.98.
+#   - V23 Stage-2 AUC = 0.7204 on 836-row suspect pool. That is the bottleneck.
+#   - V23 introduced 4 CT-spread features -> input to OpenFE search is now 55 features.
+#   - Set B (Hard-FP-10 avoidance) failed 0/10 in ALL Cycle 1 builds.
+#   - Hard FPs sit at V23 Stage-2 probas 0.40-0.82. Elevated X14/X49/X46/X48 profile.
+#   - Noise floor: V23 bootstrap std=0.189; MDE at 80% power ≈ 1.0 OOF pt.
+#   - Feature_eng slot is OPEN in Cycle 2.
+# ===========================================================================================
+
+recommendations:
+
+  - id: C2_R13_rec_1
+    title: "OpenFE on 836-row Stage-2 suspect pool"
+    technique_class: feature_engineering
+    description: |
+      Run OpenFE automated feature search on V23's 836-row suspect pool (7.9% prevalence),
+      NOT the full 1352-row train. This is the critical design change vs C1: operating on
+      the pool where Stage-2 discrimination is needed avoids diluting the signal with
+      low-proba negatives that Stage-1 already filtered out. Input feature space: 55
+      features (49 raw X1-X49 + 4 V23 CT-spread features + X11 grade). OpenFE's two-stage
+      coarse-to-fine pruning explores O(55^2 x 19 safe_ops) = ~57,475 candidates before
+      MDI attribution ranking. Accept only top-5 features after 3-stage noise-floor filter.
+      Augment V23 Stage-2 CatBoost feature matrix with accepted features and retrain.
+      Primary target: features that discriminate the hard-FP cluster (elevated X14/X49/X46/
+      X48 co-elevated profile) from true positives. Physical hypotheses: X49/X14 ratio,
+      v_ct_spread * X49 product, X48/X46 ratio.
+    novel_vs_v1_v22: true
+    novel_vs_v23: true
+    dedup_check:
+      conflicts_with: []
+      note: |
+        V3 deg-2 polynomial on top-5 SHAP (15 terms, fixed operators, full 1352-row train):
+        exhausted. V23 CT-spread (4 features): already incorporated as input to OpenFE.
+        OpenFE searches ALL 55 features with 19 mathematical operators on the 836-row pool.
+        No overlap with any V1-V22 build.
+    expected_lift_oof:
+      point: 0.6
+      low: 0.0
+      high: 1.4
+      rationale: |
+        Suspect pool has 7.9% prevalence vs full-train 4.88% -> better SNR for OpenFE
+        internal LightGBM. However only 66 positives total; bootstrap variance dominates.
+        Zero lift (40% probability): hard FPs are feature-space indistinguishable from TPs
+        on all 55 dimensions; OpenFE finds only noise features that fail noise-floor filter.
+        Moderate lift (40% probability): 2-3 features survive (e.g., X49/X14, v_ct_spread*
+        X49) providing +0.3-0.8 OOF pts and dropping 1-2 hard FPs below threshold.
+        High lift (20% probability): 4-5 features survive including physically motivated
+        expressions -> +0.8-1.4 OOF pts and >=3 hard FPs below threshold (Set B pass).
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies:
+        - openfe>=0.0.11
+        - lightgbm>=3.3
+        - scikit-learn>=1.4
+        - pandas>=1.5
+      notes: |
+        Moderately complex: OpenFE must wrap V23's Stage-2 CV loop. For each fold,
+        OpenFE.fit() runs on the FOLD TRAINING SPLIT of the suspect pool (not full pool).
+        CRITICAL leakage trap: GroupBy operators (GroupByThenMean/Min/Max/Std) compute
+        group stats on the data passed to fit(). To be safe: EXCLUDE GroupBy operators
+        from the search space entirely (restrict to 19 mathematical operators: +,-,*,/,
+        log,sqrt,square,abs,max,min,freq and others). The 55-feature pool has only 11
+        unique grade codes (X11) -- GroupBy on X11 would heavily overfit anyway.
+        Runtime: n_data_blocks=8 (default), n_jobs=8 -> 5-15 min per fold, 25-75 min
+        total for 5-fold. Abort and fall back to rec_2 if total runtime exceeds 90 min.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Zhang et al. "OpenFE: Automated Feature Generation with Expert-level Performance,"
+        ICML 2023, PMLR 202. arXiv:2211.12507. GitHub: https://github.com/IIIS-Li-Group/OpenFE
+        Average +1.9% accuracy on 49 OpenML datasets. Datasets are 5k-500k rows;
+        confidence downgraded from 4 to 3 for 836-row regime.
+        Seshadri (2024) "OpenFE's Dark Secret" (Medium): GroupBy leakage confirmed;
+        fix is train_index parameter OR excluding GroupBy operators.
+        OpenFE parameter docs: n_data_blocks controls speed-accuracy tradeoff;
+        decreasing from 8 improves candidate recall at cost of speed.
+    failure_modes:
+      - "LEAKAGE via GroupBy operators: GroupByThenMean/Min/Max/Std compute group stats
+        on the data passed to fit(). Mitigation: exclude GroupBy from operator set entirely
+        OR pass train_index=fold_train_indices explicitly. Exclusion is safer for small pool."
+      - "Noise floor overfitting at 66 positives: OpenFE Stage-1 halving uses LightGBM
+        residual gain. With 66 positives, AUC variance per fold ≈ 0.02-0.04. Features
+        with marginal gain still survive halving. Mitigation: 3-stage noise-floor filter
+        (see noise_floor_filter section); accept at most 5 features."
+      - "Rediscovery of V23 existing features: v_ct_spread, X49_X46_ratio, X41_X49_diff
+        already in Stage-2. OpenFE will find near-variants (v_ct_spread/X14, v_ct_mean*X49).
+        Mitigation: Pearson pre-prune -- reject any candidate with |r| > 0.85 to any
+        existing Stage-2 feature."
+      - "Runtime overrun: O(55^2 x 19) = ~57k candidates on 836 rows. Default 5-15 min
+        per fold = 25-75 min total. Acceptable. If exceeds 90 min total, abort, use rec_2."
+      - "Stage-2 AUC ceiling at 0.72 is a pool-structure limitation. Hard FPs may be
+        genuinely inseparable on X1-X49 (same root cause as Stage-2 AUC plateau).
+        OpenFE finds features that improve global AUC without pushing the specific 10
+        hard-FP rows below threshold. Still useful for OOF gain but won't unlock Set B."
+
+    noise_floor_filter:
+      stage_1_correlation_prune:
+        threshold: 0.85
+        action: "Reject OpenFE candidate if |Pearson r| > 0.85 with ANY existing Stage-2 feature"
+      stage_2_oof_delta_gate:
+        threshold: "delta AUC >= 0.005 in at least 3/5 folds (LightGBM fast, 50 trees)"
+        action: "Reject if consistent signal across folds is absent"
+      stage_3_shap_check:
+        threshold: "SHAP |mean| > 0.001 on held-out fold"
+        action: "Reject near-zero-SHAP features even if delta-AUC passes"
+      max_features_accepted: 5
+
+    computational_budget:
+      input_rows: 836
+      n_positives: 66
+      n_features_in: 55
+      safe_operators: 19  # excluding 4 GroupBy operators
+      candidate_pool_size: "~57,475 before Stage-1 halving"
+      recommended_config: "n_data_blocks=8, n_jobs=8, min_candidate_features=500, feature_boosting=False"
+      estimated_runtime_minutes: "25-75 total (5-fold)"
+      abort_threshold_minutes: 90
+      fallback: "C2_R13_rec_2 (CV-gated pairwise, 1.5h, no new library)"
+
+    search_hypotheses:
+      high_value_targets:
+        - "X49 / (X14 + eps): Hard FPs elevated X14 (619C vs 604C avg) + elevated X49.
+          True positives: elevated X49 + LOWER X14. Ratio X49/X14 should discriminate."
+        - "v_ct_spread * X49: CT-spread T-stat=3.51 (TP vs FP in pool). Hard FPs also
+          elevated X49. Product encodes thermal-spread x chemistry-proxy interaction."
+        - "X48 / (X46 + eps): Hard FPs elevated both X48 (0.0089 vs 0.0041) and X46
+          (0.0019 vs 0.0013). If ratio differs TP vs FP, discriminative. V4 has
+          X49_X46_ratio; X48/X46 is untried."
+        - "log(X13 / v_ct_spread): X13 dominant Stage-1 predictor. Hard FPs extreme
+          on X13 but high v_ct_spread from elevated X14. Normalising X13 by v_ct_spread
+          may partially deflate Stage-1 signal for FPs in Stage-2 context."
+      hard_fp_proba_expectations:
+        most_likely_to_flip: [189, 188, 651]  # V23 Stage-2 probas 0.40, 0.41, 0.45
+        unlikely_to_flip: [689, 642, 247]     # V23 Stage-2 probas 0.77, 0.82, 0.78
+
+    code_sketch: |
+      from openfe import OpenFE, transform
+      import numpy as np, pandas as pd
+      from sklearn.model_selection import StratifiedKFold
+      from lightgbm import LGBMClassifier
+
+      # X_suspect: 836-row DataFrame, 55 features (V23 Stage-2 inputs)
+      # y_suspect: array, 66 positives
+
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+      # PHASE 1: Feature discovery on full suspect pool
+      # Exclude GroupBy operators via candidate_features_list filtering
+      ofe = OpenFE()
+      candidate_features = ofe.fit(
+          data=X_suspect,
+          label=y_suspect,
+          task="binary classification",
+          metric="auc",
+          n_jobs=8,
+          n_data_blocks=8,            # fast default; lower to 4 if >15min/fold
+          min_candidate_features=500, # stop halving earlier, only need top-5
+          stage2_metric="gain_importance",  # MDI fastest; not permutation
+          feature_boosting=False,     # disable for speed on small pool
+          seed=42, verbose=True,
+      )
+      # Post-filter: remove GroupBy candidates from ranked list
+      safe_candidates = [
+          f for f in candidate_features
+          if not any(op in str(f) for op in
+                     ["GroupByThenMean","GroupByThenMin","GroupByThenMax","GroupByThenStd"])
+      ]
+
+      # PHASE 2: Noise-floor filter -- 3 stages
+      existing_cols_array = X_suspect.values
+      accepted_features = []
+      for feat in safe_candidates[:50]:
+          X_aug, _ = transform(X_suspect, X_suspect.iloc[:0], [feat], n_jobs=1)
+          new_col_vals = X_aug.iloc[:, -1].values
+          # Stage 1: correlation pre-prune
+          max_r = np.max(np.abs(np.corrcoef(new_col_vals,
+                                             existing_cols_array.T)[0, 1:]))
+          if max_r > 0.85:
+              continue
+          # Stage 2: fast 3-fold delta-AUC gate
+          fold_deltas = []
+          for tr_l, va_l in list(skf.split(X_suspect, y_suspect))[:3]:
+              base_X_tr = X_suspect.values[tr_l]
+              aug_X_tr = X_aug.values[tr_l]
+              base_auc = lgb_quick_auc(base_X_tr, y_suspect[tr_l],
+                                       X_suspect.values[va_l], y_suspect[va_l])
+              aug_auc  = lgb_quick_auc(aug_X_tr, y_suspect[tr_l],
+                                       X_aug.values[va_l], y_suspect[va_l])
+              fold_deltas.append(aug_auc - base_auc)
+          if sum(d >= 0.005 for d in fold_deltas) >= 2:
+              accepted_features.append(feat)
+          if len(accepted_features) >= 5:
+              break
+
+      print(f"Accepted OpenFE features: {len(accepted_features)}")
+      # PHASE 3: Full 5-fold Stage-2 CV with accepted features added to Stage-2 matrix
+      # Wrap into V23 build_v23.py Stage-2 section, replacing build_s2_features() output
+
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      coil_473_recovery: low
+      notes: |
+        Hard-7: V23 catches 7/7. CoilID 473 at proba 0.0276 = chosen T is Stage-1
+        dependent, not Stage-2 feature dependent. Low risk of losing 473 via OpenFE changes.
+        Hard-FP-10: primary target. Physical hypotheses (X49/X14, v_ct_spread*X49, X48/X46)
+        directly address known hard-FP profile. CoilIDs 189/188/651 (probas 0.40-0.45) are
+        closest to new threshold T and most likely to flip. Set B gate is now >=3/10 (relaxed
+        from >=5/10 in Cycle 1). Achievable if 2-3 feature hypotheses survive filter.
+        Easy-59: OOF probas 0.28-0.89 -- large margin above T=0.028. Low regression risk.
+
+
+  - id: C2_R13_rec_2
+    title: "CV-gated pairwise on Stage-2 pool (fallback)"
+    technique_class: feature_engineering
+    description: |
+      Fallback if OpenFE times out or yields 0 accepted features. Enumerate all 55C2=1485
+      pairwise multiplicative interactions on the 836-row suspect pool. Evaluate each via
+      fast 3-fold LightGBM (50 trees, scale_pos_weight=11.65 for pool prevalence). Apply
+      Pearson pre-prune (|r|>0.85 to existing features). Accept top-10. Can also run
+      concurrently with OpenFE (independent, no library overlap). Key manually-targeted
+      pair: X49 * X14 (or X49 / X14 -- same information, different expression class).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: ["V3_poly_deg2_top5"]
+      note: |
+        V3 pairwise: top-5 SHAP only, 15 terms, full 1352-row train. This rec: all 55
+        features, 836-row suspect pool, CV-gain gated. Different search space and data scope.
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.0
+      rationale: |
+        Limited to degree-2 multiplicative only (no transcendentals). Fewer candidates
+        than OpenFE but cleaner search at 836 rows. Strong mechanistic prior for X49/X14
+        interaction. Main risk: V23 already has X49_X46_ratio and X41_X49_diff -- X49-based
+        interactions may be highly correlated and get pre-pruned.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - scikit-learn>=1.4
+        - lightgbm>=3.3
+        - joblib>=1.3
+      notes: |
+        Fully within existing V23 harness. 1485 pairs x 50-tree LGB x 3 folds x 836 rows
+        = 4-8 min on 8 cores via joblib. No new library. Can run as parallel process with
+        OpenFE.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning-only for this dataset combination. General support:
+        "Arithmetic Feature Interaction Is Necessary for Deep Tabular Learning,"
+        arXiv:2402.02334 (2024). CV-gated GBDT importance: PMC9140774.
+    failure_modes:
+      - "Multiple testing: 1485 pairs, ~74 pass at p=0.05 by chance. Require 3/3 folds
+        passing delta-AUC >=0.005. Stricter than OpenFE noise-floor gate."
+      - "Collinearity: X49 already a Stage-2 base feature. X49*X14 may correlate >0.85
+        with X49 itself (if X14 variance is low in pool). Pre-prune catches this."
+    code_sketch: |
+      from joblib import Parallel, delayed
+      from lightgbm import LGBMClassifier
+      from sklearn.model_selection import cross_val_score
+      import pandas as pd, numpy as np
+
+      feat_cols = list(X_suspect.columns)  # 55 features
+      pairs = [(i, j) for i in range(55) for j in range(i+1, 55)]  # 1,485
+
+      def eval_pair(i, j):
+          inter = X_suspect.iloc[:, i].values * X_suspect.iloc[:, j].values
+          aug_X = np.column_stack([X_suspect.values, inter])
+          lgb = LGBMClassifier(n_estimators=50, learning_rate=0.1,
+                               scale_pos_weight=11.65, verbose=-1, n_jobs=1)
+          auc = cross_val_score(lgb, aug_X, y_suspect, cv=3, scoring="roc_auc").mean()
+          return (f"{feat_cols[i]}_x_{feat_cols[j]}", auc, i, j)
+
+      results = Parallel(n_jobs=8)(delayed(eval_pair)(i, j) for i, j in pairs)
+      results_sorted = sorted(results, key=lambda x: -x[1])
+
+      accepted = []
+      for col, auc_val, i, j in results_sorted:
+          inter = X_suspect.iloc[:, i].values * X_suspect.iloc[:, j].values
+          max_r = np.max(np.abs(np.corrcoef(inter, X_suspect.values.T)[0, 1:]))
+          if max_r < 0.85:
+              accepted.append((col, auc_val, i, j))
+          if len(accepted) >= 10:
+              break
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - C2_N02_hard_fp_counterfactual: |
+      N02 (DiCE counterfactual for hard FPs) should run before C2_R13_rec_1 is submitted
+      to build. If N02 confirms the X49/X14 ratio hypothesis for CoilIDs 189/188/651,
+      that expression should be manually added to OpenFE's top-priority evaluation list.
+  - C2_R08_cascade_redispatch: |
+      If N01/N03 deliver stronger Stage-1 (OOF AUC > 0.884), Stage-2 suspect pool shifts.
+      OpenFE features discovered on V23's 836-row pool may not transfer. Re-run C2_R13
+      on the new pool if Stage-1 changes.
+  - C2_R10_mondrian_conformal: |
+      R10's abstain rule targets the same Hard-FP-10 via uncertainty-based rejection.
+      If both R13 (OpenFE features) AND R10 (conformal abstain) survive, combine in a
+      single Stage-2 build -- do not blend separately (test overhead).
+
+synthesis_note: |
+  C2_R13_rec_1 is the primary recommendation. Expected scenario distribution:
+    40% probability: 0 features survive noise-floor filter -> OOF stays 54.41; use rec_2.
+    40% probability: 2-3 features survive -> OOF +0.3-0.8; >=1 hard FP improvement.
+    20% probability: 4-5 features survive including physical hypothesis expressions ->
+      OOF +0.8-1.4; >=3 hard FPs below threshold (Set B passes for first time).
+  Build effort: 3h (rec_1) + 1.5h (rec_2 concurrent) = well within deadline budget.
+  3 daily HE slots remaining today. Build first, submit only if gates pass.

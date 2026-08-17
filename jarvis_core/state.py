@@ -43,6 +43,8 @@ class JarvisState:
         self._tasks: dict[str, TaskRecord] = {}
         self._goals: dict[str, GoalRecord] = {}
         self._approvals: dict[str, ApprovalRequest] = {}
+        # AuditAgent state — stored additively, survives restarts via meta["audits"]
+        self._audits: dict = {}  # dict[str, AuditRun] — typed at runtime
         self._sync_task: asyncio.Task | None = None
         self._stopped = False
 
@@ -72,16 +74,34 @@ class JarvisState:
                 if goal.status in (GoalStatus.RUNNING, GoalStatus.PLANNING):
                     goal.status = GoalStatus.QUEUED
                     goal.updated_at = datetime.utcnow()
+            # Restore AuditRun state from meta["audits"] — additive, default {}
+            self._restore_audits(snapshot.meta.get("audits", {}))
             log.info(
-                "Restored state from %s (%d conversations, %d tasks, %d goals, %d approvals)",
+                "Restored state from %s (%d conversations, %d tasks, %d goals, "
+                "%d approvals, %d audits)",
                 self.state_path,
                 len(self._conversations),
                 len(self._tasks),
                 len(self._goals),
                 len(self._approvals),
+                len(self._audits),
             )
         except Exception as e:
             log.exception("Failed to load state from %s: %s — starting fresh", self.state_path, e)
+
+    def _restore_audits(self, raw_audits: dict) -> None:
+        """Deserialize AuditRun objects from the meta["audits"] snapshot dict."""
+        if not raw_audits:
+            return
+        try:
+            from jarvis_core.audit_agent.models import AuditRun
+            for audit_id, audit_data in raw_audits.items():
+                try:
+                    self._audits[audit_id] = AuditRun.model_validate(audit_data)
+                except Exception as exc:
+                    log.warning("Could not restore audit %s: %s", audit_id, exc)
+        except ImportError:
+            log.debug("audit_agent not available — skipping audit restore")
 
     async def start_background_sync(self) -> None:
         """Spawn the periodic disk-sync task."""
@@ -113,11 +133,19 @@ class JarvisState:
     async def sync_to_disk(self) -> None:
         """Snapshot state to disk atomically (write to tmp + rename)."""
         async with self._lock:
+            # Serialize audit runs into meta["audits"] for backward-compat storage
+            audits_raw: dict = {}
+            for audit_id, audit_run in self._audits.items():
+                try:
+                    audits_raw[audit_id] = json.loads(audit_run.model_dump_json())
+                except Exception:
+                    pass  # Skip broken audit — don't crash the sync
             snapshot = JarvisStateSnapshot(
                 conversations=self._conversations,
                 tasks=self._tasks,
                 goals=self._goals,
                 approvals=self._approvals,
+                meta={"audits": audits_raw},
             )
         try:
             self.state_path.parent.mkdir(parents=True, exist_ok=True)
@@ -320,6 +348,24 @@ class JarvisState:
             approval.boss_note = boss_note
             return approval
 
+    # === Audit accessors (AuditAgent — additive, no breaking changes) ===
+
+    async def add_audit(self, audit_run: object) -> object:
+        """Store a new AuditRun."""
+        async with self._lock:
+            self._audits[audit_run.audit_id] = audit_run
+            return audit_run
+
+    async def get_audit(self, audit_id: str) -> object | None:
+        async with self._lock:
+            return self._audits.get(audit_id)
+
+    async def list_audits(self, limit: int = 50) -> list:
+        async with self._lock:
+            audits = list(self._audits.values())
+        audits.sort(key=lambda a: a.updated_at, reverse=True)
+        return audits[:limit]
+
     # === Debug / introspection ===
 
     async def stats(self) -> dict[str, int | float]:
@@ -340,6 +386,7 @@ class JarvisState:
                 "approvals_pending": sum(
                     1 for a in self._approvals.values() if a.decision == ApprovalDecision.PENDING
                 ),
+                "audits_total": len(self._audits),
                 "cost_usd_total": sum(c.cost_usd_total for c in self._conversations.values())
                 + sum(g.cost_usd_total for g in self._goals.values()),
             }

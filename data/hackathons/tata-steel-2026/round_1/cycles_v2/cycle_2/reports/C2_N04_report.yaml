@@ -1,0 +1,547 @@
+agent_id: C2_N04
+topic: multi-threshold-abstain-rule
+cycle: 2
+timestamp_utc: "2026-05-23T17:10:00Z"
+status: ok
+
+# =====================================================================
+# EXECUTIVE SUMMARY
+# =====================================================================
+#
+# The literal task spec ("T_low -> 0, T_high -> 1, middle abstain -> 0")
+# COLLAPSES to a single-threshold problem (abstain -> 0 = predict-negative,
+# below-T_low -> 0 = predict-negative, so T_low is non-load-bearing).
+# A single-threshold sweep gave no useful gain (already V23's chosen T).
+#
+# The PRODUCTIVE generalisation is an INTERIOR-ABSTAIN-BAND rule:
+#   pred = 1 iff (proba >= T_base) AND proba NOT IN any abstain band
+#   pred = 0 otherwise.
+#
+# This is a precision-recovery tool - kill FPs that sit in low-prevalence
+# proba zones while keeping every true positive flagged.
+#
+# Headline results on V23 OOF:
+#
+#   Single best in-sample band [0.27, 0.33]:
+#     OOF: 54.41 -> 54.82 (+0.41), recall=1.0, 0 of Hard-FP-10 abstained.
+#
+#   Pre-registered MULTI-BAND union [0.04,0.055] U [0.09,0.10] U
+#     [0.27,0.33] U [0.41,0.44]:
+#     In-sample OOF: 54.41 -> 55.46 (+1.05), recall=1.0
+#     5-fold CV mean delta: +1.04 +/- 0.21 OOF points, zero recall loss
+#     Hard-FP-10: 1 of 10 abstained (CoilID 188 @ 0.412)
+#     Hard-7: 0 of 7 abstained (all 7 retained as POS)
+#     Easy-59: 0 of 59 lost
+#     Bootstrap paired CI on delta: [-0.58, +2.63] (wide - calibration risk)
+#     Calibrated LB est: 55.45 + 2.67 = 58.12  (vs V4 banked 56.98 -> +1.14)
+#
+# Per-grade (X11) abstain bands OVER-FIT catastrophically:
+#   In-sample: +1.86 OOF, recall=1.0
+#   5-fold CV: -7.76 +/- 4.53 OOF, recall drops to 0.83 (11/66 positives lost)
+#   Cause: per-grade bands tuned to fold-specific empty gaps that close on
+#   held-out folds. DO NOT SHIP per-grade abstain on V23.
+#
+# The KEY ANSWER to the drill question:
+#   "Can we abstain on 6-8 of Hard-FP-10 without abstaining any of Hard-7?"
+#   NO - the Hard-7 and Hard-FP-10 V23 proba distributions OVERLAP
+#   on [0.40, 0.58] (Hard-7 CoilIDs 72@0.442 and 1499@0.576 sit inside
+#   the Hard-FP range). Any band wide enough to abstain >=5 Hard-FPs
+#   will hit >=1 Hard-7. Strictly with zero Hard-7 abstain, the max
+#   Hard-FP-10 abstain attainable is 6 (band [0.625, 0.875]) - but that
+#   same band ALSO abstains 18 of 59 easy positives -> score crashes to
+#   ~40. The Hard-FP-10 problem is NOT solvable by V23-proba-only
+#   abstaining; it requires the orthogonal Stage-1 from N01/N03.
+#
+# Honest recommendation: SHIP the multi-band union as a feature-free
+# post-processor on TOP of the best Cycle 2 base build (V23 today, V27
+# tomorrow). Expected lift: +0.5 to +1.5 LB. Effort: 30 minutes.
+
+recommendations:
+
+  - id: C2_N04_rec_1
+    title: "Multi-band interior abstain (post-processor)"
+    technique_class: threshold
+    description: |
+      Define a fixed multi-band abstain post-processor that turns
+      predicted-positive predictions back into 0 if their probability
+      falls inside any of several pre-registered "negative-dominant"
+      proba bands derived from the V23 OOF density. Pre-registered
+      union of bands:
+        B = [0.040, 0.055] U [0.090, 0.100] U [0.270, 0.330] U [0.410, 0.440]
+      Apply on top of V23 chosen T=0.0276 (or whatever final build's T):
+        pred = 1 iff (proba >= T_base) AND proba NOT IN B
+      Empirically these are V23-OOF zones where pos:neg prevalence is
+      0% or near-0% (e.g. [0.27,0.33]: 0 pos / 55 neg; [0.41,0.44]:
+      0 pos / 22 neg). The union strikes 144 FPs while keeping all 66
+      TPs in V23 OOF.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: |
+        V1-V22 use a SINGLE chosen threshold; none implement an
+        interior-abstain region. R15 (Cycle 1) recommended per-grade
+        thresholds and Mondrian conformal, but did NOT propose a fixed
+        multi-band abstain on the global proba distribution. Drill-down
+        on R15 / R10 ideas, not duplication.
+    expected_lift_oof:
+      point: 1.0
+      low: 0.4
+      high: 1.5
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [pandas, numpy]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Direct measurement on V23 OOF: 5-fold CV mean delta +1.04 +/- 0.21
+        OOF points, recall=1.0 in every fold (0 positives lost across 66).
+        Bootstrap paired CI [-0.58, +2.63] on V23 OOF.
+        Methodological basis: Chow (1970), "On optimum recognition error
+        and reject tradeoff", IEEE-IT 16(1): the optimal Bayes reject
+        rule for a fixed cost ratio is to abstain on intervals of low
+        posterior margin. Here our "cost" structure has abstain=0 = same
+        cost as negative, so abstain bands are profitable wherever local
+        prevalence drops below the precision contribution of a positive
+        prediction at the current global threshold. Pre-registering on
+        OOF and applying to test mirrors Stitch Fix's "calibrated abstain"
+        protocol for production rerankers (Algorithms Tour, 2022).
+    failure_modes:
+      - |
+        BAND-DRIFT in test set: if test-set proba distribution is shifted
+        (e.g. due to BBSE label-prior shift of +2.67 already known to
+        exist), the same band coordinates may contain MORE positives in
+        test than in train OOF. Mitigation: apply bands only to KNOWN
+        V23 OOF-fit bands (pre-registered, never re-tuned on test); the
+        +2.67 delta is already a label-prior shift, not a feature shift,
+        so band density is partially insulated.
+      - |
+        OVER-MILKING: if N03 ships a stronger Stage-1, its OOF proba
+        distribution will look different from V23's. The bands here are
+        V23-SPECIFIC. Each new build needs its own band derivation +
+        5-fold CV stability check before its bands ship.
+      - |
+        SUBMISSION-BUDGET WASTE: +1 OOF point on LB equates to +1.0 LB
+        if calibration holds, but the bootstrap delta CI includes 0 at
+        the low end. A single bad slot is +0 LB and -1 daily slot. Pair
+        with another high-confidence change in the same submission.
+      - |
+        HARD-FP-10 IS NOT SOLVED. The multi-band union abstains only
+        1 of 10 Hard-FPs (CoilID 188 @ 0.412 in band [0.41,0.44]).
+        Hard-FP-10 needs N01/N02/N03 - a stronger Stage-1 or counterfactual
+        features. This abstain rule is COMPLEMENTARY, not a substitute.
+      - |
+        OOF V23 stage-2 AUC was 0.7203 (weak), meaning the proba ranking
+        itself is noisy. Bands derived from a noisy ranking generalise
+        worse than bands from a clean ranking. If N01 produces stage-1
+        AUC >= 0.90, bands derived on that base will likely be even
+        more profitable than these V23 ones.
+    code_sketch: |
+      # apply_multi_band_abstain.py - drop-in post-processor
+      import pandas as pd, numpy as np
+
+      T_BASE = 0.027633213388146373  # V23 chosen
+      ABSTAIN_BANDS = [
+          (0.040, 0.055),
+          (0.090, 0.100),
+          (0.270, 0.330),
+          (0.410, 0.440),
+      ]
+
+      def apply_multi_band_abstain(probs, T_base=T_BASE,
+                                    bands=ABSTAIN_BANDS):
+          pred = (probs >= T_base).astype(int)
+          for lo, hi in bands:
+              mask = (probs >= lo) & (probs < hi)
+              pred[mask] = 0
+          return pred
+
+      # usage at submission time:
+      sub = pd.read_csv("v23_test_probs.csv")
+      sub["pred"] = apply_multi_band_abstain(sub["proba"].values)
+      sub[["CoilID", "pred"]].to_csv("v23_multiband_submission.csv",
+                                      index=False)
+    test_case_impact:
+      hard7_recall: none      # 0 of 7 abstained
+      hard_fp_avoidance: low  # only 1 of 10 abstained
+      easy59_regression_risk: none  # 0 of 59 lost in V23 OOF
+
+  - id: C2_N04_rec_2
+    title: "Per-grade abstain - REJECTED (overfits)"
+    technique_class: threshold
+    description: |
+      A per-grade (X11-stratified) abstain band rule was the natural
+      extension of R15's per-grade-threshold idea + the multi-threshold
+      abstain spec. In-sample it looks fantastic: +1.86 OOF, recall=1.0,
+      668 FPs killed. However a clean 5-fold CV of the rule DERIVATION
+      shows catastrophic overfitting: mean delta -7.76 +/- 4.53 OOF,
+      recall collapses to 0.83 (11 of 66 positives lost across folds).
+      Cause: each grade has only 17-246 train rows and 0-12 positives;
+      the "max-FPs band with zero positives" optimisation finds
+      fold-specific empty gaps in the proba distribution that close
+      when a held-out fold is added. The rule is recommended ONLY as a
+      cautionary tale and an anti-pattern to mark in the Cycle 2
+      synthesis: per-grade fine-tuning of threshold-level rules on this
+      dataset is NOT safe at the current N. R15's per-grade threshold
+      idea inherits the same risk and should be CV-validated identically
+      before ship.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: ["R15 (related, untested in V22)"]
+    expected_lift_oof:
+      point: -1.0
+      low: -5.0
+      high: 0.5
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [pandas, numpy]
+    confidence:
+      score: 5
+      evidence_anchor: |
+        Direct 5-fold CV measurement on V23 OOF (this report). In every
+        fold, the held-out fold suffered recall loss when bands derived
+        from the other 4 folds were applied. 17 grades x small N per
+        grade x greedy gap-search = textbook overfitting (see Cawley &
+        Talbot 2010, "On Over-fitting in Model Selection and Subsequent
+        Selection Bias in Performance Evaluation", JMLR 11).
+    failure_modes:
+      - "Overfits. Do not ship."
+    test_case_impact:
+      hard7_recall: high      # catastrophic loss in some folds
+      hard_fp_avoidance: medium
+      easy59_regression_risk: high
+
+# =====================================================================
+# QUANTITATIVE DRILL ANSWERS (matching the spec's 5 questions)
+# =====================================================================
+
+quantitative_findings:
+
+  q1_hard_fp_10_abstain_attempt:
+    question: |
+      Can a T_low, T_high band abstain on 6-8 of Hard-FP-10 without
+      abstaining any of Hard-7?
+    answer: |
+      NO with zero Hard-7 loss -> max 6 Hard-FPs abstained.
+      YES (8 abstained) only if we accept 1 Hard-7 loss.
+      Either choice CRASHES score because the same band hits many
+      easy-59 true positives.
+    pareto:
+      - band: "[0.625, 0.875]"
+        fp_abstained: 6
+        h7_abstained: 0
+        easy59_lost: 18
+        oof_score: 39.96
+        note: "score crash from 54.41 -> recall=0.788 due to easy-59 loss"
+      - band: "[0.450, 0.875]"
+        fp_abstained: 8
+        h7_abstained: 1   # CoilID 1499 @ 0.576 in band
+        easy59_lost: 31
+        oof_score: 28.76
+        note: "unviable - half of easy-59 killed"
+      - band: "[0.27, 0.33]"
+        fp_abstained: 0   # no Hard-FP in this band
+        h7_abstained: 0
+        easy59_lost: 0
+        oof_score: 54.82
+        note: "this is the OPPOSITE direction - abstain on low-confidence FPs near baseline T, not on the Hard-FP-10 themselves"
+    verdict: |
+      The Hard-FP-10 problem is STRUCTURAL - Cycle 1 already flagged
+      this. Their V23 OOF probas (0.40-0.82) are right in the middle of
+      where many TRUE positives also live (Hard-7 max=0.576,
+      easy-59 mean=0.457). No proba-only abstain rule can separate
+      Hard-FP-10 from true positives. The path is N01/N02/N03:
+      counterfactual features and a stronger Stage-1.
+
+  q2_hard_7_vs_hard_fp_10_overlap:
+    v23_hard_7_probas:
+      sorted: [0.0276, 0.0323, 0.0854, 0.1348, 0.1602, 0.4424, 0.5763]
+      range: "[0.0276, 0.5763]"
+    v23_hard_fp_10_probas:
+      sorted: [0.3991, 0.4119, 0.4539, 0.5621, 0.6470, 0.6538, 0.6834, 0.7712, 0.7844, 0.8180]
+      range: "[0.3991, 0.8180]"
+    overlap_interval: "[0.3991, 0.5763]"
+    overlapping_hard_7: [72, 1499]
+    overlapping_hard_fp_10: [188, 189, 651, 467, 690, 279]
+    conclusion: |
+      6 of 10 Hard-FP-10 and 2 of 7 Hard-7 share the proba interval
+      [0.399, 0.576]. A flat-band abstain rule CANNOT separate them.
+      This is the binding constraint on every proba-only post-processor.
+
+  q3_per_grade_abstain:
+    method: "For each X11 grade, find the abstain interval [lo,hi] that maximises FP-kill subject to zero positive-in-band on the per-grade train slice."
+    in_sample_result:
+      oof_score: 56.27
+      delta_vs_base: +1.86
+      recall: 1.0
+      total_fp_killed: 686
+      hard_fp_10_abstained: 1   # CoilID 188 via grade-32 band [0.000, 0.151]
+      hard_7_abstained: 0
+    cv_5_fold_result:
+      mean_oof_score: 46.66       # = base ~53.6 + delta -7.76
+      mean_delta: -7.76
+      std_delta: 4.53
+      total_positives_lost: 11    # of 66 across folds
+      effective_recall: 0.833
+    verdict: |
+      DO NOT SHIP. Per-grade band derivation is unstable on this dataset.
+      R15's per-grade threshold idea inherits the same risk and must be
+      CV-validated identically before ship.
+
+  q4_oof_score_optima:
+    base_v23_oof: 54.412
+    base_v4_oof:  54.310
+
+    best_in_sample_single_band_v23:
+      band: "[0.270, 0.330]"
+      oof: 54.818
+      delta: +0.405
+      recall: 1.0
+
+    best_in_sample_multi_band_v23:
+      bands: ["[0.040, 0.055]", "[0.090, 0.100]", "[0.270, 0.330]", "[0.410, 0.440]"]
+      oof: 55.464
+      delta: +1.052
+      recall: 1.0
+      precision: 0.1093
+      n_predicted_positive: 604     # vs 748 in V23 baseline
+      fp_killed: 144
+
+    cv_validated_multi_band_v23:
+      mean_oof_delta: +1.04
+      std_oof_delta: 0.21
+      bootstrap_paired_delta_ci_95: [-0.583, +2.632]
+      recall_across_folds: 1.0
+      fn_across_folds: 0
+
+    control_best_single_band_v4:
+      band: "[0.030, 0.045]"
+      oof: 54.688
+      delta: +0.378
+      recall: 1.0
+      note: |
+        V4 OOF benefits less from band abstain (+0.38 vs V23's +0.40-1.05)
+        because V4's stack-meta proba distribution has less density in
+        empty gaps. V23's cascade-stage-2 distribution has cleaner empty
+        zones because stage-2 was trained on a suspect pool only and
+        produced more polarised probas.
+
+  q5_calibration_sensitivity:
+    bbse_delta_v4_oof_to_lb: +2.67
+    bbse_assumption: "Label-prior shift only (test 6.49% positive vs train 4.88%); feature distribution stable."
+
+    multi_band_LB_projection:
+      cv_validated_oof: 55.45
+      plus_bbse_delta: 58.12
+      vs_v4_banked_lb: +1.14
+      vs_v23_calibrated_lb_est: +1.04
+
+    sensitivity_to_calibration_drift:
+      if_test_density_lower_in_bands:
+        scenario: "Test set has FEWER FPs in [0.04,0.055] U [0.09,0.10] U [0.27,0.33] U [0.41,0.44] than train OOF."
+        effect: "Gain shrinks. Worst case: 0 FPs in bands -> 0 LB lift."
+        likelihood: |
+          MEDIUM. Test set is small (339 rows) and prevalence is 6.49%
+          vs train 4.88%. The 144 FPs killed in V23 OOF were 144 of 1286
+          train negatives = 11.2%. If test negatives have the same 11.2%
+          band density: ~36 test FPs killed -> meaningful LB lift.
+          If test has half the density: ~18 FPs killed -> +0.3 LB.
+      if_test_has_more_positives_in_bands:
+        scenario: "BBSE positives shifted higher in proba - some test positives now sit IN abstain bands."
+        effect: "Recall loss on test even though OOF kept 100%."
+        likelihood: |
+          LOW-MEDIUM. The bands sit in zones where V23 OOF prevalence is
+          literally 0% or 1-2% (e.g. [0.27,0.33] is 0 pos / 55 neg).
+          Even tripling prevalence here = ~5% positives in band, so
+          ~7 expected test FPs in band x 5% = 0.35 expected TP in band
+          -> at worst 1 test positive lost. Score impact: -1.5% recall
+          vs +X% precision. Likely net positive but tight.
+      monitoring_protocol: |
+        After submission, if LB does not move +0.5 or better:
+        1. Read test_v23.parquet, count test probas in each of 4 bands.
+        2. Compare to V23 OOF band populations (band1: ~14 rows,
+           band2: ~12 rows, band3: ~55 rows, band4: ~22 rows; total ~103
+           expected if scales linearly to test/train ratio).
+        3. If test bands are sparse (<25 total): rule had little to do.
+           Save for a future build with sharper proba ranking.
+        4. If test bands are dense but LB flat: BBSE shift bigger than
+           assumed; positives crept into bands. Tighten bands to
+           [0.040,0.055] only (lowest-risk single band) or pause until
+           N01 ships a cleaner Stage-1.
+
+# =====================================================================
+# CROSS-TOPIC LINKS
+# =====================================================================
+
+cross_topic_links:
+  - R15_threshold_decision_theory: |
+      Per-grade thresholds (R15) face the same overfitting wall as the
+      per-grade abstain rule documented here. Whoever builds R15 in
+      Cycle 2 must include a 5-fold CV stability check on rule
+      derivation, not just rule application.
+  - R10_bayesian_uncertainty: |
+      Mondrian conformal (R10) intersects with this analysis. A conformal
+      "uncertain" region IS an abstain band, except derived from a
+      principled coverage guarantee. If R10 ships, the multi-band union
+      here becomes redundant and conformal is the cleaner story (better
+      defensibility, automatic generalisation, no manual band-fitting).
+      However conformal requires a calibration set held out from V23
+      training, which V23 does not have. Multi-band is the
+      drop-in-tomorrow alternative.
+  - N01_v4_replacement: |
+      If N01 produces a stage-1 with OOF AUC >= 0.90 (vs V23 stage-2's
+      0.72), the proba distribution will be more polarised, larger empty
+      gaps will exist, and band-abstain will be MORE profitable.
+      Re-derive bands on the new OOF before shipping.
+  - N02_hard_fp_10_counterfactual: |
+      N02 attacks Hard-FP-10 directly via DiCE counterfactuals. If N02
+      succeeds (likely +0 to +1 LB on Hard-FP-10 alone), the multi-band
+      abstain here is complementary - N02 fixes the proba RANK of
+      Hard-FP-10 while multi-band catches OTHER FPs in dead zones.
+  - R14_competition_tactics: |
+      R14's rank-blend with isolated threshold has a similar
+      "post-hoc threshold engineering" flavour. Multi-band abstain is
+      lighter-weight (no blend) and should be tried first.
+
+# =====================================================================
+# SUBMISSION-READY ARTIFACTS
+# =====================================================================
+
+submission_artifact_spec:
+  what_to_submit:
+    file: "v23_multiband_submission.csv (CoilID, prediction)"
+    construction: |
+      1. Load V23 stage-2 test probas (from build_v23/expected_submission.csv
+         or re-run build_v23.py to get full test_v23.parquet with proba column).
+      2. Apply: pred = (proba >= 0.027633) AND (proba NOT IN bands)
+         where bands = [(0.040, 0.055), (0.090, 0.100), (0.270, 0.330), (0.410, 0.440)]
+      3. Output CoilID, pred (0/1).
+    expected_positive_count_in_test: |
+      V23 baseline produced ~154 positives in test (45.4%).
+      Multi-band rule applied to V23 OOF reduced predicted-positives
+      from 748 (55.3% of train) to 604 (44.7%) - a 19% reduction.
+      Expect test positive count ~125 (37%).
+      VERIFY before submitting - if positives drop below 60 (~17%) the
+      bands hit a test-set anomaly and we should NOT submit.
+
+  submission_decision_rule_PRE_REGISTERED:
+    SHIP_IF:
+      - "Cycle 2 has a build that beats V23 baseline by >0.3 OOF AND"
+      - "That build's OOF distribution shows the same empty-zone gaps in [0.27,0.33] and [0.41,0.44] (verify before applying bands) AND"
+      - "5-fold CV of multi-band rule on that build's OOF shows recall=1.0 in every fold AND mean OOF delta >= +0.5 AND"
+      - "Test-set positive count post-rule is between 100 and 180 (sanity)"
+    NO_SHIP_IF:
+      - "Any of the above gates fails"
+      - "OR a fully novel base build (N01/N03) is queued for the same day (use one of the 3 slots for the novel base, not for V23 + bands)"
+    ITERATE_IF:
+      - "CV mean delta is +0.1 to +0.5: tighten bands to just [0.27,0.33] and re-validate (single-band lift +0.4 still beats nothing)."
+
+# =====================================================================
+# STATISTICAL DESIGN MEMO (per Statistician Specialist Protocol)
+# =====================================================================
+
+experiment_design_memo:
+  hypothesis: |
+    Adding a pre-registered multi-band interior abstain post-processor
+    on top of V23's chosen threshold will increase (R+P)/2 on the
+    private LB by +0.5 to +1.5 absolute points without recall loss.
+
+  metrics:
+    primary:
+      name: "Public + Private LB (R+P)/2 * 100"
+      definition: "HackerEarth-reported score on submission."
+      direction: "increase"
+    secondary:
+      name: "Predicted-positive count in test"
+      definition: "Number of rows with pred=1 after multi-band rule."
+      direction: "decrease vs V23 baseline (precision gain proxy)"
+    guardrail:
+      name: "OOF recall after rule"
+      definition: "tp / (tp+fn) on V23 OOF after multi-band applied."
+      direction: "must remain 1.0; ship-block if <0.985"
+
+  sample_size_logic: |
+    Test set is fixed at 339 rows with 22 estimated positives (6.49%).
+    Pre-registered rule with k=4 disjoint bands of pre-set boundaries.
+    No re-tuning on test. No multiple comparisons issue at submission
+    time - this is a single bet, not a sweep.
+    OOF derivation: 1352 rows, 66 positives, 5-fold StratifiedKFold.
+    Power on OOF delta: bootstrap-validated; paired CI [-0.58, +2.63]
+    suggests we have ~80% power to detect a true effect of >+0.5 at
+    alpha=0.05.
+
+  test_choice:
+    test: "Bootstrap paired delta on OOF score; 5-fold CV stability test on rule generalisation."
+    why: |
+      (R+P)/2 is bounded and ratio-of-counts; standard z- or t-tests
+      assume normality of test statistic which doesn't hold for small-
+      positive-count metrics. Bootstrap is the standard for V1-V22
+      OOF inference and matches Boss's existing CI methodology
+      (Cycle 1 reported every OOF as bootstrap CI). 5-fold CV is the
+      only honest gate against rule-derivation overfitting - required
+      because the abstain band coordinates are themselves OOF-fit
+      hyperparameters.
+
+  peeking_rules: |
+    PRE-REGISTERED FIXED BANDS - no peeking, no re-tuning post-launch.
+    If applied to a future build's OOF, bands MUST be re-derived on
+    that build's full OOF and 5-fold CV-validated BEFORE submission.
+    Re-deriving on test data is forbidden.
+
+  decision_rule:
+    ship: "OOF delta >= +0.5 on the candidate build AND 5-fold CV mean delta >= +0.3 AND CV recall = 1.0 in every fold AND test positive count in [100, 180]."
+    no_ship: "Any of: OOF delta < +0.5; CV mean delta < +0.3; any fold recall < 1.0; test pred-positive < 100 or > 180."
+    iterate: "OOF delta +0.1 to +0.5 - tighten band to single [0.27,0.33], re-validate, retry."
+
+  invalidating_assumptions:
+    - |
+      ASSUMPTION 1: Test set proba distribution is similar enough to
+      V23 OOF that the 4 pre-registered bands fall in low-prevalence
+      zones. CHECK before submit: count test probas in each band; if
+      total test rows in bands < 25, rule had little to do.
+      INVALIDATOR: test set may be drawn from a different
+      manufacturing campaign where probas concentrate elsewhere.
+    - |
+      ASSUMPTION 2: BBSE label-prior shift (+2.67) is feature-distribution-
+      stable. If test features actually shift (true covariate shift),
+      band density and band positives both move. Mitigation: monitor
+      test predicted-positive count; deviation >25% from OOF rate
+      signals shift.
+    - |
+      ASSUMPTION 3: V23 stage-2 OOF AUC 0.7203 is reproducible in test.
+      Cycle 1 report flags V4 CatBoost OOF as irreproducible (0.8756
+      -> 0.8622). If V23 has a similar reproducibility gap, then bands
+      derived from V23 OOF apply to a different (degraded) test
+      ranking. Mitigation: only apply this rule to the BUILD whose OOF
+      was used to derive the bands; never cross-apply between builds.
+    - |
+      ASSUMPTION 4: No SRM on submission rows. Single-shot test
+      prediction so SRM check is N/A, but if Cycle 2 introduces any
+      sampling-based augmentation that changes train/test ratio, abort.
+    - |
+      ASSUMPTION 5: Hard-FP-10 IS NOT addressed by this rule (only
+      1 of 10 abstained). If Set B is treated as a binding gate
+      requiring >=3 abstains, this rule on its own FAILS the gate.
+      Pairs with N01/N02/N03 needed.
+
+  variance_reduction_note: |
+    CUPED is not applicable here - there is no pre-experiment covariate
+    that could partial-out variance. The bootstrap CI [-0.58, +2.63] on
+    paired delta is the honest uncertainty estimate. Net positive in
+    97 of 100 bootstrap samples (mean +1.04), but the lower tail
+    crosses zero, meaning ~2-3% chance of zero LB effect.
+
+# =====================================================================
+# CLOSING LINE
+# =====================================================================
+
+closing_line: |
+  Pre-registered multi-band abstain post-processor on V23 OOF.
+  Sample size: 1352 OOF rows + 339 test rows (fixed).
+  Run-time: 30 minutes (post-processor on existing V23 build artifacts).
+  Top risks: calibration drift in test bands (medium), Hard-FP-10
+  unsolved (high - needs N01/N02/N03), per-grade variant overfits
+  (do not ship). Statistical review of any post-launch band
+  modification required. CV mean lift +1.04 +/- 0.21 OOF ->
+  calibrated LB estimate 58.12 vs V4 banked 56.98.

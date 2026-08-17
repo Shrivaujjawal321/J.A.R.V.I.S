@@ -1,0 +1,113 @@
+# SSRF — Server-Side Request Forgery (CWE-918)
+#
+# Detects user-controlled input flowing into an outbound HTTP/network client
+# WITHOUT an allowlist/host-validation sanitizer in between. SSRF is a top-paying
+# bounty class (cloud metadata theft, internal-port scans, IMDS cred theft).
+#
+# DEFENSIVE: these rules DESCRIBE the vulnerable source->sink shape so the auditor
+# can flag and fix it (add an allowlist / block RFC1918 + link-local). They do not
+# exploit anything.
+#
+# Taint mode raises precision: a constant/hard-coded URL is NOT flagged because it
+# is not a taint source.
+rules:
+  # ── Python ────────────────────────────────────────────────────────────────
+  - id: jarvis-ssrf-python-requests-tainted
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      Potential SSRF: request/user-controlled input flows into an outbound HTTP
+      client (requests/httpx/urllib/aiohttp) without a host allowlist. An attacker
+      can coerce the server into requesting internal hosts (169.254.169.254 cloud
+      metadata, RFC1918, localhost). Validate the resolved host against an allowlist
+      and block private/link-local ranges before the request.
+    metadata:
+      cwe: "CWE-918"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+        - https://cwe.mitre.org/data/definitions/918.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: flask.request.$ANY
+              - pattern: request.$ANY
+              - pattern: $REQ.args.get(...)
+              - pattern: $REQ.form.get(...)
+              - pattern: $REQ.json[...]
+              - pattern: $REQ.GET.get(...)
+              - pattern: $REQ.POST.get(...)
+              - pattern: os.environ[...]
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: $V.startswith(...)
+              - pattern: validate_url(...)
+              - pattern: validate_url_for_ssrf(...)
+              - pattern: is_allowed_host(...)
+              - pattern: $ALLOWLIST[...]
+              - pattern: urllib.parse.urlparse(...).hostname in $ALLOW
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: requests.get($URL, ...)
+              - pattern: requests.post($URL, ...)
+              - pattern: requests.request(..., $URL, ...)
+              - pattern: requests.$M($URL, ...)
+              - pattern: httpx.get($URL, ...)
+              - pattern: httpx.$M($URL, ...)
+              - pattern: urllib.request.urlopen($URL, ...)
+              - pattern: aiohttp.ClientSession(...).get($URL, ...)
+              - pattern: aiohttp.request(..., $URL, ...)
+
+  # ── JavaScript / TypeScript ───────────────────────────────────────────────
+  - id: jarvis-ssrf-node-fetch-tainted
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Potential SSRF: request-derived input flows into an outbound HTTP client
+      (fetch/axios/http.get/got/node-fetch) without a host allowlist. Validate the
+      target host against an allowlist and reject private/link-local addresses
+      (169.254.169.254, RFC1918, ::1) before issuing the request.
+    metadata:
+      cwe: "CWE-918"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+        - https://cwe.mitre.org/data/definitions/918.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query
+              - pattern: req.query.$F
+              - pattern: req.body
+              - pattern: req.body.$F
+              - pattern: req.params.$F
+              - pattern: req.headers.$F
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: isAllowedHost(...)
+              - pattern: validateUrl(...)
+              - pattern: validateUrlForSsrf(...)
+              - pattern: $ALLOW.includes(...)
+              - pattern: new URL(...).hostname === $H
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fetch($URL, ...)
+              - pattern: fetch($URL)
+              - pattern: axios($URL, ...)
+              - pattern: axios.get($URL, ...)
+              - pattern: axios.$M($URL, ...)
+              - pattern: http.get($URL, ...)
+              - pattern: https.get($URL, ...)
+              - pattern: got($URL, ...)
+              - pattern: got.$M($URL, ...)
+              - pattern: request($URL, ...)

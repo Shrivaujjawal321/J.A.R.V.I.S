@@ -1,0 +1,371 @@
+agent_id: C2_R15
+topic: per-grade-threshold-on-v23
+cycle: 2
+prior_cycle_rec: R15_rec_1 (per-grade threshold + EB shrinkage, deferred from C1)
+timestamp_utc: 2026-05-23T17:15:00Z
+status: ok
+
+# ============================================================
+# HEADLINE VERDICT
+# ============================================================
+# R15_rec_1 (per-grade T + EB shrinkage) is FALSIFIED under honest evaluation.
+# In-sample sweep on V23 OOF gives +0.34 OOF (k0=5) -- looks promising.
+# BUT nested 5-fold CV (per-grade T learned on 4 folds, applied to 5th) gives
+# -1.39 OOF. The +0.34 is pure overfit of within-grade argmax on tiny
+# per-grade positive counts (median 4 positives/grade).
+#
+# R15_rec_3 (bootstrap-conservative T) gives ~0 delta on both V23 and V4.
+# The point argmax T=0.027633 sits AT the bootstrap 25-50th percentile,
+# so quantile selection doesn't move the chosen T meaningfully.
+#
+# V4 per-grade T (control) collapses by -5.4 OOF at k0=5 -- demonstrates
+# that V4's meta-stack already calibrates across grades. V23's stage-2
+# cascade is similarly well-calibrated; the apparent V23 in-sample lift
+# is noise on the within-grade sweep.
+#
+# WHY V25 (grade-aware features) failed = SAME REASON per-grade T fails:
+# X11 information is already saturated by the V4/V23 stack via direct
+# feature inclusion + tree interactions. Adding grade-aware threshold OR
+# grade-aware features adds zero new signal -- both are mechanical
+# re-encodings of information the model has already absorbed.
+
+# ============================================================
+# EXPERIMENT 1: Per-grade T sweep with EB shrinkage on V23 OOF
+# ============================================================
+experiments:
+
+  exp_1_v23_pergrade_in_sample:
+    description: |
+      Within-grade argmax (R+P)/2 sweep on V23 OOF for each X11 grade with
+      >=10 rows AND >=1 positive (10 eligible grades out of 17). Raw T(g)
+      shrunk toward global T=0.027633 in log-odds space with weight
+      w(g) = n_pos(g) / (n_pos(g) + k0). Same shared cascade model -- only
+      decision rule changes.
+    v23_baseline:
+      global_T: 0.027633
+      OOF_score: 54.4118
+      recall: 1.0
+      precision: 0.0882
+      tp: 66
+      fp: 682
+      fn: 0
+    eligible_grades_count: 10
+    raw_per_grade_T_v23:
+      26: 0.542479
+      28: 0.160155
+      29: 0.074288
+      30: 0.032304
+      32: 0.134845
+      34: 0.108150
+      35: 0.027633
+      36: 0.107865
+      37: 0.363988
+      38: 0.705918
+      39: 0.153702
+    in_sample_sweep_results:
+      k0_3:  {OOF: 54.0572, delta: -0.3545, R: 0.9848, P: 0.0963, tp: 65, fp: 610, fn: 1}
+      k0_5:  {OOF: 54.7482, delta: 0.3364,  R: 1.0000, P: 0.0950, tp: 66, fp: 629, fn: 0}
+      k0_7:  {OOF: 54.6544, delta: 0.2427,  R: 1.0000, P: 0.0931, tp: 66, fp: 643, fn: 0}
+      k0_10: {OOF: 54.6089, delta: 0.1972,  R: 1.0000, P: 0.0922, tp: 66, fp: 650, fn: 0}
+      k0_15: {OOF: 54.5643, delta: 0.1526,  R: 1.0000, P: 0.0913, tp: 66, fp: 657, fn: 0}
+    headline: |
+      Best in-sample k0=5: +0.34 OOF (54.75 vs 54.41). FP reduced 682 -> 629.
+      Looks promising IN SAMPLE. Critical caveat: this is the SAME OOF the
+      grade-T was tuned on. No held-out check. (Resolved by exp_3 below.)
+
+  exp_2_v4_pergrade_control:
+    description: |
+      Same procedure on V4's oof_meta (control). If V4 also benefits by
+      similar magnitude, per-grade T is a general post-hoc fix.
+    v4_baseline:
+      global_T: 0.014292
+      OOF_score: 54.3081
+    in_sample_sweep_results:
+      k0_3:  {OOF: 45.7187, delta: -8.5894, R: 0.8030, P: 0.1113, tp: 53, fp: 423, fn: 13}
+      k0_5:  {OOF: 48.9162, delta: -5.3919, R: 0.8636, P: 0.1147, tp: 57, fp: 440, fn: 9}
+      k0_7:  {OOF: 50.3053, delta: -4.0028, R: 0.8939, P: 0.1122, tp: 59, fp: 467, fn: 7}
+      k0_10: {OOF: 51.7576, delta: -2.5505, R: 0.9242, P: 0.1109, tp: 61, fp: 489, fn: 5}
+      k0_15: {OOF: 53.0037, delta: -1.3044, R: 0.9545, P: 0.1055, tp: 63, fp: 534, fn: 3}
+    headline: |
+      V4 per-grade T REGRESSES even in-sample at all k0 values. Reason:
+      V4's meta-stack already pushes within-grade scores into a roughly
+      iso-calibrated regime; per-grade argmax sweeps over noisy
+      within-grade probability values and picks T(g) values that fail to
+      generalize WITHIN V4's own OOF pool. Strong evidence that per-grade
+      T is NOT a general post-hoc fix. The V23 in-sample +0.34 is a
+      cascade-specific artifact, not a method-class win.
+
+  exp_3_v23_nested_cv_honest:
+    description: |
+      The decisive test. 5-fold StratifiedKFold (seed=42, V4 protocol).
+      For each fold, learn per-grade T on the 4 training folds, apply
+      the learned T(g) vector to the held-out fold. Pool predictions.
+      This eliminates the within-OOF double-dip that contaminated exp_1.
+    v23_nested_cv:
+      k0_5:  {pooled_OOF: 53.0694, delta: -1.3424, fold_scores: [54.42, 55.11, 50.00, 55.04, 50.81]}
+      k0_7:  {pooled_OOF: 53.0174, delta: -1.3943, fold_scores: [54.39, 55.07, 49.98, 55.00, 50.67]}
+      k0_10: {pooled_OOF: 52.9541, delta: -1.4576, fold_scores: [54.33, 55.04, 49.95, 54.81, 50.63]}
+      k0_15: {pooled_OOF: 52.8986, delta: -1.5131, fold_scores: [54.30, 54.96, 49.95, 54.68, 50.57]}
+    v4_nested_cv:
+      k0_5:  {pooled_OOF: 48.1385, delta: -6.1696}
+      k0_7:  {pooled_OOF: 49.4949, delta: -4.8131}
+      k0_10: {pooled_OOF: 50.8992, delta: -3.4089}
+      k0_15: {pooled_OOF: 51.3904, delta: -2.9177}
+    headline: |
+      HONEST nested CV verdict: per-grade T LOSES 1.39 OOF on V23, 4.8 OOF
+      on V4. The in-sample +0.34 on V23 was fully due to overfit. The
+      method is FALSIFIED for this dataset at the current sample size
+      (66 positives split across 12 grades = median 4 positives per
+      eligible grade -- not enough to learn a stable within-grade T).
+
+  exp_4_bootstrap_conservative_T:
+    description: |
+      R15_rec_3: B=1000 bootstrap resamples on full OOF; pick T as
+      lower-quantile of the {T_b*} distribution.
+    v23_bootstrap_T_percentiles:
+      pct_10: 0.027405
+      pct_25: 0.027633
+      pct_50: 0.027633
+      pct_75: 0.032304
+      pct_90: 0.073591
+      mean: 0.037368
+      std: 0.017782
+    v23_score_at_pct:
+      10: 54.4059
+      25: 54.4118
+      50: 54.4118
+      75: 53.6582
+    v4_bootstrap_T_percentiles:
+      pct_10: 0.014274
+      pct_25: 0.014292
+      pct_50: 0.014843
+      pct_75: 0.017066
+      pct_90: 0.051729
+    v4_score_at_pct:
+      10: 54.3025
+      25: 54.3081
+      50: 53.7006
+      75: 53.4615
+    headline: |
+      The point argmax T already sits AT the bootstrap 25-50th percentile
+      for both V23 and V4. Quantile selection cannot move T below the
+      argmax (no resample-driven robustness gain). At 75th-pctile T,
+      OOF drops 0.75 (V23) or 0.85 (V4). R15_rec_3 is a NULL lever on
+      these OOFs -- the bootstrap distribution is too tight.
+
+  exp_5_combined_pergrade_plus_bootstrap_within_grade:
+    description: |
+      Hybrid: per-grade T using 25th-pctile of bootstrap (B=400) within
+      each grade, then EB shrinkage k0=7.
+    v23_combined: {OOF: 54.6479, delta: 0.2361, R: 1.0000, P: 0.0930, tp: 66, fp: 644, fn: 0}
+    v4_combined:  {OOF: 51.7677, delta: -2.5404}
+    headline: |
+      In-sample only. Nested CV would inherit the same -1.4 honest loss
+      shown in exp_3. Within-grade bootstrap doesn't fix the small-sample
+      problem; with 3-12 positives per grade, even B=400 bootstrap of an
+      argmax is dominated by sampling noise.
+
+# ============================================================
+# WHY V25 (grade-aware features) FAILED
+# ============================================================
+why_v25_failed_and_pergrade_T_fails_too:
+  finding: |
+    V25 added per-grade ordinal + interaction features. It REGRESSED -0.43.
+    Per-grade THRESHOLD (this work) ALSO regresses under honest evaluation.
+    Same root cause confirmed by both experiments:
+
+    X11 grade is already a direct input feature to V4 (and V23's stage-1).
+    Tree-based stacks (LGB + XGB + CatBoost) handle categorical-by-feature
+    interactions automatically. Adding either:
+      (a) explicit per-grade interaction features (V25), OR
+      (b) per-grade decision threshold (R15_rec_1)
+    re-encodes the SAME information the stack already absorbed. The
+    incremental signal is zero; the only thing added is OVERFIT NOISE
+    on the per-grade tuning step.
+
+    V4 control experiment is the smoking gun: per-grade T LOSES IN-SAMPLE
+    on V4 (exp_2). This is impossible if grade-T were a meaningful lever;
+    it can only happen if V4's scores are already inter-grade calibrated.
+
+    Implication: per-grade decomposition (features OR thresholds) does
+    NOT work on this dataset until we have either:
+      (i) ~30+ positives per grade (would need 3-5x more data), OR
+      (ii) a Stage-1 that DOES NOT see X11 (so the per-grade adjustment
+           recovers signal the model missed).
+
+# ============================================================
+# RECOMMENDATIONS FOR CYCLE 2 SYNTHESIS
+# ============================================================
+recommendations:
+
+  - id: C2_R15_rec_1
+    title: "DROP R15_rec_1 (per-grade T) -- falsified by nested CV"
+    technique_class: threshold
+    verdict: REJECT
+    description: |
+      In-sample V23 OOF showed +0.34 lift. Honest nested 5-fold CV showed
+      -1.39 OOF. The in-sample number was overfit. V4 control showed
+      worse regressions (-5.4) confirming grade-T is structurally
+      mis-fit when the underlying model already sees X11.
+    falsifying_experiment: exp_3_v23_nested_cv_honest
+    novel_vs_v1_v22: true
+    expected_lift_oof: {point: -1.4, low: -2.0, high: -0.5}
+    feasibility: {score: 5, effort_hours: 0.5, dependencies: [numpy, scipy]}
+    confidence: {score: 5, evidence_anchor: "Direct nested CV measurement on actual V23 + V4 OOF."}
+
+  - id: C2_R15_rec_2
+    title: "DROP R15_rec_3 (bootstrap-conservative T) -- null lever on this data"
+    technique_class: threshold
+    verdict: REJECT
+    description: |
+      Bootstrap T distribution is too tight: argmax T sits at the 25-50th
+      percentile already. Quantile selection of {T_b*} cannot push T
+      below argmax. Above argmax T, score strictly decreases.
+    falsifying_experiment: exp_4_bootstrap_conservative_T
+    novel_vs_v1_v22: true
+    expected_lift_oof: {point: 0.0, low: -0.85, high: 0.0}
+    feasibility: {score: 5, effort_hours: 0.5, dependencies: [numpy]}
+    confidence: {score: 5, evidence_anchor: "Direct bootstrap simulation B=1000 on actual OOFs."}
+
+  - id: C2_R15_rec_3
+    title: "KEEP R15_rec_2 (per-fold median T) -- not yet falsified, low-cost"
+    technique_class: threshold
+    verdict: TEST
+    description: |
+      The remaining un-tested R15 lever is per-fold median T aggregation.
+      Not in this work because V23 OOF lacks fold_id labels. Suggest:
+      future builders WRITE fold_id into oof parquet, then a 30-line
+      script can test median-T vs pooled-argmax T.
+    novel_vs_v1_v22: true
+    expected_lift_oof: {point: 0.1, low: -0.1, high: 0.4}
+    feasibility: {score: 4, effort_hours: 1.0, dependencies: [numpy, "fold_id in oof parquet"]}
+    confidence: {score: 3, evidence_anchor: "Untested due to missing fold_id metadata."}
+
+  - id: C2_R15_rec_4
+    title: "PIVOT: prevalence-anchored T (test-time recalibration)"
+    technique_class: calibration
+    verdict: NEW_RECOMMENDATION
+    description: |
+      Novel from this drill. V23's chosen T yields ~36% test positive-rate
+      (sub: 122/339), but BBSE-confirmed true test prior is 6.49%.
+      That is 5.5x over-prediction. A prevalence-anchored T -- choose T
+      such that the test set predicts ~1.5x true prior (9.7%) -- could
+      shift the calibrated LB without touching the model.
+
+      For (R+P)/2 with recall locked at 100%, precision = TP / (TP+FP).
+      If true test pos count = 22, at 15% predict rate precision = 22/51 = 43%.
+      Score ceiling: (1.0 + 0.43)/2 * 100 = 71.5 IF recall stays 100%.
+      Risk: recall almost certainly drops below 100% at lower predict-rate.
+
+      Operational rule: post-hoc, choose T s.t. count(p_test >= T) / n_test
+      = target_rate, where target_rate = 1.5x prior = ~9.7%. Verify on
+      V23 OOF that this T retains nearly all 66 OOF positives.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      notes: |
+        V4 uses OOF argmax. V9 BBSE adjusts probabilities, not threshold.
+        No V1-V22 explicitly used prevalence-anchored T selection.
+    expected_lift_oof: {point: 0.0, low: -3.0, high: 0.5}
+    expected_lift_lb: {point: 1.5, low: -3.0, high: 4.0}
+    feasibility: {score: 5, effort_hours: 0.5, dependencies: [numpy, pandas]}
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Saerens et al. 2002 "Adjusting the outputs of a classifier to new
+        a priori probabilities". BBSE-confirmed test prior (R09 finding).
+    failure_modes:
+      - "Recall may drop below 100% on hidden test -- OOF cannot validate this. NEEDS LB submission."
+      - "If recall drops > 10pp, score collapses below V4 baseline 56.98."
+      - "Only worth burning HE slot if no higher-leverage Cycle 2 candidate ships first."
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: medium
+
+# ============================================================
+# DELIVERABLE TARGETS RESPONSE
+# ============================================================
+target_response:
+  brief_target_v23_to_54_9: |
+    NOT ACHIEVABLE via R15_rec_1. Honest nested CV gives V23 OOF 53.02
+    (k0=7), a LOSS of 1.39 from 54.41 baseline. The +0.5 OOF C1 estimate
+    was optimistic; actual ceiling is negative under honest evaluation.
+
+  v4_per_grade_general_fix: |
+    NO. V4 control regresses by -5.4 OOF in-sample at k0=5, by -6.2 under
+    nested CV. Per-grade T is NOT a general post-hoc fix; it requires
+    the underlying model to NOT see grade information, which V4/V23 both
+    do see.
+
+  bootstrap_conservative_gain: |
+    ZERO. Bootstrap T distribution is tight around point argmax for both
+    V23 and V4. The 25th-percentile T equals the point argmax T exactly.
+    No improvement possible.
+
+  v25_grade_features_vs_per_grade_T: |
+    Both fail for the same reason -- X11 is already in the feature set,
+    and tree stacks absorb per-grade interactions automatically. Path
+    forward requires a Stage-1 that EXCLUDES X11 followed by
+    grade-stratified post-hoc rescoring, OR much more data per grade.
+
+# ============================================================
+# CROSS-TOPIC LINKS
+# ============================================================
+cross_topic_links:
+  - C2_R10: |
+      Mondrian conformal prediction also uses X11 as a stratification
+      variable. Same failure mode likely: if X11 is in the stack,
+      Mondrian per-grade conformal bands collapse to global conformal.
+      Recommend Mondrian on a NON-X11-based stratification (e.g. X13
+      quantile bins, which carry stronger marginal signal).
+  - C2_N02: |
+      Counterfactual-guided FE on Hard-FP-10 is the only Cycle 2 path
+      that could deliver a fundamentally NEW signal. Per-grade T cannot
+      help Hard-FP-10.
+  - C2_R04: |
+      If C2_R04 (TabICLv2) builds a Stage-1 that does NOT see X11
+      (foundation-model embeddings can be grade-agnostic), per-grade T
+      becomes a meaningful post-hoc lever again. Re-test R15_rec_1 then.
+
+# ============================================================
+# REPRODUCIBILITY
+# ============================================================
+reproducibility:
+  data_alignment_v23: "build_v23/oof_v23.parquet merged on CoilID with train.csv"
+  data_alignment_v4: "build_v4/oof_v4.parquet positional with build_v4/train_v4.parquet"
+  fold_protocol_nested_cv: "StratifiedKFold(n_splits=5, shuffle=True, random_state=42)"
+  bootstrap_protocol: "numpy default_rng(42), B=1000, sampling with replacement"
+  shrinkage_protocol: |
+    Log-odds shrinkage: w = n_pos(g) / (n_pos(g) + k0)
+    lo_g = logit(T_g_raw); lo_glob = logit(T_global)
+    T_g_shrunk = sigmoid(w * lo_g + (1-w) * lo_glob)
+  eligibility_rule: "grade has >=10 OOF rows AND >=1 positive; else fallback to global T"
+  raw_results_artifact: /tmp/c2_r15_results.json
+
+# ============================================================
+# CRITIQUE / SELF-REVIEW
+# ============================================================
+self_review:
+  strength: |
+    Rigorous nested CV exposed the in-sample overfit. V4 control disambiguated
+    "method works on V23 only" vs "method is broken in this regime" --
+    confirmed the latter. Bootstrap T distribution measurement showed
+    R15_rec_3 mechanism does not apply.
+  weakness: |
+    Did not test R15_rec_2 (per-fold median T) because fold_id missing from
+    V23 OOF. Did not run full Bayesian per-grade T (Beta-Binomial prior).
+    Did not test grade-CLUSTER (rather than grade-individual) thresholds.
+  unresolved_risk: |
+    The pivot (rec_4 prevalence-anchored T) is conjecture -- it could be a
+    LB-only win and OOF cannot validate it. If a builder banks it, must
+    cost 1 HE slot to test. Lower priority than C2_N01/C2_N02/C2_R04.
+
+closing: |
+  Per-grade threshold + EB shrinkage is FALSIFIED for V23 (honest nested CV
+  delta = -1.39). Bootstrap-conservative T is a NULL lever (argmax already
+  at distribution mode). V25 grade-aware features failed for the same
+  reason per-grade T fails: X11 information is already saturated by the
+  base stack. Carry-forward: drop both R15_rec_1 and R15_rec_3; consider
+  prevalence-anchored T (C2_R15_rec_4) only as a hedge after higher-leverage
+  Cycle 2 candidates are exhausted.

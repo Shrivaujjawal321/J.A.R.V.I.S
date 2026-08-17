@@ -1,0 +1,187 @@
+agent_id: R01
+topic: physics-rolling-stand
+cycle: 1
+timestamp_utc: "2026-05-23T11:45:00Z"
+status: ok
+
+recommendations:
+
+  - id: R01_rec_1
+    title: "Force-block X11-grade z-scores"
+    technique_class: feature_engineering
+    description: |
+      Compute grade-conditioned z-scores on X29-X33 (force-cluster, AUC 0.801-0.815)
+      using X11 grade code (17 levels). For each coil: z = (X_i - mu_grade) /
+      sigma_grade, mu/sigma computed on training fold only (CV-safe). Core insight:
+      the same rolling force means different things for thick vs thin grades. V11
+      tried X39 z-scores on all 49 features and regressed (-0.014 AUC). This uses
+      X11 (17 levels, better-supported) on force-block only, reducing noise.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V11]
+    expected_lift_oof:
+      point: 0.9
+      low: 0.3
+      high: 2.0
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies: [pandas>=1.5, scikit-learn>=1.4, numpy>=1.24]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Guo et al. 2023, Sensors 23(13):6038, PMC10346850: F3 stand weight
+        significantly exceeds other stands; force variance is grade-and-stand-
+        dependent. Springer SN CS 2023, DOI 10.1007/s42979-023-02104-5: "actual
+        interstand tension / target tension ratio is a strong feature." V5
+        grade_x_temp_dev validated X11-conditioning (SHAP top-15).
+    failure_modes:
+      - "Grade groups n < 8: sigma noisy. Use global sigma fallback."
+      - "X29-X33 must be homogeneous physical type. Validate value ranges first."
+      - "CV leakage if mu/sigma computed globally. Must recompute per fold."
+    code_sketch: |
+      force_cols = ['X29','X30','X31','X32','X33']
+      grade_col = 'X11'; MIN_N = 8
+      for fold_idx, (tr_idx, val_idx) in enumerate(cv_splits):
+          Xtr = X.iloc[tr_idx].copy()
+          stats = Xtr.groupby(grade_col)[force_cols].agg(['mean','std'])
+          # Apply with global fallback when grade group too small
+          ...
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: R01_rec_2
+    title: "Inter-stand force spatial gradient features"
+    technique_class: feature_engineering
+    description: |
+      If X29-X33 form a rolling-force block across 5 consecutive stands, build
+      adjacent-stand differences Delta_k = X_{k+1} - X_k (4 features) plus ratio
+      X33/X29. Monotonically decreasing force is normal; non-monotonic spike or
+      reversal is a process anomaly. V4 lags are time-axis (CoilID); V5 ratios are
+      single columns. Stand-axis spatial gradients are genuinely new. MUST validate
+      block ordering via correlation check first.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.1
+      low: 0.3
+      high: 2.5
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies: [pandas>=1.5, numpy>=1.24]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        MDPI Metals 2023, mdpi.com/2075-4701/13/5/900: inter-stand ratios most
+        predictive. Orowan 1943 DOI 10.1243/PIME_PROC_1943_150_025_02: V_in x
+        h_in = V_out x h_out per stand; force gradients index speed/thickness
+        imbalance. Guo et al. 2023: entry thickness weight F1=1.270 to F7=0.243
+        confirms stand-ordered evolution matters.
+    failure_modes:
+      - "CRITICAL: if X29-X33 not stand-ordered, differences meaningless.
+         Validation gate: corr(X29,X30) must exceed corr(X29,X33)."
+      - "Value ranges must be consistent within block."
+    code_sketch: |
+      force_hyp = ['X29','X30','X31','X32','X33']
+      corr_mat = df_train[force_hyp].corr().values
+      adj_corr = np.mean([corr_mat[i,i+1] for i in range(4)])
+      far_corr = np.mean([corr_mat[0,4], corr_mat[1,3]])
+      if adj_corr > far_corr:
+          for i in range(len(force_hyp)-1):
+              df[f'grad_{force_hyp[i]}_{force_hyp[i+1]}'] = df[force_hyp[i+1]] - df[force_hyp[i]]
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R01_rec_3
+    title: "Grade-median residual for X10 and X13"
+    technique_class: feature_engineering
+    description: |
+      For X10/X13 (AUC 0.821/0.832, top force-class predictors), compute grade-
+      conditioned median residual: resid = X_i - median(X_i | X11=grade). Uses
+      median (robust to 66 defect outliers) and preserves absolute magnitude.
+      Approximates "actual minus setpoint" from Springer 2023 Tata Steel paper.
+      V5 grade_x_temp_dev is multiplicative on temperature; additive residual on
+      force columns is orthogonal.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V5, V11]
+    expected_lift_oof:
+      point: 0.7
+      low: 0.2
+      high: 1.5
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies: [pandas>=1.5, numpy>=1.24]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Springer SN CS 2023 DOI 10.1007/s42979-023-02104-5: "actual interstand
+        tension / target tension ratio is a strong feature." Grade-median
+        approximates the setpoint. PMC12348153: Mn/S ratio MI=0.4419.
+    failure_modes:
+      - "If defects uniform across grades, residual is near-zero for defects."
+      - "Check corr(X13, X13_gmed_resid) < 0.95 to confirm orthogonality."
+    code_sketch: |
+      target_cols = ['X10', 'X13']; grade_col = 'X11'
+      for fold_idx, (tr_idx, val_idx) in enumerate(cv_splits):
+          Xtr = X.iloc[tr_idx].copy()
+          for col in target_cols:
+              grade_meds = Xtr.groupby(grade_col)[col].median()
+              global_med = Xtr[col].median()
+              df[f'{col}_gmed_resid'] = df[col] - df[grade_col].map(grade_meds).fillna(global_med)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: R01_rec_4
+    title: "Force-block within-row CV and range scalars"
+    technique_class: feature_engineering
+    description: |
+      Three order-invariant scalars across X29-X33: (1) CV = std/mean, (2) range =
+      max-min, (3) max/min ratio. Capture whether rolling force is uniform across
+      stands. Order-invariant and robust to stand-to-column mapping uncertainty.
+      V1 row_std across all 49 features (EXHAUSTED) mixes physical units. Force-
+      block CV on a physically-homogeneous group is semantically clean.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: [V1]
+    expected_lift_oof:
+      point: 0.6
+      low: 0.1
+      high: 1.3
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: [pandas>=1.5, numpy>=1.24]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Guo et al. 2023 (PMC10346850): F3 stand weight significantly exceeds
+        others; stand imbalance is a verified quality diagnostic. V1 row_std
+        (rank 17 SHAP) confirms dispersion features carry signal.
+    failure_modes:
+      - "X29-X33 must be homogeneous physical type. Value-range validate first."
+      - "Run AUC sanity; discard any scalar with AUC < 0.55."
+    code_sketch: |
+      force_hyp = ['X29','X30','X31','X32','X33']
+      df['force_block_cv'] = df[force_hyp].std(axis=1) / (df[force_hyp].mean(axis=1) + 1e-6)
+      df['force_block_range'] = df[force_hyp].max(axis=1) - df[force_hyp].min(axis=1)
+      df['force_maxmin'] = df[force_hyp].max(axis=1) / (df[force_hyp].min(axis=1) + 1e-6)
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R02: "If R02 finds chemistry columns, R01_rec_1/_rec_3 should use that as
+          conditioning key, not X11."
+  - R03: "Combining force_block_cv (spatial) with rolling-window std over 5 coils
+          (temporal) creates a 2D instability signal."

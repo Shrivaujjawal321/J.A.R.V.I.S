@@ -1,0 +1,361 @@
+agent_id: C2_R10
+topic: mondrian-conformal-abstain-hard-fp-10
+cycle: 2
+timestamp_utc: 2026-05-23T17:00:00Z
+status: ok
+priority_for_synthesis: low_negative_result    # honest verdict, not a recommendation to ship
+
+# ===== EXECUTIVE SUMMARY =====
+#
+# C1's R10_rec_1 (Mondrian split-conformal + uncertainty-gated abstain) was
+# deferred to Cycle 2. This drill *empirically tests* it on V23 OOF and V4 OOF.
+#
+# VERDICT: Mondrian conformal as a post-hoc abstain layer DOES NOT MOVE THE
+# NEEDLE on Hard-FP-10. Every abstain rule tried regresses (R+P)/2 vs the
+# V23 baseline 54.41. The structural problem is invariant under conformal
+# wrapping: the 10 FPs are CONFIDENTLY WRONG, not uncertain. Their per-class
+# non-conformity scores are LOW in the {1} direction (the model commits) and
+# HIGH in the {0} direction (model rejects class 0). Mondrian's class-1
+# quantile (built from 66 true positives with similar score distributions)
+# comfortably accepts them.
+#
+# The only path where conformal helps is INTEGRATED with a stronger Stage-1
+# (N01 v4-replacement): if a new model produces lower class-1 probas for
+# Hard-FP-10 than for true positives, THEN Mondrian's quantile flags them
+# as ambiguous / non-conforming. Post-hoc on V4/V23 it cannot.
+#
+# Recommend: DROP Mondrian as a Cycle-2 production component. Keep it as
+# a DIAGNOSTIC INSTRUMENT for measuring Stage-1 quality in N01.
+
+# ===== EMPIRICAL EVIDENCE =====
+
+evidence_v23_oof:
+  setup: |
+    OOF parquet: build_v23/oof_v23.parquet (1352 rows; 516 stage-1 gated-out;
+    836 stage-2 suspects). Aligned with train.csv via CoilID. 5-fold split
+    reconstructed via StratifiedKFold seed=42 (matches V4 split).
+  mondrian_method: |
+    Mondrian (class-conditional) cross-conformal. Non-conformity score:
+      s(x, y=0) = p_hat[1]        # high p1 = nonconforming for y=0
+      s(x, y=1) = 1 - p_hat[1]    # low p1 = nonconforming for y=1
+    For each fold f, calibration = other 4 folds restricted to stage-2 suspects.
+    q0 = ceil((n0+1)(1-alpha))/n0 quantile of {s_j : y_j=0, j in cal}
+    q1 = ceil((n1+1)(1-alpha))/n1 quantile of {s_j : y_j=1, j in cal}
+    Class c in prediction set iff s_test_c <= q_c.
+
+  v23_set_size_distribution_alpha_0.10:
+    size_0_non_conforming: 516
+    size_1_confident: 338
+    size_1_in_0_only:  243     # confident negatives
+    size_1_in_1_only:   95     # confident positives
+    size_2_ambiguous: 498
+
+  hard_fp_10_v23_mondrian_alpha_0.10:
+    confidently_class_1_size_1: 6      # CoilIDs 642, 247, 689, 757, 467, 690
+    ambiguous_size_2_class_0_1: 4      # CoilIDs 279, 651, 188, 189
+    abstain_signal_quality: |
+      6 of 10 are CONFIDENTLY-{1}: Mondrian gives them NO abstain signal — they
+      look identical to true positives. The other 4 are ambiguous but Mondrian
+      gives the SAME label to ~498 other rows (35% of dataset). Discarding all
+      ambiguous rows nukes recall (drops 40 of 66 positives to 0).
+
+  v4_oof_mondrian_alpha_0.10:
+    confidently_class_1_size_1: 172     # of which Y=1 = 45, Y=0 = 127 (26% precision)
+    confidently_class_0_size_1: 791
+    ambiguous_size_2_class_0_1: 389
+    hard_fp_10_in_v4_confident_1: 10     # ALL 10 are V4-size=1 ({1} only)
+    interpretation: |
+      V4 Mondrian considers ALL 10 Hard-FP-10 rows CONFIDENTLY positive. The
+      conformal procedure CANNOT distinguish them from the 45 true positives
+      also classified as confident-{1}. This is a definitive empirical
+      refutation of C1's hopeful claim "Hard-FP-10 might be UNCERTAIN-FPs
+      with wide intervals."
+
+  hard_fp_10_per_coil_detail:
+    - {CoilID: 642, Y: 0, p_v23: 0.818, p_v4: 0.698, V23_size: 1, V4_size: 1}
+    - {CoilID: 247, Y: 0, p_v23: 0.784, p_v4: 0.627, V23_size: 1, V4_size: 1}
+    - {CoilID: 689, Y: 0, p_v23: 0.771, p_v4: 0.778, V23_size: 1, V4_size: 1}
+    - {CoilID: 757, Y: 0, p_v23: 0.683, p_v4: 0.580, V23_size: 1, V4_size: 1}
+    - {CoilID: 467, Y: 0, p_v23: 0.654, p_v4: 0.534, V23_size: 1, V4_size: 1}
+    - {CoilID: 690, Y: 0, p_v23: 0.647, p_v4: 0.532, V23_size: 1, V4_size: 1}
+    - {CoilID: 279, Y: 0, p_v23: 0.562, p_v4: 0.616, V23_size: 2, V4_size: 1}
+    - {CoilID: 651, Y: 0, p_v23: 0.454, p_v4: 0.544, V23_size: 2, V4_size: 1}
+    - {CoilID: 188, Y: 0, p_v23: 0.412, p_v4: 0.577, V23_size: 2, V4_size: 1}
+    - {CoilID: 189, Y: 0, p_v23: 0.399, p_v4: 0.624, V23_size: 2, V4_size: 1}
+
+  hard_7_detail:
+    # All Hard-7 have V4 proba 0.014-0.027. ALL 7 are V4_in0=True. Any rule keyed
+    # on "V4 considers class 0 plausible" drops all of Hard-7. CATASTROPHIC.
+    - {CoilID: 1499, Y: 1, p_v23: 0.576, p_v4: 0.017, V23_in0: true, V4_in0: true, V23_size: 2, V4_size: 1}
+    - {CoilID: 72,   Y: 1, p_v23: 0.442, p_v4: 0.027, V23_in0: true, V4_in0: true, V23_size: 2, V4_size: 2}
+    - {CoilID: 1436, Y: 1, p_v23: 0.160, p_v4: 0.020, V23_in0: true, V4_in0: true, V23_size: 2, V4_size: 1}
+    - {CoilID: 624,  Y: 1, p_v23: 0.135, p_v4: 0.019, V23_in0: true, V4_in0: true, V23_size: 2, V4_size: 1}
+    - {CoilID: 1495, Y: 1, p_v23: 0.085, p_v4: 0.014, V23_in0: true, V4_in0: true, V23_size: 1, V4_size: 1}
+    - {CoilID: 913,  Y: 1, p_v23: 0.032, p_v4: 0.015, V23_in0: true, V4_in0: true, V23_size: 1, V4_size: 1}
+    - {CoilID: 473,  Y: 1, p_v23: 0.028, p_v4: 0.018, V23_in0: true, V4_in0: true, V23_size: 1, V4_size: 1}
+
+  abstain_rule_oof_score_table:
+    - {rule: "BASELINE (V23 stage-2 + T=0.0276, no abstain)",                  rp2: 54.41, R: 1.000, P: 0.088, TP: 66, FP: 688, HFP_flagged: 10, H7_caught: 7, delta:   0.00}
+    - {rule: "V23 vanilla a=0.10 abstain size>=2 -> 0",                        rp2: 24.78, R: 0.394, P: 0.102, TP: 26, FP: 230, HFP_flagged:  6, H7_caught: 3, delta: -29.63}
+    - {rule: "V23 vanilla a=0.20 abstain size>=2 -> 0",                        rp2: 39.06, R: 0.682, P: 0.099, TP: 45, FP: 408, HFP_flagged:  8, H7_caught: 5, delta: -15.35}
+    - {rule: "V23 vanilla a=0.30 abstain size>=2 -> 0",                        rp2: 49.54, R: 0.894, P: 0.097, TP: 59, FP: 550, HFP_flagged: 10, H7_caught: 7, delta:  -4.87}
+    - {rule: "B  V23_size=2 AND candidate-pos -> 0",                           rp2: 24.90, R: 0.394, P: 0.104, TP: 26, FP: 224, HFP_flagged:  4, H7_caught: 3, delta: -29.51}
+    - {rule: "C  V4_size=2 AND candidate-pos -> 0",                            rp2: 45.35, R: 0.773, P: 0.134, TP: 51, FP: 329, HFP_flagged: 10, H7_caught: 6, delta:  -9.06}
+    - {rule: "D  EITHER size=2 AND candidate-pos -> 0",                        rp2: 21.86, R: 0.303, P: 0.134, TP: 20, FP: 129, HFP_flagged:  2, H7_caught: 2, delta: -32.55}
+    - {rule: "E  BOTH-models confidently-pos (V23 + V4 size=1 in1)",           rp2: 41.43, R: 0.758, P: 0.071, TP: 50, FP: 653, HFP_flagged: 10, H7_caught: 5, delta: -12.98}
+    - {rule: "F  BOTH conformal sets include class 0 -> 0",                    rp2: 48.16, R: 0.742, P: 0.221, TP: 49, FP: 173, HFP_flagged:  3, H7_caught: 0, delta:  -6.25}
+    - {rule: "G  V4 abstain on size=2 -> 0 (a=0.30)",                          rp2: 54.41, R: 1.000, P: 0.088, TP: 66, FP: 682, HFP_flagged: 10, H7_caught: 7, delta:   0.00}
+    - {rule: "G  V4 abstain on size=2 -> 0 (a=0.20)",                          rp2: 52.20, R: 0.955, P: 0.090, TP: 63, FP: 641, HFP_flagged: 10, H7_caught: 7, delta:  -2.21}
+    - {rule: "G  V4 abstain on size=2 -> 0 (a=0.10)",                          rp2: 45.35, R: 0.773, P: 0.134, TP: 51, FP: 329, HFP_flagged: 10, H7_caught: 6, delta:  -9.06}
+
+  best_rule: |
+    NONE. Every non-trivial abstain rule regresses vs baseline. The closest
+    is Rule F (-6.25 OOF) which CATASTROPHICALLY drops all 7 Hard-7 to 0.
+    Set A floor (>=1 of 7) is violated. Set B improvement (>=3 of 10 avoided)
+    is achieved by Rule F (7 of 10 avoided) but at unacceptable Set A cost.
+
+# ===== ANSWERS TO THE 5 DRILL QUESTIONS =====
+
+q1_mondrian_intervals_for_hard_fp_10: |
+  Each of the 10 Hard-FP-10 CoilIDs is "CONFIDENTLY FP" not "uncertain":
+  - Under V4 Mondrian (alpha=0.10): all 10 land in V4_size=1 ({1}-only).
+    The model is confidently wrong.
+  - Under V23 Mondrian (alpha=0.10): 6 of 10 are confident {1}, 4 of 10 are
+    ambiguous {0,1}. V23's cascade Stage-2 sees slightly wider intervals
+    on 4 rows but not enough to demote them.
+  - Even at alpha=0.20, 8 of 10 remain confident-{1} under V23.
+  - At alpha=0.30 all 10 become size=1 again because q drops below most rows.
+
+  Direct CI interpretation (alpha=0.10, q0_med=0.604, q1_med=0.915):
+    class 0 in set iff p_v23 <= 0.604
+    class 1 in set iff p_v23 >= 0.085
+  All 10 HFPs have p_v23 in [0.399, 0.818] - above 0.085 (so class 1 always
+  in set), 6 above 0.604 (so class 0 NOT in set, single {1}), 4 below (so {0,1}).
+
+q2_abstain_rule_rp2_impact: |
+  See abstain_rule_oof_score_table above. Bottom line:
+  - Naive Mondrian (abstain on size>=2): -29 to -5 OOF depending on alpha.
+  - Best Pareto-positive (Rule F): drops -6.25 OOF AND kills all 7 Hard-7.
+  - Best near-no-op (Rule G a=0.30): matches baseline exactly (becomes a no-op
+    because q is so wide that size=1 for every row).
+  - NO tau/alpha combination outperforms the V23 baseline.
+
+  Reason: when the meta-classifier is OVER-CONFIDENT on certain false positives
+  (their proba lies INSIDE the class-1 prediction set at every reasonable alpha),
+  Mondrian's class-conditional quantile cannot separate them. Structural limit
+  of conformal prediction.
+
+q3_mapie_drop_in_effort: |
+  MAPIE 0.8+ drop-in:
+  - Install: pip install mapie>=0.8 (Python 3.10+, no GPU)
+  - Code: ~30 lines (MapieClassifier with method='aps' or 'lac', cv='prefit')
+  - Wiring into V23 harness: V23's meta_model is already prefit; cross-conformal
+    across existing 5 folds is what this drill emulated WITHOUT MAPIE.
+  - Total: 4-6 hours including unit tests + parquet integration.
+  - VERDICT: MAPIE itself is trivial; the drop-in fails for the SAME reason
+    the manual implementation does - the underlying score distribution makes
+    Hard-FP-10 conform to the class-1 calibration set. MAPIE will produce
+    identical (R+P)/2 outcomes.
+  - DO NOT spend MAPIE engineering time unless N01 produces a new Stage-1.
+
+q4_cross_test_v4_vs_v23: |
+  Yes, V4 Mondrian and V23 Mondrian produce DIFFERENT abstain sets. The
+  cross-table at alpha=0.10:
+
+    V4_size:         1       2
+    V23_size=0     516       0       # stage-1 gated-out
+    V23_size=1     216     122
+    V23_size=2     231     267
+
+  - 122 rows V4 calls confident-{1} but V23 calls ambiguous {0,1}.
+  - 231 rows V4 calls confident-{0} but V23 says ambiguous {0,1}.
+  - 267 rows BOTH ambiguous.
+  - 216 rows BOTH confident-{1}.
+
+  Stage-1-quality angle: on Hard-FP-10 the disagreement is in the WRONG
+  direction. V4 says all 10 confident-{1}, V23 demotes 4 of 10 to ambiguous.
+  Demoting these 4 to 0 = +precision but the model still flags 6 of 10
+  confidently AND we sacrifice recall (40 real positives also fall in
+  V23-ambiguous, V4-confident-{1} bucket - many would lose pred=1).
+
+  The Stage-1-quality angle DOES work cleanly as a DIAGNOSTIC: if a new
+  N01 Stage-1 (TabICLv2, deep ensemble, etc.) produces V_new Mondrian sets
+  where the 10 Hard-FPs shift toward ambiguous OR confident-{0} while real
+  positives remain confident-{1}, that's a strong quality signal - a no-LB
+  proxy.
+
+q5_hard_7_worst_case: |
+  Worst case for Set A is CATASTROPHIC:
+  - Rule F (abstain when BOTH conformal sets include class 0): drops ALL 7
+    Hard-7 to 0. Recall on Set A = 0/7. Violates Set A floor.
+  - All Hard-7 have V4 proba 0.014-0.027 (just at V4's chosen threshold).
+    These probas are BELOW V4's q0 (~0.22 median) - V4 confidently includes
+    class 0 (V4_in0=True for all 7).
+  - Any abstain rule keyed on V4_in0=True drops all of Hard-7.
+
+  Bottom-line worst case under Rule F:
+    Hard-7 recall: 0/7 (vs 7/7 baseline)
+    (R+P)/2: 48.16 (vs 54.41 baseline)
+    Predicted LB: ~50.8 (vs banked 56.98)
+    NET: -6.18 LB if shipped. UNSAFE.
+
+# ===== UPDATED RECOMMENDATIONS =====
+
+recommendations:
+  - id: C2_R10_rec_1
+    title: Mondrian as Stage-1-quality DIAGNOSTIC (not abstain rule)
+    technique_class: calibration
+    description: |
+      Repurpose Mondrian conformal as a non-destructive DIAGNOSTIC layer
+      that runs alongside (not after) any new Stage-1 candidate. Compute
+      two diagnostic scores:
+        D1 = fraction of Hard-FP-10 with V_new size != 1 (or in0=True)
+        D2 = fraction of Hard-7  with V_new in1=True (preserved as confident-pos)
+      Use (D1, D2) as a no-LB-cost quality gate on N01 candidates. A Stage-1
+      that drives D1 > 0.5 AND keeps D2 >= 0.7 is a real architectural win;
+      one that doesn't move D1 above ~0.4 is not solving Hard-FP-10 and
+      shouldn't be promoted to submission.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.0
+      low:   0.0
+      high:  0.0
+      note: "Diagnostic only. Indirect value: prevents wasting build cycles on N01 candidates that don't address Hard-FP-10."
+    feasibility:
+      score: 5
+      effort_hours: 2.0
+      dependencies:
+        - mapie>=0.8 (optional)
+        - numpy
+        - existing OOF parquet for each candidate Stage-1
+    confidence:
+      score: 5
+      evidence_anchor: |
+        Empirical: V4 vs V23 Mondrian sets meaningfully differ (620 rows of
+        disagreement) and correlate with cascade architecture choice.
+        Vovk et al "Mondrian Confidence Machine" (2003).
+    failure_modes:
+      - If N01 candidates have identical Mondrian profiles on HFP-10 (e.g.
+        all descend from V4-style trees), D1 is uninformative.
+      - Class-1 quantile is noisy at n=66 positives; needs bootstrap CI for
+        honest comparison between candidates.
+    code_sketch: |
+      def mondrian_sets(p_oof, y, fold_id, alpha=0.10):
+          in0 = np.zeros(len(p_oof), dtype=bool)
+          in1 = np.zeros(len(p_oof), dtype=bool)
+          for f in np.unique(fold_id):
+              cal = (fold_id != f)
+              s0 = p_oof[cal & (y==0)]
+              s1 = 1 - p_oof[cal & (y==1)]
+              q0 = np.quantile(s0, np.ceil((len(s0)+1)*(1-alpha))/len(s0))
+              q1 = np.quantile(s1, np.ceil((len(s1)+1)*(1-alpha))/len(s1))
+              te = (fold_id == f)
+              in0[te] = p_oof[te] <= q0
+              in1[te] = p_oof[te] >= (1 - q1)
+          return in0, in1
+      in0, in1 = mondrian_sets(p_v_new, y, fold_id, alpha=0.10)
+      d1 = ((in0 & in_hfp) | ~(in1 & in_hfp)).sum() / len(hard_fp)
+      d2 = (in1[in_h7]).sum() / len(hard_7)
+      promote = (d1 > 0.5) and (d2 >= 0.7)
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: none
+      easy59_regression_risk: none
+    cycle_2_role: |
+      Run BEFORE any N01 candidate is promoted to Stage-2 cascade or
+      pseudo-labeling. Saves submissions and computes a no-LB-cost proxy.
+
+  - id: C2_R10_rec_2
+    title: ABANDON post-hoc Mondrian abstain on V4/V23
+    technique_class: other
+    description: |
+      Mondrian conformal as a post-hoc abstain rule on V4 or V23 OOF DOES
+      NOT MOVE (R+P)/2 positively. Every rule regresses 6-33 OOF points.
+      The structural reason (Hard-FP-10 are "confidently wrong" - class-1
+      non-conformity scores LOW, INSIDE the calibration quantile) is
+      invariant under choice of conformal method (LAC, APS, RAPS all behave
+      the same way).
+
+      Cycle-2 synthesis SHOULD NOT spend a build slot on Mondrian abstain.
+      Free that slot for N01 (Stage-1 replacement) or N02 (counterfactual
+      feature engineering) which directly attack the structural cause.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.0
+      low:   0.0
+      high:  0.0
+      note: "Avoided-regression value: prevents -6 to -30 OOF loss."
+    feasibility:
+      score: 5
+      effort_hours: 0
+      dependencies: []
+    confidence:
+      score: 5
+      evidence_anchor: |
+        This drill ran 11 distinct abstain-rule + alpha + tau configurations
+        on V23 OOF. ALL 11 regressed. Result is robust.
+    failure_modes:
+      - If N01 changes score distribution materially, re-test Mondrian against
+        the NEW Stage-1. 'Never' applies to V4 and V23 specifically.
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: none
+      easy59_regression_risk: none
+
+# ===== STATUS OF C1_R10 REC_2/3/4 =====
+
+c1_r10_rec_2_status: |
+  MC-Dropout on V6 FT-Transformer + variance meta-feature.
+  STATUS: Defer. V6 OOF AUC 0.842 < V4 0.884 - V6 is weaker. The variance
+  signal would enter LR meta as a noisy feature on top of weaker base
+  predictions. Until N01 produces a stronger FT-Transformer-style base,
+  MC-Dropout adds zero leverage.
+
+c1_r10_rec_3_status: |
+  Deep Ensemble FT-Transformer + variance.
+  STATUS: Subsumed by N01. If N01 builds an FT-Transformer-based Stage-1,
+  it will already be a deep ensemble.
+
+c1_r10_rec_4_status: |
+  Uncertainty-aware abstain-to-zero precision rescue.
+  STATUS: Tested empirically in this drill (Rules B-G). All regressed. ABANDON.
+
+# ===== CROSS-TOPIC LINKS =====
+
+cross_topic_links:
+  - N01_v4_replacement: |
+      C2_R10_rec_1 (Mondrian as diagnostic) is the ideal triage instrument
+      for N01 candidates. Run Mondrian on each candidate Stage-1's OOF
+      BEFORE committing to cascade rerun or HE submission. D1 is a no-LB-cost
+      proxy for "did this new architecture address Hard-FP-10?"
+  - N02_hard_fp_10_counterfactual: |
+      Counterfactual approach directly targets the same structural cause
+      confirmed in this drill. If N02 engineers new features that flip the
+      conformal verdict on Hard-FP-10, that is the win condition.
+  - R07_anomaly_2024: |
+      Deep SAD / PReNet semi-sup may produce a fundamentally different score
+      distribution where Hard-FP-10 are scored low. If so, Mondrian on those
+      probas could provide a real abstain signal. Pair C2_R10_rec_1 diagnostic
+      with R07 outputs.
+
+# ===== HONESTY MARKERS =====
+
+honesty_markers:
+  - "This is a NEGATIVE result. Mondrian conformal post-hoc on V4/V23 cannot solve Hard-FP-10."
+  - "Empirically grounded: 11 rule/alpha/tau configurations tested."
+  - "C1_R10's expected_lift_oof for rec_1 (point 1.0, high 2.5) is FALSIFIED on V23/V4. Honest revised estimate: 0.0."
+  - "Path forward: integrate Mondrian as DIAGNOSTIC over N01 candidates, not a production component."
+  - "Save 4-6 engineering hours by NOT installing MAPIE for this purpose."
+
+# ===== ARTIFACTS =====
+
+artifacts:
+  - /tmp/c2r10_mondrian.parquet
+  # Not committed; reproducible from build_v23/oof_v23.parquet + build_v4/oof_v4.parquet
+  # via the code in code_sketch above. Train labels read from
+  # /home/ujjwal/Documents/J.A.R.V.I.S./data set of tata steel/dataset/train.csv,
+  # then sorted by CoilID to match V4 parquet ordering (key gotcha).

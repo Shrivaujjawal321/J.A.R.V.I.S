@@ -12,6 +12,15 @@ last_reviewed: 2026-05-15
 
 ## 🟢 Active
 
+### ⭐ EDITH Studio — Premium AI Website Builder (NEW, 2026-06-11)
+- **Goal:** Agent pipeline that turns a short user prompt into a unique, Awwwards-tier website — "prompt → creative agency", not prompt → template
+- **Status:** Decisions locked 2026-06-11 (Boss picked all recommended options + named it EDITH Studio); 6-agent INTEL research running; Phase-1 plan next
+- **Project dir:** `/home/ujjwal/Documents/edith-studio/` — `DECISION_LOG.md` is source of truth (Tata-R2 discipline)
+- **Architecture:** 7-stage pipeline — Intake → Creative Director (2-3 divergent concepts) → Design System → Copywriter → Builder → Critic (reject power) → Verifier
+- **Locked:** personal-first → SaaS later · Agent SDK (Max OAuth) now / Claude API at SaaS · hybrid generation (freeform art-direction + library recipes) · Next 15 + Tailwind 4 + GSAP + Lenis + Motion + R3F · agency-flow UX (5Q → 3 concepts → live stream → chat refine)
+- **Moats:** Pattern Library (weekly trend cron) + Uniqueness Engine (aesthetic seeds + anti-generic blocklist + Chroma screenshot-embedding distance gate)
+- **Research:** `data/research/website-builder-2026/` → `INTEL.md`
+
 ### ⭐ McpIndex — Hackathon Flagship (NEW, LIVE)
 - **Goal:** Curated, scored, searchable MCP server discovery — "the npmjs.com for Model Context Protocol"
 - **Status:** LIVE in production, 8 Day milestones done in 2 calendar days

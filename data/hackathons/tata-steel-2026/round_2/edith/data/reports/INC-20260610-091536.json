@@ -1,0 +1,255 @@
+{
+  "report_id": "INC-20260610-091536",
+  "kind": "incident",
+  "title": "Incident report \u2014 HSM.F1.GBX01 (gear_tooth_fatigue_crack)",
+  "markdown": "# EDITH Maintenance Report \u00b7 INC-20260610-091536\n_Generated 2026-06-10 09:15 UTC \u00b7 persona EDITH \u00b7 grounded in the steel-maintenance-flagship dataset_\n\n## 1. Asset\n- **Asset**: `HSM.F1.GBX01` \u2014 Hot strip mill F1 main-drive reduction gearbox (forced-lube, ISO VG 220)\n- **Equipment class**: mill_gearbox\n- **Process stage**: hot_rolling\n- **Process criticality**: 1 (1 = most critical)\n- **Manufacturer / model**: Flender / H4SH-mill drive\n  \n  _source: SPEC/ground_truth_spine.json_\n\n## 2. Diagnosis\n- **Probable failure mode**: gear_tooth_fatigue_crack (scenario `SCN-038`)\n- **Safety class**: P2 (P1 = most severe)\n- **ML fault classifier**: class `NORMAL` P(failure)=0.0\n- **Sensor threshold breaches**:\n    - `JSR.HR.STD1.GBX01.OIL.PRES` = 3.668 \u2192 **ALARM** (warn 2.2, alarm 2.0)\n    - `JSR.HR.STD1.GBX01.OIL.VISC` = 216.601 \u2192 **WARNING** (warn 180, alarm 265)\n  \n  _source: condition_monitoring/by_equipment + ML fault classifier_\n\n## 3. Root Cause Analysis\n- **Root cause**: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.\n  \n  _source: SPEC/ground_truth_spine.json + failure_analysis_reports_\n\n## 4. Remaining Useful Life (RUL) & Early Warning\n- **Estimated RUL**: 632.0 cycles (~26.3 days)\n- **RUL band**: monitor\n- **Anomaly score**: 0.4898 (is_anomaly=False)\n  \n  _source: condition_monitoring/rul_trajectories_long.csv (ML RUL regressor)_\n\n## 5. Risk Classification\n- **Risk band**: **HIGH**\n- **Risk score**: 7.0 / 14\n- **Contributing factors** (transparent scoring):\n    - process-criticality 1 -> +3\n    - safety-class P2 -> +2\n    - P(failure)=0.00 -> +0\n    - RUL band 'monitor' -> +0\n    - key spare out-of-stock, 36-wk lead -> +2\n  \n  _source: criticality \u00d7 safety \u00d7 ML \u00d7 RUL \u00d7 spares lead-time + feedback weight_\n\n## 6. Prioritized Recommended Actions\n- **1.** Immediate controlled stop (no deferral)\n- **2.** Remove gearbox via crane to repair bay\n- **3.** Replace gear wheel + bearings; set backlash 0.1-0.3mm\n- **4.** Prussian-blue contact >70% face\n- **5.** Run-in low load before full\n  \n  _source: SPEC correct_resolution + maintenance SOP_\n\n## 7. Spare-Procurement Strategy\n- ORDER NOW: GEAR-WHL-M20 (Custom large-module gear wheel M20+ (HSM mill drive)) \u2014 36-week lead, supplier Flender / Renk OEM\n- ISSUE FROM STORE: BRG-GBX-SET (1 on hand)\n\n- **Total parts cost**: INR 10395750\n- **Max procurement lead-time**: 36.0 weeks\n- **Procurement action required**: True\n  \n  _source: knowledge_docs/spare_parts_catalog.csv + SPEC spares_required_\n\n## 8. Estimated Downtime & Cost Impact\n- **Downtime (hours)**: {'planned': 0, 'unplanned': 168}\n- **Cost impact**: {'inr': 50100000, 'usd': 600000, 'range_usd': [500000, 3000000], 'note': 'Point estimate raised into the cited range. Per research/machinery/20 sec2F, HSM gearbox failure production loss during a 5-21 day swap is $500k-$3M (OxMaint hot strip mill gearbox case); $600k reflects a ~7-day swap of the custom large-module gear wheel (36-week lead spare) plus secondary-damage repair. Prior $300k point estimate was below its own range floor and unsupported.'}\n  \n  _source: SPEC/ground_truth_spine.json \u2014 scenario_\n\n## 9. EDITH Narrative (synthesised)\nEDITH \u00b7 Maintenance Report\n\nGrounded analysis from EDITH's knowledge base, live sensor models and the equipment spine. Every figure below is traceable to its source \u2014 see the citations.\n\nQuery:\n  Engineer query: Generate a full maintenance report for asset HSM.F1.GBX01\nTarget asset: HSM.F1.GBX01\nScenario: SCN-038\n\nEVIDENCE (cite these as [N]):\nSource [1] (SPEC/ground_truth_spine.json \u2014 scenario SCN-038):\nScenario SCN-038 on asset HSM.F1.GBX01: failure_mode is gear_tooth_fatigue_crack; safety_class is P2; root_cause: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris. Downtime hours: {'planned': 0, 'unplanned': 168}. Cost impact: {'inr': 50100000, 'usd': 600000, 'range_usd': [500000, 3000000], 'note': 'Point estimate raised into the cited range. Per resear\n\nGrounded context (verbatim from dataset):\nSource [1] (SPEC/ground_truth_spine.json \u2014 scenario SCN-038):\nScenario SCN-038 on asset HSM.F1.GBX01: failure_mode is gear_tooth_fatigue_crack; safety_class is P2; root_cause: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris. Downtime hours: {'planned': 0, 'unplanned': 168}. Cost impact: {'inr': 50100000, 'usd': 600000, 'range_usd': [500000, 3000000], 'note': 'Point estimate raised into the cited range. Per research/machinery/20 sec2F, HSM gearbox failure production loss during a 5-21 day swap is $500k-$3M (OxMaint hot strip mill gearbox case); $600k reflects a ~7-day swap of the custom large-module gear wheel (36-week lead spare) plus secondary-damage repair. Prior $300k point estimate was below its own range floor and unsupported.'}.\n\nSource [2] (condition_monitoring + ML fault classifier):\nThe ML fault classifier predicts class NORMAL with probabilities {'NORMAL': 0.9999, 'WARNING': 0.0001, 'FAILURE': 0.0}. Sensor threshold status: JSR.HR.STD1.GBX01.OIL.PRES = 3.668 (ALARM, warn 2.2, alarm 2.0); JSR.HR.STD1.GBX01.OIL.VISC = 216.601 (WARNING, warn 180, alarm 265).\n\nSource [3] (condition_monitoring/rul_trajectories_long.csv \u2014 ML RUL):\nEstimated remaining useful life is approximately 632.0 cycles (~26.3 days). RUL band is monitor. Anomaly score is 0.4898 (is_anomaly=False).\n\nSource [4] (SPEC/ground_truth_spine.json \u2014 RCA):\nRoot cause: Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris. Correct resolution steps: ['Immediate controlled stop (no deferral)', 'Remove gearbox via crane to repair bay', 'Replace gear wheel + bearings; set backlash 0.1-0.3mm', 'Prussian-blue contact >70% face', 'Run-in low load before full'].\n\nSource [5] (risk computation (criticality x safety x ML x RUL x spares)):\nThe risk classification is HIGH with a computed score of 7. The contributing factors are: process-criticality 1 -> +3; safety-class P2 -> +2; P(failure)=0.00 -> +0; RUL band 'monitor' -> +0; key spare out-of-stock, 3\n\nThis is EDITH's fast grounded answer (built from sensor models, retrieved documents and the equipment spine). Enable EDITH-deep for longer-form reasoning.\n\n## 10. Explainability\n- **Confidence**: unverified (faithfulness 1.0)\n- **LLM rung**: template\n- **Reasoning-trace steps**: 14\n- **Grounded sources**: SPEC/ground_truth_spine.json, condition_monitoring/rul_trajectories_long.csv, SOP-02_gearbox-oil-gear-service.md, knowledge_docs/spare_parts_catalog.csv",
+  "data": {
+    "asset_id": "HSM.F1.GBX01",
+    "scenario_id": "SCN-038",
+    "risk_band": "HIGH",
+    "rul": {
+      "found": true,
+      "asset_id": "HSM.F1.GBX01",
+      "equipment_class": "mill_gearbox",
+      "rul_cycles": 632.0,
+      "rul_days_estimate": 26.3,
+      "model": "lightgbm_regressor"
+    },
+    "total_cost_inr": 10395750,
+    "procurement": [
+      "ORDER NOW: GEAR-WHL-M20 (Custom large-module gear wheel M20+ (HSM mill drive)) \u2014 36-week lead, supplier Flender / Renk OEM",
+      "ISSUE FROM STORE: BRG-GBX-SET (1 on hand)"
+    ],
+    "trace": {
+      "query": "Generate a full maintenance report for asset HSM.F1.GBX01",
+      "step_count": 14,
+      "total_latency_ms": 34102,
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "condition_monitoring/by_equipment/*.csv",
+        "condition_monitoring/rul_trajectories_long.csv",
+        "SOP-02_gearbox-oil-gear-service.md",
+        "operational_failure/incident_records.csv",
+        "knowledge_docs/historical_maintenance_records.csv",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ],
+      "steps": [
+        {
+          "step": 1,
+          "kind": "plan",
+          "thought": "Classify intent='report', resolve target asset='HSM.F1.GBX01'. Plan agent chain: diagnosis -> predictor -> rca -> prioritizer -> recommender.",
+          "action": "supervisor.plan",
+          "result_summary": "intent=report; asset=HSM.F1.GBX01; agents=['diagnosis', 'predictor', 'rca', 'prioritizer', 'recommender']; fresh query",
+          "sources": [],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 2,
+          "kind": "tool",
+          "thought": "Identify asset HSM.F1.GBX01 and its failure modes.",
+          "action": "get_asset",
+          "result_summary": "HSM.F1.GBX01 = Hot strip mill F1 main-drive reduction gearbox (forced-lube, (criticality 1)",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 3,
+          "kind": "ml",
+          "thought": "Classify the latest reading for fault state.",
+          "action": "ml.predict_fault",
+          "result_summary": "class=NORMAL P(failure)=0.0 [latest reading]",
+          "sources": [
+            "condition_monitoring/by_equipment/*.csv"
+          ],
+          "latency_ms": 1365,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F1.GBX01",
+            "equipment_class": "mill_gearbox",
+            "predicted_class": "NORMAL",
+            "probabilities": {
+              "NORMAL": 0.9999,
+              "WARNING": 0.0001,
+              "FAILURE": 0.0
+            },
+            "calibrated": true,
+            "window_size": 24
+          },
+          "rung": null
+        },
+        {
+          "step": 4,
+          "kind": "tool",
+          "thought": "Match symptom + ML signal to the ground-truth scenario.",
+          "action": "get_scenario",
+          "result_summary": "SCN-038: gear_tooth_fatigue_crack (safety P2)",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "scenario_id": "SCN-038"
+          },
+          "rung": null
+        },
+        {
+          "step": 5,
+          "kind": "ml",
+          "thought": "Estimate remaining useful life from sensor state.",
+          "action": "ml.estimate_rul",
+          "result_summary": "RUL\u2248632.0 cycles (~26.3 days)",
+          "sources": [
+            "condition_monitoring/rul_trajectories_long.csv"
+          ],
+          "latency_ms": 21231,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F1.GBX01",
+            "equipment_class": "mill_gearbox",
+            "rul_cycles": 632.0,
+            "rul_days_estimate": 26.3,
+            "model": "lightgbm_regressor"
+          },
+          "rung": null
+        },
+        {
+          "step": 6,
+          "kind": "ml",
+          "thought": "Score the live window for anomaly (early warning).",
+          "action": "ml.anomaly_score",
+          "result_summary": "score=0.4898 is_anomaly=False",
+          "sources": [
+            "condition_monitoring/by_equipment/*.csv"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F1.GBX01",
+            "equipment_class": "mill_gearbox",
+            "anomaly_score": 0.4898,
+            "raw_decision_function": 0.0102,
+            "is_anomaly": false,
+            "window_size": 24
+          },
+          "rung": null
+        },
+        {
+          "step": 7,
+          "kind": "tool",
+          "thought": "Read the ground-truth root cause for the scenario.",
+          "action": "get_scenario.root_cause",
+          "result_summary": "Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "scenario_id": "SCN-038"
+          },
+          "rung": null
+        },
+        {
+          "step": 8,
+          "kind": "rag",
+          "thought": "Retrieve the matching failure-analysis report + SOP.",
+          "action": "rag.retrieve(rca,sop)",
+          "result_summary": "top: [SOP-02_gearbox-oil-gear-service.md \u00a7 TATA_JSR Maintenance Standard Operating Procedure]",
+          "sources": [
+            "SOP-02_gearbox-oil-gear-service.md"
+          ],
+          "latency_ms": 5068,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 9,
+          "kind": "tool",
+          "thought": "Check whether this asset has a prior failure history.",
+          "action": "search_history",
+          "result_summary": "9 incidents, 42 work-orders",
+          "sources": [
+            "operational_failure/incident_records.csv",
+            "knowledge_docs/historical_maintenance_records.csv"
+          ],
+          "latency_ms": 28,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 10,
+          "kind": "tool",
+          "thought": "Read the ground-truth correct resolution steps.",
+          "action": "get_scenario.correct_resolution",
+          "result_summary": "5 prescribed steps",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 11,
+          "kind": "rag",
+          "thought": "Retrieve the governing maintenance SOP.",
+          "action": "rag.retrieve(sop)",
+          "result_summary": "top: [SOP-02_gearbox-oil-gear-service.md \u00a7 1. SCOPE]",
+          "sources": [
+            "SOP-02_gearbox-oil-gear-service.md"
+          ],
+          "latency_ms": 6404,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 12,
+          "kind": "tool",
+          "thought": "Resolve required spares to availability + procurement lead-time.",
+          "action": "get_spares_for_scenario",
+          "result_summary": "1 in-stock, 1 to ORDER (max lead 36.0wk)",
+          "sources": [
+            "knowledge_docs/spare_parts_catalog.csv",
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 2,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 13,
+          "kind": "synthesis",
+          "thought": "Combine process-criticality, safety class, ML failure probability, RUL band and spares lead-time into a transparent risk score.",
+          "action": "prioritizer.score",
+          "result_summary": "score=7 -> HIGH  (process-criticality 1 -> +3; safety-class P2 -> +2; P(failure)=0.00 -> +0; RUL band 'monitor' -> +0; key spare out-of-stock, 36-wk lead -> +2)",
+          "sources": [
+            "SPEC/ground_truth_spine.json",
+            "knowledge_docs/spare_parts_catalog.csv"
+          ],
+          "latency_ms": 3,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 14,
+          "kind": "llm",
+          "thought": "Synthesise the grounded findings into one cited natural-language answer (single model call; deterministic template floor if offline).",
+          "action": "subscription_llm",
+          "result_summary": "template \u00b7 2996 chars",
+          "sources": [],
+          "latency_ms": 1,
+          "detail": {
+            "model": null,
+            "is_template": true
+          },
+          "rung": "template"
+        }
+      ]
+    }
+  }
+}

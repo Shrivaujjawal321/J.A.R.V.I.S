@@ -1,0 +1,27 @@
+[
+  {
+    "to": "founders@ravenapp.dev",
+    "subject": "Built an industrial-maintenance copilot — AI Eng @ Raven?",
+    "body": "Hi Raven team,\n\nI just shipped EDITH for Tata Steel's national AI/ML hackathon (Round 2): a RAG copilot over P&IDs, maintenance logs and SOPs, with a 5-agent chain — Diagnosis → Root Cause → RUL → Prioritization → Recommendations — and an NLI faithfulness gate that scores every cited claim against its source. LLM-free fast path answers in <300ms.\n\nThat's essentially what Raven does for plant troubleshooting — and I built it solo. You're hiring a Backend/AI Engineer; I think I'm already building your product.\n\n90-sec demo + code on my GitHub. Would a 20-min call this week work?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@businessonbot.com",
+    "subject": "Built a production WhatsApp AI — roles at BusinessOnBot?",
+    "body": "Hi BusinessOnBot team,\n\nI built a name-triggered WhatsApp AI on Baileys — sandboxed, multi-session, Claude-backed — that answers in context and stays isolated per chat. It's a working version of the WhatsApp-commerce flow you've productized for D2C.\n\nBackend is FastAPI + multi-agent orchestration; I ship with tests and observability. I'd love to help extend your platform toward agentic order automation.\n\nGitHub + demo below. Worth a quick call?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@floworks.ai",
+    "subject": "I'm running your product in prod — AI Eng @ Floworks?",
+    "body": "Hi Floworks team,\n\nI built a LinkedIn growth pipeline inside my Jarvis system: a multi-agent setup that searches ICPs, drafts personalized outreach, schedules sends through an approval gate, and reports daily — the same autonomous-sales-agent pattern Floworks commercializes. Multi-agent orchestration on the Claude Agent SDK is my core.\n\nI'd love to bring that to Floworks. GitHub + demo below — 20 min this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@superkalam.com",
+    "subject": "Built an LLM learning platform — let's build it for Bharat",
+    "body": "Hi SuperKalam team,\n\nI built EngiNerd — an LLM education platform with a 5-stage content pipeline (trend research → subject map → topic deep-dive → writing → quality review) using Claude with structured tool-use, SSE-streamed progress, and 68 unit + 43 Playwright tests gating every change.\n\nI'm both the builder and the user you serve. AI-native, adaptive learning for Indian students is exactly the problem I want to work on at scale.\n\nLive demo + code below — 20 min this week?\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "maitreya@bolna.ai",
+    "subject": "Built voice + streaming into a multi-agent system — roles at Bolna?",
+    "body": "Hi Maitreya,\n\nI built the voice loop in my Jarvis system — Whisper STT → intent classification → multi-agent routing → Piper TTS, over FastAPI SSE streaming. It's a working analog of Bolna's voice-agent pipeline, just at hobby scale.\n\nBolna doing 200K+ daily calls is exactly the infra problem I want to work on. I'd love 20 minutes to show you what I've built.\n\nGitHub + demo below.\n\nUjjawal Shrivastav\nAI/ML Engineer · Delhi, India · +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  }
+]

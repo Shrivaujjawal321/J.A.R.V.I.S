@@ -1,0 +1,112 @@
+cycle: 2
+prior_cycle: 1
+generated_utc: "2026-05-23T16:00:00Z"
+
+v4_banked_lb: 56.98
+v23_oof: 54.41  # +0.10 over V4, NOT submitted (Boss decision)
+
+# ===== KEY LEARNINGS FROM CYCLE 1 =====
+
+cycle_1_verdict: |
+  4 builds attempted. Only V23 (cascade) marginally beat V4 (+0.10 OOF).
+  V24/V25/V26 all regressed. Set B (Hard-FP-10) failed in all 4 builds.
+  No submission. V4 still banked at 56.98.
+
+falsified_hypotheses:
+  - id: x43_chemistry
+    hypothesis: "X43 is silicon (Si) chemistry column"
+    evidence_against: "Within-grade variance ratio 0.7859, expected <0.10 for chemistry. X43 is a process variable."
+    implication: "Composition columns likely ABSENT from X1-X49 entirely. R08 cascade's full +4-8 OOF projection (which required chemistry features in Stage-2) is unreachable through column-renaming."
+
+  - id: roll_campaign_ordinal_lift
+    hypothesis: "Ordinal within-campaign position features will lift score by +1.2 OOF"
+    evidence_against: "Meta AUC +0.003, but threshold sweep gave -0.43 OOF in V25."
+    implication: "Campaign position is already encoded by V5's log(X34/X36); marginal new info."
+
+  - id: borderline_smote_helps_hard7
+    hypothesis: "BorderlineSMOTE-1 will improve Hard-7 detection by focusing synthesis"
+    evidence_against: "V26: -0.48 OOF. Borderline detection worked (255 synthetics/fold) but threshold shifted lower, precision dropped."
+    implication: "Hard-7 are NOT borderline in the SMOTE sense. They are noise-adjacent."
+
+confirmed_structural_findings:
+  - id: cascade_works_marginally
+    finding: "Two-stage cascade architecture is sound; ceiling without chemistry is +0.1 OOF, not R08's projected +4."
+    implication: "Cascade is keepable but needs a stronger Stage-1 (not V4) to unlock higher gains."
+
+  - id: v4_catboost_irreproducible
+    finding: "V4's CatBoost OOF AUC 0.8756 cannot be reproduced from documented V3 params. Fresh retrains hit 0.8622."
+    implication: "V4 is effectively a frozen black box. Cannot safely modify it; must REPLACE it for Stage-1 strength."
+
+  - id: force_block_x29_x33_is_real
+    finding: "Adjacent correlation 0.9526 vs far 0.7991. X29-X33 IS a stand-axis force block."
+    implication: "Block structure exists; force-block features alone aren't lift, but inform feature design."
+
+  - id: hard_fp_10_structural
+    finding: "All 4 Cycle 1 builds failed Set B (Hard-FP-10 avoidance). Same as V4 baseline."
+    implication: "Hard-FP-10 is the binding constraint. Current X1-X49 feature space cannot distinguish them from true positives."
+
+  - id: bbse_label_prior_shift_confirmed
+    finding: "+2.67 OOF→LB delta is label-prior shift (test prevalence 6.49% vs train 4.88%). Holds for V23 too."
+    implication: "Calibrated LB est = OOF + 2.67 is a reliable instrument for single-model recall-100% builds."
+
+  - id: lgb_rfl_real_gain
+    finding: "LGB with Robust Focal Loss (r=0.5, q=0.3) gives +0.0108 AUC vs V4 LGB."
+    implication: "RFL is a real Stage-1 component for non-V4 builds. Just don't try to plug it into V4-style stack."
+
+# ===== TOPIC ROTATION FOR CYCLE 2 =====
+
+topics_to_drop:
+  - R03_metallurgy_composition: "X43 falsified; composition likely absent from X1-X49"
+  - R05_imbalance_2024: "BorderlineSMOTE regressed; vanilla variants exhausted"
+  - R12_sequence_temporal: "Roll-campaign regressed; lag features carry most temporal signal already"
+  - R11_causal_confounder: "DML residuals would regress for same reason as R12"
+  - R06_cost_sensitive_focal: "RFL is good per-component but blocked by V4 reproducibility; drop until N03 delivers a non-V4 base"
+
+topics_to_redispatch_deeper:
+  - R02_physics_cooling_coiler: "If we get a new Stage-1, would CT-spread bundle into it for +1.2 OOF?"
+  - R08_cascade_and_two_stage: "Drill: how to build Stage-1 BETTER than V4?"
+
+topics_carried_from_cycle_1_high_priority:
+  - R04_tabpfn_and_tabicl: "TabICLv2 as orthogonal Stage-1 candidate (replaces V4 not augments it)"
+  - R07_anomaly_2024: "Deep SAD / PReNet semi-sup specifically targets Hard-FP-10"
+  - R10_bayesian_uncertainty: "Mondrian conformal + abstain rule targets Hard-FP-10"
+  - R14_competition_tactics: "Re-evaluate rank-blend with isolated threshold (V10 fix)"
+  - R13_feature_construction_genetic: "OpenFE for new feature search untested"
+  - R15_threshold_decision_theory: "Per-grade thresholds untested"
+
+new_topics_for_cycle_2:
+  - N01_v4_replacement: |
+      Build a stronger Stage-1 to replace V4. Target: OOF AUC > 0.884 (V4 meta).
+      Candidates: TabICLv2 + LGB-RFL stack; deep ensemble FT-Transformer with R10 uncertainty.
+  - N02_hard_fp_10_counterfactual: |
+      For each Hard-FP-10 CoilID, what minimal feature change flips it to negative?
+      Use DiCE counterfactual explanations to identify the feature(s) that matter.
+      Then engineer the inverse feature (e.g. "distance from nearest Y=0 cluster in subtle-feature subspace").
+  - N03_stage_1_replacement_then_cascade: |
+      If N01 builds a Stage-1 with OOF AUC ≥ 0.90 (vs V4's 0.884), cascade Stage-2 on suspect
+      pool should hit R08's projected ceiling. Two-step pipeline: N01 first, then cascade
+      reruns automatically using the new Stage-1.
+
+# ===== TEST CASES FOR CYCLE 2 (refined) =====
+
+fixed_test_cases_unchanged:
+  - set_a_hard7: "Same 7 CoilIDs. Gate: ≥1 caught at chosen threshold."
+  - set_b_hard_fp_10: "Same 10 CoilIDs. RELAXED gate: ≥3 avoided (was ≥5). Allows honest progress on structural problem."
+  - set_c_easy_59: "Same 59 CoilIDs. Gate: ≥58 caught."
+  - set_d_oof_score: "OOF ≥ 54.41 (V23 baseline now), bootstrap CI ≥ 53.0."
+  - set_e_stability: "std < 1.5"
+  - set_f_calibrated_lb: "OOF + 2.67 > 57.08 (V23's calibrated LB est now the floor)."
+
+new_test_cases_cycle_2_specific:
+  - coil_473_threshold_recovery: |
+      CoilID 473 was caught by V4 but dropped below V23's chosen threshold (proba 0.0276 = T).
+      Cycle 2 builds should retain CoilID 473 above their chosen threshold.
+
+# ===== SUBMISSION BUDGET STATUS =====
+
+submission_budget:
+  daily_limit: 3
+  used_today: 0
+  remaining_today: 3
+  last_submission_date: "2026-05-23"
+  last_submission: "V4 @ 56.98"

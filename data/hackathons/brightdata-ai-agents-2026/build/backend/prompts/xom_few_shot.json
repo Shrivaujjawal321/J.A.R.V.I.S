@@ -1,0 +1,106 @@
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "<example>\n<source_data>\n{\n  \"ticker\": \"XOM\",\n  \"metadata\": {\"latency_seconds\": 31.2, \"cost_usd\": 0.028, \"confidence_score\": 0.51},\n  \"sec\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"bullish\",\n      \"confidence\": 0.72,\n      \"summary\": \"Q4 10-K guidance implies continued full-throughput operations at Baytown and Beaumont refineries\",\n      \"evidence\": \"10-K filing 2026-02-28: management guided for 4.5M barrels/day capacity utilization through Q2 2026.\",\n      \"url\": \"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=XOM&type=10-K\"\n    }\n  },\n  \"yahoo\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"neutral\",\n      \"confidence\": 0.65,\n      \"summary\": \"EPS in-line with consensus, dividend yield 3.4%, institutional ownership stable at 61%\",\n      \"evidence\": \"Q4 EPS $2.14 vs $2.12 est. Div yield 3.4%. Institutional ownership 61.2% unchanged QoQ.\",\n      \"url\": \"https://finance.yahoo.com/quote/XOM\"\n    }\n  },\n  \"satellite\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"bearish\",\n      \"confidence\": 0.61,\n      \"summary\": \"NASA FIRMS thermal anomaly count at Baytown refinery down 31% vs 6-month baseline — operational slowdown\",\n      \"evidence\": \"FIRMS API: 14-day avg thermal anomaly count at 29.3°N 95.0°W = 18 vs 26 baseline (−31%). Date: 2026-05-20.\",\n      \"url\": \"https://firms.modaps.eosdis.nasa.gov\"\n    }\n  },\n  \"news\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"neutral\",\n      \"confidence\": 0.58,\n      \"summary\": \"Reuters: refinery maintenance season normal; crude spreads tightening slightly\",\n      \"evidence\": \"Reuters 2026-05-21: Gulf Coast refiners in planned maintenance cycle. WTI-Brent spread $1.80.\",\n      \"url\": \"https://www.reuters.com/business/energy\"\n    }\n  },\n  \"reddit\": {\"status\": \"error\", \"error_msg\": \"BrightData selector timeout\"},\n  \"linkedin\": {\"status\": \"timeout\", \"error_msg\": \"Timed out after 18s\"},\n  \"glassdoor\": {\"status\": \"rate_limited\", \"error_msg\": \"429 from BrightData\"},\n  \"gdelt\": {\"status\": \"ok\", \"data\": {\"signal\": \"neutral\", \"confidence\": 0.50, \"summary\": \"GDELT tone for XOM: neutral (goldstein=+1.2), 134 articles 7-day\", \"evidence\": \"7-day GDELT: avg tone -0.3, goldstein +1.2, 134 articles. No conflict coding.\", \"url\": \"https://api.gdeltproject.org\"}}\n}\n</source_data>\n</example>"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_example_xom_01",
+        "name": "emit_investment_brief",
+        "input": {
+          "ticker": "XOM",
+          "company_name": "ExxonMobil Corporation",
+          "sector": "Integrated Oil & Gas",
+          "generated_at": "2026-05-27T09:00:00Z",
+          "signals": [
+            {
+              "source": "sec",
+              "direction": "bullish",
+              "summary": "Q4 10-K guides full-throughput operations at Baytown/Beaumont through Q2 2026",
+              "confidence": 0.72,
+              "raw_evidence": "10-K: management guided 4.5M barrels/day utilization through Q2 2026.",
+              "citation_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=XOM&type=10-K",
+              "research_anchor": null,
+              "alpha_tier": "standard"
+            },
+            {
+              "source": "satellite",
+              "direction": "bearish",
+              "summary": "NASA FIRMS: Baytown thermal activity -31% vs baseline — operational slowdown not in guidance",
+              "confidence": 0.61,
+              "raw_evidence": "FIRMS 14-day avg: 18 anomalies vs 26 baseline at Baytown coords. Date: 2026-05-20.",
+              "citation_url": "https://firms.modaps.eosdis.nasa.gov",
+              "research_anchor": "Berkeley Haas satellite study: operational intensity predicts 4-5% earnings window returns",
+              "alpha_tier": "gold"
+            },
+            {
+              "source": "yahoo",
+              "direction": "neutral",
+              "summary": "Q4 EPS in-line, dividend yield 3.4%, institutional ownership stable",
+              "confidence": 0.65,
+              "raw_evidence": "Q4 EPS $2.14 vs $2.12 est. Div yield 3.4%. Institutional ownership 61.2% QoQ unchanged.",
+              "citation_url": "https://finance.yahoo.com/quote/XOM",
+              "research_anchor": null,
+              "alpha_tier": "standard"
+            },
+            {
+              "source": "news",
+              "direction": "neutral",
+              "summary": "Reuters: normal Gulf Coast maintenance cycle, crude spreads tightening slightly",
+              "confidence": 0.58,
+              "raw_evidence": "Reuters 2026-05-21: Gulf Coast refiners in planned maintenance. WTI-Brent spread $1.80.",
+              "citation_url": "https://www.reuters.com/business/energy",
+              "research_anchor": null,
+              "alpha_tier": "standard"
+            },
+            {
+              "source": "gdelt",
+              "direction": "neutral",
+              "summary": "GDELT 7-day tone neutral (goldstein +1.2), 134 articles, no conflict coding",
+              "confidence": 0.50,
+              "raw_evidence": "7-day GDELT: avg tone -0.3, goldstein +1.2, 134 articles. No conflict coding.",
+              "citation_url": "https://api.gdeltproject.org",
+              "research_anchor": null,
+              "alpha_tier": "caution"
+            }
+          ],
+          "risk_factors": [
+            "Satellite thermal data contradicts management guidance — potential unguided operational slowdown",
+            "3 sources unavailable (reddit, linkedin, glassdoor) — hiring and culture picture missing",
+            "Crude spread tightening may compress refining margins in coming quarters"
+          ],
+          "bull_thesis": [
+            "Management guides full-throughput refinery capacity utilization through Q2 2026",
+            "Dividend yield 3.4% with stable institutional ownership provides downside buffer",
+            "Neutral news sentiment and GDELT tone suggest no immediate macro headwinds"
+          ],
+          "bear_case": [
+            "Satellite thermal activity at Baytown -31% below baseline contradicts management throughput guidance",
+            "Berkeley Haas study: satellite operational signals predict 4-5% earnings surprise returns — this is a warning flag",
+            "Maintenance season narrative may mask unguided capacity reduction"
+          ],
+          "overall_direction": "neutral",
+          "overall_confidence": 0.51,
+          "price_target_range": null,
+          "brief_narrative": "ExxonMobil presents a cautious neutral thesis with one notable novel signal: NASA FIRMS satellite thermal anomaly data shows Baytown refinery operating at 31% below its 6-month baseline — a material divergence from management's Q4 10-K guidance of full-throughput operations through Q2 2026. This satellite-vs-guidance contradiction is the key tension in this brief. Hedge funds using similar satellite signals have generated 4-5% returns in earnings windows [Berkeley Haas study]. Yahoo Finance fundamentals are neutral (EPS in-line, dividend stable), and news sentiment from Reuters confirms an ordinary maintenance cycle. However, the operational signal from satellite warrants monitoring ahead of earnings. Data coverage is partial — Reddit, LinkedIn, and Glassdoor were unavailable. Overall confidence is 0.51, reflecting the operational contradiction and partial coverage.",
+          "data_quality_flag": "partial",
+          "sources_used": ["sec", "yahoo", "satellite", "news", "gdelt"],
+          "sources_unavailable": ["reddit", "linkedin", "glassdoor"],
+          "cross_source_contradictions": [
+            "satellite (bearish) contradicts sec (bullish): NASA FIRMS thermal activity at Baytown is 31% below 6-month baseline while management guided full-throughput operations through Q2 — suggests unguided operational slowdown"
+          ],
+          "latency_seconds": 31.2,
+          "cost_usd": 0.028
+        }
+      }
+    ]
+  }
+]

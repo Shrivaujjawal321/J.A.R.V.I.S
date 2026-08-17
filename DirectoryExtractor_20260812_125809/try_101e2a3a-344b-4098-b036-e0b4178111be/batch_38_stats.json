@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 752,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 940,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 286,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 187,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 151,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 902,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 32,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 563,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 1,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 8,
+    "status": "completed"
+  }
+]

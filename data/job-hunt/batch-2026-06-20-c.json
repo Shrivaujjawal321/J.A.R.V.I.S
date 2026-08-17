@@ -1,0 +1,102 @@
+[
+  {
+    "to": "sibesh@mayalabs.io",
+    "subject": "Jarvis-style multi-agent orchestration \u2192 self-programming machines",
+    "body": "Hi Sibesh,\n\nBuilt Jarvis \u2014 a production multi-agent assistant (Claude Agent SDK, FastAPI daemon, ChromaDB episodic memory, 93 specialist subagents) running autonomously 24/7. The architecture overlaps directly with what Maya Labs is doing: agents that plan, write, and deploy their own workflows without human micromanagement.\n\nAlso shipped EDITH \u2014 an agentic industrial copilot that qualified for Tata Steel's national AI/ML Hackathon Round 2.\n\nWould love a 20-min call this week to explore how I could contribute to Maya's self-programming mission.\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "aashish@fencio.dev",
+    "subject": "Multi-agent runtime control \u2014 built this for Jarvis, want to help Fencio",
+    "body": "Hi Aashish,\n\nJarvis, my production multi-agent assistant, runs 93 Claude subagents with a 4-tier trust model \u2014 every irreversible action is intercepted, audited, and gated. That's essentially what Fencio is building at the infrastructure layer: deterministic policy enforcement on agent execution paths.\n\nI'm a 2025 CS(AI/ML) grad with hands-on agentic RAG (ChromaDB + FlashRank + NLI gating), FastAPI SSE, and multi-agent orchestration. Tata Steel National Hackathon R2 qualifier.\n\nCan we do a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "gaurav@getknit.dev",
+    "subject": "McpIndex (1532 MCP servers, hybrid search) \u2192 Knit's agent integration layer",
+    "body": "Hi Gaurav,\n\nBuilt McpIndex \u2014 a hybrid semantic+BM25 search engine over 1,532 MCP servers, which is the exact tool-discovery problem Knit solves for AI agents at the integration layer. I understand both sides: the MCP protocol and the enterprise SaaS connector space.\n\nAlso ship production RAG (ChromaDB, FlashRank reranker, NLI gating) and multi-agent orchestration via Claude Agent SDK. 2025 CS(AI/ML) grad, Delhi-based, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "shayak@adya.ai",
+    "subject": "Multi-agent orchestration (93 agents, Jarvis) \u2192 Adya's enterprise agent platform",
+    "body": "Hi Shayak,\n\nBuilt Jarvis \u2014 a production multi-agent assistant with 93 specialist subagents, parallel Claude Agent SDK dispatch, and a live LinkedIn growth pipeline that runs autonomously. The orchestration architecture maps directly to what Adya is building for enterprise functions.\n\nAlso shipped EDITH, an industrial AI copilot that qualified for Tata Steel's national hackathon Round 2. Skills: agentic RAG, FastAPI SSE, LightGBM.\n\nUp for a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "info@xccelera.ai",
+    "subject": "Services-as-software + multi-agent platform \u2014 I've built this in production",
+    "body": "Hi Rohit,\n\nJarvis, my production agentic system, implements the exact 'services-as-software' pattern Xccelera is commercializing: reusable autonomous agent workflows with measurable ROI, running 24/7 with a parallel task dispatch architecture.\n\nAlso shipped EDITH (Tata Steel Hackathon R2 qualifier) and McpIndex. Skills: Claude Agent SDK, FastAPI, agentic RAG, LightGBM. 2025 CS(AI/ML) grad, open to remote.\n\nCould we do a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "arijit.biswas@vogic.ai",
+    "subject": "Production ML + video intelligence copilot \u2014 let's talk",
+    "body": "Hi Arijit,\n\nBuilt EDITH \u2014 an industrial ML copilot for Tata Steel's national hackathon (Round 2 qualifier) that does sensor anomaly detection using LightGBM/CatBoost ensembles on streaming data. The structured prediction pipeline is closely adjacent to VOGIC's video intelligence stack: ingesting high-dimensional streams, extracting actionable signals.\n\nAlso ship production RAG and multi-agent orchestration. Open to remote roles.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "rohit@segmind.com",
+    "subject": "McpIndex hybrid search + GenAI infra \u2014 built for your stack",
+    "body": "Hi Rohit,\n\nBuilt McpIndex \u2014 a hybrid BM25 + vector search engine over 1,532 AI model servers \u2014 and ship production RAG pipelines (ChromaDB + FlashRank reranker). Segmind's serverless model inference API is exactly the kind of infra I build on top of.\n\n2025 CS(AI/ML) grad. Skills: ML pipelines (LightGBM/CatBoost), FastAPI, multi-agent orchestration, Next.js. Tata Steel Hackathon R2 qualifier.\n\nCould we do a 20-min call this week to explore a fit?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "abhinav@superjoin.ai",
+    "subject": "RAG + agentic data pipelines \u2192 Superjoin's AI spreadsheet connector",
+    "body": "Hi Abhinav,\n\nBuilt production RAG pipelines (ChromaDB, FlashRank reranker, NLI gating) and an agentic orchestration system (Jarvis) that automatically ingests and queries structured data from 10+ sources. The data-connector-for-AI-agents problem is exactly what I've been building solutions on top of.\n\nSkills: LightGBM/CatBoost, FastAPI, multi-agent orchestration, Next.js. 2025 CS(AI/ML) grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastava-79610a291/"
+  },
+  {
+    "to": "amit@richpanel.com",
+    "subject": "WhatsApp AI + multi-agent customer support \u2014 shipped both",
+    "body": "Hi Amit,\n\nBuilt a live WhatsApp AI bot (Baileys, LLM-backed, name-triggered, sandboxed worker) and Jarvis's customer-message orchestration system that handles routing, context retrieval, and escalation \u2014 exactly what Richpanel automates for ecommerce brands.\n\nSkills: production LLM pipelines, FastAPI, multi-agent orchestration, Next.js. 2025 CS(AI/ML) grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "team@onfinance.in",
+    "subject": "NeoGPT for BFSI \u2014 I've shipped production RAG + LLM pipelines",
+    "body": "Hi Anuj,\n\nBuilt production agentic RAG (ChromaDB + FlashRank reranker + NLI gating) and multi-agent pipelines that answer domain-specific queries over structured enterprise data \u2014 the same architecture NeoGPT uses for BFSI automation.\n\nAlso shipped EDITH, an AI copilot for industrial data (Tata Steel Hackathon R2 qualifier). Skills: LightGBM/CatBoost, FastAPI SSE, Claude Agent SDK. 2025 CS(AI/ML) grad.\n\nCould we connect for a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "nirav@ignosis.ai",
+    "subject": "Financial data intelligence RAG \u2014 built production pipelines, want to join Ignosis",
+    "body": "Hi Nirav,\n\nBuilt production RAG (ChromaDB + FlashRank reranker + NLI gating) that extracts structured insights from unstructured financial documents \u2014 the same pipeline Ignosis uses to power its AA-based BFSI intelligence layer.\n\nAlso shipped EDITH (industrial ML copilot, Tata Steel R2 qualifier) and McpIndex. Skills: LightGBM/CatBoost, FastAPI, multi-agent orchestration. 2025 grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "contact@vodex.ai",
+    "subject": "Voice AI + agentic outreach \u2014 built the pipeline, want to contribute",
+    "body": "Hi Anshul,\n\nBuilt a production voice agent pipeline (Whisper STT + Piper TTS + live Gemini voice demo) integrated into Jarvis's multi-agent system \u2014 exactly what Vodex automates for enterprise outbound calling and collections.\n\nAlso shipped an agentic LinkedIn outreach pipeline that drafts, routes, and executes messages autonomously. Skills: FastAPI SSE, LLM pipelines, multi-agent orchestration. 2025 CS(AI/ML) grad.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "raj@kogo.ai",
+    "subject": "Multi-agent orchestration + LAM workflows \u2014 built this in production",
+    "body": "Hi Raj,\n\nBuilt Jarvis \u2014 93 specialist Claude subagents orchestrated via a FastAPI daemon that decomposes goals into parallel LAM-style action sequences, which is the same architecture KOGO's OS uses to build enterprise AI agents.\n\nAlso shipped EDITH (industrial agentic copilot, Tata Steel R2) and McpIndex. Skills: multi-agent orchestration, Claude Agent SDK, FastAPI, LightGBM. Open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "careers@sarvam.ai",
+    "subject": "Production RAG + multi-agent \u2014 want to contribute to India's sovereign AI",
+    "body": "Hi team,\n\nBuilt Jarvis \u2014 a production multi-agent system (93 subagents, Claude Agent SDK, ChromaDB episodic memory) and EDITH, an AI copilot using Sarvam-compatible multi-lingual RAG, for Tata Steel's national hackathon (Round 2 qualifier).\n\nAlso ship McpIndex, a hybrid BM25+vector search engine over 1,532 MCP servers. Skills: agentic RAG, LightGBM/CatBoost, FastAPI SSE, Next.js. 2025 CS(AI/ML) grad, Delhi, open to remote.\n\nCan we schedule a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "ishaan@superagi.com",
+    "subject": "Jarvis \u2014 93-agent production system, built on the same agentic CRM thesis",
+    "body": "Hi Ishaan,\n\nBuilt Jarvis with an autonomous LinkedIn growth pipeline: ICP targeting, draft-and-approve, browser autopilot execution \u2014 exactly what SuperAGI's Agentic CRM does at scale. Also shipped a 93-subagent orchestration system with parallel dispatch and overnight goal execution.\n\nSkills: multi-agent orchestration, Claude Agent SDK, FastAPI, Next.js. 2025 CS(AI/ML) grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastava-79610a291/"
+  },
+  {
+    "to": "soham.g@composio.dev",
+    "subject": "McpIndex (1532 MCP servers) + Jarvis integrations \u2014 built on top of your stack",
+    "body": "Hi Soham,\n\nBuilt McpIndex \u2014 a hybrid BM25+vector discovery engine over 1,532 MCP servers \u2014 and wired Jarvis's 11 Google/Notion/Telegram integrations via Composio. Deep power-user + contributor perspective on your product.\n\nAlso ship production RAG, multi-agent orchestration (Claude Agent SDK), and FastAPI SSE. 2025 CS(AI/ML) grad, Delhi, open to remote.\n\nCould we do a 20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "saurabh@orbitshift.ai",
+    "subject": "Agentic sales pipeline (Jarvis LinkedIn) + RAG \u2014 built what you sell",
+    "body": "Hi Saurabh,\n\nBuilt Jarvis's autonomous LinkedIn growth pipeline: ICP research \u2192 draft connections \u2192 browser-autopilot execution \u2014 a working demo of AI-managed enterprise sales cycles. OrbitShift is exactly the enterprise productization of what I've built.\n\nAlso ship production RAG and multi-agent orchestration. Skills: LightGBM, FastAPI, Claude Agent SDK. 2025 CS(AI/ML) grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "founders@trytruffle.ai",
+    "subject": "Multi-agent orchestration + Claude Agent SDK \u2014 I've shipped this in production",
+    "body": "Hi Rahul / Shaunak,\n\nBuilt Jarvis on Claude Agent SDK \u2014 a production multi-agent system (93 subagents, parallel dispatch, FastAPI daemon) that implements the exact agentic workflow integration layer Truffle is building as 'AWS for AI Agents'.\n\nAlso shipped McpIndex, EDITH (Tata Steel R2), and a live LinkedIn automation pipeline. Skills: Claude Agent SDK, FastAPI SSE, agentic RAG. 2025 CS(AI/ML) grad.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastava-79610a291/"
+  },
+  {
+    "to": "kabir@crazehq.com",
+    "subject": "Jarvis \u2014 93-agent proactive AI teammate, built the same product",
+    "body": "Hi Kabir,\n\nBuilt Jarvis \u2014 a proactive multi-agent AI teammate: 93 specialist subagents, parallel task dispatch, learns context, executes autonomously overnight. Craze describes itself as a '24x7 proactive AI teammate' \u2014 I've built this end-to-end in production.\n\nAlso shipped McpIndex, EDITH (Tata Steel R2 qualifier), and an autonomous LinkedIn pipeline. Skills: Claude Agent SDK, FastAPI, Next.js. Open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  },
+  {
+    "to": "karthik@zocket.com",
+    "subject": "GenAI ad pipeline + Next.js \u2014 shipped similar at scale",
+    "body": "Hi Karthik,\n\nBuilt EDITH Studio \u2014 an AI-driven 7-stage pipeline (research \u2192 design \u2192 code \u2192 deploy) for creative website generation using Next.js 15 + React 19. The AI-first creative pipeline Zocket uses for instant ad generation maps exactly to what I've engineered.\n\nAlso ship production LLM pipelines, multi-agent orchestration, and ML (LightGBM/CatBoost). 2025 CS(AI/ML) grad, open to remote.\n\n20-min call this week?\n\nUjjawal Shrivastav\nAI/ML Engineer \u00b7 Delhi, India \u00b7 +91 9718732066\nPortfolio: https://ujjawal-shrivastav.vercel.app/\nGitHub: https://github.com/Shrivaujjawal321\nLinkedIn: https://www.linkedin.com/in/ujjawal-shrivastav-79610a291/"
+  }
+]

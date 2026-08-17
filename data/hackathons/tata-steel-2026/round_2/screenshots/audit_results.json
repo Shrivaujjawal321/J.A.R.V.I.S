@@ -1,0 +1,100 @@
+{
+  "url": "file:///home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/problem-explainer.html",
+  "console_errors": [],
+  "console_warnings": [],
+  "failed_requests": [],
+  "sections_found": [
+    "#hero",
+    "#problem",
+    "#architecture",
+    "#data",
+    "#agents",
+    "#judging",
+    "#timeline",
+    "#stack"
+  ],
+  "sections_missing": [],
+  "charts_info": [
+    {
+      "id": "chartFailureDist",
+      "width": 502,
+      "height": 251,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartCorpus",
+      "width": 502,
+      "height": 320,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartSensorDeg",
+      "width": 502,
+      "height": 251,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartRUL",
+      "width": 1086,
+      "height": 260,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartAlerts",
+      "width": 502,
+      "height": 320,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartRadar",
+      "width": 470,
+      "height": 320,
+      "status": "HAS_CONTENT"
+    },
+    {
+      "id": "chartEffort",
+      "width": 650,
+      "height": 320,
+      "status": "HAS_CONTENT"
+    }
+  ],
+  "mermaid_info": [
+    {
+      "index": 0,
+      "parent_section": "mermaid-arch",
+      "svg_elements": 1,
+      "status": "SVG_RENDERED",
+      "has_error": false,
+      "text_preview": "(SVG rendered)"
+    },
+    {
+      "index": 1,
+      "parent_section": "mermaid-dataflow",
+      "svg_elements": 1,
+      "status": "SVG_RENDERED",
+      "has_error": false,
+      "text_preview": "(SVG rendered)"
+    },
+    {
+      "index": 2,
+      "parent_section": "agents",
+      "svg_elements": 1,
+      "status": "SVG_RENDERED",
+      "has_error": false,
+      "text_preview": "(SVG rendered)"
+    }
+  ],
+  "screenshots": [
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/00-full-page.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/01-hero.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/02-problem.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/03-architecture.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/04-data.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/05-agents.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/06-judging.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/07-timeline.png",
+    "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/round_2/screenshots/08-stack.png"
+  ],
+  "renders_ok": true,
+  "issues": []
+}

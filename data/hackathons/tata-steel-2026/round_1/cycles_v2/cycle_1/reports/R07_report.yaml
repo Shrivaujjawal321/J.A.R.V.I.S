@@ -1,0 +1,339 @@
+agent_id: R07
+topic: anomaly-2024
+cycle: 1
+timestamp_utc: "2026-05-23T12:30:00Z"
+status: ok
+
+recommendations:
+
+  - id: R07_rec_1
+    title: "DevNet semi-sup anomaly score as 52nd feat"
+    technique_class: feature_engineering
+    description: |
+      DevNet (Pang et al., KDD 2019) trains a shallow MLP to push labeled
+      anomaly scores above a reference Gaussian prior while treating unlabeled
+      points as normal. Unlike Cycle-1C AD methods (all unsupervised), DevNet
+      has direct access to our 66 labeled positives during training. The OOF
+      score per sample is added as a 52nd feature to the V4 stacking harness,
+      letting LightGBM/XGBoost/CatBoost decide how much weight to assign.
+      This directly addresses the stealth-defect problem: prior AD methods scored
+      only 2/15 hard defects anomalous because they had no label signal. DevNet
+      with 66 known positives should score them more discriminatively. Must be
+      fit inside each CV fold to avoid leakage (same pattern as prev_5_defect_rate).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.0
+      low: 0.0
+      high: 2.5
+      reasoning: |
+        ADBench NeurIPS-2022 (57 datasets): semi-supervised methods surpass best
+        unsupervised baseline with 1% labeled anomalies. Our labeled ratio is
+        4.88% (66/1352) - well above the 1% threshold. DevNet achieves 3-29%
+        AUC-ROC gains vs unsupervised competitors. Point estimate conservative
+        because hard defects may still be low-signal even with label supervision.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - deepod>=0.3.0
+        - torch>=2.0.0
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Pang et al. "Deep Anomaly Detection with Deviation Networks." KDD 2019.
+        arXiv:1911.08623. 3%-29% average AUC-ROC improvement on tabular benchmarks.
+        ADBench NeurIPS 2022 (arXiv:2206.09426): semi-supervised methods rapidly
+        surpass unsupervised detectors at 1%+ labeled anomaly ratio. Confidence=3
+        (not 4) because stealth-defect verdict casts doubt on whether any anomaly
+        score will be discriminative here.
+    failure_modes:
+      - "DevNet score highly correlated with V4 tree-stack proba (both driven by X13/X10/X32); 52nd feature adds zero marginal info to meta-learner."
+      - "MLP overfits on 66 positives across only 5 folds (13 positives per fold); OOF score variance is high."
+      - "DevNet score not monotonically ordered with true severity - may add noise to meta-learner."
+      - "deepod PyTorch dependency adds ~400MB to environment."
+    code_sketch: |
+      from deepod.models.tabular import DevNet
+      import numpy as np
+      # Inside StratifiedKFold loop:
+      semi_y = np.where(y_tr == 1, 1, 0)  # 1=anomaly, 0=unlabeled
+      clf = DevNet(epochs=50, batch_size=64, lr=1e-3, rep_dim=32,
+                   hidden_dims='100,50')
+      clf.fit(X_tr, y=semi_y)
+      val_score = clf.decision_function(X_val)
+      X_val_aug = np.column_stack([X_val, val_score])
+      # feed X_val_aug into LGB/XGB/CatBoost as usual
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R07_rec_2
+    title: "Deep SAD hypersphere semi-sup score as 52nd feat"
+    technique_class: feature_engineering
+    description: |
+      Deep SAD (Ruff et al., ICLR 2020) extends Deep SVDD by incorporating both
+      labeled normals AND labeled anomalies into the hypersphere objective. Known
+      anomalies are pushed AWAY from the center; labeled normals pulled toward it.
+      Unlike pure Deep SVDD (unsupervised, not tried in Cycle-1C), Deep SAD is a
+      semi-supervised method that explicitly uses our 66 positives. The anomaly
+      score (distance from hypersphere center) is used as a 52nd feature in V4
+      stacking. Theoretically grounded via information-theoretic entropy argument.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: 0.0
+      high: 2.0
+      reasoning: |
+        Ruff et al. (2020) show Deep SAD outperforms unsupervised Deep SVDD on
+        tabular benchmarks when labeled anomalies available. However, ADBench (2022)
+        notes Deep SAD can "perform even worse than One-Class SVM for tabular data"
+        on some datasets due to hypersphere collapse risk in small-n regimes.
+        Lower ceiling than DevNet/PReNet; conservative estimate.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - deepod>=0.3.0
+        - torch>=2.0.0
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Ruff et al. "Deep Semi-Supervised Anomaly Detection." ICLR 2020.
+        arXiv:1906.02694. ADBench NeurIPS 2022 (arXiv:2206.09426) includes
+        DeepSAD as one of 7 semi-supervised methods evaluated on 57 tabular
+        datasets. ADBench warning: on some tabular datasets semi/supervised
+        models fail to outperform unsupervised baselines - potentially the case
+        here given scattered (non-clustered) anomaly profile.
+    failure_modes:
+      - "Hypersphere collapse: MLP maps all inputs near same point; all distances equal and score uninformative. Detectable by checking score variance < 1e-3."
+      - "13 positives per fold makes Deep SAD label gradient very sparse - may not learn stable anomaly boundary."
+      - "Wrong MLP depth/width leads to underfitting on 1352-row dataset."
+      - "Score correlated with DevNet score if both driven by X13/X10/X32 - adding both R07_rec_1 and R07_rec_2 has diminishing returns."
+    code_sketch: |
+      from deepod.models.tabular import DeepSAD
+      import numpy as np
+      # Inside StratifiedKFold loop:
+      semi_y = np.where(y_tr == 1, 1, 0)
+      clf = DeepSAD(epochs=50, batch_size=64, lr=1e-3, rep_dim=32,
+                    hidden_dims='100,50')
+      clf.fit(X_tr, y=semi_y)
+      val_score = clf.decision_function(X_val)
+      X_val_aug = np.column_stack([X_val, val_score])
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R07_rec_3
+    title: "PReNet pairwise semi-sup score as 52nd feat"
+    technique_class: feature_engineering
+    description: |
+      PReNet (Pang et al., KDD 2023) learns pairwise relation features and anomaly
+      scores by predicting the relation between any two randomly sampled training
+      instances: anomaly-anomaly, anomaly-unlabeled, or unlabeled-unlabeled. The
+      pairwise framing is more sample-efficient than single-instance scoring when
+      few labeled anomalies exist - exactly our 66-positive scenario. Most recent
+      of the three semi-sup candidates (2023); specifically designed for the
+      few-labeled-anomalies regime. Among ADBench's 7 semi-supervised methods.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.2
+      low: 0.0
+      high: 3.0
+      reasoning: |
+        PReNet on 12 real-world tabular datasets (KDD 2023): "significantly
+        outperforms nine competing methods in detecting seen and unseen anomalies."
+        Pairwise design is more robust than single-instance scoring when
+        n_labeled_anomalies is small (~13 per fold). Highest ceiling estimate
+        of the three semi-sup candidates, but also highest variance - pairwise
+        sampling with 13 positives generates only ~169 anomaly-anomaly pairs per
+        fold which may limit benefit.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - deepod>=0.3.0
+        - torch>=2.0.0
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Pang et al. "Deep Weakly-supervised Anomaly Detection." KDD 2023.
+        ACM DL doi:10.1145/3580305.3599302. arXiv:1910.13601. github.com/mala-lab/PReNet.
+        "Empirical results on 12 real-world datasets show PReNet significantly
+        outperforms nine competing methods." deepod provides native PyTorch
+        implementation. ADBench (2022) confirms semi-sup methods at 1%+ labeled ratio.
+    failure_modes:
+      - "13 positives per fold: only ~78-169 anomaly-anomaly or anomaly-unlabeled pairs available - noisy gradient signal across folds."
+      - "Training is quadratic in pairwise combos but managed by batch sampling; MLP training on small n still unstable."
+      - "Score correlated with DevNet score - both exploit same 66 labeled positives via similar MLP architectures."
+      - "TF original implementation not compatible with deepod if both installed - use deepod exclusively."
+    code_sketch: |
+      from deepod.models.tabular import PReNet
+      import numpy as np
+      # Inside StratifiedKFold loop:
+      semi_y = np.where(y_tr == 1, 1, 0)
+      clf = PReNet(epochs=50, batch_size=64, lr=1e-3,
+                   hidden_dims='100,50', rep_dim=32)
+      clf.fit(X_tr, y=semi_y)
+      val_score = clf.decision_function(X_val)
+      X_val_aug = np.column_stack([X_val, val_score])
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R07_rec_4
+    title: "ECOD+COPOD pair as 52nd/53rd unsup features"
+    technique_class: feature_engineering
+    description: |
+      ECOD (Li et al., IEEE TKDE 2022) and COPOD (Li et al., ICDM 2020) are
+      parameter-free, O(n*d) unsupervised outlier detectors based on empirical
+      CDF tail probabilities. Both available in PyOD with identical API. Neither
+      is on the Cycle-1C exhausted list (only IF, OCSVM, LOF, Mah, AE, PCA were
+      tried). Despite being unsupervised (lower ceiling than semi-sup methods),
+      they operate on different geometric principles than IF/LOF/Mahalanobis and
+      may capture tail-extreme combos those methods missed. Recommended as cheap
+      fallback if semi-sup methods fail to converge or produce degenerate scores.
+      Near-instant on 1352 rows.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.3
+      low: -0.2
+      high: 0.8
+      reasoning: |
+        Same fundamental limitation as 6 Cycle-1C unsupervised methods - no
+        label signal. However different geometric principle (CDF tails vs density).
+        2/15 hard defects partially caught by IF may be caught differently by
+        ECOD/COPOD tail statistics. Low ceiling given stealth-defect finding
+        but near-zero cost (~30 min, no GPU).
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies:
+        - pyod>=1.1.0
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Li et al. "ECOD: Unsupervised Outlier Detection Using Empirical Cumulative
+        Distribution Functions." IEEE TKDE 2022. DOI:10.1109/TKDE.2022.3159580.
+        Li et al. "COPOD: Copula-Based Outlier Detection." ICDM 2020.
+        Both beat 11 baselines on 30 benchmark datasets in respective papers.
+        Confidence=2: (a) stealth verdict is strong evidence unsupervised approaches
+        won't add signal beyond IF/LOF/Mah; (b) ECOD/COPOD assume per-dimension
+        independence while X4/X5/X6/X14 are highly correlated coiling temps;
+        (c) COPOD's independence assumption has been critiqued as equivalent to
+        ECOD (PyOD GitHub issue #655).
+    failure_modes:
+      - "Feature independence assumption: X4/X5/X6/X14 are correlated coiling temps; marginal tail probabilities will be inflated for jointly normal features."
+      - "Near-zero marginal lift over IF: IF already captures globally extreme anomalies; ECOD/COPOD may select same subset."
+      - "51 features: joint tail probability dominated by X13/X10/X32 extremes - same features trees already use directly."
+    code_sketch: |
+      from pyod.models.ecod import ECOD
+      from pyod.models.copod import COPOD
+      import numpy as np
+      # Inside StratifiedKFold loop:
+      ecod = ECOD(contamination=0.05)
+      ecod.fit(X_tr)
+      val_ecod = ecod.decision_function(X_val)
+      copod = COPOD(contamination=0.05)
+      copod.fit(X_tr)
+      val_copod = copod.decision_function(X_val)
+      X_val_aug = np.column_stack([X_val, val_ecod, val_copod])
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R07_rec_5
+    title: "Semi-sup AD as independent OR-fusion with V4"
+    technique_class: tactics
+    description: |
+      Use the semi-supervised anomaly score (DevNet, Deep SAD, or PReNet) as an
+      INDEPENDENT binary classifier: threshold at top-5% percentile to produce
+      Y_hat_anomaly, then combine with V4 Y_hat via union (OR logic): predict
+      positive if EITHER V4 OR anomaly detector flags the row. This is NOT
+      probability blending (V10 disaster) - it is hard-decision OR-fusion on
+      binary outputs, which preserves each model's threshold calibration.
+      The math: if detector finds 1-2 hard defects V4 misses with small FP cost,
+      net score improves. Specifically targets the 7 precarious positives V4
+      barely catches at threshold 0.01428 - if the semi-sup detector independently
+      ranks any of them highly, OR-fusion provides redundant coverage.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V10
+      notes: |
+        V10 blended PROBABILITIES (50%+50%) = disaster (-8.47 LB). This is
+        binary OR-fusion on HARD DECISIONS. Fundamentally different operation.
+        The EXHAUSTED anti-pattern explicitly states probability blending destroys
+        threshold calibration. Binary OR does not blend probabilities.
+    expected_lift_oof:
+      point: 0.5
+      low: -1.0
+      high: 2.0
+      reasoning: |
+        If detector catches 2 new TPs with FP_anomaly < 5: net score improvement
+        is small but positive. High variance: at top-5% threshold the detector
+        flags ~68 train rows (~17 test rows); if those are mostly true negatives,
+        precision drops with no TP gain. Negative lower bound is real.
+        Must be validated on OOF before deployment.
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies:
+        - deepod>=0.3.0
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Reasoning-only - no direct published benchmark for this exact fusion pattern
+        on (Recall+Precision)/2 metric with steel defect data. Directional support:
+        Kong et al. "Improving Imbalanced Classification by Anomaly Detection."
+        PPSN 2020 (Springer doi:10.1007/978-3-030-58112-1_35): anomaly scores
+        improve classification in 6/7 imbalanced datasets as auxiliary features.
+        OR-fusion is strictly recall-preserving (cannot hurt recall on already-caught
+        positives) but precision-risky.
+    failure_modes:
+      - "Top-5% threshold flags ~68 train rows as anomalous; if all are true negatives, precision drops from 8.62% with no TP gain."
+      - "OR-fusion always increases predicted positives - if starting precision is already 8.62%, denominator grows faster than numerator."
+      - "The 7 precarious positives may also score low on anomaly detector - hard-7 stealth extends to semi-sup methods too."
+      - "Anomaly detector OOF score distribution shifts fold-to-fold (unstable on 13 positives/fold) - OR threshold chosen on OOF may be miscalibrated on test."
+    code_sketch: |
+      import numpy as np
+      # v4_oof_pred: binary from V4 threshold sweep
+      # anomaly_oof_score: OOF scores from DevNet/PReNet (semi-sup)
+      # y_train: ground truth
+      # Threshold anomaly score at top-5% of Y=0 training scores
+      neg_scores = anomaly_oof_score[y_train == 0]
+      threshold = np.percentile(neg_scores, 95)
+      anomaly_oof_pred = (anomaly_oof_score >= threshold).astype(int)
+      # OR-fusion
+      fused_pred = np.maximum(v4_oof_pred, anomaly_oof_pred)
+      # Evaluate
+      recall = fused_pred[y_train==1].mean()
+      precision = y_train[fused_pred==1].mean() if fused_pred.sum() > 0 else 0
+      score = (recall + precision) / 2 * 100
+      print(f"Fused OOF (R+P)/2 = {score:.2f}  baseline V4 = 54.31")
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R01: "Feature engineering may generate new axes where semi-sup scores are more discriminative - run DevNet on augmented feature set, not just V4s 51."
+  - R02: "Threshold strategy: OR-fusion (R07_rec_5) changes threshold dynamics - re-evaluate if R02 identifies a better V4 base threshold."
+  - R04: "TabPFN/TabICL latent representations could be used as DevNet/PReNet input instead of raw X1-X49, potentially improving semi-sup signal."
+  - R09: "Imbalance handling: if SMOTE is replaced, DevNet training distribution changes - coordinate."
+
+# HARD REJECTION LOG (drill questions answered but rejected):
+# DeepSVDD (Ruff 2018): UNSUPERVISED - 7th Cycle-1C method, same failure.
+# DAGMM (Zong 2018): UNSUPERVISED + GMM singularity risk, no Y signal.
+# DROCC (Goyal 2020): ONE-CLASS (normal-data-only training), does not exploit Y=1 labels.
+# LODA (Pevny 2016): UNSUPERVISED random projections - same family as IF, already exhausted.

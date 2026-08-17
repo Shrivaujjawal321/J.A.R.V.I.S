@@ -1,0 +1,2358 @@
+<title>Freight Auction Marketplace — Interactive Prototype</title>
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+#proto-root{
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;--sp-12:48px;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-full:999px;
+
+  /* dark (default / primary theme) */
+  --bg-canvas:#0a0c10;
+  --bg-surface:#12151b;
+  --bg-surface-2:#181c24;
+  --bg-surface-3:#1f242e;
+  --bg-overlay:rgba(6,7,10,.72);
+  --border-subtle:#232833;
+  --border-default:#323a48;
+  --border-strong:#4a5264;
+  --text-primary:#f2f4f7;
+  --text-secondary:#aab2c0;
+  --text-tertiary:#7c8494;
+  --text-disabled:#4b5261;
+  --text-on-accent:#0a0c10;
+  --accent:#8fb2ff;
+  --accent-strong:#b3ccff;
+  --focus-ring:#8fb2ff;
+  --status-blue:#648fff;
+  --status-violet:#785ef0;
+  --status-magenta:#dc267f;
+  --status-orange:#fe6100;
+  --status-amber:#ffb000;
+  --shadow-1:0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 8px 24px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  #proto-root:not([data-theme]){
+    --bg-canvas:#f6f7f9; --bg-surface:#ffffff; --bg-surface-2:#eef0f4; --bg-surface-3:#e3e6ec;
+    --bg-overlay:rgba(20,22,28,.45);
+    --border-subtle:#e3e6ec; --border-default:#cdd2dc; --border-strong:#a7aebb;
+    --text-primary:#12151b; --text-secondary:#454c59; --text-tertiary:#5b6270; --text-disabled:#9aa0ac;
+    --text-on-accent:#ffffff; --accent:#2c4fc4; --accent-strong:#1f3ea3; --focus-ring:#2c4fc4;
+    --status-blue:#2c4fc4; --status-violet:#6338c2; --status-magenta:#a3105f; --status-orange:#a34500; --status-amber:#7a5600;
+    --shadow-1:0 1px 2px rgba(20,22,30,.08); --shadow-2:0 8px 24px rgba(20,22,30,.14);
+    color-scheme: light;
+  }
+}
+#proto-root[data-theme="light"]{
+  --bg-canvas:#f6f7f9; --bg-surface:#ffffff; --bg-surface-2:#eef0f4; --bg-surface-3:#e3e6ec;
+  --bg-overlay:rgba(20,22,28,.45);
+  --border-subtle:#e3e6ec; --border-default:#cdd2dc; --border-strong:#a7aebb;
+  --text-primary:#12151b; --text-secondary:#454c59; --text-tertiary:#5b6270; --text-disabled:#9aa0ac;
+  --text-on-accent:#ffffff; --accent:#2c4fc4; --accent-strong:#1f3ea3; --focus-ring:#2c4fc4;
+  --status-blue:#2c4fc4; --status-violet:#6338c2; --status-magenta:#a3105f; --status-orange:#a34500; --status-amber:#7a5600;
+  --shadow-1:0 1px 2px rgba(20,22,30,.08); --shadow-2:0 8px 24px rgba(20,22,30,.14);
+  color-scheme: light;
+}
+#proto-root[data-theme="dark"]{
+  --bg-canvas:#0a0c10; --bg-surface:#12151b; --bg-surface-2:#181c24; --bg-surface-3:#1f242e;
+  --bg-overlay:rgba(6,7,10,.72);
+  --border-subtle:#232833; --border-default:#323a48; --border-strong:#4a5264;
+  --text-primary:#f2f4f7; --text-secondary:#aab2c0; --text-tertiary:#7c8494; --text-disabled:#4b5261;
+  --text-on-accent:#0a0c10; --accent:#8fb2ff; --accent-strong:#b3ccff; --focus-ring:#8fb2ff;
+  --status-blue:#648fff; --status-violet:#785ef0; --status-magenta:#dc267f; --status-orange:#fe6100; --status-amber:#ffb000;
+  color-scheme: dark;
+}
+
+#proto-root{
+  font-family:var(--font-sans);
+  background:var(--bg-canvas);
+  color:var(--text-primary);
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+#proto-root h1,#proto-root h2,#proto-root h3,#proto-root h4{font-weight:650;letter-spacing:-.01em;margin:0}
+#proto-root p{margin:0}
+#proto-root button{font-family:inherit}
+#proto-root .num, #proto-root .mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+#proto-root a{color:var(--accent)}
+
+/* focus */
+#proto-root :focus{outline:none}
+#proto-root :focus-visible{outline:2px solid var(--focus-ring); outline-offset:2px; border-radius:4px}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip-link{position:absolute;left:8px;top:-48px;background:var(--accent);color:var(--text-on-accent);padding:10px 16px;border-radius:var(--radius-sm);z-index:1000;transition:top .15s}
+.skip-link:focus{top:8px}
+
+@media (prefers-reduced-motion: reduce){
+  #proto-root *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important}
+}
+
+/* ============================================================
+   ICONS
+   ============================================================ */
+.icon{width:16px;height:16px;display:inline-flex;flex:none;color:currentColor}
+.icon svg{width:100%;height:100%;display:block}
+
+/* ============================================================
+   PRIMITIVES
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-default);
+  background:var(--bg-surface-2); color:var(--text-primary); font-size:13.5px; font-weight:600;
+  cursor:pointer; min-height:36px; white-space:nowrap; transition:background .12s,border-color .12s;
+}
+.btn:hover{background:var(--bg-surface-3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn--primary{background:var(--accent); border-color:var(--accent); color:var(--text-on-accent)}
+.btn--primary:hover{background:var(--accent-strong); border-color:var(--accent-strong)}
+.btn--ghost{background:transparent; border-color:transparent}
+.btn--ghost:hover{background:var(--bg-surface-2)}
+.btn--danger{border-color:color-mix(in srgb, var(--status-magenta) 60%, transparent); color:var(--status-magenta)}
+.btn--danger:hover{background:color-mix(in srgb, var(--status-magenta) 14%, transparent)}
+.btn--sm{min-height:28px;padding:4px 10px;font-size:12.5px;border-radius:6px}
+.btn--lg{min-height:52px;padding:14px 20px;font-size:16px;border-radius:12px}
+.btn--block{width:100%}
+.btn--icon{padding:8px;min-width:36px}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--sp-4)}
+.field label{font-size:12.5px;font-weight:650;color:var(--text-secondary)}
+.field .hint{font-size:12px;color:var(--text-tertiary);display:flex;gap:6px;align-items:flex-start}
+.field .hint .icon{margin-top:1px}
+.field .err{font-size:12px;color:var(--status-magenta);display:flex;gap:6px;align-items:center;font-weight:600}
+.input, select.input, textarea.input{
+  background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--radius-sm);
+  color:var(--text-primary); padding:9px 12px; font-size:13.5px; font-family:inherit; min-height:38px;
+}
+.input:focus-visible{border-color:var(--focus-ring)}
+textarea.input{min-height:72px; resize:vertical}
+.field.has-error .input{border-color:var(--status-magenta)}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4)}
+.field-row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--sp-4)}
+.checkbox-row{display:flex; align-items:center; gap:8px; font-size:13.5px}
+.checkbox-row input{width:18px;height:18px}
+
+.badge{--c:var(--text-tertiary); display:inline-flex; align-items:center; gap:6px; padding:4px 10px 4px 8px;
+  border-radius:var(--radius-full); font-size:12px; font-weight:650; line-height:1.2; white-space:nowrap;
+  background:color-mix(in srgb, var(--c) 16%, transparent); border:1px solid color-mix(in srgb, var(--c) 55%, transparent);
+  color:var(--text-primary)}
+.badge .icon{color:var(--c); width:13px;height:13px}
+.badge--info{--c:var(--status-blue)}
+.badge--pending{--c:var(--status-violet)}
+.badge--critical{--c:var(--status-magenta)}
+.badge--warning{--c:var(--status-orange)}
+.badge--attention{--c:var(--status-amber)}
+.badge--neutral{--c:var(--text-tertiary)}
+
+.card{background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--sp-5)}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:var(--radius-full);
+  border:1px solid var(--border-default); background:var(--bg-surface-2); color:var(--text-secondary); font-size:12.5px; font-weight:600; cursor:pointer}
+.chip.is-active{background:color-mix(in srgb, var(--accent) 18%, var(--bg-surface-2)); border-color:var(--accent); color:var(--text-primary)}
+.chip .count{font-family:var(--font-mono); opacity:.75}
+
+.kbd, kbd{font-family:var(--font-mono); font-size:11px; background:var(--bg-surface-3); border:1px solid var(--border-default);
+  border-bottom-width:2px; border-radius:5px; padding:2px 6px; color:var(--text-secondary)}
+
+/* banners */
+/* The JS state switchers toggle the `hidden` attribute, but any component rule that sets an
+   explicit `display` (.banner is display:flex) beats the UA stylesheet's [hidden]{display:none}.
+   Without this, the stale banner and the empty state stayed visible in every preview state. */
+[hidden]{display:none !important}
+.banner{display:flex; gap:10px; align-items:flex-start; padding:11px 14px; border-radius:var(--radius-md); font-size:13px; border:1px solid; margin-bottom:var(--sp-4)}
+.banner .icon{margin-top:1px}
+.banner strong{font-weight:700}
+.banner--stale{background:color-mix(in srgb, var(--status-amber) 12%, var(--bg-surface)); border-color:color-mix(in srgb, var(--status-amber) 45%, transparent); color:var(--text-primary)}
+.banner--stale .icon{color:var(--status-amber)}
+.banner--critical{background:color-mix(in srgb, var(--status-magenta) 12%, var(--bg-surface)); border-color:color-mix(in srgb, var(--status-magenta) 45%, transparent)}
+.banner--critical .icon{color:var(--status-magenta)}
+.banner--info{background:color-mix(in srgb, var(--status-blue) 10%, var(--bg-surface)); border-color:color-mix(in srgb, var(--status-blue) 40%, transparent)}
+.banner--info .icon{color:var(--status-blue)}
+.banner--neutral{background:var(--bg-surface-2); border-color:var(--border-default); color:var(--text-secondary)}
+/* `banner--attention` was used in markup but never defined, so the auction-extended banner fell
+   through to stale's amber (wrong — an extension is a notice, not a data-freshness warning) and the
+   thin-market banner rendered with no background or border colour at all. Violet is the unused
+   status hue and reads as "something changed, take note" rather than "something is wrong". */
+.banner--attention{background:color-mix(in srgb, var(--status-violet) 12%, var(--bg-surface)); border-color:color-mix(in srgb, var(--status-violet) 45%, transparent); color:var(--text-primary)}
+.banner--attention .icon{color:var(--status-violet)}
+
+/* empty / denied states */
+.state-panel{display:flex; flex-direction:column; align-items:center; text-align:center; gap:var(--sp-3); padding:var(--sp-12) var(--sp-6); color:var(--text-secondary)}
+.state-panel .icon-lg{width:44px;height:44px; color:var(--text-tertiary)}
+.state-panel h3{color:var(--text-primary); font-size:16px}
+.state-panel--denied .icon-lg{color:var(--status-magenta)}
+
+/* skeleton */
+.skel{position:relative; overflow:hidden; background:var(--bg-surface-2); border-radius:6px}
+.skel::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--text-primary) 8%, transparent), transparent);
+  animation:shimmer 1.3s infinite}
+@keyframes shimmer{from{transform:translateX(-100%)} to{transform:translateX(100%)}}
+
+/* view-state segmented control */
+.state-switch{display:inline-flex; gap:2px; background:var(--bg-surface-2); border:1px solid var(--border-default); border-radius:var(--radius-full); padding:3px}
+.state-switch button{border:0; background:transparent; padding:5px 12px; border-radius:var(--radius-full); font-size:12px; font-weight:650; color:var(--text-tertiary); cursor:pointer; min-height:24px}
+.state-switch button.is-active{background:var(--bg-surface); color:var(--text-primary); box-shadow:var(--shadow-1)}
+
+/* ============================================================
+   SAMPLE-DATA RIBBON
+   ============================================================ */
+.sample-ribbon{display:flex; align-items:center; justify-content:center; gap:8px; background:var(--bg-surface-3); color:var(--text-tertiary);
+  font-size:11.5px; font-weight:600; padding:6px 12px; border-bottom:1px solid var(--border-subtle); letter-spacing:.01em}
+.sample-ribbon .icon{width:13px;height:13px}
+
+/* ============================================================
+   COMMAND PALETTE
+   ============================================================ */
+.palette-backdrop{position:fixed; inset:0; background:var(--bg-overlay); z-index:500; display:flex; align-items:flex-start; justify-content:center; padding-top:12vh}
+.palette-backdrop[hidden]{display:none}
+.palette{width:min(560px,92vw); background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:var(--radius-lg); box-shadow:var(--shadow-2); overflow:hidden}
+.palette-input-row{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border-subtle)}
+.palette-input-row .icon{color:var(--text-tertiary)}
+.palette-input-row input{flex:1; background:transparent; border:0; color:var(--text-primary); font-size:15px; min-height:24px}
+.palette-input-row input:focus-visible{outline:none}
+.palette-results{list-style:none; margin:0; padding:6px; max-height:50vh; overflow-y:auto}
+.palette-results li{padding:10px 12px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; color:var(--text-secondary)}
+.palette-results li .icon{color:var(--text-tertiary)}
+.palette-results li .pr-label{display:flex; align-items:center; gap:10px; color:var(--text-primary); font-size:13.5px; font-weight:600}
+.palette-results li .pr-hint{font-size:11.5px; color:var(--text-tertiary); font-weight:600}
+.palette-results li.is-active{background:var(--bg-surface-3)}
+.palette-empty{padding:24px 16px; text-align:center; color:var(--text-tertiary); font-size:13px}
+
+/* ============================================================
+   APP SHELL (desktop)
+   ============================================================ */
+.app-shell{display:none; grid-template-columns:236px 1fr; min-height:calc(100vh - 30px)}
+#proto-root[data-persona="shipper"] .app-shell,
+#proto-root[data-persona="carrier"] .app-shell,
+#proto-root[data-persona="ops"] .app-shell{display:grid}
+
+.sidebar{background:var(--bg-surface); border-right:1px solid var(--border-subtle); display:flex; flex-direction:column; padding:var(--sp-4); gap:var(--sp-5); position:sticky; top:0; height:calc(100vh - 30px)}
+.brand{display:flex; align-items:center; gap:10px; padding:4px 6px}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:var(--accent); color:var(--text-on-accent); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px}
+.brand-name{font-weight:700; font-size:14px}
+.brand-sub{font-size:10.5px; color:var(--text-tertiary); font-weight:600}
+
+.persona-switch{display:flex; flex-direction:column; gap:4px; background:var(--bg-surface-2); padding:4px; border-radius:var(--radius-md); border:1px solid var(--border-subtle)}
+.persona-switch button{display:flex; align-items:center; gap:9px; border:0; background:transparent; text-align:left; padding:8px 10px; border-radius:8px; color:var(--text-secondary); font-size:12.5px; font-weight:650; cursor:pointer; min-height:34px}
+.persona-switch button:hover{background:var(--bg-surface-3)}
+.persona-switch button.is-active{background:var(--bg-surface); color:var(--text-primary); box-shadow:var(--shadow-1)}
+.persona-switch button .icon{color:var(--text-tertiary)}
+.persona-switch button.is-active .icon{color:var(--accent)}
+
+.nav{display:flex; flex-direction:column; gap:2px; flex:1; overflow-y:auto}
+.nav-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-disabled); font-weight:700; padding:10px 10px 4px}
+.nav-item{display:none; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; color:var(--text-secondary); font-size:13px; font-weight:600; cursor:pointer; border:0; background:transparent; text-align:left; width:100%; min-height:34px}
+.nav-item:hover{background:var(--bg-surface-2); color:var(--text-primary)}
+.nav-item.is-active{background:color-mix(in srgb, var(--accent) 16%, var(--bg-surface-2)); color:var(--text-primary)}
+.nav-item .icon{color:var(--text-tertiary)}
+.nav-item.is-active .icon{color:var(--accent)}
+.nav-item .nav-dot{width:7px;height:7px;border-radius:50%;background:var(--status-magenta); margin-left:auto}
+#proto-root[data-persona="shipper"] .nav-item[data-p~="shipper"]{display:flex}
+#proto-root[data-persona="carrier"] .nav-item[data-p~="carrier"]{display:flex}
+#proto-root[data-persona="ops"] .nav-item[data-p~="ops"]{display:flex}
+
+.sidebar-footer{border-top:1px solid var(--border-subtle); padding-top:var(--sp-3); display:flex; flex-direction:column; gap:8px}
+.theme-row{display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-tertiary)}
+.theme-toggle{display:flex; border:1px solid var(--border-default); border-radius:var(--radius-full); padding:2px; background:var(--bg-surface-2)}
+.theme-toggle button{border:0; background:transparent; padding:5px 8px; border-radius:var(--radius-full); color:var(--text-tertiary); cursor:pointer; display:flex}
+.theme-toggle button.is-active{background:var(--bg-surface); color:var(--text-primary)}
+.kbd-hint{font-size:11px; color:var(--text-disabled); display:flex; align-items:center; gap:6px}
+
+.main-col{display:flex; flex-direction:column; min-width:0}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4); padding:var(--sp-3) var(--sp-5); border-bottom:1px solid var(--border-subtle); background:var(--bg-canvas); position:sticky; top:0; z-index:10}
+.cmdk-trigger{display:flex; align-items:center; gap:10px; background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--radius-md); padding:8px 12px; color:var(--text-tertiary); font-size:13px; cursor:pointer; min-width:280px}
+.cmdk-trigger .icon{color:var(--text-tertiary)}
+.cmdk-trigger kbd{margin-left:auto}
+.topbar-right{display:flex; align-items:center; gap:10px}
+.icon-btn{border:1px solid var(--border-default); background:var(--bg-surface); border-radius:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); cursor:pointer; position:relative}
+.icon-btn:hover{background:var(--bg-surface-2)}
+.icon-btn .dot{position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:var(--status-magenta); border:1.5px solid var(--bg-canvas)}
+.org-pill{display:flex; align-items:center; gap:8px; padding:5px 10px 5px 5px; border-radius:var(--radius-full); background:var(--bg-surface); border:1px solid var(--border-default)}
+.org-pill .avatar{width:24px;height:24px;border-radius:50%; background:var(--status-violet); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700}
+.org-pill .org-name{font-size:12.5px; font-weight:650}
+.org-pill .org-role{font-size:10.5px; color:var(--text-tertiary)}
+
+.content{padding:var(--sp-6); flex:1}
+.screen{display:none; max-width:1280px}
+.screen.is-active{display:block}
+.screen-head{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-4); margin-bottom:var(--sp-5); flex-wrap:wrap}
+.screen-head h1{font-size:20px}
+.screen-head .eyebrow{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-tertiary); margin-bottom:4px}
+.screen-actions{display:flex; gap:8px; align-items:center}
+
+/* ============================================================
+   TABLE (dense, pinned columns, sortable, own scroll container)
+   ============================================================ */
+.table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4); margin-bottom:var(--sp-4); flex-wrap:wrap}
+.saved-views{display:flex; gap:8px; flex-wrap:wrap}
+.table-wrap{overflow-x:auto; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface)}
+table.dense{border-collapse:separate; border-spacing:0; width:100%; min-width:1150px}
+table.dense th{position:sticky; top:0; z-index:3; background:var(--bg-surface-2); text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-tertiary); font-weight:700; padding:10px 14px; border-bottom:1px solid var(--border-default); white-space:nowrap}
+table.dense th button{background:none;border:0;color:inherit;font:inherit;text-transform:inherit;letter-spacing:inherit;display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:0}
+table.dense th button .icon{width:11px;height:11px;opacity:.6}
+table.dense th button:hover{color:var(--text-primary)}
+table.dense td{padding:11px 14px; border-bottom:1px solid var(--border-subtle); font-size:13px; white-space:nowrap; color:var(--text-secondary)}
+table.dense tbody tr:last-child td{border-bottom:0}
+table.dense tbody tr:hover td{background:var(--bg-surface-2)}
+table.dense td.primary, table.dense th.primary{color:var(--text-primary); font-weight:650}
+table.dense td.c1, table.dense th.c1{position:sticky; left:0; z-index:2; background:var(--bg-surface); min-width:118px}
+table.dense td.c2, table.dense th.c2{position:sticky; left:118px; z-index:2; background:var(--bg-surface); min-width:230px; box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
+table.dense tbody tr:hover td.c1, table.dense tbody tr:hover td.c2{background:var(--bg-surface-2)}
+table.dense th.c1, table.dense th.c2{background:var(--bg-surface-2)}
+.lane{display:flex; flex-direction:column; gap:2px}
+.lane .route{font-weight:650; color:var(--text-primary); font-size:12.5px}
+.lane .miles{font-size:11px; color:var(--text-tertiary)}
+.row-flag{display:inline-flex; align-items:center; gap:6px; color:var(--status-magenta); font-weight:700; font-size:11.5px}
+.row-actions{display:flex; gap:6px; opacity:0; transition:opacity .12s}
+table.dense tbody tr:hover .row-actions, table.dense tbody tr:focus-within .row-actions{opacity:1}
+.exception-divider td{background:var(--bg-surface-2); padding:7px 14px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-tertiary); border-bottom:1px solid var(--border-default)}
+
+/* ============================================================
+   TIMELINE (shipment lifecycle)
+   ============================================================ */
+.timeline{position:relative; padding-left:34px}
+.timeline::before{content:'';position:absolute; left:12px; top:6px; bottom:6px; width:2px; background:var(--border-default)}
+.t-item{position:relative; padding-bottom:var(--sp-6)}
+.t-item:last-child{padding-bottom:0}
+.t-dot{position:absolute; left:-34px; top:2px; width:24px; height:24px; border-radius:50%; background:var(--bg-surface-2); border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; color:var(--text-tertiary)}
+.t-dot .icon{width:13px;height:13px}
+.t-item.is-done .t-dot{border-color:var(--status-blue); color:var(--status-blue); background:color-mix(in srgb, var(--status-blue) 14%, var(--bg-surface))}
+.t-item.is-custody .t-dot{border-color:var(--status-violet); color:var(--status-violet); background:color-mix(in srgb, var(--status-violet) 16%, var(--bg-surface))}
+.t-item.is-exception{padding:var(--sp-4); margin:0 0 var(--sp-6) -12px; background:color-mix(in srgb, var(--status-magenta) 9%, var(--bg-surface)); border:1px dashed var(--status-magenta); border-radius:var(--radius-md)}
+.t-item.is-exception::before{content:'';position:absolute; left:-22px; top:-8px; bottom:-8px; width:0; border-left:2px dashed var(--status-magenta)}
+.t-item.is-exception .t-dot{position:static; margin-bottom:8px; border-color:var(--status-magenta); color:var(--status-magenta); background:var(--bg-surface)}
+.t-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:2px}
+.t-title{font-weight:650; color:var(--text-primary); font-size:13.5px}
+.t-times{display:flex; gap:14px; flex-wrap:wrap; margin-top:6px}
+.t-time{font-size:11.5px; color:var(--text-tertiary)}
+.t-time strong{color:var(--text-secondary); font-family:var(--font-mono); font-weight:600; display:block; font-size:12.5px}
+.t-time.is-late strong{color:var(--status-orange)}
+.t-desc{font-size:12.5px; color:var(--text-secondary); margin-top:4px}
+
+/* ============================================================
+   AUCTION WATCH
+   ============================================================ */
+.best-bid-hero{display:flex; flex-direction:column; align-items:center; text-align:center; padding:var(--sp-8) var(--sp-6); gap:var(--sp-2)}
+.best-bid-hero .label{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-tertiary)}
+.best-bid-hero .amount{font-family:var(--font-mono); font-size:56px; font-weight:700; letter-spacing:-.02em; color:var(--text-primary); font-variant-numeric:tabular-nums}
+.best-bid-hero .amount .cents{font-size:28px; color:var(--text-tertiary)}
+.bid-meta-row{display:flex; gap:var(--sp-8); margin-top:var(--sp-3)}
+.bid-meta{text-align:center}
+.bid-meta .v{font-family:var(--font-mono); font-size:18px; font-weight:650; color:var(--text-secondary)}
+.bid-meta .v.is-final{color:var(--status-amber)}
+.bid-meta .k{font-size:10.5px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-top:2px}
+.gate-strip{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:var(--sp-4); font-size:12.5px}
+.gate-strip button{background:none;border:0;color:var(--accent);font-weight:650;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12.5px}
+.bid-feed{margin-top:var(--sp-5)}
+.bid-feed-row{display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--border-subtle); font-size:13px}
+.bid-feed-row:last-child{border-bottom:0}
+.bid-feed-row .price{font-family:var(--font-mono); font-weight:700; color:var(--text-primary); min-width:84px}
+.bid-feed-row .carrier{color:var(--text-secondary); flex:1}
+.bid-feed-row .ts{color:var(--text-tertiary); font-size:11.5px; font-family:var(--font-mono)}
+.bid-feed-row.is-new{animation:bidflash 1.6s ease-out}
+@keyframes bidflash{0%{background:color-mix(in srgb, var(--status-blue) 22%, transparent)} 100%{background:transparent}}
+.exclusion-list{list-style:none; margin:var(--sp-3) 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
+.exclusion-list li{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--text-secondary); padding:8px 10px; background:var(--bg-surface-2); border-radius:8px}
+.exclusion-list .icon{color:var(--status-magenta); margin-top:1px}
+.scenario-select{display:flex; align-items:center; gap:8px}
+
+/* ============================================================
+   LOAD BOARD / BID
+   ============================================================ */
+.board-layout{display:grid; grid-template-columns:1fr 380px; gap:var(--sp-5); align-items:start}
+.bid-panel{position:sticky; top:70px}
+.countdown{font-family:var(--font-mono); font-weight:700; font-size:15px; color:var(--text-secondary)}
+.countdown.is-final{color:var(--status-amber)}
+.bid-state{display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:var(--sp-5) 0}
+.bid-state .icon-lg{width:36px;height:36px}
+.bid-spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--border-default);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   EXCEPTION QUEUE
+   ============================================================ */
+.eq-list{display:flex; flex-direction:column; gap:10px}
+.eq-row{display:grid; grid-template-columns:auto 1fr auto; gap:var(--sp-4); align-items:center; padding:var(--sp-4); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface)}
+.eq-row.is-critical{border-color:color-mix(in srgb, var(--status-magenta) 55%, transparent)}
+.eq-severity{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--c) 16%, transparent); color:var(--c)}
+.eq-body .eq-title{font-weight:650; color:var(--text-primary); font-size:13.5px; margin-bottom:3px}
+.eq-body .eq-sub{font-size:12px; color:var(--text-tertiary); display:flex; gap:12px; flex-wrap:wrap}
+.eq-actions{display:flex; gap:8px; align-items:center}
+.claimed-tag{font-size:11.5px; color:var(--text-tertiary); font-weight:650; display:flex; align-items:center; gap:5px}
+
+/* ============================================================
+   FORM / STEPS (Post a Load)
+   ============================================================ */
+.steps{display:flex; gap:6px; margin-bottom:var(--sp-6)}
+.step-pill{flex:1; height:6px; border-radius:3px; background:var(--bg-surface-3)}
+.step-pill.is-done{background:var(--status-blue)}
+.step-pill.is-current{background:var(--accent)}
+.step-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--text-tertiary); margin-top:6px; margin-bottom:var(--sp-6); font-weight:650}
+.form-step{display:none}
+.form-step.is-active{display:block}
+.form-footer{display:flex; justify-content:space-between; align-items:center; margin-top:var(--sp-6); padding-top:var(--sp-4); border-top:1px solid var(--border-subtle)}
+.autosave-note{font-size:11.5px; color:var(--text-tertiary); display:flex; align-items:center; gap:6px}
+
+/* ============================================================
+   PHONE FRAME (driver, mobile)
+   ============================================================ */
+.driver-shell{display:none; flex-direction:column; align-items:center; min-height:calc(100vh - 30px); padding:var(--sp-6) var(--sp-4); gap:var(--sp-5)}
+#proto-root[data-persona="driver"] .driver-shell{display:flex}
+.driver-shell-topbar{display:flex; align-items:center; gap:10px; width:100%; max-width:600px; justify-content:space-between}
+.driver-shell-topbar .persona-switch{flex-direction:row; width:auto}
+.driver-shell-topbar .persona-switch button{flex-direction:column; gap:4px; padding:6px 10px}
+.driver-shell-topbar .persona-switch button span{font-size:10px}
+.phone-frame{width:390px; max-width:94vw; background:#08090b; border-radius:46px; padding:14px; box-shadow:var(--shadow-2); border:1px solid #2a2e36; position:relative}
+.phone-notch{position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:22px; background:#08090b; border-radius:0 0 16px 16px; z-index:5}
+.phone-screen{background:var(--bg-canvas); border-radius:32px; overflow:hidden; height:min(780px,78vh); overflow-y:auto; position:relative; color:var(--text-primary)}
+.phone-home-indicator{width:120px; height:4px; background:#4a5264; border-radius:2px; margin:10px auto 0}
+.phone-statusbar{display:flex; align-items:center; justify-content:space-between; padding:14px var(--sp-4) 4px; font-size:12px; font-weight:650; font-family:var(--font-mono)}
+.phone-statusbar .sb-right{display:flex; align-items:center; gap:6px}
+.offline-pill{display:none; align-items:center; gap:6px; background:color-mix(in srgb, var(--status-orange) 20%, var(--bg-surface)); color:var(--status-orange); border:1px solid color-mix(in srgb, var(--status-orange) 55%, transparent); border-radius:var(--radius-full); padding:6px 12px; font-size:11.5px; font-weight:700; margin:0 var(--sp-4) var(--sp-3)}
+.offline-pill .icon{width:13px;height:13px}
+#proto-root.is-offline .offline-pill{display:inline-flex}
+#proto-root.is-offline .online-only{opacity:.45; pointer-events:none}
+.driver-screen{padding:0 var(--sp-4) var(--sp-6)}
+.driver-screen h1{font-size:18px; margin-bottom:2px}
+.driver-sub{font-size:12.5px; color:var(--text-tertiary); margin-bottom:var(--sp-5)}
+.assign-card{background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--sp-5); margin-bottom:var(--sp-4)}
+.assign-stop{display:flex; gap:12px; padding:var(--sp-3) 0}
+.assign-stop .dot-col{display:flex; flex-direction:column; align-items:center; gap:2px}
+.assign-stop .dot{width:12px;height:12px;border-radius:50%; border:2px solid var(--status-blue)}
+.assign-stop .line{width:2px; flex:1; background:var(--border-default); min-height:28px}
+.assign-stop .stop-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; color:var(--text-tertiary)}
+.assign-stop .stop-addr{font-weight:650; font-size:14px; margin:2px 0}
+.assign-stop .stop-time{font-size:12px; color:var(--text-secondary); font-family:var(--font-mono)}
+.big-target{min-height:56px; font-size:16px; border-radius:14px}
+.driver-action-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:var(--sp-4)}
+.lang-toggle{display:flex; gap:4px; background:var(--bg-surface-2); border:1px solid var(--border-default); border-radius:var(--radius-full); padding:3px}
+.lang-toggle button{border:0;background:transparent;padding:5px 12px;border-radius:var(--radius-full);font-size:11.5px;font-weight:700;color:var(--text-tertiary); min-height:26px}
+.lang-toggle button.is-active{background:var(--bg-surface); color:var(--text-primary)}
+
+/* ============================================================
+   POD CAPTURE — forced choice, signature
+   ============================================================ */
+.pod-progress{display:flex; gap:5px; padding:0 var(--sp-4); margin-bottom:var(--sp-4)}
+.pod-progress .p-dot{flex:1; height:4px; border-radius:2px; background:var(--bg-surface-3)}
+.pod-progress .p-dot.is-done{background:var(--status-blue)}
+.pod-progress .p-dot.is-current{background:var(--accent)}
+.pod-step{display:none; padding:0 var(--sp-4) var(--sp-6)}
+.pod-step.is-active{display:block}
+.choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:var(--sp-5)}
+.choice-btn{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:var(--sp-6) var(--sp-3); border-radius:18px; border:2px solid var(--border-default); background:var(--bg-surface); min-height:168px; cursor:pointer; text-align:center}
+.choice-btn .icon-xl{width:38px;height:38px}
+.choice-btn .cb-title{font-weight:700; font-size:15px; color:var(--text-primary)}
+.choice-btn .cb-sub{font-size:11.5px; color:var(--text-tertiary)}
+.choice-btn.choice--clean:hover, .choice-btn.choice--clean.is-selected{border-color:var(--status-blue); background:color-mix(in srgb, var(--status-blue) 12%, var(--bg-surface))}
+.choice-btn.choice--clean .icon-xl{color:var(--status-blue)}
+.choice-btn.choice--exception:hover, .choice-btn.choice--exception.is-selected{border-color:var(--status-orange); background:color-mix(in srgb, var(--status-orange) 12%, var(--bg-surface))}
+.choice-btn.choice--exception .icon-xl{color:var(--status-orange)}
+.sig-pad-wrap{border:2px dashed var(--border-strong); border-radius:14px; background:var(--bg-surface); margin-top:var(--sp-4)}
+.sig-pad-wrap canvas{width:100%; height:180px; display:block; touch-action:none; border-radius:12px}
+.sig-meta{display:flex; justify-content:space-between; align-items:center; padding:8px 4px; font-size:11.5px; color:var(--text-tertiary)}
+.summary-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-subtle); font-size:13px}
+.summary-row:last-child{border-bottom:0}
+.summary-row .k{color:var(--text-tertiary)}
+.summary-row .v{color:var(--text-primary); font-weight:600; text-align:right}
+.sync-pill{display:flex; align-items:center; gap:8px; padding:12px 14px; border-radius:12px; margin-top:var(--sp-4); font-size:12.5px; font-weight:650}
+.sync-pill--pending{background:color-mix(in srgb, var(--status-amber) 16%, var(--bg-surface)); color:var(--status-amber); border:1px solid color-mix(in srgb, var(--status-amber) 50%, transparent)}
+.sync-pill--synced{background:color-mix(in srgb, var(--status-blue) 14%, var(--bg-surface)); color:var(--status-blue); border:1px solid color-mix(in srgb, var(--status-blue) 45%, transparent)}
+</style>
+
+<div id="proto-root" data-persona="shipper" data-screen="loads-dashboard">
+
+  <div id="live-polite" aria-live="polite" class="sr-only"></div>
+  <div id="live-assertive" aria-live="assertive" class="sr-only"></div>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <div class="sample-ribbon">
+    <i class="icon" data-icon="info"></i>
+    Sample data — interactive prototype only, not connected to any live system or carrier network.
+  </div>
+
+  <!-- ============================= COMMAND PALETTE ============================= -->
+  <div class="palette-backdrop" id="paletteBackdrop" hidden>
+    <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="palette-input-row">
+        <i class="icon" data-icon="search"></i>
+        <input id="paletteInput" type="text" placeholder="Jump to a screen or run an action…" aria-label="Search screens and actions" autocomplete="off" spellcheck="false">
+        <kbd>Esc</kbd>
+      </div>
+      <ul id="paletteResults" class="palette-results" role="listbox" aria-label="Results"></ul>
+    </div>
+  </div>
+
+  <!-- ============================= DESKTOP APP SHELL ============================= -->
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">FA</div>
+        <div>
+          <div class="brand-name">Freight Auction</div>
+          <div class="brand-sub">Marketplace prototype</div>
+        </div>
+      </div>
+
+      <nav class="persona-switch" aria-label="Switch persona">
+        <button type="button" data-persona-btn="shipper" class="is-active"><i class="icon" data-icon="package"></i>Shipper coordinator</button>
+        <button type="button" data-persona-btn="carrier"><i class="icon" data-icon="truck"></i>Carrier dispatcher</button>
+        <button type="button" data-persona-btn="ops"><i class="icon" data-icon="alert-triangle"></i>Platform ops</button>
+        <button type="button" data-persona-btn="driver"><i class="icon" data-icon="navigation"></i>Driver (mobile)</button>
+      </nav>
+
+      <nav class="nav" aria-label="Screens">
+        <div class="nav-label">Shipper</div>
+        <button type="button" class="nav-item is-active" data-p="shipper" data-nav="loads-dashboard"><i class="icon" data-icon="package"></i>Loads dashboard</button>
+        <button type="button" class="nav-item" data-p="shipper" data-nav="post-load"><i class="icon" data-icon="plus"></i>Post a load</button>
+        <button type="button" class="nav-item" data-p="shipper" data-nav="auction-watch"><i class="icon" data-icon="flag"></i>Auction watch</button>
+        <button type="button" class="nav-item" data-p="shipper ops" data-nav="shipment-detail"><i class="icon" data-icon="map-pin"></i>Shipment detail</button>
+
+        <div class="nav-label" data-p="carrier">Carrier</div>
+        <button type="button" class="nav-item" data-p="carrier" data-nav="load-board"><i class="icon" data-icon="truck"></i>Load board &amp; bid</button>
+
+        <div class="nav-label" data-p="ops">Platform ops</div>
+        <button type="button" class="nav-item" data-p="ops" data-nav="exception-queue"><i class="icon" data-icon="alert-triangle"></i>Exception queue<span class="nav-dot" aria-hidden="true"></span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-row">
+          <span>Theme</span>
+          <div class="theme-toggle" role="group" aria-label="Theme">
+            <button type="button" data-theme-btn="dark" aria-label="Dark theme"><i class="icon" data-icon="moon"></i></button>
+            <button type="button" data-theme-btn="light" aria-label="Light theme"><i class="icon" data-icon="sun"></i></button>
+          </div>
+        </div>
+        <div class="kbd-hint"><kbd>⌘</kbd><kbd>K</kbd> to jump anywhere</div>
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <button type="button" class="cmdk-trigger" id="cmdkTrigger">
+          <i class="icon" data-icon="search"></i>
+          <span>Search screens, loads, actions…</span>
+          <kbd>⌘K</kbd>
+        </button>
+        <div class="topbar-right">
+          <button type="button" class="icon-btn" aria-label="Notifications, 1 unread"><i class="icon" data-icon="bell"></i><span class="dot" aria-hidden="true"></span></button>
+          <div class="org-pill">
+            <div class="avatar">MR</div>
+            <div>
+              <div class="org-name" id="orgNameLabel">Meridian Foods Co.</div>
+              <div class="org-role" id="orgRoleLabel">Shipper coordinator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" class="content">
+        <!-- ============================= SCR-900 LOADS DASHBOARD ============================= -->
+        <section class="screen is-active" data-screen="loads-dashboard" aria-labelledby="ld-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">Meridian Foods Co. · Shipper</div>
+              <h1 id="ld-h1" tabindex="-1">Loads dashboard</h1>
+            </div>
+            <div class="screen-actions">
+              <div class="state-switch" role="group" aria-label="Preview state" id="ldStateSwitch">
+                <button type="button" data-state="normal" class="is-active">Normal</button>
+                <button type="button" data-state="loading">Loading</button>
+                <button type="button" data-state="empty">Empty</button>
+                <button type="button" data-state="stale">Stale</button>
+              </div>
+              <button type="button" class="btn btn--primary" data-nav="post-load"><i class="icon" data-icon="plus"></i>Post a load</button>
+            </div>
+          </div>
+
+          <div id="ldStaleBanner" class="banner banner--stale" hidden>
+            <i class="icon" data-icon="alert-triangle"></i>
+            <div><strong>Showing cached data.</strong> Last refreshed 6 minutes ago — connection to the loads service is degraded. <a href="#" id="ldRetry">Retry now</a>.</div>
+          </div>
+
+          <div class="table-toolbar">
+            <div class="saved-views" id="ldSavedViews">
+              <button type="button" class="chip is-active" data-view="all">All loads <span class="count">14</span></button>
+              <button type="button" class="chip" data-view="attention">Needs attention <span class="count">3</span></button>
+              <button type="button" class="chip" data-view="auction">In auction <span class="count">4</span></button>
+              <button type="button" class="chip" data-view="transit">In transit <span class="count">4</span></button>
+              <button type="button" class="chip" data-view="archived">Archived <span class="count">0</span></button>
+            </div>
+          </div>
+
+          <!-- LOADING SKELETON -->
+          <div id="ldLoading" class="table-wrap" hidden style="padding:14px">
+            <div class="skel" style="height:16px;width:40%;margin-bottom:14px;border-radius:4px"></div>
+            <div class="skel" style="height:38px;margin-bottom:8px"></div>
+            <div class="skel" style="height:38px;margin-bottom:8px"></div>
+            <div class="skel" style="height:38px;margin-bottom:8px"></div>
+            <div class="skel" style="height:38px;margin-bottom:8px"></div>
+            <div class="skel" style="height:38px;margin-bottom:8px"></div>
+          </div>
+
+          <!-- EMPTY STATE -->
+          <div id="ldEmpty" class="table-wrap state-panel" hidden>
+            <i class="icon icon-lg" data-icon="package"></i>
+            <h3>No loads here yet</h3>
+            <p>Nothing in this view. Post a load to open it to eligible carriers.</p>
+            <button type="button" class="btn btn--primary" data-nav="post-load" style="margin-top:6px"><i class="icon" data-icon="plus"></i>Post a load</button>
+          </div>
+
+          <!-- NORMAL TABLE -->
+          <div id="ldTableWrap" class="table-wrap">
+            <table class="dense" id="ldTable">
+              <thead>
+                <tr>
+                  <th class="c1"><button type="button" data-sort="ref">Load ref <i class="icon" data-icon="sort"></i></button></th>
+                  <th class="c2">Lane</th>
+                  <th>Equipment</th>
+                  <th><button type="button" data-sort="pickup">Pickup window <i class="icon" data-icon="sort"></i></button></th>
+                  <th>Status</th>
+                  <th><button type="button" data-sort="bids">Bids <i class="icon" data-icon="sort"></i></button></th>
+                  <th><button type="button" data-sort="best">Best bid <i class="icon" data-icon="sort"></i></button></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ldTbody">
+                <tr class="exception-divider"><td colspan="8">Needs attention — 3</td></tr>
+
+                <tr data-status="exception" data-ref="LD-48117" data-pickup="2026-07-29" data-bids="6" data-best="1450">
+                  <td class="c1 primary mono">LD-48117</td>
+                  <td class="c2"><div class="lane"><span class="route">Laredo, TX → Dallas, TX</span><span class="miles">240 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 28, 06:00–10:00</td>
+                  <td><span class="badge badge--critical"><i class="icon" data-icon="alert-triangle"></i>Transit exception</span></td>
+                  <td class="mono">6</td>
+                  <td class="mono">$1,450.00</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="btn btn--sm btn--ghost" data-nav="shipment-detail" aria-label="Open shipment detail for LD-48117"><i class="icon" data-icon="external-link"></i></button>
+                      <button type="button" class="btn btn--sm btn--ghost" aria-label="Message ops"><i class="icon" data-icon="message-circle"></i></button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr data-status="failed" data-ref="LD-48098" data-pickup="2026-07-27" data-bids="3" data-best="—">
+                  <td class="c1 primary mono">LD-48098</td>
+                  <td class="c2"><div class="lane"><span class="route">Fontana, CA → Las Vegas, NV</span><span class="miles">270 mi · Power Only</span></div></td>
+                  <td>Power Only</td>
+                  <td class="mono">Jul 27, 07:00–11:00</td>
+                  <td><span class="badge badge--critical"><i class="icon" data-icon="alert-octagon"></i>Failed — all bids above limit</span></td>
+                  <td class="mono">3</td>
+                  <td class="mono">—</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="btn btn--sm btn--ghost" aria-label="Re-open auction for LD-48098"><i class="icon" data-icon="refresh-cw"></i></button>
+                      <button type="button" class="btn btn--sm btn--ghost" aria-label="Message ops"><i class="icon" data-icon="message-circle"></i></button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr data-status="noresponse" data-ref="LD-48061" data-pickup="2026-07-26" data-bids="1" data-best="2,180">
+                  <td class="c1 primary mono">LD-48061</td>
+                  <td class="c2"><div class="lane"><span class="route">Elizabeth, NJ → Boston, MA</span><span class="miles">215 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 26, 05:00–09:00</td>
+                  <td><span class="badge badge--warning"><i class="icon" data-icon="clock"></i>No status update — 4h12m</span></td>
+                  <td class="mono">1</td>
+                  <td class="mono">$2,180.00</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="btn btn--sm btn--ghost" data-nav="shipment-detail" aria-label="Open shipment detail"><i class="icon" data-icon="external-link"></i></button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr class="exception-divider"><td colspan="8">On track — 11</td></tr>
+
+                <tr data-status="auction" data-ref="LD-48213" data-pickup="2026-07-31" data-bids="9" data-best="1610">
+                  <td class="c1 primary mono">LD-48213</td>
+                  <td class="c2"><div class="lane"><span class="route">Ontario, CA → Phoenix, AZ</span><span class="miles">372 mi · Reefer</span></div></td>
+                  <td>Reefer 53′ · 34–38°F</td>
+                  <td class="mono">Jul 31, 08:00–12:00</td>
+                  <td><span class="badge badge--info"><i class="icon" data-icon="flag"></i>Auction open</span></td>
+                  <td class="mono">9</td>
+                  <td class="mono">$1,610.00</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="btn btn--sm btn--ghost" data-nav="auction-watch" aria-label="Watch auction for LD-48213"><i class="icon" data-icon="external-link"></i></button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr data-status="extended" data-ref="LD-48209" data-pickup="2026-07-30" data-bids="5" data-best="980">
+                  <td class="c1 primary mono">LD-48209</td>
+                  <td class="c2"><div class="lane"><span class="route">Memphis, TN → Nashville, TN</span><span class="miles">210 mi · Reefer</span></div></td>
+                  <td>Reefer 53′ · 28–32°F</td>
+                  <td class="mono">Jul 30, 09:00–13:00</td>
+                  <td><span class="badge badge--attention"><i class="icon" data-icon="refresh-cw"></i>Auction extended</span></td>
+                  <td class="mono">5</td>
+                  <td class="mono">$980.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="auction-watch" aria-label="Watch auction"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="pending" data-ref="LD-48188" data-pickup="2026-07-30" data-bids="7" data-best="1120">
+                  <td class="c1 primary mono">LD-48188</td>
+                  <td class="c2"><div class="lane"><span class="route">Chicago, IL → Columbus, OH</span><span class="miles">356 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 30, 06:00–10:00</td>
+                  <td><span class="badge badge--pending"><i class="icon" data-icon="clock"></i>Award verifying</span></td>
+                  <td class="mono">7</td>
+                  <td class="mono">$1,120.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" aria-label="View award"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="transit" data-ref="LD-48150" data-pickup="2026-07-29" data-bids="8" data-best="1340">
+                  <td class="c1 primary mono">LD-48150</td>
+                  <td class="c2"><div class="lane"><span class="route">Atlanta, GA → Charlotte, NC</span><span class="miles">245 mi · Flatbed</span></div></td>
+                  <td>Flatbed 48′</td>
+                  <td class="mono">Jul 29, 07:00–11:00</td>
+                  <td><span class="badge badge--info"><i class="icon" data-icon="truck"></i>In transit</span></td>
+                  <td class="mono">8</td>
+                  <td class="mono">$1,340.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="shipment-detail" aria-label="Open shipment detail"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="transit" data-ref="LD-48142" data-pickup="2026-07-29" data-bids="4" data-best="2,040">
+                  <td class="c1 primary mono">LD-48142</td>
+                  <td class="c2"><div class="lane"><span class="route">Savannah, GA → Charlotte, NC</span><span class="miles">245 mi · Step Deck</span></div></td>
+                  <td>Step Deck 48′</td>
+                  <td class="mono">Jul 29, 06:30–10:30</td>
+                  <td><span class="badge badge--info"><i class="icon" data-icon="truck"></i>In transit</span></td>
+                  <td class="mono">4</td>
+                  <td class="mono">$2,040.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="shipment-detail" aria-label="Open shipment detail"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="delivered" data-ref="LD-48090" data-pickup="2026-07-24" data-bids="6" data-best="890">
+                  <td class="c1 mono">LD-48090</td>
+                  <td class="c2"><div class="lane"><span class="route">Joliet, IL → Indianapolis, IN</span><span class="miles">190 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 24, 08:00–12:00</td>
+                  <td><span class="badge badge--neutral"><i class="icon" data-icon="check-circle"></i>Delivered</span></td>
+                  <td class="mono">6</td>
+                  <td class="mono">$890.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" aria-label="Open invoice"><i class="icon" data-icon="dollar-sign"></i></button></div></td>
+                </tr>
+
+                <tr data-status="delivered" data-ref="LD-48077" data-pickup="2026-07-23" data-bids="10" data-best="2,410">
+                  <td class="c1 mono">LD-48077</td>
+                  <td class="c2"><div class="lane"><span class="route">Houston, TX → San Antonio, TX</span><span class="miles">200 mi · Tanker</span></div></td>
+                  <td>Tanker</td>
+                  <td class="mono">Jul 23, 05:30–09:30</td>
+                  <td><span class="badge badge--neutral"><i class="icon" data-icon="check-circle"></i>Delivered</span></td>
+                  <td class="mono">10</td>
+                  <td class="mono">$2,410.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" aria-label="Open invoice"><i class="icon" data-icon="dollar-sign"></i></button></div></td>
+                </tr>
+
+                <tr data-status="draft" data-ref="LD-48221" data-pickup="2026-08-02" data-bids="0" data-best="—">
+                  <td class="c1 mono">LD-48221</td>
+                  <td class="c2"><div class="lane"><span class="route">Ontario, CA → Phoenix, AZ</span><span class="miles">372 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Aug 2, 08:00–12:00</td>
+                  <td><span class="badge badge--neutral"><i class="icon" data-icon="file-text"></i>Draft</span></td>
+                  <td class="mono">0</td>
+                  <td class="mono">—</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="post-load" aria-label="Continue draft"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="cancelled" data-ref="LD-47990" data-pickup="2026-07-20" data-bids="2" data-best="—">
+                  <td class="c1 mono">LD-47990</td>
+                  <td class="c2"><div class="lane"><span class="route">Chicago, IL → Columbus, OH</span><span class="miles">356 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 20, 06:00–10:00</td>
+                  <td><span class="badge badge--neutral"><i class="icon" data-icon="x"></i>Cancelled by shipper</span></td>
+                  <td class="mono">2</td>
+                  <td class="mono">—</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" aria-label="View cancellation record"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="transit" data-ref="LD-48160" data-pickup="2026-07-29" data-bids="5" data-best="1275">
+                  <td class="c1 mono">LD-48160</td>
+                  <td class="c2"><div class="lane"><span class="route">Laredo, TX → Dallas, TX</span><span class="miles">240 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Jul 29, 06:00–10:00</td>
+                  <td><span class="badge badge--info"><i class="icon" data-icon="truck"></i>In transit</span></td>
+                  <td class="mono">5</td>
+                  <td class="mono">$1,275.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="shipment-detail" aria-label="Open shipment detail"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+
+                <tr data-status="auction" data-ref="LD-48230" data-pickup="2026-08-01" data-bids="2" data-best="1980">
+                  <td class="c1 mono">LD-48230</td>
+                  <td class="c2"><div class="lane"><span class="route">Memphis, TN → Nashville, TN</span><span class="miles">210 mi · Dry Van</span></div></td>
+                  <td>Dry Van 53′</td>
+                  <td class="mono">Aug 1, 08:00–12:00</td>
+                  <td><span class="badge badge--info"><i class="icon" data-icon="flag"></i>Auction open</span></td>
+                  <td class="mono">2</td>
+                  <td class="mono">$1,980.00</td>
+                  <td><div class="row-actions"><button type="button" class="btn btn--sm btn--ghost" data-nav="auction-watch" aria-label="Watch auction"><i class="icon" data-icon="external-link"></i></button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:11.5px;color:var(--text-tertiary);margin-top:10px">Row hover reveals actions · click a column header to sort · left two columns stay pinned while the rest scrolls.</p>
+        </section>
+
+        <!-- ============================= SCR-901 POST A LOAD ============================= -->
+        <section class="screen" data-screen="post-load" aria-labelledby="pl-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">Meridian Foods Co. · Shipper</div>
+              <h1 id="pl-h1" tabindex="-1">Post a load</h1>
+            </div>
+            <div class="autosave-note" id="autosaveNote"><i class="icon" data-icon="check-circle"></i>Draft autosaved 12s ago</div>
+          </div>
+
+          <div class="card" style="max-width:760px">
+            <div class="steps" id="plSteps">
+              <div class="step-pill is-current" data-step="1"></div>
+              <div class="step-pill" data-step="2"></div>
+              <div class="step-pill" data-step="3"></div>
+              <div class="step-pill" data-step="4"></div>
+            </div>
+            <div class="step-labels">
+              <span>1. Lane &amp; schedule</span><span>2. Equipment &amp; cargo</span><span>3. Auction settings</span><span>4. Review &amp; publish</span>
+            </div>
+
+            <!-- STEP 1 -->
+            <div class="form-step is-active" data-form-step="1">
+              <div class="field-row">
+                <div class="field">
+                  <label for="plOrigin">Pickup address</label>
+                  <input class="input" id="plOrigin" value="1400 Distribution Pkwy, Laredo, TX 78045">
+                </div>
+                <div class="field">
+                  <label for="plDest">Delivery address</label>
+                  <input class="input" id="plDest" value="8800 Regal Row, Dallas, TX 75247">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="plPickupWin">Pickup appointment window</label>
+                  <input class="input" id="plPickupWin" type="text" value="Jul 31, 2026 · 06:00–10:00 CT">
+                  <span class="hint"><i class="icon" data-icon="info"></i>A tight window narrows the eligible carrier pool — build in slack where the dock allows it.</span>
+                </div>
+                <div class="field">
+                  <label for="plDeliveryWin">Delivery appointment window</label>
+                  <input class="input" id="plDeliveryWin" type="text" value="Jul 31, 2026 · 15:00–19:00 CT">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="plLoadType">Live load or drop-and-hook</label>
+                  <select class="input" id="plLoadType">
+                    <option>Live load — driver waits during loading</option>
+                    <option selected>Drop-and-hook — pre-loaded trailer swap</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="plDockAccess">Dock access</label>
+                  <select class="input" id="plDockAccess">
+                    <option selected>Dock-high door, standard trailer</option>
+                    <option>Ground-level / ramp required</option>
+                    <option>Restricted access — appointment desk check-in</option>
+                  </select>
+                  <span class="hint"><i class="icon" data-icon="info"></i>Wrong dock type at arrival is a common cause of a missed appointment window, not just a re-trade.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="form-step" data-form-step="2">
+              <div class="field-row">
+                <div class="field">
+                  <label for="plTrailer">Trailer type</label>
+                  <select class="input" id="plTrailer">
+                    <option>Dry Van 53′</option>
+                    <option selected>Reefer 53′</option>
+                    <option>Flatbed 48′</option>
+                    <option>Step Deck 48′</option>
+                    <option>Tanker</option>
+                    <option>Power Only (no trailer)</option>
+                  </select>
+                  <span class="hint"><i class="icon" data-icon="info"></i>Trailer and tractor are matched independently — a carrier can be eligible on one and not the other.</span>
+                </div>
+                <div class="field">
+                  <label for="plTractor">Tractor requirement</label>
+                  <select class="input" id="plTractor">
+                    <option selected>Day cab acceptable</option>
+                    <option>Sleeper required (team / long-haul)</option>
+                    <option>No preference</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-row" id="plReeferRow">
+                <div class="field">
+                  <label for="plTempLow">Reefer temperature range — low</label>
+                  <input class="input" id="plTempLow" value="34°F">
+                </div>
+                <div class="field">
+                  <label for="plTempHigh">Reefer temperature range — high</label>
+                  <input class="input" id="plTempHigh" value="38°F">
+                </div>
+              </div>
+
+              <div class="field-row3">
+                <div class="field">
+                  <label for="plCommodity">Commodity</label>
+                  <input class="input" id="plCommodity" value="Packaged dairy — refrigerated">
+                </div>
+                <div class="field">
+                  <label for="plWeight">Gross weight (lbs)</label>
+                  <input class="input" id="plWeight" value="41,200">
+                  <span class="hint"><i class="icon" data-icon="alert-triangle"></i>Under-declared weight is the #1 cause of a dock re-trade — a carrier that re-weighs and finds a mismatch can re-price or refuse at the dock.</span>
+                </div>
+                <div class="field">
+                  <label for="plDims">Dimensions (L×W×H)</label>
+                  <input class="input" id="plDims" value="53′ × 8.5′ × 9′">
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="checkbox-row" for="plHazmat"><input type="checkbox" id="plHazmat"> This load contains hazardous material (hazmat)</label>
+                <span class="hint"><i class="icon" data-icon="info"></i>Flagging hazmat narrows eligibility to carriers with current hazmat endorsement — flagging it late after bids exist forces a re-listing, not a quiet edit.</span>
+              </div>
+
+              <div class="field">
+                <label for="plDeclaredValue">Declared cargo value (USD)</label>
+                <input class="input" id="plDeclaredValue" value="18,400.00" style="max-width:220px">
+              </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="form-step" data-form-step="3">
+              <div class="field-row">
+                <div class="field">
+                  <label for="plDuration">Auction duration</label>
+                  <select class="input" id="plDuration">
+                    <option>30 minutes</option>
+                    <option selected>2 hours</option>
+                    <option>6 hours</option>
+                    <option>Overnight (opens 06:00 next business day)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="plCeiling">Ceiling price (optional)</label>
+                  <input class="input" id="plCeiling" value="$1,900.00">
+                  <span class="hint"><i class="icon" data-icon="info"></i>Bids above this are excluded from award automatically. Leave blank to accept the lowest eligible bid regardless of price.</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="checkbox-row" for="plAntiSnipe"><input type="checkbox" id="plAntiSnipe" checked> Auto-extend if a bid lands in the final 2 minutes</label>
+              </div>
+              <div class="field">
+                <label class="checkbox-row" for="plEarlyClose"><input type="checkbox" id="plEarlyClose"> Allow me to close the auction early once a bid I'm satisfied with arrives</label>
+              </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="form-step" data-form-step="4">
+              <h3 style="font-size:14px;margin-bottom:10px">Review before publishing</h3>
+              <div class="summary-row"><span class="k">Lane</span><span class="v">Laredo, TX → Dallas, TX</span></div>
+              <div class="summary-row"><span class="k">Equipment</span><span class="v">Reefer 53′ · 34–38°F · Day cab OK</span></div>
+              <div class="summary-row"><span class="k">Weight / commodity</span><span class="v">41,200 lbs · Packaged dairy</span></div>
+              <div class="summary-row"><span class="k">Pickup window</span><span class="v">Jul 31, 06:00–10:00 CT</span></div>
+              <div class="summary-row"><span class="k">Auction</span><span class="v">2 hours · ceiling $1,900.00 · anti-snipe on</span></div>
+              <div class="banner banner--info" style="margin-top:var(--sp-4)">
+                <i class="icon" data-icon="info"></i>
+                <div>Publishing opens this to every carrier org that passes the eligibility gate at auction open — and re-checks each bid again at award.</div>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <button type="button" class="btn btn--ghost" id="plBack" disabled><i class="icon" data-icon="chevron-left"></i>Back</button>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn" id="plSaveDraft">Save draft</button>
+                <button type="button" class="btn btn--primary" id="plNext">Next<i class="icon" data-icon="chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================= SCR-902 AUCTION WATCH ============================= -->
+        <section class="screen" data-screen="auction-watch" aria-labelledby="aw-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">LD-48213 · Ontario, CA → Phoenix, AZ · Reefer 53′</div>
+              <h1 id="aw-h1" tabindex="-1">Auction watch</h1>
+            </div>
+            <div class="scenario-select">
+              <label for="awScenario" style="font-size:12px;color:var(--text-tertiary);font-weight:650">Scenario</label>
+              <select class="input" id="awScenario" style="min-width:220px">
+                <option value="live" selected>Live</option>
+                <option value="extended">Extended (anti-snipe)</option>
+                <option value="thin">Thin market</option>
+                <option value="verifying">Closing — verifying</option>
+                <option value="failed_no_bids">Failed — no bids</option>
+                <option value="failed_no_eligible">Failed — no eligible carrier</option>
+                <option value="failed_above_limit">Failed — all bids above limit</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="awExtendedBanner" class="banner banner--attention" hidden>
+            <i class="icon" data-icon="refresh-cw"></i>
+            <div><strong>Auction extended.</strong> A bid landed inside the anti-snipe window — close time moved to 14:52 CT (+5 min). This is not a reset; every earlier bid still stands.</div>
+          </div>
+          <div id="awThinBanner" class="banner banner--attention" hidden>
+            <i class="icon" data-icon="alert-triangle"></i>
+            <div><strong>Thin market.</strong> Only 1 bidder at close. This is labelled, not treated as a normal competitive close.</div>
+          </div>
+          <div id="awFailedBanner" class="banner banner--critical" hidden>
+            <i class="icon" data-icon="alert-octagon"></i>
+            <div id="awFailedText"><strong>Auction failed.</strong> No bids were received before close.</div>
+          </div>
+
+          <div class="card" id="awHeroCard">
+            <div class="best-bid-hero">
+              <span class="label" id="awHeroLabel">Current best eligible bid</span>
+              <span class="amount" id="awAmount">$1,610<span class="cents">.00</span></span>
+              <div class="bid-meta-row">
+                <div class="bid-meta"><span class="v mono" id="awCountdown">01:47:22</span><span class="k">Time remaining</span></div>
+                <div class="bid-meta"><span class="v mono" id="awBidCount">9</span><span class="k">Bids received</span></div>
+                <div class="bid-meta"><span class="v mono">12</span><span class="k">Watching now</span></div>
+              </div>
+              <div id="awVerifying" class="badge badge--pending" style="margin-top:14px" hidden><i class="icon" data-icon="clock"></i>Verifying eligibility — not yet awarded</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:var(--sp-4)">
+            <div class="gate-strip">
+              <i class="icon" data-icon="check-circle" style="color:var(--status-blue)"></i>
+              <span><strong id="awEligCount">14</strong> carriers eligible · <strong id="awExclCount">6</strong> excluded</span>
+              <button type="button" id="awExclToggle" aria-expanded="false" aria-controls="awExclList">Show exclusion reasons <i class="icon" data-icon="chevron-down"></i></button>
+            </div>
+            <ul class="exclusion-list" id="awExclList" hidden>
+              <li><i class="icon" data-icon="shield-alert"></i><span><strong>3 excluded</strong> — cargo insurance certificate expired or unverified for this lane's declared value</span></li>
+              <li><i class="icon" data-icon="lock"></i><span><strong>1 excluded</strong> — carrier organization currently suspended (BR-229)</span></li>
+              <li><i class="icon" data-icon="thermometer"></i><span><strong>1 excluded</strong> — no reefer-rated trailer available in the eligible fleet at bid time</span></li>
+              <li><i class="icon" data-icon="alert-triangle"></i><span><strong>1 excluded</strong> — related-party bid rejected (BR-316, same beneficial ownership as shipper)</span></li>
+            </ul>
+          </div>
+
+          <div class="card bid-feed" id="awFeedCard" style="margin-top:var(--sp-4)">
+            <h3 style="font-size:13px;margin-bottom:6px">Bid feed <span style="font-weight:500;color:var(--text-tertiary);font-size:11.5px">— price, timestamp, carrier authority type</span></h3>
+            <div id="awFeed">
+              <div class="bid-feed-row"><span class="price">$1,610.00</span><span class="carrier">Sunbelt Transport LLC · Motor carrier</span><span class="ts">14:41:02</span></div>
+              <div class="bid-feed-row"><span class="price">$1,655.00</span><span class="carrier">Desert Line Freight · Motor carrier</span><span class="ts">14:38:47</span></div>
+              <div class="bid-feed-row"><span class="price">$1,690.00</span><span class="carrier">Vega Logistics (broker-of-record) · Broker <i class="icon" data-icon="flag" style="width:11px;height:11px;color:var(--status-orange);margin-left:4px" aria-label="Broker bid flagged for review"></i></span><span class="ts">14:35:19</span></div>
+              <div class="bid-feed-row"><span class="price">$1,720.00</span><span class="carrier">Pacific Crest Carriers · Motor carrier</span><span class="ts">14:31:55</span></div>
+              <div class="bid-feed-row"><span class="price">$1,780.00</span><span class="carrier">Ironhide Trucking · Motor carrier</span><span class="ts">14:26:10</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================= SCR-910/911 LOAD BOARD + BID ============================= -->
+        <section class="screen" data-screen="load-board" aria-labelledby="lb-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">Ironhide Trucking · Carrier dispatcher</div>
+              <h1 id="lb-h1" tabindex="-1">Load board</h1>
+            </div>
+            <div class="state-switch" role="group" aria-label="Preview state" id="lbStateSwitch">
+              <button type="button" data-lbstate="normal" class="is-active">Normal</button>
+              <button type="button" data-lbstate="denied">Org suspended</button>
+            </div>
+          </div>
+
+          <div id="lbDenied" class="table-wrap state-panel state-panel--denied" hidden>
+            <i class="icon icon-lg" data-icon="lock"></i>
+            <h3>Bidding is suspended for your organization</h3>
+            <p>Ironhide Trucking's insurance certificate on file lapsed on Jul 26 — the org-wide eligibility gate (BR-229) blocks new bids until it's renewed. Existing awards in flight are unaffected.</p>
+            <button type="button" class="btn btn--primary" style="margin-top:6px"><i class="icon" data-icon="file-text"></i>Upload renewed certificate</button>
+          </div>
+
+          <div id="lbNormal">
+            <div class="board-layout">
+              <div>
+                <div class="table-toolbar">
+                  <div class="saved-views">
+                    <button type="button" class="chip is-active">All eligible <span class="count">7</span></button>
+                    <button type="button" class="chip">Reefer <span class="count">2</span></button>
+                    <button type="button" class="chip">Dry van <span class="count">3</span></button>
+                    <button type="button" class="chip">Closing soon <span class="count">1</span></button>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="dense">
+                    <thead>
+                      <tr><th class="c1">Load ref</th><th class="c2">Lane</th><th>Equipment</th><th>Pickup</th><th>Closes in</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="is-board-row is-active-bid" tabindex="0" data-load="LD-48213">
+                        <td class="c1 primary mono">LD-48213</td>
+                        <td class="c2"><div class="lane"><span class="route">Ontario, CA → Phoenix, AZ</span><span class="miles">372 mi · Reefer 34–38°F</span></div></td>
+                        <td>Reefer 53′</td>
+                        <td class="mono">Jul 31, 08:00</td>
+                        <td class="mono countdown" id="lbCountdown1">00:47</td>
+                        <td><button type="button" class="btn btn--sm btn--primary" data-open-bid="LD-48213">Bid</button></td>
+                      </tr>
+                      <tr class="is-board-row" tabindex="0" data-load="LD-48188">
+                        <td class="c1 mono">LD-48188</td>
+                        <td class="c2"><div class="lane"><span class="route">Chicago, IL → Columbus, OH</span><span class="miles">356 mi · Dry Van</span></div></td>
+                        <td>Dry Van 53′</td>
+                        <td class="mono">Jul 30, 06:00</td>
+                        <td class="mono countdown">08:32</td>
+                        <td><button type="button" class="btn btn--sm" data-open-bid="LD-48188">Bid</button></td>
+                      </tr>
+                      <tr class="is-board-row" tabindex="0" data-load="LD-48230">
+                        <td class="c1 mono">LD-48230</td>
+                        <td class="c2"><div class="lane"><span class="route">Memphis, TN → Nashville, TN</span><span class="miles">210 mi · Dry Van</span></div></td>
+                        <td>Dry Van 53′</td>
+                        <td class="mono">Aug 1, 08:00</td>
+                        <td class="mono countdown">1:14:02</td>
+                        <td><button type="button" class="btn btn--sm" data-open-bid="LD-48230">Bid</button></td>
+                      </tr>
+                      <tr class="is-board-row" tabindex="0" data-load="LD-48209">
+                        <td class="c1 mono">LD-48209</td>
+                        <td class="c2"><div class="lane"><span class="route">Memphis, TN → Nashville, TN</span><span class="miles">210 mi · Reefer</span></div></td>
+                        <td>Reefer 53′</td>
+                        <td class="mono">Jul 30, 09:00</td>
+                        <td class="mono countdown">2:05:40</td>
+                        <td><button type="button" class="btn btn--sm" data-open-bid="LD-48209">Bid</button></td>
+                      </tr>
+                      <tr class="is-board-row" tabindex="0" data-load="LD-48142b">
+                        <td class="c1 mono">LD-48142b</td>
+                        <td class="c2"><div class="lane"><span class="route">Savannah, GA → Charlotte, NC</span><span class="miles">245 mi · Step Deck</span></div></td>
+                        <td>Step Deck 48′</td>
+                        <td class="mono">Aug 2, 06:30</td>
+                        <td class="mono countdown">4:40:12</td>
+                        <td><button type="button" class="btn btn--sm" data-open-bid="LD-48142b">Bid</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- BID PANEL -->
+              <aside class="card bid-panel" id="bidPanel" aria-live="polite">
+                <div class="eyebrow" style="margin-bottom:4px">LD-48213 · Ontario, CA → Phoenix, AZ</div>
+                <h3 style="font-size:15px;margin-bottom:2px">Place your bid</h3>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:14px">Reefer 53′ · 34–38°F · pickup Jul 31, 08:00–12:00</p>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                  <span style="font-size:12px;color:var(--text-tertiary);font-weight:650">Closes in</span>
+                  <span class="countdown" id="bidCountdown">00:47</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                  <span style="font-size:12px;color:var(--text-tertiary);font-weight:650">Eligible carriers</span>
+                  <span class="mono" style="font-weight:650">14</span>
+                </div>
+
+                <!-- state: idle -->
+                <div id="bidStateIdle">
+                  <div class="field">
+                    <label for="bidAmount">Your bid (USD)</label>
+                    <input class="input" id="bidAmount" value="1,590.00">
+                  </div>
+                  <button type="button" class="btn btn--primary btn--block" id="bidSubmitBtn">Submit bid</button>
+                  <p style="font-size:11px;color:var(--text-tertiary);margin-top:8px">You'll see your own bid, the countdown, and the eligible-carrier count only — rival bid amounts are not disclosed on this lane.</p>
+                </div>
+
+                <!-- state: submitting -->
+                <div id="bidStateSubmitting" class="bid-state" hidden>
+                  <div class="bid-spinner" role="status" aria-label="Submitting bid"></div>
+                  <p style="font-weight:650">Submitting…</p>
+                </div>
+
+                <!-- state: submitted / accepted -->
+                <div id="bidStateSubmitted" class="bid-state" hidden>
+                  <i class="icon icon-lg" data-icon="check-circle" style="color:var(--status-blue)"></i>
+                  <p style="font-weight:700">Bid received — $<span id="bidAmountConfirmed">1,590.00</span></p>
+                  <p style="font-size:12px;color:var(--text-tertiary)">Locked in until close. You'll be notified the moment you're outbid.</p>
+                  <button type="button" class="btn btn--sm" id="bidWithdrawBtn" style="margin-top:8px">Withdraw bid</button>
+                </div>
+
+                <!-- state: outbid -->
+                <div id="bidStateOutbid" class="bid-state" hidden>
+                  <i class="icon icon-lg" data-icon="alert-triangle" style="color:var(--status-orange)"></i>
+                  <p style="font-weight:700">You've been outbid</p>
+                  <p style="font-size:12px;color:var(--text-tertiary)">A new low bid was received. Your $1,590.00 bid is no longer leading.</p>
+                  <div class="field" style="margin-top:10px;text-align:left">
+                    <label for="bidAmount2">New bid (USD)</label>
+                    <input class="input" id="bidAmount2" value="1,555.00">
+                  </div>
+                  <button type="button" class="btn btn--primary btn--block" id="bidAgainBtn">Bid again</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================= SCR-930 EXCEPTION QUEUE ============================= -->
+        <section class="screen" data-screen="exception-queue" aria-labelledby="eq-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">Platform ops · Exception desk</div>
+              <h1 id="eq-h1" tabindex="-1">Exception queue</h1>
+            </div>
+            <div class="state-switch" role="group" aria-label="Preview state" id="eqStateSwitch">
+              <button type="button" data-eqstate="open" class="is-active">Open queue</button>
+              <button type="button" data-eqstate="empty">All clear</button>
+            </div>
+          </div>
+          <p style="font-size:12.5px;color:var(--text-tertiary);margin-bottom:var(--sp-4)">Ranked by severity, then age, then proximity to a regulatory clock. Fraud and in-flight suspensions always surface first, regardless of age. Each row carries its own action — this is a queue, not a report.</p>
+
+          <div id="eqEmpty" class="table-wrap state-panel" hidden>
+            <i class="icon icon-lg" data-icon="check-circle" style="color:var(--status-blue)"></i>
+            <h3>Queue is clear</h3>
+            <p>No open exceptions across any org right now. This is the goal state — nothing is being hidden to get here.</p>
+          </div>
+
+          <div class="eq-list" id="eqList">
+            <div class="eq-row is-critical" style="--c:var(--status-magenta)">
+              <div class="eq-severity" style="--c:var(--status-magenta)"><i class="icon" data-icon="shield-alert"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Fraud suspected — double-brokered load, LD-48142</div>
+                <div class="eq-sub">
+                  <span class="badge badge--critical"><i class="icon" data-icon="shield-alert"></i>Fraud review</span>
+                  <span>Opened 22 min ago</span>
+                  <span>Savannah, GA → Charlotte, NC</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <span class="claimed-tag"><i class="icon" data-icon="user"></i>Claimed by R. Nguyen</span>
+                <button type="button" class="btn btn--sm" disabled>Already claimed</button>
+              </div>
+            </div>
+
+            <div class="eq-row is-critical" style="--c:var(--status-magenta)">
+              <div class="eq-severity" style="--c:var(--status-magenta)"><i class="icon" data-icon="lock"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Carrier suspended mid-flight — LD-48077, recovery protocol active</div>
+                <div class="eq-sub">
+                  <span class="badge badge--critical"><i class="icon" data-icon="lock"></i>Enforcement collision</span>
+                  <span>Opened 41 min ago</span>
+                  <span>Houston, TX → San Antonio, TX</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+
+            <div class="eq-row is-critical" style="--c:var(--status-magenta)">
+              <div class="eq-severity" style="--c:var(--status-magenta)"><i class="icon" data-icon="shield-alert"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Insurance lapsed mid-trip — LD-48160, cargo currently uninsured</div>
+                <div class="eq-sub">
+                  <span class="badge badge--critical"><i class="icon" data-icon="shield-alert"></i>Cargo integrity</span>
+                  <span>Opened 1h 05m ago</span>
+                  <span>Laredo, TX → Dallas, TX</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+
+            <div class="eq-row" style="--c:var(--status-orange)">
+              <div class="eq-severity" style="--c:var(--status-orange)"><i class="icon" data-icon="alert-triangle"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Carrier no-show at pickup — LD-48098</div>
+                <div class="eq-sub">
+                  <span class="badge badge--warning"><i class="icon" data-icon="alert-triangle"></i>Carrier no-show</span>
+                  <span>Opened 2h 10m ago</span>
+                  <span>Fontana, CA → Las Vegas, NV</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+
+            <div class="eq-row" style="--c:var(--status-orange)">
+              <div class="eq-severity" style="--c:var(--status-orange)"><i class="icon" data-icon="alert-triangle"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Transit exception — flat tire near Amarillo, TX, LD-48117</div>
+                <div class="eq-sub">
+                  <span class="badge badge--warning"><i class="icon" data-icon="alert-triangle"></i>Transit exception</span>
+                  <span>Opened 3h 22m ago</span>
+                  <span>Laredo, TX → Dallas, TX</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+
+            <div class="eq-row" style="--c:var(--status-orange)">
+              <div class="eq-severity" style="--c:var(--status-orange)"><i class="icon" data-icon="package"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Delivery refused by consignee — LD-48090, OS&amp;D noted at drop</div>
+                <div class="eq-sub">
+                  <span class="badge badge--warning"><i class="icon" data-icon="package"></i>Delivery refused</span>
+                  <span>Opened 5h 48m ago</span>
+                  <span>Joliet, IL → Indianapolis, IN</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+
+            <div class="eq-row" style="--c:var(--status-amber)">
+              <div class="eq-severity" style="--c:var(--status-amber)"><i class="icon" data-icon="clock"></i></div>
+              <div class="eq-body">
+                <div class="eq-title">Cargo claim approaching 30-day acknowledgement clock — CLM-3391</div>
+                <div class="eq-sub">
+                  <span class="badge badge--attention"><i class="icon" data-icon="clock"></i>Regulatory clock — 2 days left</span>
+                  <span>Filed 28 days ago</span>
+                  <span>Elizabeth, NJ → Boston, MA</span>
+                </div>
+              </div>
+              <div class="eq-actions">
+                <button type="button" class="btn btn--sm btn--primary" data-claim>Claim</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================= SHIPMENT DETAIL — LIFECYCLE TIMELINE ============================= -->
+        <section class="screen" data-screen="shipment-detail" aria-labelledby="sd-h1">
+          <div class="screen-head">
+            <div>
+              <div class="eyebrow">LD-48117 · Laredo, TX → Dallas, TX · Dry Van 53′</div>
+              <h1 id="sd-h1" tabindex="-1">Shipment detail</h1>
+            </div>
+            <div class="screen-actions">
+              <span class="badge badge--critical"><i class="icon" data-icon="alert-triangle"></i>Transit exception open</span>
+              <button type="button" class="btn"><i class="icon" data-icon="message-circle"></i>Message carrier</button>
+            </div>
+          </div>
+
+          <div class="banner banner--stale">
+            <i class="icon" data-icon="clock"></i>
+            <div><strong>No status update in 4h 12m</strong> — expected every 2h in transit. Flagged, not hidden. Last confirmed position: 38 mi east of Amarillo, TX.</div>
+          </div>
+
+          <div class="card">
+            <ol class="timeline" style="list-style:none;margin:0;padding-left:34px" role="list">
+              <li class="t-item is-done">
+                <span class="t-dot"><i class="icon" data-icon="check-circle"></i></span>
+                <div class="t-head"><span class="t-title">Award accepted — Ironhide Trucking, $1,450.00</span></div>
+                <div class="t-times">
+                  <div class="t-time">Scheduled<strong>Jul 28, 04:30</strong></div>
+                  <div class="t-time">Actual<strong>Jul 28, 04:31</strong></div>
+                </div>
+              </li>
+
+              <li class="t-item is-custody">
+                <span class="t-dot"><i class="icon" data-icon="package"></i></span>
+                <div class="t-head"><span class="t-title">Custody handover — Shipper → Carrier (tender at pickup)</span></div>
+                <div class="t-times">
+                  <div class="t-time">Scheduled<strong>Jul 28, 06:00</strong></div>
+                  <div class="t-time">Actual<strong>Jul 28, 06:14</strong></div>
+                </div>
+                <div class="t-desc">BOL captured — count/condition/seal confirmed, dual signature.</div>
+              </li>
+
+              <li class="t-item is-done">
+                <span class="t-dot"><i class="icon" data-icon="truck"></i></span>
+                <div class="t-head"><span class="t-title">In transit</span></div>
+                <div class="t-times">
+                  <div class="t-time">Scheduled ETA<strong>Jul 28, 10:00</strong></div>
+                  <div class="t-time">Last confirmed<strong>Jul 28, 08:48</strong></div>
+                  <div class="t-time is-late">Current ETA<strong>Jul 28, 13:20</strong></div>
+                </div>
+              </li>
+
+              <li class="t-item is-exception">
+                <span class="t-dot"><i class="icon" data-icon="alert-triangle"></i></span>
+                <div class="t-head"><span class="t-title">Transit exception — flat tire, US-287 near Amarillo, TX</span><span class="badge badge--warning"><i class="icon" data-icon="clock"></i>Open</span></div>
+                <div class="t-times">
+                  <div class="t-time">Observed<strong>Jul 28, 09:02</strong></div>
+                  <div class="t-time">Recorded<strong>Jul 28, 09:19</strong></div>
+                </div>
+                <div class="t-desc">Driver-reported via mobile. Roadside assistance requested; relief ETA impact +3h 20m against original schedule.</div>
+              </li>
+
+              <li class="t-item">
+                <span class="t-dot"><i class="icon" data-icon="map-pin"></i></span>
+                <div class="t-head"><span class="t-title">At drop — pending</span></div>
+                <div class="t-times">
+                  <div class="t-time">Scheduled<strong>Jul 28, 15:00</strong></div>
+                  <div class="t-time is-late">Current ETA<strong>Jul 28, 18:20</strong></div>
+                </div>
+              </li>
+
+              <li class="t-item">
+                <span class="t-dot"><i class="icon" data-icon="pen"></i></span>
+                <div class="t-head"><span class="t-title">Custody handover — Carrier → Consignee (delivery)</span></div>
+                <div class="t-desc" style="color:var(--text-tertiary)">Not yet reached.</div>
+              </li>
+            </ol>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================= DRIVER / MOBILE SHELL ============================= -->
+  <div class="driver-shell">
+    <div class="driver-shell-topbar">
+      <nav class="persona-switch" aria-label="Switch persona" style="flex-direction:row">
+        <button type="button" data-persona-btn="shipper"><i class="icon" data-icon="package"></i><span>Shipper</span></button>
+        <button type="button" data-persona-btn="carrier"><i class="icon" data-icon="truck"></i><span>Carrier</span></button>
+        <button type="button" data-persona-btn="ops"><i class="icon" data-icon="alert-triangle"></i><span>Ops</span></button>
+        <button type="button" data-persona-btn="driver" class="is-active"><i class="icon" data-icon="navigation"></i><span>Driver</span></button>
+      </nav>
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button type="button" data-theme-btn="dark" aria-label="Dark theme"><i class="icon" data-icon="moon"></i></button>
+        <button type="button" data-theme-btn="light" aria-label="Light theme"><i class="icon" data-icon="sun"></i></button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="nav-item" style="display:flex;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-full);padding:6px 14px;" data-nav="driver-today"><i class="icon" data-icon="map-pin"></i>Today</button>
+      <button type="button" class="nav-item" style="display:flex;background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-full);padding:6px 14px;" data-nav="pod-capture"><i class="icon" data-icon="pen"></i>POD capture</button>
+      <label class="checkbox-row" style="margin-left:auto;background:var(--bg-surface);border:1px solid var(--border-default);padding:6px 12px;border-radius:var(--radius-full);">
+        <input type="checkbox" id="offlineToggle"> <span style="font-size:11.5px;font-weight:650;color:var(--text-tertiary)">Simulate offline</span>
+      </label>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-notch" aria-hidden="true"></div>
+      <div class="phone-screen" id="phoneScreen">
+        <!-- ============================= SCR-920 DRIVER TODAY ============================= -->
+        <section class="screen is-active" data-screen="driver-today" aria-labelledby="dt-h1">
+          <div class="phone-statusbar">
+            <span id="phoneClock">9:41</span>
+            <span class="sb-right">
+              <i class="icon" data-icon="wifi-off" id="dtWifiIcon" style="display:none;color:var(--status-orange)"></i>
+              <span class="mono">100%</span>
+            </span>
+          </div>
+          <div class="offline-pill"><i class="icon" data-icon="wifi-off"></i>Offline — showing last synced 8 min ago</div>
+
+          <div class="driver-screen">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div>
+                <h1 id="dt-h1" tabindex="-1">Today</h1>
+                <p class="driver-sub">Marco Reyes · Ironhide Trucking</p>
+              </div>
+              <div class="lang-toggle" role="group" aria-label="Language">
+                <button type="button" class="is-active">EN</button>
+                <button type="button">ES</button>
+              </div>
+            </div>
+
+            <div class="assign-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span class="badge badge--info"><i class="icon" data-icon="truck"></i>In transit</span>
+                <span class="mono online-only" style="font-size:12px;color:var(--text-tertiary)">ETA 13:20</span>
+              </div>
+              <div class="assign-stop">
+                <div class="dot-col"><span class="dot" style="border-color:var(--status-blue)"></span><span class="line"></span></div>
+                <div>
+                  <div class="stop-label">Picked up</div>
+                  <div class="stop-addr">1400 Distribution Pkwy, Laredo, TX</div>
+                  <div class="stop-time">Jul 28 · 06:14</div>
+                </div>
+              </div>
+              <div class="assign-stop">
+                <div class="dot-col"><span class="dot" style="border-color:var(--status-amber);background:var(--status-amber)"></span></div>
+                <div>
+                  <div class="stop-label">Deliver by</div>
+                  <div class="stop-addr">8800 Regal Row, Dallas, TX</div>
+                  <div class="stop-time">Jul 28 · 15:00–19:00 window</div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn--primary btn--block big-target online-only"><i class="icon" data-icon="navigation"></i>Start navigation</button>
+
+            <div class="driver-action-grid">
+              <button type="button" class="btn btn--block big-target"><i class="icon" data-icon="phone-call"></i>Call dispatch</button>
+              <button type="button" class="btn btn--block big-target" data-nav="pod-capture"><i class="icon" data-icon="pen"></i>Deliver / POD</button>
+            </div>
+
+            <div class="card" style="margin-top:var(--sp-4)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+                <i class="icon" data-icon="alert-triangle" style="color:var(--status-orange)"></i>
+                <strong style="font-size:13px">Open exception on this load</strong>
+              </div>
+              <p style="font-size:12.5px;color:var(--text-tertiary)">Flat tire reported near Amarillo, TX — roadside assistance requested. Dispatch has this.</p>
+            </div>
+
+            <button type="button" class="btn btn--block big-target" style="margin-top:var(--sp-4);color:var(--status-magenta);border-color:color-mix(in srgb, var(--status-magenta) 45%, transparent)"><i class="icon" data-icon="flag"></i>Report a problem</button>
+          </div>
+        </section>
+
+        <!-- ============================= SCR-924 POD CAPTURE — the forced choice ============================= -->
+        <section class="screen" data-screen="pod-capture" aria-labelledby="pod-h1">
+          <div class="phone-statusbar">
+            <span class="mono">9:52</span>
+            <span class="sb-right"><i class="icon" data-icon="wifi-off" id="podWifiIcon" style="display:none;color:var(--status-orange)"></i><span class="mono">96%</span></span>
+          </div>
+          <div class="offline-pill"><i class="icon" data-icon="wifi-off"></i>Offline — capture will queue and sync automatically</div>
+
+          <div class="driver-screen" style="padding-left:0;padding-right:0">
+            <div style="padding:0 var(--sp-4)">
+              <h1 id="pod-h1" tabindex="-1">Proof of delivery</h1>
+              <p class="driver-sub">LD-48117 · 8800 Regal Row, Dallas, TX</p>
+            </div>
+
+            <div class="pod-progress" aria-hidden="true">
+              <span class="p-dot is-done"></span><span class="p-dot is-done"></span><span class="p-dot is-current" id="podDot3"></span>
+              <span class="p-dot" id="podDot4"></span><span class="p-dot" id="podDot5"></span><span class="p-dot" id="podDot6"></span>
+            </div>
+
+            <!-- STEP 1: arrival (already done, shown for context) -->
+            <!-- STEP 2: count/condition already captured, folded in -->
+
+            <!-- STEP 3: THE FORCED CHOICE -->
+            <div class="pod-step is-active" data-pod-step="3">
+              <div style="padding:0 var(--sp-4)">
+                <div class="banner banner--neutral" style="margin-bottom:0">
+                  <i class="icon" data-icon="check-circle"></i>
+                  <div>Arrival confirmed 15:04 · count &amp; condition entered against declared (12 pallets, no visible damage noted on arrival walk-around).</div>
+                </div>
+              </div>
+              <div style="padding:var(--sp-5) var(--sp-4) 0">
+                <h2 style="font-size:16px;text-align:center">How was this delivery?</h2>
+                <p style="font-size:12px;color:var(--text-tertiary);text-align:center;margin-top:4px">Choose one — this cannot be skipped and nothing is pre-selected.</p>
+              </div>
+              <div class="choice-grid" style="padding:0 var(--sp-4)" role="group" aria-labelledby="pod-h1">
+                <button type="button" class="choice-btn choice--clean" id="podChooseClean" aria-pressed="false">
+                  <i class="icon icon-xl" data-icon="check-circle"></i>
+                  <span class="cb-title">Delivered clean</span>
+                  <span class="cb-sub">No damage, no shortage, count matches</span>
+                </button>
+                <button type="button" class="choice-btn choice--exception" id="podChooseException" aria-pressed="false">
+                  <i class="icon icon-xl" data-icon="alert-triangle"></i>
+                  <span class="cb-title">Report exception</span>
+                  <span class="cb-sub">Damage, shortage, or refused</span>
+                </button>
+              </div>
+              <div style="padding:var(--sp-5) var(--sp-4) 0">
+                <button type="button" class="btn btn--primary btn--block big-target" id="podStep3Continue" disabled>Continue</button>
+              </div>
+            </div>
+
+            <!-- STEP 3b: exception sub-screen (only reachable via the exception choice) -->
+            <div class="pod-step" data-pod-step="3b">
+              <div style="padding:0 var(--sp-4)">
+                <h2 style="font-size:16px">Exception details</h2>
+                <div class="field" style="margin-top:var(--sp-4)">
+                  <label for="podExcType">Type</label>
+                  <select class="input" id="podExcType">
+                    <option>Shortage — fewer units than declared</option>
+                    <option>Overage — more units than declared</option>
+                    <option>Damage — visible on inspection</option>
+                  </select>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="podExcQty">Quantity / unit</label><input class="input" id="podExcQty" value="2 pallets"></div>
+                  <div class="field"><label for="podExcWhose">Whose count</label><select class="input" id="podExcWhose"><option>Driver's count</option><option>Consignee's count</option></select></div>
+                </div>
+                <div class="field"><label for="podExcNotes">Notes (supplements, never substitutes, the structured fields above)</label><textarea class="input" id="podExcNotes" placeholder="Optional free text…"></textarea></div>
+                <button type="button" class="btn btn--primary btn--block big-target" id="podStep3bContinue">Continue to photo evidence</button>
+              </div>
+            </div>
+
+            <!-- STEP 4: photo evidence -->
+            <div class="pod-step" data-pod-step="4">
+              <div style="padding:0 var(--sp-4)">
+                <h2 style="font-size:16px">Photo evidence</h2>
+                <p style="font-size:12.5px;color:var(--text-tertiary);margin:4px 0 var(--sp-3)" id="podPhotoNote">Mandatory for an exception report.</p>
+                <button type="button" class="btn btn--block big-target" id="podPhotoBtn"><i class="icon" data-icon="camera"></i>Take photo</button>
+                <div id="podPhotoTaken" class="banner banner--info" style="display:none;margin-top:var(--sp-3)"><i class="icon" data-icon="check-circle"></i><div>1 photo attached — BOL condition, seal visible.</div></div>
+                <button type="button" class="btn btn--primary btn--block big-target" id="podStep4Continue" style="margin-top:var(--sp-4)">Continue to signature</button>
+              </div>
+            </div>
+
+            <!-- STEP 5: signature -->
+            <div class="pod-step" data-pod-step="5">
+              <div style="padding:0 var(--sp-4)">
+                <h2 style="font-size:16px">Signature</h2>
+                <p style="font-size:12.5px;color:var(--text-tertiary);margin-top:4px">From whoever is present — no account required.</p>
+                <div class="field-row" style="margin-top:var(--sp-3)">
+                  <div class="field"><label for="podSignerName">Printed name</label><input class="input" id="podSignerName" placeholder="e.g. J. Alvarez"></div>
+                  <div class="field"><label for="podSignerRole">Stated role</label><input class="input" id="podSignerRole" placeholder="e.g. Receiving clerk"></div>
+                </div>
+                <div class="sig-pad-wrap">
+                  <canvas id="sigCanvas" width="600" height="360" role="img" aria-label="Signature capture pad — draw with finger or stylus"></canvas>
+                  <div class="sig-meta">
+                    <span>Sign above with finger or stylus</span>
+                    <button type="button" class="btn btn--sm" id="sigClear">Clear</button>
+                  </div>
+                </div>
+                <button type="button" class="btn btn--primary btn--block big-target" id="podStep5Continue" style="margin-top:var(--sp-4)">Review &amp; submit</button>
+              </div>
+            </div>
+
+            <!-- STEP 6: read-only confirmation -->
+            <div class="pod-step" data-pod-step="6">
+              <div style="padding:0 var(--sp-4)">
+                <h2 style="font-size:16px">Confirm before submitting</h2>
+                <p style="font-size:12px;color:var(--text-tertiary);margin:4px 0 var(--sp-3)">Read-only. Once submitted this record is fixed — any later correction is a separately timestamped addendum, never an overwrite.</p>
+                <div class="card">
+                  <div class="summary-row"><span class="k">Outcome</span><span class="v" id="podSummaryOutcome">Delivered clean</span></div>
+                  <div class="summary-row"><span class="k">Arrival</span><span class="v">Jul 28 · 15:04</span></div>
+                  <div class="summary-row"><span class="k">Photo evidence</span><span class="v" id="podSummaryPhoto">Optional — none attached</span></div>
+                  <div class="summary-row"><span class="k">Signer</span><span class="v" id="podSummarySigner">— </span></div>
+                </div>
+                <button type="button" class="btn btn--primary btn--block big-target" id="podSubmitBtn" style="margin-top:var(--sp-4)">Submit proof of delivery</button>
+              </div>
+            </div>
+
+            <!-- STEP 7: submitted / pending sync -->
+            <div class="pod-step" data-pod-step="7">
+              <div style="padding:0 var(--sp-4)">
+                <div class="bid-state">
+                  <i class="icon icon-lg" data-icon="check-circle" style="color:var(--status-blue)" id="podDoneIcon"></i>
+                  <p style="font-weight:700;font-size:16px" id="podDoneTitle">Delivered — recorded</p>
+                  <p style="font-size:12.5px;color:var(--text-tertiary)" id="podDoneSub">Synced to the platform. Consignee and dispatch have both been notified.</p>
+                </div>
+                <div class="sync-pill sync-pill--pending" id="podSyncPill" style="display:none">
+                  <i class="icon" data-icon="refresh-cw"></i> Pending sync — captured locally, will upload the moment you're back online. Nothing is lost.
+                </div>
+                <button type="button" class="btn btn--block big-target" style="margin-top:var(--sp-5)" data-nav="driver-today">Back to today</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="phone-home-indicator" aria-hidden="true"></div>
+  </div>
+
+</div>
+<script>
+(function(){
+"use strict";
+var root = document.getElementById('proto-root');
+
+/* ============================================================
+   ICONS
+   ============================================================ */
+var ICONS = {
+  "search":'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  "sun":'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',
+  "moon":'<path d="M20 14.5A8.5 8.5 0 1110 3a7 7 0 1010 11.5z"/>',
+  "chevron-down":'<path d="M6 9l6 6 6-6"/>',
+  "chevron-right":'<path d="M9 6l6 6-6 6"/>',
+  "chevron-left":'<path d="M15 6l-6 6 6 6"/>',
+  "check":'<path d="M5 13l4 4L19 7"/>',
+  "check-circle":'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/>',
+  "x":'<path d="M6 6l12 12M18 6L6 18"/>',
+  "x-circle":'<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+  "alert-triangle":'<path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4"/><path d="M12 16.2h.01"/>',
+  "alert-octagon":'<polygon points="7.9 2.5 16.1 2.5 21.5 7.9 21.5 16.1 16.1 21.5 7.9 21.5 2.5 16.1 2.5 7.9"/><path d="M12 8v5"/><path d="M12 16.2h.01"/>',
+  "shield-alert":'<path d="M12 2.5l8 3.5v6c0 5-3.4 8.3-8 9.5-4.6-1.2-8-4.5-8-9.5V6l8-3.5z"/><path d="M12 8v5"/><path d="M12 16.2h.01"/>',
+  "clock":'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+  "info":'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/>',
+  "truck":'<rect x="1.5" y="6.5" width="13" height="9.5" rx="1"/><path d="M14.5 10h4l3.5 3.2V16h-7.5"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/>',
+  "package":'<path d="M21 7.5l-9-4.7-9 4.7 9 4.7 9-4.7z"/><path d="M3 7.5v9l9 4.7 9-4.7v-9"/><path d="M12 12.2v9"/>',
+  "map-pin":'<path d="M12 21.5s7-6.4 7-12a7 7 0 10-14 0c0 5.6 7 12 7 12z"/><circle cx="12" cy="9.5" r="2.4"/>',
+  "user":'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+  "phone-call":'<path d="M5.5 3.5h3.2l1.6 4-2 1.7a11.5 11.5 0 005.5 5.5l1.7-2 4 1.6v3.2a1.7 1.7 0 01-1.9 1.7A16.7 16.7 0 013.8 5.4a1.7 1.7 0 011.7-1.9z"/>',
+  "camera":'<path d="M4 8h3.3l1.8-2.5h5.8L16.7 8H20v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',
+  "pen":'<path d="M3 21l4.2-1 12-12-3.2-3.2-12 12z"/><path d="M14.5 5.5l3.2 3.2"/>',
+  "wifi-off":'<path d="M2.5 9a17 17 0 015.6-3.4M21.5 9a17 17 0 00-4.4-2.8M5.8 13a11 11 0 013-1.8M18.2 13a11 11 0 00-2.4-1.7M9 17a6 6 0 016 0"/><path d="M12 20.2h.01"/><path d="M1 1l22 22"/>',
+  "file-text":'<path d="M6 2.5h9l5 5v14H6z"/><path d="M15 2.5v5h5"/><path d="M9 13h6M9 17h6M9 9h2"/>',
+  "dollar-sign":'<path d="M12 1.5v21"/><path d="M17 5.5H9.7a3.7 3.7 0 000 7.4h4.6a3.7 3.7 0 010 7.4H6"/>',
+  "flag":'<path d="M5 2.5v19"/><path d="M5 4h13.5l-3.2 5 3.2 5H5"/>',
+  "thermometer":'<path d="M14 14.4V4.8a2 2 0 00-4 0v9.6a4 4 0 104 0z"/>',
+  "snowflake":'<path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1"/>',
+  "lock":'<rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/>',
+  "refresh-cw":'<path d="M21 4v6h-6"/><path d="M3 20v-6h6"/><path d="M20.5 10a8.5 8.5 0 00-14.8-4.6L3 8"/><path d="M3.5 14a8.5 8.5 0 0014.8 4.6L21 16"/>',
+  "message-circle":'<path d="M21 12a8.5 8.5 0 01-12.4 7.6L3 21l1.4-5.6A8.5 8.5 0 1121 12z"/>',
+  "more-horizontal":'<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  "plus":'<path d="M12 5v14M5 12h14"/>',
+  "bell":'<path d="M6.5 8.5a5.5 5.5 0 0111 0c0 4.6 1.8 5.5 1.8 5.5H4.7s1.8-.9 1.8-5.5z"/><path d="M10 19a2 2 0 004 0"/>',
+  "navigation":'<path d="M3 11 21 3l-8 18-2-8-8-2z"/>',
+  "sort":'<path d="M7 9.5l5-5 5 5"/><path d="M7 14.5l5 5 5-5"/>',
+  "external-link":'<path d="M14 3.5h6.5v6.5"/><path d="M20.5 3.5l-9 9"/><path d="M18.5 13v6a2 2 0 01-2 2H5.5a2 2 0 01-2-2V6.5a2 2 0 012-2h6"/>',
+  "star":'<path d="M12 2.5l3 6.2 6.7.9-4.9 4.7 1.2 6.7L12 17.8l-6 3.2 1.2-6.7-4.9-4.7 6.7-.9z"/>'
+};
+function renderIcons(scope){
+  (scope||document).querySelectorAll('[data-icon]').forEach(function(el){
+    var name = el.getAttribute('data-icon');
+    if(!ICONS[name]) return;
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[name]+'</svg>';
+    el.removeAttribute('data-icon');
+  });
+}
+renderIcons();
+
+function announce(msg, assertive){
+  var el = document.getElementById(assertive ? 'live-assertive' : 'live-polite');
+  if(el){ el.textContent=''; setTimeout(function(){ el.textContent = msg; }, 30); }
+}
+
+/* ============================================================
+   NAVIGATION / SCREENS / PERSONA
+   ============================================================ */
+var defaultPersonaFor = {
+  'loads-dashboard':'shipper','post-load':'shipper','auction-watch':'shipper','shipment-detail':'shipper',
+  'load-board':'carrier','exception-queue':'ops','driver-today':'driver','pod-capture':'driver'
+};
+var defaultScreenForPersona = {shipper:'loads-dashboard', carrier:'load-board', ops:'exception-queue', driver:'driver-today'};
+var orgInfo = {
+  shipper:{name:'Meridian Foods Co.', role:'Shipper coordinator'},
+  carrier:{name:'Ironhide Trucking', role:'Carrier dispatcher'},
+  ops:{name:'Platform Ops', role:'Exception desk'}
+};
+var state = { persona:'shipper', screen:'loads-dashboard' };
+
+function screenValidForPersona(screenId, persona){
+  var navEl = document.querySelector('.nav-item[data-nav="'+screenId+'"]');
+  if(!navEl) return true;
+  var list = (navEl.getAttribute('data-p')||'').split(' ');
+  return list.indexOf(persona) !== -1;
+}
+
+function navigate(screenId, forcedPersona){
+  if(!document.querySelector('[data-screen="'+screenId+'"].screen')) return;
+  var persona = forcedPersona || (screenValidForPersona(screenId, state.persona) ? state.persona : defaultPersonaFor[screenId]);
+  state.persona = persona;
+  state.screen = screenId;
+  root.setAttribute('data-persona', persona);
+
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('is-active', s.getAttribute('data-screen')===screenId); });
+  document.querySelectorAll('.nav-item[data-nav]').forEach(function(n){ n.classList.toggle('is-active', n.getAttribute('data-nav')===screenId); });
+  document.querySelectorAll('[data-persona-btn]').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-persona-btn')===persona); });
+
+  var info = orgInfo[persona];
+  if(info){
+    var n = document.getElementById('orgNameLabel'), r = document.getElementById('orgRoleLabel');
+    if(n) n.textContent = info.name;
+    if(r) r.textContent = info.role;
+  }
+
+  if(screenId === 'pod-capture') resetPod();
+
+  closePalette();
+  var activeScreen = document.querySelector('.screen.is-active[data-screen="'+screenId+'"]');
+  if(activeScreen){
+    var h = activeScreen.querySelector('h1');
+    if(h){ h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); }
+    var content = document.getElementById('main-content');
+    if(content) content.scrollTop = 0;
+    var phoneScreen = document.getElementById('phoneScreen');
+    if(phoneScreen) phoneScreen.scrollTop = 0;
+  }
+}
+function switchPersona(persona){ navigate(defaultScreenForPersona[persona], persona); }
+
+document.addEventListener('click', function(e){
+  var navBtn = e.target.closest('[data-nav]');
+  if(navBtn){ navigate(navBtn.getAttribute('data-nav')); return; }
+  var personaBtn = e.target.closest('[data-persona-btn]');
+  if(personaBtn){ switchPersona(personaBtn.getAttribute('data-persona-btn')); return; }
+});
+
+/* ============================================================
+   THEME
+   ============================================================ */
+function setTheme(theme){
+  root.setAttribute('data-theme', theme);
+  try{ localStorage.setItem('fa-proto-theme', theme); }catch(e){}
+  document.querySelectorAll('[data-theme-btn]').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-theme-btn')===theme); });
+}
+(function initTheme(){
+  var saved = null;
+  try{ saved = localStorage.getItem('fa-proto-theme'); }catch(e){}
+  if(saved === 'dark' || saved === 'light'){ setTheme(saved); }
+  else{
+    var prefLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    document.querySelectorAll('[data-theme-btn]').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-theme-btn')===(prefLight?'light':'dark')); });
+  }
+})();
+document.addEventListener('click', function(e){
+  var tb = e.target.closest('[data-theme-btn]');
+  if(tb) setTheme(tb.getAttribute('data-theme-btn'));
+});
+
+/* ============================================================
+   COMMAND PALETTE
+   ============================================================ */
+var paletteItems = [
+  {type:'nav', id:'loads-dashboard', label:'Loads dashboard', hint:'Shipper'},
+  {type:'nav', id:'post-load', label:'Post a load', hint:'Shipper'},
+  {type:'nav', id:'auction-watch', label:'Auction watch — LD-48213', hint:'Shipper'},
+  {type:'nav', id:'shipment-detail', label:'Shipment detail — LD-48117', hint:'Shipper · Ops'},
+  {type:'nav', id:'load-board', persona:'carrier', label:'Load board & bid', hint:'Carrier'},
+  {type:'nav', id:'exception-queue', persona:'ops', label:'Exception queue', hint:'Ops'},
+  {type:'nav', id:'driver-today', persona:'driver', label:"Today's assignment", hint:'Driver · mobile'},
+  {type:'nav', id:'pod-capture', persona:'driver', label:'Proof of delivery capture', hint:'Driver · mobile'},
+  {type:'theme', label:'Toggle theme (dark / light)', hint:'Action', icon:'sun'},
+  {type:'persona', persona:'shipper', label:'Switch to Shipper coordinator', hint:'Persona', icon:'package'},
+  {type:'persona', persona:'carrier', label:'Switch to Carrier dispatcher', hint:'Persona', icon:'truck'},
+  {type:'persona', persona:'ops', label:'Switch to Platform ops', hint:'Persona', icon:'alert-triangle'},
+  {type:'persona', persona:'driver', label:'Switch to Driver (mobile)', hint:'Persona', icon:'navigation'}
+];
+var paletteBackdrop = document.getElementById('paletteBackdrop');
+var paletteInput = document.getElementById('paletteInput');
+var paletteResults = document.getElementById('paletteResults');
+var paletteActiveIdx = 0, paletteFiltered = [];
+
+function iconFor(item){ return item.icon || (item.type==='nav' ? 'chevron-right' : 'chevron-right'); }
+function renderPalette(query){
+  var q = (query||'').toLowerCase();
+  paletteFiltered = paletteItems.filter(function(it){ return it.label.toLowerCase().indexOf(q)!==-1 || it.hint.toLowerCase().indexOf(q)!==-1; });
+  if(paletteFiltered.length===0){
+    paletteResults.innerHTML = '<div class="palette-empty">No matches. Try “bid”, “driver”, or “theme”.</div>';
+    return;
+  }
+  paletteActiveIdx = Math.min(paletteActiveIdx, paletteFiltered.length-1);
+  paletteResults.innerHTML = paletteFiltered.map(function(it, i){
+    return '<li role="option" data-idx="'+i+'" class="'+(i===paletteActiveIdx?'is-active':'')+'" aria-selected="'+(i===paletteActiveIdx)+'">'+
+      '<span class="pr-label"><i class="icon" data-icon="'+iconFor(it)+'"></i>'+it.label+'</span>'+
+      '<span class="pr-hint">'+it.hint+'</span></li>';
+  }).join('');
+  renderIcons(paletteResults);
+}
+function openPalette(){
+  paletteBackdrop.hidden = false;
+  paletteInput.value = '';
+  paletteActiveIdx = 0;
+  renderPalette('');
+  setTimeout(function(){ paletteInput.focus(); }, 0);
+}
+function closePalette(){ if(paletteBackdrop) paletteBackdrop.hidden = true; }
+function runPaletteItem(item){
+  if(!item) return;
+  if(item.type==='nav') navigate(item.id, item.persona);
+  else if(item.type==='theme') setTheme(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+  else if(item.type==='persona') switchPersona(item.persona);
+  closePalette();
+}
+document.getElementById('cmdkTrigger').addEventListener('click', openPalette);
+paletteBackdrop.addEventListener('click', function(e){ if(e.target===paletteBackdrop) closePalette(); });
+paletteInput.addEventListener('input', function(){ paletteActiveIdx=0; renderPalette(paletteInput.value); });
+paletteResults.addEventListener('click', function(e){
+  var li = e.target.closest('li[data-idx]');
+  if(li) runPaletteItem(paletteFiltered[parseInt(li.getAttribute('data-idx'),10)]);
+});
+document.addEventListener('keydown', function(e){
+  var mod = e.metaKey || e.ctrlKey;
+  if(mod && (e.key==='k' || e.key==='K')){ e.preventDefault(); if(paletteBackdrop.hidden) openPalette(); else closePalette(); return; }
+  if(paletteBackdrop.hidden) return;
+  if(e.key==='Escape'){ closePalette(); return; }
+  if(e.key==='ArrowDown'){ e.preventDefault(); paletteActiveIdx = Math.min(paletteActiveIdx+1, paletteFiltered.length-1); renderPalette(paletteInput.value); return; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); paletteActiveIdx = Math.max(paletteActiveIdx-1, 0); renderPalette(paletteInput.value); return; }
+  if(e.key==='Enter'){ e.preventDefault(); runPaletteItem(paletteFiltered[paletteActiveIdx]); return; }
+});
+
+/* ============================================================
+   SCR-900 LOADS DASHBOARD
+   ============================================================ */
+(function(){
+  var stateSwitch = document.getElementById('ldStateSwitch');
+  var staleBanner = document.getElementById('ldStaleBanner');
+  var loading = document.getElementById('ldLoading');
+  var empty = document.getElementById('ldEmpty');
+  var tableWrap = document.getElementById('ldTableWrap');
+
+  function applyLdState(s){
+    staleBanner.hidden = (s!=='stale');
+    loading.hidden = (s!=='loading');
+    empty.hidden = (s!=='empty');
+    tableWrap.hidden = (s==='loading' || s==='empty');
+    stateSwitch.querySelectorAll('button').forEach(function(b){ b.classList.toggle('is-active', b.getAttribute('data-state')===s); });
+  }
+  stateSwitch.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-state]');
+    if(!b) return;
+    applyLdState(b.getAttribute('data-state'));
+  });
+  document.getElementById('ldRetry').addEventListener('click', function(e){
+    e.preventDefault();
+    applyLdState('loading');
+    setTimeout(function(){ applyLdState('normal'); }, 800);
+  });
+
+  var chips = document.getElementById('ldSavedViews');
+  var tbody = document.getElementById('ldTbody');
+  var viewMap = {
+    all: null,
+    attention: ['exception','failed','noresponse'],
+    auction: ['auction','extended','pending'],
+    transit: ['transit'],
+    archived: []
+  };
+  chips.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    chips.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('is-active', c===chip); });
+    var view = chip.getAttribute('data-view');
+    var allowed = viewMap[view];
+    var visibleRows = 0;
+    tbody.querySelectorAll('tr').forEach(function(tr){
+      if(tr.classList.contains('exception-divider')){ tr.style.display = (view==='all') ? '' : 'none'; return; }
+      var status = tr.getAttribute('data-status');
+      var show = (allowed===null) || (allowed.indexOf(status)!==-1);
+      tr.style.display = show ? '' : 'none';
+      if(show) visibleRows++;
+    });
+    var showEmpty = visibleRows===0;
+    empty.hidden = !showEmpty;
+    tableWrap.hidden = showEmpty || loading.hidden===false && false;
+    if(loading.hidden && !empty.hidden===false){ /* no-op guard */ }
+    tableWrap.hidden = showEmpty;
+  });
+
+  var sortDir = {};
+  document.querySelectorAll('#ldTable th button[data-sort]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var key = btn.getAttribute('data-sort');
+      sortDir[key] = sortDir[key]==='asc' ? 'desc' : 'asc';
+      var dir = sortDir[key]==='asc' ? 1 : -1;
+      tbody.querySelectorAll('tr.exception-divider').forEach(function(d){ d.remove(); });
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-ref]'));
+      rows.sort(function(a,b){
+        var av, bv;
+        if(key==='ref'){ av=a.getAttribute('data-ref'); bv=b.getAttribute('data-ref'); }
+        else if(key==='pickup'){ av=a.getAttribute('data-pickup'); bv=b.getAttribute('data-pickup'); }
+        else if(key==='bids'){ av=Number(a.getAttribute('data-bids')); bv=Number(b.getAttribute('data-bids')); }
+        else if(key==='best'){
+          var pa = a.getAttribute('data-best').replace(/[^0-9.]/g,''); av = pa===''?Infinity:Number(pa);
+          var pb = b.getAttribute('data-best').replace(/[^0-9.]/g,''); bv = pb===''?Infinity:Number(pb);
+        }
+        if(av<bv) return -1*dir; if(av>bv) return 1*dir; return 0;
+      });
+      rows.forEach(function(r){ tbody.appendChild(r); });
+    });
+  });
+})();
+
+/* ============================================================
+   SCR-901 POST A LOAD
+   ============================================================ */
+(function(){
+  var current = 1;
+  var pills = document.querySelectorAll('#plSteps .step-pill');
+  var steps = document.querySelectorAll('.form-step');
+  var back = document.getElementById('plBack');
+  var next = document.getElementById('plNext');
+
+  function render(){
+    pills.forEach(function(p){
+      var n = parseInt(p.getAttribute('data-step'),10);
+      p.classList.toggle('is-done', n<current);
+      p.classList.toggle('is-current', n===current);
+    });
+    steps.forEach(function(s){ s.classList.toggle('is-active', parseInt(s.getAttribute('data-form-step'),10)===current); });
+    back.disabled = current===1;
+    next.innerHTML = current===4 ? 'Publish load <i class="icon" data-icon="check"></i>' : 'Next <i class="icon" data-icon="chevron-right"></i>';
+    renderIcons(next);
+  }
+  function clearWeightError(){
+    var f = document.getElementById('plWeight').closest('.field');
+    f.classList.remove('has-error');
+    var err = f.querySelector('.err'); if(err) err.remove();
+  }
+  document.getElementById('plWeight').addEventListener('input', clearWeightError);
+
+  next.addEventListener('click', function(){
+    if(current===2){
+      var w = document.getElementById('plWeight');
+      if(w.value.trim()===''){
+        var f = w.closest('.field');
+        f.classList.add('has-error');
+        if(!f.querySelector('.err')) f.insertAdjacentHTML('beforeend', '<div class="err"><i class="icon" data-icon="alert-triangle"></i>Gross weight is required — carriers cannot be matched or cleared for the lane without it.</div>');
+        renderIcons(f);
+        w.focus();
+        return;
+      }
+    }
+    if(current===4){ navigate('loads-dashboard'); current=1; render(); return; }
+    current = Math.min(4, current+1);
+    render();
+  });
+  back.addEventListener('click', function(){ current = Math.max(1, current-1); render(); });
+
+  document.getElementById('plTrailer').addEventListener('change', function(){
+    document.getElementById('plReeferRow').style.display = /Reefer/.test(this.value) ? '' : 'none';
+  });
+
+  var autosaveEl = document.getElementById('autosaveNote');
+  var secs = 0;
+  setInterval(function(){
+    if(!document.querySelector('[data-screen="post-load"]').classList.contains('is-active')) return;
+    secs++;
+    autosaveEl.innerHTML = '<i class="icon" data-icon="check-circle"></i>Draft autosaved '+secs+'s ago';
+    renderIcons(autosaveEl);
+  }, 1000);
+  document.getElementById('plSaveDraft').addEventListener('click', function(){
+    secs = 0;
+    autosaveEl.innerHTML = '<i class="icon" data-icon="check-circle"></i>Draft saved just now';
+    renderIcons(autosaveEl);
+  });
+})();
+
+/* ============================================================
+   SCR-902 AUCTION WATCH
+   ============================================================ */
+(function(){
+  var scenarioSel = document.getElementById('awScenario');
+  var extendedB = document.getElementById('awExtendedBanner');
+  var thinB = document.getElementById('awThinBanner');
+  var failedB = document.getElementById('awFailedBanner');
+  var failedText = document.getElementById('awFailedText');
+  var heroLabel = document.getElementById('awHeroLabel');
+  var amountEl = document.getElementById('awAmount');
+  var countdownEl = document.getElementById('awCountdown');
+  var bidCountEl = document.getElementById('awBidCount');
+  var verifyingEl = document.getElementById('awVerifying');
+  var heroCard = document.getElementById('awHeroCard');
+  var feedCard = document.getElementById('awFeedCard');
+
+  var failedReasons = {
+    failed_no_bids: 'No bids were received before close.',
+    failed_no_eligible: 'Bids were received, but every candidate failed re-verification at award — the pool that looked eligible at open did not hold at award time.',
+    failed_above_limit: "Every bid received was above the shipper's configured ceiling price."
+  };
+
+  function applyScenario(v){
+    extendedB.hidden = (v!=='extended');
+    thinB.hidden = (v!=='thin');
+    failedB.hidden = (v.indexOf('failed')!==0);
+    verifyingEl.hidden = (v!=='verifying');
+    heroCard.style.opacity = (v.indexOf('failed')===0) ? '.55' : '1';
+    feedCard.style.display = (v.indexOf('failed')===0) ? 'none' : '';
+    if(v.indexOf('failed')===0){ failedText.innerHTML = '<strong>Auction failed.</strong> '+failedReasons[v]; }
+    if(v==='verifying'){ heroLabel.textContent = 'Re-verifying eligibility'; countdownEl.textContent='00:00'; }
+    else if(v.indexOf('failed')===0){ heroLabel.textContent='No award'; amountEl.innerHTML='—'; }
+    else { heroLabel.textContent = 'Current best eligible bid'; }
+    if(v==='extended') announce('Auction extended by 5 minutes — anti-snipe triggered.', true);
+    if(v==='verifying') announce('Auction closed. Re-verifying eligibility before award.', true);
+    if(v.indexOf('failed')===0) announce('Auction failed. '+failedReasons[v], true);
+  }
+  scenarioSel.addEventListener('change', function(){ applyScenario(this.value); });
+
+  document.getElementById('awExclToggle').addEventListener('click', function(){
+    var list = document.getElementById('awExclList');
+    var open = list.hidden;
+    list.hidden = !open;
+    this.setAttribute('aria-expanded', String(open));
+    this.innerHTML = (open ? 'Hide exclusion reasons ' : 'Show exclusion reasons ') + '<i class="icon" data-icon="chevron-'+(open?'down':'down')+'"></i>';
+    this.querySelector('.icon').style.transform = open ? 'rotate(180deg)' : 'none';
+  });
+
+  /* countdown — starts near the final stretch so the neutral→warning shift is visible quickly */
+  var remaining = 125;
+  setInterval(function(){
+    if(scenarioSel.value!=='live' && scenarioSel.value!=='extended') return;
+    if(remaining<=0) return;
+    remaining--;
+    var h = Math.floor(remaining/3600), m = Math.floor((remaining%3600)/60), s = remaining%60;
+    countdownEl.textContent = (h>0? (h+':') : '') + (m<10&&h>0?'0':'')+m+':'+(s<10?'0':'')+s;
+    var meta = countdownEl.closest('.bid-meta');
+    if(remaining<=60) meta.querySelector('.v').classList.add('is-final'); else meta.querySelector('.v').classList.remove('is-final');
+  }, 1000);
+
+  /* scripted bid feed — plays once */
+  var feed = document.getElementById('awFeed');
+  var played = false;
+  var scriptedBids = [
+    {price:'$1,590.00', carrier:'Sunbelt Transport LLC · Motor carrier'},
+    {price:'$1,560.00', carrier:'Ironhide Trucking · Motor carrier'},
+    {price:'$1,535.00', carrier:'Desert Line Freight · Motor carrier'}
+  ];
+  function playFeed(){
+    if(played) return; played = true;
+    var i = 0;
+    (function step(){
+      if(i>=scriptedBids.length || scenarioSel.value!=='live') return;
+      var b = scriptedBids[i];
+      var row = document.createElement('div');
+      row.className = 'bid-feed-row is-new';
+      var now = new Date();
+      var ts = (now.getHours()<10?'0':'')+now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+':'+(now.getSeconds()<10?'0':'')+now.getSeconds();
+      row.innerHTML = '<span class="price">'+b.price+'</span><span class="carrier">'+b.carrier+'</span><span class="ts">'+ts+'</span>';
+      feed.insertBefore(row, feed.firstChild);
+      amountEl.innerHTML = b.price.replace('.00','') + '<span class="cents">.00</span>';
+      bidCountEl.textContent = String(parseInt(bidCountEl.textContent,10)+1);
+      announce('New low bid '+b.price+' from '+b.carrier.split(' ·')[0]+'.');
+      setTimeout(function(){ row.classList.remove('is-new'); }, 1700);
+      i++;
+      setTimeout(step, 4200);
+    })();
+  }
+  setTimeout(playFeed, 3000);
+})();
+
+/* ============================================================
+   SCR-910/911 LOAD BOARD + BID
+   ============================================================ */
+(function(){
+  var stateSwitch = document.getElementById('lbStateSwitch');
+  var denied = document.getElementById('lbDenied');
+  var normal = document.getElementById('lbNormal');
+  stateSwitch.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-lbstate]');
+    if(!b) return;
+    stateSwitch.querySelectorAll('button').forEach(function(x){ x.classList.toggle('is-active', x===b); });
+    var isDenied = b.getAttribute('data-lbstate')==='denied';
+    denied.hidden = !isDenied;
+    normal.hidden = isDenied;
+  });
+
+  /* shared countdown for LD-48213 — row + bid panel, starts in the final stretch on purpose */
+  var seconds = 47;
+  var lbC = document.getElementById('lbCountdown1');
+  var bidC = document.getElementById('bidCountdown');
+  function fmt(s){ var m=Math.floor(s/60), r=s%60; return (m<10?'0':'')+m+':'+(r<10?'0':'')+r; }
+  function tickCountdown(){
+    if(seconds<=0){
+      lbC.textContent = 'Closed'; bidC.textContent = 'Closed';
+      return;
+    }
+    seconds--;
+    var t = fmt(seconds);
+    lbC.textContent = t; bidC.textContent = t;
+    if(seconds<=60){ lbC.classList.add('is-final'); bidC.classList.add('is-final'); }
+  }
+  lbC.classList.add('is-final'); bidC.classList.add('is-final');
+  setInterval(tickCountdown, 1000);
+
+  document.querySelectorAll('[data-open-bid]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.getElementById('bidPanel').scrollIntoView({block:'nearest'});
+      var amt = document.getElementById('bidAmount');
+      if(amt) amt.focus();
+    });
+  });
+
+  var idle = document.getElementById('bidStateIdle');
+  var submitting = document.getElementById('bidStateSubmitting');
+  var submitted = document.getElementById('bidStateSubmitted');
+  var outbid = document.getElementById('bidStateOutbid');
+  var outbidTimer = null;
+
+  function showOnly(el){
+    [idle, submitting, submitted, outbid].forEach(function(x){ x.hidden = (x!==el); });
+  }
+
+  document.getElementById('bidSubmitBtn').addEventListener('click', function(){
+    showOnly(submitting);
+    setTimeout(function(){
+      var amt = document.getElementById('bidAmount').value;
+      document.getElementById('bidAmountConfirmed').textContent = amt;
+      showOnly(submitted);
+      announce('Bid submitted: $'+amt+' on LD-48213.');
+      clearTimeout(outbidTimer);
+      outbidTimer = setTimeout(function(){
+        showOnly(outbid);
+        announce('You have been outbid on LD-48213.', true);
+      }, 7000);
+    }, 750);
+  });
+  document.getElementById('bidWithdrawBtn').addEventListener('click', function(){
+    clearTimeout(outbidTimer);
+    showOnly(idle);
+    announce('Bid withdrawn for LD-48213.');
+  });
+  document.getElementById('bidAgainBtn').addEventListener('click', function(){
+    showOnly(submitting);
+    setTimeout(function(){
+      var amt = document.getElementById('bidAmount2').value;
+      document.getElementById('bidAmountConfirmed').textContent = amt;
+      showOnly(submitted);
+      submitted.querySelector('p:nth-of-type(2)').textContent = "You're the current leading eligible bid.";
+      announce('Bid re-submitted: $'+amt+'. You are the current leading eligible bid.');
+    }, 750);
+  });
+})();
+
+/* ============================================================
+   SCR-930 EXCEPTION QUEUE
+   ============================================================ */
+(function(){
+  var stateSwitch = document.getElementById('eqStateSwitch');
+  var list = document.getElementById('eqList');
+  var empty = document.getElementById('eqEmpty');
+  stateSwitch.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-eqstate]');
+    if(!b) return;
+    stateSwitch.querySelectorAll('button').forEach(function(x){ x.classList.toggle('is-active', x===b); });
+    var isEmpty = b.getAttribute('data-eqstate')==='empty';
+    empty.hidden = !isEmpty;
+    list.hidden = isEmpty;
+  });
+  list.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-claim]');
+    if(!btn) return;
+    var actions = btn.closest('.eq-actions');
+    actions.innerHTML = '<span class="claimed-tag"><i class="icon" data-icon="user"></i>Claimed by you</span><button type="button" class="btn btn--sm btn--primary">Open</button>';
+    renderIcons(actions);
+    announce('Exception claimed.');
+  });
+})();
+
+/* ============================================================
+   OFFLINE SIMULATION (driver shell)
+   ============================================================ */
+(function(){
+  var toggle = document.getElementById('offlineToggle');
+  var wifiIcons = [document.getElementById('dtWifiIcon'), document.getElementById('podWifiIcon')];
+  toggle.addEventListener('change', function(){
+    root.classList.toggle('is-offline', toggle.checked);
+    wifiIcons.forEach(function(i){ if(i) i.style.display = toggle.checked ? 'inline-flex' : 'none'; });
+  });
+})();
+
+/* ============================================================
+   SCR-924 POD CAPTURE — forced choice, signature, pending-sync
+   ============================================================ */
+var resetPod;
+(function(){
+  var podState = { step:'3', choice:null, mandatoryPhoto:false, photoTaken:false, hasSig:false };
+  var steps = document.querySelectorAll('.pod-step');
+  var dots = { 3: document.getElementById('podDot3'), 4: document.getElementById('podDot4'), 5: document.getElementById('podDot5'), 6: document.getElementById('podDot6') };
+
+  function goto(step){
+    podState.step = step;
+    steps.forEach(function(s){ s.classList.toggle('is-active', s.getAttribute('data-pod-step')===step); });
+    var doneUpTo = { '3':0, '3b':0, '4':3, '5':4, '6':5, '7':5 }[step] || 0;
+    var currentDot = { '3':3, '3b':3, '4':4, '5':5, '6':6, '7':6 }[step];
+    [3,4,5,6].forEach(function(n){
+      dots[n].classList.toggle('is-done', n<currentDot);
+      dots[n].classList.toggle('is-current', n===currentDot);
+    });
+    var ph = document.getElementById('phoneScreen');
+    if(ph) ph.scrollTop = 0;
+  }
+
+  resetPod = function(){
+    podState = { step:'3', choice:null, mandatoryPhoto:false, photoTaken:false, hasSig:false };
+    document.getElementById('podChooseClean').classList.remove('is-selected');
+    document.getElementById('podChooseException').classList.remove('is-selected');
+    document.getElementById('podChooseClean').setAttribute('aria-pressed','false');
+    document.getElementById('podChooseException').setAttribute('aria-pressed','false');
+    document.getElementById('podStep3Continue').disabled = true;
+    document.getElementById('podPhotoTaken').style.display = 'none';
+    document.getElementById('podPhotoBtn').innerHTML = '<i class="icon" data-icon="camera"></i>Take photo';
+    document.getElementById('podSyncPill').style.display = 'none';
+    var canvas = document.getElementById('sigCanvas');
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    renderIcons(document.getElementById('podPhotoBtn'));
+    goto('3');
+  };
+
+  document.getElementById('podChooseClean').addEventListener('click', function(){
+    podState.choice = 'clean'; podState.mandatoryPhoto = false;
+    this.classList.add('is-selected'); this.setAttribute('aria-pressed','true');
+    var other = document.getElementById('podChooseException');
+    other.classList.remove('is-selected'); other.setAttribute('aria-pressed','false');
+    document.getElementById('podStep3Continue').disabled = false;
+  });
+  document.getElementById('podChooseException').addEventListener('click', function(){
+    podState.choice = 'exception'; podState.mandatoryPhoto = true;
+    this.classList.add('is-selected'); this.setAttribute('aria-pressed','true');
+    var other = document.getElementById('podChooseClean');
+    other.classList.remove('is-selected'); other.setAttribute('aria-pressed','false');
+    document.getElementById('podStep3Continue').disabled = false;
+  });
+  document.getElementById('podStep3Continue').addEventListener('click', function(){
+    if(!podState.choice) return;
+    if(podState.choice==='exception'){ goto('3b'); return; }
+    document.getElementById('podPhotoNote').textContent = 'Optional on a clean delivery.';
+    goto('4');
+  });
+  document.getElementById('podStep3bContinue').addEventListener('click', function(){
+    document.getElementById('podPhotoNote').textContent = 'Mandatory for an exception report.';
+    goto('4');
+  });
+
+  document.getElementById('podPhotoBtn').addEventListener('click', function(){
+    podState.photoTaken = true;
+    document.getElementById('podPhotoTaken').style.display = '';
+    this.innerHTML = '<i class="icon" data-icon="camera"></i>Retake photo';
+    renderIcons(this);
+  });
+  document.getElementById('podStep4Continue').addEventListener('click', function(){
+    if(podState.mandatoryPhoto && !podState.photoTaken){
+      var note = document.getElementById('podPhotoNote');
+      note.style.color = 'var(--status-magenta)';
+      note.textContent = 'A photo is required before continuing on an exception report.';
+      return;
+    }
+    goto('5');
+  });
+
+  /* signature pad */
+  var canvas = document.getElementById('sigCanvas');
+  var ctx = canvas.getContext('2d');
+  var drawing = false, lastX=0, lastY=0;
+  function pos(e){
+    var r = canvas.getBoundingClientRect();
+    var cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    var cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return { x: cx * (canvas.width/r.width), y: cy * (canvas.height/r.height) };
+  }
+  function start(e){ drawing = true; var p = pos(e); lastX=p.x; lastY=p.y; podState.hasSig = true; e.preventDefault(); }
+  function move(e){
+    if(!drawing) return;
+    var p = pos(e);
+    ctx.strokeStyle = getComputedStyle(root).getPropertyValue('--text-primary') || '#fff';
+    ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+    lastX=p.x; lastY=p.y; e.preventDefault();
+  }
+  function end(){ drawing = false; }
+  canvas.addEventListener('pointerdown', start);
+  canvas.addEventListener('pointermove', move);
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointerleave', end);
+  document.getElementById('sigClear').addEventListener('click', function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    podState.hasSig = false;
+  });
+
+  document.getElementById('podStep5Continue').addEventListener('click', function(){
+    var name = document.getElementById('podSignerName');
+    if(name.value.trim()===''){ name.focus(); name.style.borderColor = 'var(--status-magenta)'; return; }
+    name.style.borderColor = '';
+    var role = document.getElementById('podSignerRole').value || 'Not stated';
+    document.getElementById('podSummaryOutcome').textContent = podState.choice==='exception'
+      ? ('Delivered — exception reported (' + document.getElementById('podExcType').value + ')')
+      : 'Delivered clean';
+    document.getElementById('podSummaryPhoto').textContent = podState.photoTaken ? 'Attached — 1 photo' : (podState.mandatoryPhoto ? 'Missing' : 'Optional — none attached');
+    document.getElementById('podSummarySigner').textContent = name.value + ' · ' + role;
+    goto('6');
+  });
+
+  document.getElementById('podSubmitBtn').addEventListener('click', function(){
+    var offline = root.classList.contains('is-offline');
+    var icon = document.getElementById('podDoneIcon');
+    var title = document.getElementById('podDoneTitle');
+    var sub = document.getElementById('podDoneSub');
+    var pill = document.getElementById('podSyncPill');
+    if(offline){
+      icon.setAttribute('data-icon','refresh-cw'); icon.style.color = 'var(--status-amber)';
+      title.textContent = 'Captured — pending sync';
+      sub.textContent = 'Saved on this device. Nothing is lost — it uploads automatically the moment you’re back online.';
+      pill.style.display = 'flex'; pill.className = 'sync-pill sync-pill--pending';
+      pill.innerHTML = '<i class="icon" data-icon="refresh-cw"></i> Pending sync — will upload when back online.';
+      announce('Proof of delivery captured. Pending sync.', true);
+    } else {
+      icon.setAttribute('data-icon','check-circle'); icon.style.color = 'var(--status-blue)';
+      title.textContent = 'Delivered — recorded';
+      sub.textContent = 'Synced to the platform. Consignee and dispatch have both been notified.';
+      pill.style.display = 'none';
+      announce('Proof of delivery submitted and synced.', true);
+    }
+    renderIcons(document.querySelector('[data-pod-step="7"]'));
+    goto('7');
+  });
+})();
+
+})();
+</script>
+

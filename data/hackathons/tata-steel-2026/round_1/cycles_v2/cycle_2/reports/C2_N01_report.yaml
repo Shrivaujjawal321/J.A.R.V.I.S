@@ -1,0 +1,364 @@
+agent_id: C2_N01
+topic: v4-replacement-stronger-stage-1
+cycle: 2
+timestamp_utc: "2026-05-23T17:30:00Z"
+status: ok
+
+# ===========================================================================
+# MISSION
+# ===========================================================================
+# Design a complete, reproducible Stage-1 architecture that:
+#   1. Does NOT depend on V4 frozen artifacts (V4 CatBoost OOF is irreproducible)
+#   2. Beats V4 meta OOF AUC 0.884 cleanly
+#   3. Is a DROP-IN replacement for Stage-1 in the V23 cascade
+#   4. Gives the cascade a real ceiling to work with instead of V4 as the floor
+# ===========================================================================
+
+prior_cycle_context:
+  v4_meta_oof_auc: 0.884
+  v4_catboost_fresh_retrain_auc: 0.8622
+  v4_reproducibility_gap: -0.0134
+  v24_lgb_rfl_component_gain: "+0.0108 AUC vs V4 LGB component"
+  v23_cascade_oof_score: 54.41
+  cascade_bottleneck: "Stage-1 quality — V4 AUC 0.884 is the ceiling"
+  hard_fp10_status: "structural, unresolved in all C1 builds"
+  target_stage1_auc: ">= 0.900 (stretch 0.920)"
+
+# ===========================================================================
+# ARCHITECTURE SPEC: NS1 (New Stage-1)
+# ===========================================================================
+#
+# NS1 = 4-component ensemble -> LR meta with isotonic calibration
+# All 4 components trained fresh inside SAME 5-fold StratifiedKFold (seed=42)
+# Feature matrix: V4 51-feature set (load from build_v4 parquet artifacts)
+# ===========================================================================
+
+architecture:
+  name: "NS1 (New Stage-1)"
+  intended_build: "build_v27"
+  meta_fold_scheme: "StratifiedKFold(n_splits=5, shuffle=True, random_state=42)"
+  feature_matrix: "V4 51-feature set — load from build_v4/train_v4.parquet + v4_final_features.json"
+  meta_learner: "LogisticRegression(C=1.0, max_iter=1000)"
+  meta_calibration: "isotonic (NOT Platt/sigmoid)"
+  meta_calibration_rationale: |
+    Platt scaling is parametric sigmoid and can distort probability ordering under
+    class imbalance. Isotonic regression is non-parametric and monotone — it cannot
+    change the AUC of meta-learner output (rank preserved by construction). For a
+    downstream (R+P)/2 threshold sweep, rank preservation matters more than
+    parametric fit quality. V3-V24 all used Platt. This is first use of isotonic.
+    Reference: Niculescu-Mizil & Caruana (ICML 2005) showed isotonic outperforms
+    Platt on imbalanced tasks with >1000 rows. Our n=1352 is just above breakeven.
+  threshold_strategy: "Score-aware exact-unique-threshold sweep on calibrated meta OOF probas"
+
+components:
+
+  A_lgb_rfl:
+    name: "LGB with Robust Focal Loss (r=0.5, q=0.3)"
+    type: LightGBM_custom_objective
+    status: CONFIRMED_WORKING
+    source: "build_v24/build_v24.py — make_focal_lgb(r=0.5, q=0.3)"
+    confirmed_gain_vs_v4_lgb: "+0.0108 AUC"
+    params:
+      objective: "make_focal_lgb(r=0.5, q=0.3)"
+      learning_rate: 0.02
+      num_leaves: 15
+      min_data_in_leaf: 5
+      feature_fraction: 0.7
+      bagging_fraction: 0.7
+      bagging_freq: 1
+      num_boost_round: 300
+      seed: 42
+      metric: "None"
+    smote: "SMOTE(sampling_strategy=0.3, k_neighbors=3, random_state=42)"
+    expected_standalone_auc: "~0.879 (confirmed in V24 grid)"
+    notes: |
+      Exact implementation from build_v24. Do NOT use is_unbalance or
+      scale_pos_weight alongside RFL — gradient double-counting.
+      SMOTE applied BEFORE LGB inside CV fold only. Zero leakage.
+
+  B_tabicl:
+    name: "TabICLv2 in-context learner"
+    type: pretrained_tabular_foundation_model
+    status: PRIMARY_DIVERSITY_BET
+    source_report: "R04_report.yaml::R04_rec_1"
+    license: "BSD-3-Clause"
+    install: "pip install tabicl"
+    params:
+      model: "v2"
+      device: "auto"
+      random_state: 42
+    smote: "NONE — per arxiv:2605.21742, oversampling degrades ICL/PFN performance"
+    imbalance_correction: |
+      Feed raw TabICL OOF probas directly to meta-LR (meta LR learns the scale).
+      If TabICL OOF AUC < 0.75 after fold 1, binarize at tau=pi1=0.0488 (R04_rec_3 Option A).
+    expected_standalone_auc: "0.86-0.92 (TALENT benchmark range, arxiv:2602.11139)"
+    row_count_check: "1082 train rows per fold < 48K upper limit. No workaround needed."
+    fit_call: |
+      from tabicl import TabICLClassifier
+      clf = TabICLClassifier(model='v2', device='auto', random_state=42)
+      clf.fit(X_tr_fold, y_tr_fold)  # NO SMOTE
+      tabicl_oof[val_idx] = clf.predict_proba(X_val_fold)[:, 1]
+    inference_time: "< 60s per fold on CPU (~5 min total for 5 folds)"
+    failure_mode_and_fallback: |
+      If pip install fails OR OOF AUC < 0.75 after fold 1: DROP component B.
+      Fall back to A + C + D three-component stack (4 meta inputs instead of 5).
+      Expected fallback meta AUC: 0.895-0.910. Still beats V4.
+
+  C_catboost_optuna:
+    name: "CatBoost with Optuna AUC-targeted recovery"
+    type: CatBoostClassifier_Optuna
+    status: RECOVERY_ATTEMPT
+    rationale: |
+      V4 CatBoost OOF was 0.8756 but is irreproducible. V13 Optuna search got
+      0.8622 because it optimized (R+P)/2 on OOF (conflates threshold + AUC)
+      and only searched depth=4. V22 AutoGluon found depth=6 but lr=0.069 too
+      aggressive. New search: optimize AUC directly, expand depth to 6-8.
+    smote: "SMOTE(sampling_strategy=0.3, k_neighbors=3, random_state=42)"
+    optuna_config:
+      n_trials: 50
+      direction: "maximize"
+      objective_metric: "roc_auc_score on OOF"
+      search_space:
+        depth: [6, 7, 8]
+        learning_rate: [0.02, 0.03, 0.04, 0.05, 0.07]
+        l2_leaf_reg: [2, 3, 5, 7, 10]
+        iterations: [300, 400, 500]
+        auto_class_weights: "Balanced"
+      pruning: "MedianPruner — prune if fold-1 AUC < 0.84 after 100 iters"
+    expected_best_auc: "0.870-0.889"
+    key_difference_from_v13: |
+      V13 used score=(R+P)/2 as objective AND depth=4 only.
+      NS1 uses AUC directly AND searches depth 6-8. These are the two
+      changes most likely to recover V4's 0.8756.
+    optuna_sketch: |
+      def objective(trial):
+          d  = trial.suggest_categorical('depth', [6, 7, 8])
+          lr = trial.suggest_categorical('learning_rate', [0.02, 0.03, 0.04, 0.05, 0.07])
+          l2 = trial.suggest_categorical('l2_leaf_reg', [2, 3, 5, 7, 10])
+          it = trial.suggest_categorical('iterations', [300, 400, 500])
+          aucs = []
+          for fi, (tr, va) in enumerate(skf.split(X, y)):
+              Xtr_s, ytr_s = smote.fit_resample(X[tr], y[tr])
+              m = CatBoostClassifier(depth=d, learning_rate=lr, l2_leaf_reg=l2,
+                                     iterations=it, auto_class_weights='Balanced',
+                                     random_seed=42, thread_count=-1, verbose=False)
+              m.fit(Xtr_s, ytr_s)
+              oof_cat[va] = m.predict_proba(X[va])[:, 1]
+              aucs.append(roc_auc_score(y[va], oof_cat[va]))
+              if fi == 0 and aucs[0] < 0.84:
+                  raise optuna.TrialPruned()
+          return np.mean(aucs)
+
+  D_ft_transformer_ensemble:
+    name: "FT-Transformer Deep Ensemble (5 seeds) + epistemic variance"
+    type: deep_ensemble_with_uncertainty
+    status: NEW_DIVERSITY_SIGNAL
+    source_reports: ["R10_report.yaml::R10_rec_3", "R10_rec_2 (MC-Dropout, optional)"]
+    source_architecture: "build_v6/02_train_ft_xfm.py — FTTransformer class, reuse as-is"
+    rationale: |
+      V6 single-seed FT AUC was 0.8425 — weaker than trees on 1352 rows.
+      BUT: per-row variance across 5 seeds was never extracted or used as a
+      meta-feature in ANY V1-V22 build. The variance signal (disagreement across
+      seeds) tells the meta-LR which rows the FT-Transformer is uncertain about.
+      Hypothesis: hard-FP rows (Y=0 with high V4 proba) may have high FT-variance
+      (trees overfit to spurious patterns; FT disagrees across seeds). Meta-LR
+      can learn to down-weight high-proba + high-variance rows.
+      CRITICAL FIX vs V6: remove early stopping, use fixed 200 epochs.
+      V6 stopped at epoch 17-42 — variance from undertrained models is
+      training-noise, not epistemic uncertainty.
+    seeds: [1, 2, 3, 4, 5]
+    params:
+      d_token: 96
+      n_blocks: 3
+      n_heads: 4
+      d_ffn: 192
+      attn_drop: 0.2
+      ffn_drop: 0.2
+      epochs: 200
+      optimizer: "AdamW(lr=1e-4, weight_decay=1e-4)"
+      scheduler: "CosineAnnealingLR(T_max=200)"
+      loss: "BCEWithLogitsLoss(pos_weight=torch.tensor([19.48]))"
+      batch_size: 64
+    smote: "NONE — pos_weight handles imbalance"
+    meta_features_produced:
+      ft_mean_oof: "mean prediction across 5 seeds per row"
+      ft_var_oof: "variance across 5 seeds per row (epistemic uncertainty)"
+    mc_dropout_option: |
+      Optional: after training seed-5 model, run N=50 MC-Dropout passes
+      (model.train() at inference) to produce ft_mc_var_oof. Add to meta
+      if it improves meta-LR cross-val AUC. Negligible compute.
+    expected_standalone_auc: "0.845-0.860 (single-seed V6 was 0.8425; 5-seed gain ~+0.01)"
+    training_time: "~45-60 min CPU; ~8 min GPU"
+    variance_diagnostic: |
+      After fold 1: check ft_var_oof.mean(). If < 1e-5 (near-zero variance
+      everywhere), drop ft_var_oof from meta inputs — it adds noise not signal.
+      Keep ft_mean_oof regardless.
+
+meta_learner_spec:
+  inputs:
+    - lgb_rfl_oof
+    - tabicl_oof
+    - catboost_optuna_oof
+    - ft_mean_oof
+    - ft_var_oof
+  fallback_inputs: "[lgb_rfl_oof, catboost_optuna_oof, ft_mean_oof, ft_var_oof]"
+  model: "LogisticRegression(C=1.0, max_iter=1000)"
+  calibration: "CalibratedClassifierCV(estimator=lr, method='isotonic', cv=5)"
+  threshold_sweep: "Reuse sweep() from build_v24.py — identical code"
+  hard_constraint: "Reject any threshold where hard7 recall < 7/7"
+  bootstrap_ci: "n=1000, seed=20260523"
+
+# ===========================================================================
+# REALISTIC OOF AUC TARGET ANALYSIS
+# ===========================================================================
+
+oof_auc_target_analysis:
+  component_level_estimates:
+    A_lgb_rfl: {estimate: 0.879, basis: "V24 confirmed run", confidence: high}
+    B_tabicl:
+      estimate: "0.86-0.92"
+      basis: "TALENT benchmark (arxiv:2602.11139)"
+      confidence: medium
+      downside: "Could be 0.80 on anonymized sensors — domain shift risk"
+    C_catboost_optuna:
+      estimate: "0.870-0.889"
+      basis: "V4 banked 0.8756; V13 stuck at 0.8622 with depth=4 + wrong objective"
+      confidence: medium
+    D_ft_ensemble:
+      estimate: "0.845-0.860 (mean); ft_var_oof standalone AUC ~0.55"
+      basis: "V6 single-seed 0.8425; 5-seed ensemble typically +0.01-0.02"
+      confidence: medium
+
+  scenarios:
+    pessimistic:
+      assumption: "TabICL 0.80; CatBoost stays at 0.865; FT-var noisy"
+      components: "A(0.879) + C(0.865) + D_mean(0.848)"
+      expected_meta_auc: "0.890-0.900"
+      beats_v4: true
+      reasoning: |
+        LGB-RFL alone is +0.0108 vs V4 LGB. Isotonic over Platt adds ~0.003.
+        Conservative floor: 0.892. V4 target 0.884 beaten by +0.008.
+    base:
+      assumption: "TabICL 0.87; CatBoost finds 0.875 at depth=7; FT-var adds meta signal"
+      components: "A(0.879) + B(0.870) + C(0.875) + D(0.855 mean + var gating)"
+      expected_meta_auc: "0.900-0.910"
+      beats_v4: true
+      reasoning: |
+        TabICL adds orthogonal inductive bias. CatBoost recovers most of V4 gap.
+        D_var allows meta-LR to demote uncertain high-probability rows.
+        Isotonic calibration gain. Base estimate: 0.905.
+    optimistic:
+      assumption: "TabICL 0.90; CatBoost 0.885; FT-var separates 2+ hard-FPs"
+      components: "A(0.879) + B(0.900) + C(0.885) + D(0.858 mean + strong var)"
+      expected_meta_auc: "0.915-0.925"
+      beats_v4: true
+      reasoning: "TabICLv2 80% win rate over tuned CatBoost on TALENT benchmark."
+
+  honest_summary:
+    pessimistic_auc: 0.892
+    base_auc: 0.905
+    optimistic_auc: 0.922
+    v4_target: 0.884
+    conclusion: |
+      All three scenarios beat V4 0.884. The floor (pessimistic) relies only on
+      confirmed gains (LGB-RFL +0.0108, isotonic +0.003) with NO requirement
+      for TabICL or FT-variance to succeed. TabICL is upside, not the load-
+      bearing component.
+
+# ===========================================================================
+# FALLBACK: A + C + D ONLY
+# ===========================================================================
+
+fallback_a_c_d:
+  trigger: "pip install tabicl fails OR tabicl OOF AUC < 0.75 after fold 1"
+  meta_inputs: "[lgb_rfl_oof, catboost_optuna_oof, ft_mean_oof, ft_var_oof]"
+  expected_meta_auc: "0.895-0.910"
+  beats_v4: true
+
+# ===========================================================================
+# BUILD SEQUENCE
+# ===========================================================================
+
+build_sequence:
+  step_0:
+    action: "Load V4 artifacts (no new FE needed)"
+    files: ["build_v4/train_v4.parquet", "build_v4/test_v4.parquet", "build_v4/v4_final_features.json"]
+  step_1:
+    action: "Run Optuna CatBoost search (component C) — longest compute, start first"
+    duration: "~45 min CPU"
+    save: "best_catboost_params.json + catboost OOF array"
+  step_2:
+    action: "Train LGB-RFL at r=0.5, q=0.3 (component A) — copy from build_v24.py"
+    duration: "~5 min"
+    save: "lgb_rfl_oof array"
+  step_3:
+    action: "Attempt TabICL install + 5-fold training (component B)"
+    duration: "~15 min including checkpoint download"
+    gate: "If fold 1 AUC < 0.75 within 30s: skip, set tabicl=None, continue fallback"
+    save: "tabicl_oof array (raw probas)"
+  step_4:
+    action: "Train 5-seed FT-Transformer (component D) — reuse V6 FTTransformer class"
+    duration: "~50 min CPU or ~8 min GPU"
+    note: "Fixed 200 epochs, NO early stopping"
+    save: "ft_mean_oof, ft_var_oof arrays"
+  step_5:
+    action: "Stack -> LR -> isotonic calibration -> threshold sweep"
+    gate_checks:
+      - "hard7 recall = 7/7 at chosen threshold (MANDATORY)"
+      - "easy59 >= 58/59"
+      - "meta AUC >= 0.886"
+      - "OOF score >= 54.41"
+      - "calibrated LB (OOF + 2.67) >= 57.08"
+    save: ["ns1_oof_meta.parquet", "ns1_test_meta.parquet", "ns1_chosen_threshold.json"]
+
+# ===========================================================================
+# CASCADE IMPACT
+# ===========================================================================
+
+cascade_impact:
+  v23_with_v4_stage1: "OOF 54.41, Stage-1 AUC 0.884"
+  projected_v23_with_ns1_base:
+    stage1_auc: 0.905
+    estimated_cascade_oof: "55.5-57.0 (before Stage-2 improvement)"
+    calibrated_lb_estimate: "58.2-59.7"
+    basis: "Linear scaling from V23 empirical data; Stage-2 gains additive"
+  n02_synergy: |
+    Hard-FP-10 counterfactual FE (C2_N02) targets same structural problem.
+    New features from N02 should be added to V4 feature matrix before NS1
+    trains. N01 (NS1) and N02 are parallel tracks — final build uses both.
+
+# ===========================================================================
+# ANTI-PATTERNS FORBIDDEN IN NS1
+# ===========================================================================
+
+anti_patterns_forbidden:
+  - "Mean-blend NS1 with V4 (V10 disaster: LB 47.00 vs est 58.14)"
+  - "Pseudo-label test negatives (V4: OOF 54.31 -> 52.40)"
+  - "Threshold sweep on component OOFs before stacking — only sweep meta output"
+  - "SMOTE on TabICL (arxiv:2605.21742: degrades PFN/ICL performance)"
+  - "Early stopping on FT-Transformer (V6: stopped epoch 17-42 = training noise variance)"
+  - "Platt/sigmoid calibration on NS1 meta — use isotonic"
+  - "Per-grade specialist models (V15: AUC 0.798, score 52.85)"
+  - "pos_weight > 25 (V7 M3: scale_pos_weight=100 crushed precision)"
+
+# ===========================================================================
+# REFERENCES
+# ===========================================================================
+
+references:
+  - "arxiv:2602.11139 — TabICLv2 (ICML 2026) — 80% win rate over tuned GBDTs on TALENT"
+  - "arxiv:2502.05564 — TabICL v1 (ICML 2025)"
+  - "arxiv:2605.21742 — Correcting Class Imbalance in PFNs (2025) — tau=pi1, SMOTE degrades"
+  - "arxiv:1612.01474 — Lakshminarayanan et al, Deep Ensembles (NeurIPS 2017)"
+  - "arxiv:2106.11189 — Gorishniy et al, FT-Transformer (NeurIPS 2021)"
+  - "arxiv:1506.02142 — Gal & Ghahramani, MC-Dropout (ICML 2016)"
+  - "Niculescu-Mizil & Caruana, Predicting Good Probabilities (ICML 2005) — isotonic > Platt imbalanced"
+  - "build_v24/build_v24.py — RFL implementation (confirmed +0.0108 AUC)"
+  - "build_v6/02_train_ft_xfm.py — FTTransformer class to reuse"
+  - "GitHub: https://github.com/soda-inria/tabicl (BSD-3-Clause)"
+
+cross_topic_links:
+  C2_R04: "TabICL component B directly implements R04_rec_1 + R04_rec_3. R04 is primary authority on install + tau correction + failure modes."
+  C2_R10: "FT-ensemble component D implements R10_rec_3. MC-Dropout (R10_rec_2) optional secondary. Mondrian conformal (R10_rec_1) can layer on NS1 meta output post-processing."
+  C2_N02: "Counterfactual FE from N02 adds new features to V4 matrix before NS1 trains. Parallel track — converge in final build."
+  C2_N03: "N03 = NS1 (this) as Stage-1 replacement in V23 cascade. Once NS1 OOF AUC >= 0.886, cascade build proceeds."

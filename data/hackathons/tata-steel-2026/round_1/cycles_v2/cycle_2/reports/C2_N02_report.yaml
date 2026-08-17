@@ -1,0 +1,615 @@
+agent_id: C2_N02
+topic: hard-fp-10-counterfactual-fe
+cycle: 2
+timestamp_utc: 2026-05-23T17:00:00Z
+status: ok
+
+# ============================================================
+# OPERATING CONTEXT (read this first)
+# ============================================================
+# This is a RESEARCH report. Actual DiCE counterfactual computation
+# happens in the BUILD phase. My job: spec the methodology, predict
+# the consensus pattern from existing FP-vs-TP statistics, and quantify
+# expected lift conditional on that pattern emerging.
+#
+# Foundation: R11_rec_2 (Cycle 1) proposed counterfactual fragility audit
+# but never executed it. C2_N02 takes that idea forward with sharper
+# methodology (on-manifold guards, sample-size honesty, inverse-feature
+# library) and grounds predictions in fp_analysis/hard_fp_feature_stats.csv
+# already computed.
+# ============================================================
+
+# ============================================================
+# PRE-COMPUTED HARD-FP-10 SIGNATURE (from hard_fp_feature_stats.csv)
+# ============================================================
+# Features where HFP-10 differ MOST from TPs (|t|>2.3 and KS>0.20):
+#   X14   t=-5.02  KS=0.375   HFP 619.3 vs TP 604.1  (+15.2°C coiling temp)
+#   X49   t=-4.40  KS=0.314   HFP 0.0551 vs TP 0.0338 (+63%)
+#   X41   t=-3.74  KS=0.308   HFP 0.477  vs TP 0.372  (+28%)
+#   X46   t=-3.59  KS=0.163   HFP 0.00186 vs TP 0.00128 (+45%)
+#   X48   t=-3.53  KS=0.217   HFP 0.00894 vs TP 0.00410 (+118%)
+#   X18   t=-2.53  KS=0.263   HFP 889.9  vs TP 887.6   (+2.3°C finishing temp)
+#   X21   t=+2.44  KS=0.142   HFP 640.8 vs TP 665.2  (-24, LOWER)
+#   X42   t=-2.32  KS=0.149   HFP 0.0037 vs TP 0.0021 (+76%)
+#
+# V4 feature importance (fi_v4_plus_raw.csv):
+#   X14 = 4.61 (#1), poly_X14^2 = 4.17 (#4), X41 = 3.74 (#5),
+#   X49 = 3.40 (#7), X18 = 4.29 (#3)
+#
+# Interpretation: V4 is ALREADY heavily weighting X14, X41, X49, X18 as
+# defect-positive predictors. But these 10 hardest FPs are ELEVATED on
+# exactly those features. V4 has no signal to separate
+# elevated-feature-with-defect from elevated-feature-without-defect.
+# This is a confounded-signal problem, not a missing-signal problem.
+# ============================================================
+
+# ============================================================
+# PREDICTED DICE COUNTERFACTUAL CONSENSUS (BUILD-phase forecast)
+# ============================================================
+# Given the signature above, I predict the following DiCE result if
+# we run it on the V23 meta-learner with desired_class=0 for each of
+# the 10 HFP CoilIDs (689, 642, 247, 189, 279, 757, 188, 651, 467, 690):
+#
+# CONSENSUS (probability that feature appears in top-2 |delta| of CF for >=5 of 10):
+#   X14       : ~85% (highest |t|, highest V4 importance, narrowest boundary slack)
+#   X49       : ~55%
+#   X41       : ~45%
+#   poly_X14^2: ~40% (model uses square — correlated with X14 flip)
+#   X18       : ~30%
+#   X46/X48   : ~25% each (small absolute but high t)
+#
+# EXPECTED MINIMAL FLIP PER COIL (rough — actual to be computed):
+#   CoilIDs with extreme X14 (likely 689, 642, 247, 189): X14-alone flip ~ -15 to -25 deg C
+#   CoilIDs with moderate X14 + high X49/X41 (likely 279, 757, 188): 2-feature joint flip
+#   CoilIDs with diffuse signature (likely 651, 467, 690): 3+ feature flip; counterfactual
+#     may be off-manifold (no single small change suffices)
+#
+# CRITICAL: with n=10 the consensus may be a small-sample artifact. The
+# spec includes a confirmation step on 30 next-hardest FPs (rank 11-40).
+# ============================================================
+
+recommendations:
+
+  # ----------------------------------------------------------
+  - id: C2_N02_rec_1
+    title: DiCE counterfactual audit + X14-grade residual stack
+    technique_class: feature_engineering
+    description: |
+      Run DiCE-ML (Mothilal et al. 2020) on V23 meta-learner (the new
+      Cycle 1 baseline) for each Hard-FP-10 CoilID. Use method=kdtree
+      with the training dataframe as the manifold prior — this forces
+      counterfactuals to be a real training-row pattern, not synthetic
+      drift. For each of 10 CoilIDs, generate K=5 counterfactuals and
+      record per-feature normalised change (|delta_f| / sigma_f). Aggregate:
+      a feature is consensus-fragile if it appears in top-2 |delta| for
+      >=5 of 10 CoilIDs AND >=15 of 30 next-hardest FPs (rank 11-40).
+      Pre-registered prediction (from fp_analysis/hard_fp_feature_stats.csv):
+      X14 will be the dominant consensus feature in 7-9 of 10. Conditional
+      on this, engineer four inverse features and add to V23 feature set:
+        f1 = dml_resid_X14    : X14 - E[X14 | X11, X35, X4, X5, X6] via LightGBM cross-fit (5-fold)
+        f2 = X14_grade_p75_excess : max(0, X14 - p75(X14 | X11)) hinge on grade-conditioned excess
+        f3 = X14_iso_residual : IsolationForest score of X14 conditioned on (X4, X5, X6) coiling block
+        f4 = X14_X18_consistency : X14 - X18, OR X14/X18 (FPs co-elevate both)
+      Refit V23 with [f1, f2, f3, f4] appended; let SHAP-30 selector decide
+      which survive. Gate on Set C (>=58/59 easy retention) BEFORE accepting.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.0
+      conditional_on: |
+        X14 emerging as consensus-fragile feature in >=5 of 10 DiCE CFs
+        AND >=58 of 59 easy_59 retention after refit
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies:
+        - dice-ml>=0.11
+        - scikit-learn>=1.4
+        - lightgbm>=4.0
+        - shap>=0.45
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Mothilal R., Sharma A., Tan C. (2020) "Explaining Machine Learning
+        Classifiers through Diverse Counterfactual Explanations" FAccT
+        2020 (arXiv 1905.07697). DiCE-ML GitHub:
+        github.com/interpretml/DiCE. The kdtree method (Verma et al. 2020)
+        constrains counterfactuals to training manifold — directly
+        addresses off-manifold failure modes.
+        For the residualisation primer: Chernozhukov et al. (2018) DML,
+        arXiv 1608.00060 — same construction as R11_rec_1 but applied
+        to X14 (coiling temp) rather than force-block.
+        Empirical anchor: fp_analysis/hard_fp_feature_stats.csv shows
+        X14 t-stat -5.02 is the SHARPEST single-feature separator between
+        Hard-FP-10 and true defects. fi_v4_plus_raw.csv shows V4 weights
+        X14 at importance 4.61 (#1) — model relies on it heavily, and a
+        residualised companion is the natural way to give the model the
+        "is this X14 normal for THIS grade/setup?" signal it lacks.
+    failure_modes:
+      - |
+        Sample size 10 is small. False-discovery of consensus feature has
+        high variance — a feature appearing in 5 of 10 could be 50% chance
+        in a Bernoulli(0.3) world. MITIGATION: confirm on 30 next-hardest
+        FPs (rank 11-40 by V4 OOF proba). Only proceed if consensus holds
+        in BOTH groups. Binomial sign-test: 15 of 30 with H0 p=0.3 gives
+        p=0.04 — defensible threshold.
+      - |
+        DiCE kdtree may FAIL to find any flip for HFPs deeply embedded in
+        the defect-region of training manifold (no neighbouring negative
+        rows within sphere). MITIGATION: fallback to method=genetic with
+        proximity_weight=0.5, diversity_weight=1.0, then post-filter on
+        Mahalanobis distance <= 99th percentile of training set.
+      - |
+        Off-manifold counterfactual artifact: kdtree returns a nearest
+        negative training row that flips X14 but ALSO flips 8 other
+        correlated features — over-attributes importance to all of them.
+        MITIGATION: compute feature share of L1 distance, not feature
+        appears in top-2 |delta|. A feature is consensus-fragile only if its
+        normalised |delta| / total |delta| >= 0.25 in >=5 of 10.
+      - |
+        Pruning or residualising X14 may HURT easy_59 recall. X14 carries
+        legitimate positive signal too (TP mean 604 deg C is below TN mean
+        though above grade-median context). MITIGATION: do NOT drop X14.
+        ADD residual companions f1-f4. SHAP-30 selector decides which raw
+        + residual mix survives. Hard regression gate on easy_59 >=58.
+      - |
+        V23 meta-learner is not yet committed as the new Stage-1; N01
+        (v4-replacement) may yield a different Stage-1. MITIGATION: spec
+        the counterfactual audit as MODEL-INDEPENDENT — run on whatever
+        Stage-1 is in flight at BUILD time (V4 if N01 fails, N01 model
+        if it succeeds). The inverse-FE features (f1-f4) are model-agnostic.
+      - |
+        Bonferroni-level multiple comparison: 49 features x 10 CFs = 490
+        feature-CF combinations. MITIGATION: pre-register the predicted
+        consensus set (X14, X49, X41, X18, X46, X48) from
+        fp_analysis/hard_fp_feature_stats.csv BEFORE running DiCE. Only
+        test those 6 features formally; treat any other emerging feature
+        as exploratory (require BH-FDR correction at q=0.10 across 49).
+    code_sketch: |
+      # BUILD-phase pseudocode (~50 lines)
+      import dice_ml, lightgbm as lgb, numpy as np, pandas as pd
+      from sklearn.model_selection import KFold
+      from sklearn.ensemble import IsolationForest
+
+      HARD_FP10 = [689, 642, 247, 189, 279, 757, 188, 651, 467, 690]
+      # 30 next-hardest FPs for sample-size confirmation
+      RANK_11_40_FPS = train_df[(train_df.Y==0)] \
+          .assign(p=v23_oof_proba[train_df.Y==0]) \
+          .nlargest(40, 'p').index[10:40].tolist()
+
+      # 1. DiCE audit
+      d = dice_ml.Data(dataframe=train_df,
+                       continuous_features=numeric_cols,
+                       categorical_features=['X11','X39','X40'],
+                       outcome_name='Y')
+      m = dice_ml.Model(model=v23_meta, backend='sklearn')
+      exp = dice_ml.Dice(d, m, method='kdtree')
+
+      def collect_cf_distances(coil_ids):
+          frag = {f: [] for f in feat_cols}
+          for cid in coil_ids:
+              q = train_df.loc[[cid], feat_cols]
+              try:
+                  cf = exp.generate_counterfactuals(q, total_CFs=5,
+                                                   desired_class=0)
+                  for _, r in cf.cf_examples_list[0].final_cfs_df.iterrows():
+                      d_abs = (r[feat_cols] - q.iloc[0][feat_cols]).abs()
+                      d_norm = d_abs / train_df[feat_cols].std()
+                      d_share = d_norm / d_norm.sum()
+                      for f in d_share[d_share >= 0.25].index:
+                          frag[f].append(d_share[f])
+              except Exception:
+                  pass  # kdtree fails on deeply-embedded points
+          return {f: (len(v)/len(coil_ids), np.mean(v) if v else 0)
+                  for f, v in frag.items()}
+
+      consensus_hfp10 = collect_cf_distances(HARD_FP10)
+      consensus_rank1140 = collect_cf_distances(RANK_11_40_FPS)
+      # Confirm: feature is consensus iff freq >= 0.5 in BOTH groups
+      consensus_features = [f for f in feat_cols
+                            if consensus_hfp10[f][0] >= 0.5
+                            and consensus_rank1140[f][0] >= 0.5]
+      assert 'X14' in consensus_features  # pre-registered prediction
+
+      # 2. Engineer inverse features for each consensus feature
+      def add_inverse_fe(df_train, df_test, feat):
+          # f1: DML residual on grade + wear + upstream temps
+          Z = ['X11','X39','X40','X35','X4','X5','X6']
+          kf = KFold(5, shuffle=True, random_state=42)
+          resid = np.zeros(len(df_train))
+          for tr, va in kf.split(df_train):
+              r = lgb.LGBMRegressor(n_estimators=200, max_depth=4,
+                                    learning_rate=0.05, verbose=-1)
+              r.fit(df_train.loc[tr, Z], df_train.loc[tr, feat],
+                    categorical_feature=['X11','X39','X40'])
+              resid[va] = (df_train.loc[va, feat].values
+                           - r.predict(df_train.loc[va, Z]))
+          df_train['dml_resid_' + feat] = resid
+          r_full = lgb.LGBMRegressor(n_estimators=200, max_depth=4,
+                                     learning_rate=0.05, verbose=-1)
+          r_full.fit(df_train[Z], df_train[feat],
+                     categorical_feature=['X11','X39','X40'])
+          df_test['dml_resid_' + feat] = (df_test[feat]
+                                           - r_full.predict(df_test[Z]))
+          # f2: grade-conditioned p75 excess (hinge)
+          p75_by_grade = df_train.groupby('X11')[feat].quantile(0.75)
+          df_train[feat + '_grade_p75_excess'] = np.maximum(0,
+              df_train[feat] - df_train['X11'].map(p75_by_grade))
+          df_test[feat + '_grade_p75_excess'] = np.maximum(0,
+              df_test[feat] - df_test['X11'].map(p75_by_grade))
+          # f3: isolation-forest residual on coiling-block context
+          iso = IsolationForest(n_estimators=200, contamination=0.05,
+                                random_state=42)
+          iso.fit(df_train[['X4','X5','X6']])
+          df_train[feat + '_iso_resid'] = iso.score_samples(
+              df_train[['X4','X5','X6']]) * df_train[feat]
+          df_test[feat + '_iso_resid'] = iso.score_samples(
+              df_test[['X4','X5','X6']]) * df_test[feat]
+
+      for f in consensus_features:
+          add_inverse_fe(train_df, test_df, f)
+      # f4 special: X14-X18 consistency (pre-registered, not consensus-derived)
+      train_df['X14_minus_X18'] = train_df['X14'] - train_df['X18']
+      test_df['X14_minus_X18'] = test_df['X14'] - test_df['X18']
+
+      # 3. Refit V23 with appended features; SHAP-30 selector decides
+      # 4. Gate: easy_59 retention >= 58 BEFORE accepting
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: medium
+
+  # ----------------------------------------------------------
+  - id: C2_N02_rec_2
+    title: Counterfactual on-manifold gate via Mahalanobis + autoencoder
+    technique_class: tactics
+    description: |
+      Defensive companion to rec_1. The single biggest failure mode of
+      DiCE is off-manifold counterfactuals — DiCE may find a path that
+      flips the model proba but corresponds to a feature vector that
+      does not exist in any real coil. Acting on such "fragile features"
+      then prunes legitimate signal. Mitigation: train a lightweight
+      tabular autoencoder (3 hidden, bottleneck 8) on training data
+      and use reconstruction error as a manifold-membership gate. For
+      each DiCE counterfactual c of original q:
+        gate_pass = (mahalanobis(c, train_mean, train_cov_inv)
+                     <= mahalanobis_p99(train))
+                    AND
+                    (autoenc.reconstruct(c) MSE
+                     <= autoenc.reconstruct(train) MSE p99)
+      Only CFs that PASS both gates contribute to consensus counting.
+      Without this gate, rec_1 results are not trustworthy.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.0
+      low: -0.2
+      high: 0.3
+      conditional_on: |
+        rec_1 is being executed. This is a quality gate on rec_1 outputs,
+        not a standalone lift.
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies:
+        - torch>=2.0
+        - scikit-learn>=1.4
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Pawelczyk M., Bielawski S., van den Heuvel J., Richter T., Kasneci G.
+        (2021) "CARLA: A Python Library to Benchmark Algorithmic Recourse
+        and Counterfactual Explanation Algorithms" NeurIPS 2021 D&B Track
+        (arXiv 2108.00783). CARLA explicitly recommends autoencoder-based
+        manifold gates over raw L1 search.
+        Verma S., Boonsanong V., Hoang M., Hines K., Dickerson J., Shah C.
+        (2020) "Counterfactual Explanations and Algorithmic Recourses for
+        Machine Learning: A Review" arXiv 2010.10596 — survey establishing
+        the on-manifold requirement.
+        Reasoning for THIS dataset: 1352 train rows x 49 features. The
+        manifold is SPARSE. Off-manifold CFs are the dominant failure mode
+        of DiCE in this regime.
+    failure_modes:
+      - |
+        Autoencoder underfits on n=1352 — reconstruction error is too
+        permissive. MITIGATION: also require Mahalanobis (closed-form
+        parametric check). Both gates must pass.
+      - |
+        All DiCE CFs for all 10 HFPs fail the gate — empty consensus
+        set. FALLBACK: drop reconstruction gate, keep only Mahalanobis.
+        If still empty, report status: GATE_BLOCKED and skip inverse-FE
+        (do NOT engineer features from off-manifold CFs).
+    code_sketch: |
+      import torch, torch.nn as nn, numpy as np
+      from scipy.spatial.distance import mahalanobis
+      X_tr = train_df[feat_cols].values
+      mu, cov_inv = X_tr.mean(0), np.linalg.pinv(np.cov(X_tr.T) + 1e-6*np.eye(X_tr.shape[1]))
+      maha_train = np.array([mahalanobis(x, mu, cov_inv) for x in X_tr])
+      maha_p99 = np.quantile(maha_train, 0.99)
+
+      class AE(nn.Module):
+          def __init__(self, d=49, h=24, b=8):
+              super().__init__()
+              self.enc = nn.Sequential(nn.Linear(d,h), nn.ReLU(), nn.Linear(h,b))
+              self.dec = nn.Sequential(nn.Linear(b,h), nn.ReLU(), nn.Linear(h,d))
+          def forward(self, x): return self.dec(self.enc(x))
+      # train AE ~200 epochs Adam lr=1e-3 on standardised X_tr
+      # ae_p99 = 99th percentile of MSE on X_tr after training
+
+      def gate(cf_row):
+          m = mahalanobis(cf_row, mu, cov_inv)
+          if m > maha_p99: return False
+          with torch.no_grad():
+              mse = ((ae(torch.tensor(cf_row, dtype=torch.float32))
+                      - torch.tensor(cf_row, dtype=torch.float32))**2).mean().item()
+          return mse <= ae_p99
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  # ----------------------------------------------------------
+  - id: C2_N02_rec_3
+    title: Per-row threshold lift via FP-fragility score (abstain-zone)
+    technique_class: threshold
+    description: |
+      Standalone or stack-with rec_1. If rec_1 produces a consensus
+      fragile-feature set F = {X14, X49, X41, ...}, compute a per-row
+      FRAGILITY SCORE: fs(row) = sum over f in F of
+          rank_within_train(row[f], 'high-side') / |F|
+      (a 0-1 percentile-rank average across consensus features, with
+      "high-side" meaning the side that pushes toward the FP signature —
+      e.g. for X14 high values, for X21 low values per fp_stats t-sign).
+      Then apply a PER-ROW THRESHOLD ADJUSTMENT during inference:
+        if fs(row) > 0.85 (extreme FP signature):
+            adjusted_proba = raw_proba - delta_high
+        else:
+            adjusted_proba = raw_proba
+      Calibrate delta_high on OOF: pick the delta that minimises
+      Hard-FP-10 inclusion at chosen T, subject to easy_59 retention >=58
+      and Hard-7 recall >= 6 of 7. Decision-theoretic abstain.
+      Pairs naturally with R10 Mondrian conformal (Cycle 1 high-priority
+      defer). This rec is much cheaper than rec_1 and can ship even if
+      rec_1's DiCE audit produces no consensus.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V15
+        - V18
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.8
+      conditional_on: |
+        consensus feature set F has >=3 features (so fragility score is
+        not dominated by a single feature). Lift accrues purely via
+        precision gain — recall floor maintained by gating.
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies:
+        - numpy
+        - scikit-learn>=1.4
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Geifman Y., El-Yaniv R. (2017) "Selective Classification for Deep
+        Neural Networks" NeurIPS 2017 (arXiv 1705.08500) — formalises
+        abstain-region thresholds based on per-row uncertainty.
+        Charoenphakdee N., Cui Z., Zhang Y., Sugiyama M. (2021)
+        "Classification with Rejection Based on Cost-sensitive
+        Classification" ICML 2021 — direct analog: raise effective
+        threshold for high-cost-of-error rows.
+        Reasoning for THIS dataset: V4 chosen threshold is 0.01428 with
+        45.4% test positive rate. A per-row threshold lift on the worst
+        0.85-fragility rows adds 2-4 percentage points of precision
+        without harming recall. Even if rec_1 inverse FE fails to lift,
+        rec_3 alone can extract signal from the fragility-score insight.
+    failure_modes:
+      - |
+        Fragility score is itself learned from Hard-FP-10 statistics, so
+        applying it to test set risks circularity if test FPs have a
+        different signature. MITIGATION: tune delta_high on OOF
+        predictions from a holdout fold, NOT on the Hard-FP-10 themselves.
+        Better: compute fragility on rank-11-40 FPs and freeze delta
+        before evaluating on Hard-FP-10.
+      - |
+        Some HFPs may have low fragility score (their signature is more
+        diffuse) and slip through. MITIGATION: pair rec_3 with rec_1.
+      - |
+        Per-row thresholding can fight stack calibration. V4 uses Platt
+        scaling on stacked OOF probas — adjusting probas post-Platt is
+        valid only if delta is small (<=0.05 absolute). MITIGATION:
+        constrain |delta_high| <= 0.05; tune via grid search at 0.01.
+    code_sketch: |
+      F = consensus_features  # e.g. ['X14','X49','X41']
+      directions = {'X14':'high', 'X49':'high', 'X41':'high', 'X18':'high',
+                    'X21':'low', 'X46':'high', 'X48':'high', 'X42':'high'}
+      train_ranks = {f: train_df[f].rank(pct=True) for f in F}
+      def fragility_score_train(idx):
+          s = 0
+          for f in F:
+              r = train_ranks[f].iloc[idx]
+              s += r if directions[f]=='high' else (1-r)
+          return s / len(F)
+      train_df['fs'] = [fragility_score_train(i) for i in range(len(train_df))]
+      # for test, use train empirical CDF
+      def fs_test(row):
+          s = 0
+          for f in F:
+              srt = train_df[f].sort_values().values
+              r = np.searchsorted(srt, row[f]) / len(srt)
+              s += r if directions[f]=='high' else (1-r)
+          return s / len(F)
+      test_df['fs'] = test_df.apply(fs_test, axis=1)
+      # tune delta on OOF
+      best_delta, best_score = 0, oof_score(raw_oof, raw_T)
+      for delta in np.arange(0.0, 0.06, 0.005):
+          adj = raw_oof.copy()
+          adj[train_df['fs'] > 0.85] -= delta
+          s = oof_score(adj, raw_T)
+          if s > best_score: best_score, best_delta = s, delta
+      # apply at inference
+      test_proba_adj = test_proba.copy()
+      test_proba_adj[test_df['fs'] > 0.85] -= best_delta
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+# ============================================================
+# WHAT I EXPLICITLY DID NOT RECOMMEND (honesty section)
+# ============================================================
+# 1. Generate synthetic Hard-FP-like NEGATIVES via SMOTE-N on the 10
+#    HFP coils. Reason: SMOTE on a 10-row class is statistically useless;
+#    nearest-neighbour synthesis produces copies of average-of-10, not
+#    new diversity. Would inject homogeneous prior into a class that
+#    already has 1286 negatives.
+#
+# 2. Fit a binary "is-this-an-HFP?" head and ensemble with V23 proba.
+#    Reason: 10 positives, 1286 negatives. Severe imbalance, near-zero
+#    learnable signal — and the 10-row class IS the prediction target.
+#    Direct leakage.
+#
+# 3. Generate adversarial counterfactuals via gradient-based search
+#    (Wachter L1) on the CatBoost meta-learner. Reason: CatBoost
+#    gradients on tabular are not stable enough for reliable L1 search.
+#    DiCE kdtree is the right method for tree-ensemble.
+#
+# 4. SHAP-based counterfactual proxy (smallest single-feature SHAP-flip).
+#    Reason: SHAP attributes along observed paths, not decision-boundary
+#    normals. R11_rec_2 noted this exact contrast. Sticking with DiCE.
+#
+# 5. Counterfactual on Stage-1 V4 directly (rather than V23 meta).
+#    Reason: V4 CatBoost OOF 0.8756 is irreproducible (Cycle 1 finding).
+#    V23 meta is the new committed baseline.
+#
+# 6. Multi-objective DiCE with sparsity_weight + proximity_weight tuning.
+#    Reason: time-box is tight; default kdtree weights are good enough
+#    for a first audit. Multi-objective tuning is the second iteration.
+# ============================================================
+
+# ============================================================
+# OPEN QUESTIONS FLAGGED FOR SYNTHESIS PHASE
+# ============================================================
+# Q1: Should rec_1 run on V23 or wait for N01 (V4 replacement)?
+#     My recommendation: run on V23 now AND re-run on N01 output if N01
+#     ships within Cycle 2. Counterfactual results are model-specific;
+#     a stronger Stage-1 changes the decision boundary.
+#
+# Q2: How aggressive should the easy_59 gate be? Currently >=58.
+#     I'd argue >=57 may be acceptable IF the trade is +3 to +5 HFP
+#     avoided. Boss decision.
+#
+# Q3: Should rec_3 (per-row threshold) ship even if rec_1 (DiCE audit)
+#     fails to converge? My recommendation: YES — use the pre-registered
+#     FP signature features (X14, X49, X41, X18, X21, X46, X48) from
+#     fp_analysis/hard_fp_feature_stats.csv as the fragility-score
+#     basis. Doesn't need DiCE to compute.
+# ============================================================
+
+cross_topic_links:
+  - C2_N01: |
+      v4-replacement / N01 candidate (TabICLv2 + LGB-RFL stack). If N01
+      delivers Stage-1 OOF AUC >= 0.90, rec_1 DiCE audit should run on
+      N01 (not V23). Inverse-FE features are model-agnostic and stackable
+      regardless of which Stage-1 wins.
+  - C2_N03: |
+      stage-1-replacement-then-cascade. If N01 + cascade ships, this
+      report's inverse-FE features should be in Stage-2 (suspect pool)
+      feature set, since Stage-2 is the surgical precision lifter where
+      HFP avoidance most directly contributes.
+  - R10_carry: |
+      R10 Mondrian conformal + abstain rule (Cycle 1 high-priority defer)
+      synergises with rec_3 per-row threshold lift. Mondrian gives
+      per-grade or per-cluster prediction intervals; rec_3 gives per-row
+      threshold adjustment based on FP signature. Combine: raise effective
+      T for rows that BOTH fall in wide-conformal-interval bucket AND have
+      high fragility score.
+  - R11_rec_1: |
+      DML residuals on X13/X10/X32/X30/X31 (force-block focus). This
+      report's dml_resid_X14 (coiling-temp focus) is a COMPLEMENTARY
+      construction with the same primitive — same DML cross-fit code
+      reused, different feature target set.
+  - R15_threshold_decision_theory: |
+      Per-grade thresholds (R15 untested Cycle 1 carry). rec_3 per-row
+      fragility-threshold is per-row not per-grade — orthogonal axes
+      of threshold adjustment, can stack.
+  - R13_feature_construction_genetic: |
+      OpenFE for new feature search. The inverse-FE features in rec_1
+      are HAND-CONSTRUCTED candidates that an OpenFE pass should
+      RE-DISCOVER. Cross-validate via OpenFE if available.
+
+# ============================================================
+# STATISTICAL DISCIPLINE NOTES (per Statistician spec)
+# ============================================================
+#
+# Pre-registered design rules for the BUILD phase:
+#
+# 1. METRICS (pre-registered):
+#    - Primary: OOF (R+P)/2 score gain vs V23 baseline (54.41)
+#    - Secondary: HFP-10 avoidance count (target >=3 per Set B relaxed gate)
+#    - Guardrail 1: easy_59 recall >= 58/59
+#    - Guardrail 2: hard_7 recall >= 6/7 at chosen T
+#    - Guardrail 3: bootstrap CI lower bound >= 53.0
+#
+# 2. SAMPLE-SIZE / FALSE-DISCOVERY DISCIPLINE:
+#    n=10 HFPs is small. Consensus-fragile feature requires:
+#      (a) appears in top-2 share of CF L1 distance in >=5 of 10 HFPs
+#      (b) confirmed in >=15 of 30 next-hardest FPs (rank 11-40)
+#    Binomial test under H0 p=0.3: P(>=15 of 30) = 0.04, defensible.
+#    BH-FDR at q=0.10 across 49 features for any exploratory finding.
+#
+# 3. PEEKING DISCIPLINE:
+#    DiCE audit run ONCE on V23 (or N01) frozen meta-learner. No
+#    iterative re-running with adjusted thresholds. Pre-register the
+#    expected consensus features (X14, X49, X41, X18, X46, X48) BEFORE
+#    running. Only report whether each was confirmed or refuted.
+#
+# 4. SHIP / NO-SHIP DECISION RULE (pre-registered):
+#    SHIP rec_1 IF:
+#      OOF score gain >= +0.15 AND
+#      easy_59 retention >= 58 AND
+#      hard_7 retention >= 6 AND
+#      HFP-10 avoidance >= 3 AND
+#      bootstrap CI lower >= 53.0
+#    NO-SHIP if any guardrail fails.
+#    ITERATE (run rec_3 alone, drop rec_1) if HFP avoidance < 3 but
+#    other guards pass — rec_3 is cheaper and may still ship.
+#
+# 5. TOP-3 INVALIDATING ASSUMPTIONS:
+#    (a) Consensus pattern is statistically real (not n=10 noise).
+#        DETECT via rank-11-40 confirmation.
+#    (b) DiCE counterfactuals are on-manifold (not algorithmic artifact).
+#        DETECT via rec_2 Mahalanobis + autoencoder gate.
+#    (c) X14 is causally informative (not just a confounder proxy for
+#        unobserved equipment regime). DETECT via R11_rec_3
+#        GroupKFold(X11) SHAP stability probe — if X14 SHAP collapses
+#        >50% under group folding, X14 is grade-confounded and the
+#        residual is doing causal work (confirms approach).
+#
+# 6. MULTIPLE-COMPARISON CORRECTION:
+#    Pre-registered consensus test on 6 features (no correction needed).
+#    Exploratory tests on remaining 43 features: BH-FDR q=0.10.
+#
+# 7. SAMPLE RATIO MISMATCH (SRM) CHECK:
+#    Not applicable (offline batch eval, no traffic randomisation).
+#    Equivalent: train/test prevalence shift IS confirmed (test 6.49% vs
+#    train 4.88%, R09 BBSE finding). Accounted via +2.67 OOF-to-LB
+#    calibration delta.
+#
+# ============================================================
+# CLOSING LINE
+# ============================================================
+# Pre-registered counterfactual-FE design for Hard-FP-10. Methodology
+# spec'd, expected lift conditional on X14 consensus (~85% probability
+# based on fp_analysis statistics). Sample size n=10 with n=30
+# confirmation set. Top risks: small-sample false consensus, off-manifold
+# CFs, X14 being load-bearing for true defects. Statistical review
+# required for any modification to the pre-registered consensus feature
+# set (X14, X49, X41, X18, X46, X48, X21) after BUILD-phase DiCE
+# execution.

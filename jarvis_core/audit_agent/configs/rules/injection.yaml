@@ -1,0 +1,184 @@
+# Injection — SQL / Command / NoSQL (CWE-89, CWE-78, CWE-943)
+#
+# High-bounty, high-signal. The generic p/default pack catches some of these but
+# under-covers f-string SQL, .format() SQL, and shell=True with concatenated input.
+# These rules target the precise "tainted string built into a query/command" shape.
+#
+# DEFENSIVE: rules describe the vulnerable construction pattern to flag+fix
+# (parameterize queries, pass argv lists not shell strings). No payloads here.
+rules:
+  # ── SQL injection (Python) — string-built query into execute() ────────────
+  - id: jarvis-sqli-python-formatted-query
+    languages: [python]
+    severity: ERROR
+    message: >
+      Possible SQL injection: a query string is built with f-string / .format() /
+      %-format / concatenation and passed to a DB execute(). Use parameterized
+      queries (execute(sql, params)) instead of interpolating values into SQL.
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/89.html
+        - https://owasp.org/www-community/attacks/SQL_Injection
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute(f"...{$X}...", ...)
+          - pattern: $CUR.execute("..." % $X, ...)
+          - pattern: $CUR.execute("..." + $X, ...)
+          - pattern: $CUR.execute("...".format(...), ...)
+          - pattern: $CUR.executemany(f"...{$X}...", ...)
+          - pattern: $CUR.execute($X + "...", ...)
+      # Exclude the safe parameterized form explicitly
+      - pattern-not: $CUR.execute("...", ...)
+
+  # ── SQL injection (Python) — taint into raw query helpers ─────────────────
+  - id: jarvis-sqli-python-tainted-raw
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      Possible SQL injection: user-controlled input reaches a raw SQL execution
+      sink. Use bound parameters; never interpolate request data into SQL text.
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/89.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: request.$ANY
+              - pattern: $REQ.args.get(...)
+              - pattern: $REQ.form.get(...)
+              - pattern: $REQ.json[...]
+              - pattern: $REQ.GET.get(...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: int(...)
+              - pattern: $DB.execute("...", ...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $CUR.execute($Q, ...)
+              - pattern: $CUR.executescript($Q)
+              - pattern: $SESSION.execute(text($Q), ...)
+              - pattern: sqlalchemy.text($Q)
+
+  # ── SQL injection (JS/TS) — template/concat query ─────────────────────────
+  - id: jarvis-sqli-node-template-query
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible SQL injection: a query is built with a template literal or string
+      concatenation and passed to db.query/execute. Use parameterized queries
+      (db.query('... $1 ...', [value])) instead of interpolation.
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/89.html
+    patterns:
+      - pattern-either:
+          - pattern: $DB.query(`...${$X}...`, ...)
+          - pattern: $DB.query("..." + $X, ...)
+          - pattern: $DB.execute(`...${$X}...`, ...)
+          - pattern: $DB.execute("..." + $X, ...)
+          - pattern: $CONN.raw(`...${$X}...`)
+
+  # ── Command injection (Python) — shell=True / os.system with concat ───────
+  - id: jarvis-cmdi-python-shell-concat
+    languages: [python]
+    severity: ERROR
+    message: >
+      Possible command injection: a shell command is built from concatenation /
+      f-string and executed via os.system or subprocess with shell=True. Pass an
+      argument LIST (no shell=True) and never interpolate untrusted input.
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/78.html
+        - https://owasp.org/www-community/attacks/Command_Injection
+    patterns:
+      - pattern-either:
+          - pattern: os.system(f"...{$X}...")
+          - pattern: os.system("..." + $X)
+          - pattern: os.system("..." % $X)
+          - pattern: os.popen(f"...{$X}...")
+          - pattern: subprocess.$M(f"...{$X}...", ..., shell=True, ...)
+          - pattern: subprocess.$M("..." + $X, ..., shell=True, ...)
+          - pattern: subprocess.$M([..., f"...{$X}...", ...], ..., shell=True, ...)
+
+  # ── Command injection (Node) — child_process with concat ──────────────────
+  - id: jarvis-cmdi-node-exec-concat
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible command injection: child_process.exec/execSync runs a shell string
+      built from concatenation / template literal. Use execFile/spawn with an
+      argument array, never a concatenated shell string with untrusted input.
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/78.html
+    patterns:
+      - pattern-either:
+          - pattern: child_process.exec(`...${$X}...`, ...)
+          - pattern: child_process.exec("..." + $X, ...)
+          - pattern: child_process.execSync(`...${$X}...`, ...)
+          - pattern: child_process.execSync("..." + $X, ...)
+          - pattern: exec(`...${$X}...`, ...)
+          - pattern: execSync("..." + $X, ...)
+
+  # ── NoSQL injection (Node/Mongo) — query object from raw req.body ─────────
+  - id: jarvis-nosqli-node-mongo-tainted
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible NoSQL injection: request body/query flows directly into a Mongo
+      query operator. An attacker can pass operator objects ($ne, $gt, $where) to
+      bypass auth or dump data. Cast to expected scalar types and reject objects.
+    metadata:
+      cwe: "CWE-943"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/943.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.body
+              - pattern: req.body.$F
+              - pattern: req.query
+              - pattern: req.query.$F
+              - pattern: req.params.$F
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: String(...)
+              - pattern: parseInt(...)
+              - pattern: $V.toString()
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $COLL.find($Q, ...)
+              - pattern: $COLL.findOne($Q, ...)
+              - pattern: $COLL.deleteOne($Q, ...)
+              - pattern: $COLL.deleteMany($Q, ...)
+              - pattern: $MODEL.findOne($Q, ...)
+              - pattern: $MODEL.find($Q, ...)

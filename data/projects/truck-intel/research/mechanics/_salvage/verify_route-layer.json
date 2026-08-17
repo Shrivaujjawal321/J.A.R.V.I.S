@@ -1,0 +1,93 @@
+{
+ "checked": [
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Network/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "FeatureServer?f=json returned 5937 bytes, layers=[(0,'National Network')]. returnCountOnly on layer 0 gave count=478999. NN=1 -> 453529, NN>0 -> 454830, NN=0 -> 24169. returnDistinctValues+returnCountOnly: ROUTEID=12491, ID=478999, STFIPS=10 (Delaware) ID=472. copyrightText read verbatim: 'This NTAD dataset is a work of the United States government as defined in 17 U.S.C. \u00a7 101 and as such are not protected by any U.S. copyrights. This work is available for unrestricted public use.' Field list contains NO direction/oneway field, confirming undirected centerlines. Every claimed number matched exactly.",
+   "correction": "Vintage nuance only: serviceDescription says 'as of December 22, 2020' but every row carries VERSION='2020.01.10' and YEAR=2018 (single distinct value across all 478,999 rows). observed_at=2020-12-22 is not supported by row attributes; the underlying road attribution is 2018."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Freight_Analysis_Framework_Network_Nodes/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "REFUTED",
+   "evidence": "NOT in the researcher's source list, but it is in the same 1,023-service catalog they searched. Point layer 'Freight Analysis Framework (FAF5) Network Nodes', count=974788, fields include Entry_or_Exit, Exit_Number, Interchange, Facility_Name, County, State. Real values observed: Interchange='MAY AVE', 'PORTLAND-SH 74', '1-278, ELIZABETH, STATEN ISLAND', '412-ADMIRAL BRG'. NTAD-prefixed, so public-domain family. Populated: Interchange NOT NULL=4485, Exit_Number NOT NULL=3102, Entry_or_Exit NOT NULL=4472.",
+   "correction": "The claim 'No national interchange or highway-junction point layer exists in the 1,023-service USDOT/BTS catalog' is FALSE. One exists, is public domain, and carries named interchanges and exit numbers. It is sparse (4,485 of 974,788 nodes = 0.46%), so the practical fallback to computed ST_Intersection junctions still stands \u2014 but these 4,485 should be ingested first as authoritative public-domain ground truth rather than left on the table in favour of ODbL OSM. Also note the service description claims 348,498 nodes while the API returns 974,788."
+  },
+  {
+   "url": "https://overpass-api.de/api/interpreter",
+   "http_status": "200 (406 without User-Agent)",
+   "claim_holds": "PARTIAL",
+   "evidence": "POST with descriptive UA returned 200/414 bytes. Count for relation[type=route][route=road][network=US:I] = 975 relations \u2014 matches the claim exactly. Response payload stamps: 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.' /api/status shows 'Rate limit: 2, 1 slots available now'. BUT https://overpass-api.de/robots.txt returns 200 and reads: 'User-agent: *\\nDisallow: /api/\\nDisallow: /munin/'.",
+   "correction": "Row count and ODbL share-alike claim are correct, but the researcher omitted a disqualifying fact: overpass-api.de's own robots.txt Disallows /api/ \u2014 the exact path proposed. The repo's non-negotiable constraint is 'respect robots.txt', and polite_get() honouring robots.txt would refuse this endpoint. Separately, OSMF API policy (operations.osmfoundation.org/policies/api) states the API is 'not for read-only purposes or projects' and 'Large or frequent data users must use the download service planet.osm'. Bulk route-relation ingestion must come from Geofabrik/planet extracts, not Overpass. Overpass is defensible only for occasional small spot-checks."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/Roadways_(HPMS_2023)/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "Root f=json: serviceDescription='', copyrightText='', description='' \u2014 all three empty, exactly as claimed. Counts re-verified live this run: total=6039201, NHS>0=409627, NHFN>0=89444, AADT_COMBINATION>0=1125655 \u2014 all four match the researcher's figures exactly. Layer 0 metadata: name='HPMS_2023_Culverts_Web_Mercator', geometryType=esriGeometryPolyline, copyrightText='', description='', fields=[Route_ID, BeginPoint, EndPoint, FACILITY_TYPE, F_SYSTEM, ROUTE_NUMBER, ROUTE_NAME, NHS, NHFN, AADT, AADT_COMBINATION, ...].",
+   "correction": "The license finding is correct and the counts are correct (the researcher marked them 'not re-verified' \u2014 they are now verified). But there is a worse provenance signal they missed: the layer is literally named HPMS_2023_Culverts_Web_Mercator while carrying a roadway schema. An unlabelled service with a wrong layer name is doubly untrustworthy. Their recommendation to avoid it in favour of NTAD_-prefixed services is strengthened, not weakened."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Freight_Analysis_Framework_Network_Links/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "count=487394 exactly as claimed. Truck IS NOT NULL = 4365. Distinct Truck values = {Prohibited, Restrictions, Reserved}; Prohibited=3519, Restrictions=718, Reserved=128 \u2014 sums to 4365 exactly, and 718+128=846 matches the claimed 'remaining 846'. NULL Truck = 483029. copyrightText verbatim: '...work of the United States government as defined in 17 U.S.C. \u00a7 101... available for unrestricted public use.' DIR field exists (Integer). AB_Lanes/BA_Lanes present.",
+   "correction": "One caveat on the proposed direction workaround: DIR is present on all rows but DIR=0 on 168,215 links (34.5%), DIR=1 on 318,788, DIR=-1 on only 391. So FAF5 gives usable directionality on roughly two thirds of links, not all of them. Minor: the service's own description says '487,384 link features' while the API returns 487,394."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Highway_System/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "count=492005 exactly as claimed. copyrightText verbatim: 'The NHS Version 2025.08.08 database, or any portion thereof, can be freely distributed as long as this metadata entry is included with each distribution. The original metadata entry cannot be modified or deleted from any data transfer. This NTAD dataset is a work of the United States government as defined in 17 U.S.C. \u00a7 101...' serviceDescription confirms geometry updated August 08, 2025. The metadata-must-travel clause the researcher described is real and I read it on the wire."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Highway_Freight_Network/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "count=12989 exactly as claimed. copyrightText verbatim: 'The NHFN Version 2023.02.08 database, or any portion thereof, can be freely distributed as long as this metadata entry is included with each distribution. The original metadata entry cannot be modified or deleted from any data transfer. This NTAD dataset is a work of the United States government as defined in 17 U.S.C. \u00a7 101...' serviceDescription: compiled January 27, 2023. Fields: VERSION, YEAR_RECOR, STATE_CODE, BEGMP, ENDMP, ROUTEID, SIGN1, SIGNT1, SIGNN1, LNAME, NHS, NHFN_CODE, SOURCE, ST_NAME, LENGTH."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Strategic_Highway_Network/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "count=97118 exactly as claimed (researcher flagged this as an unverified salvage observation \u2014 it is now verified live). copyrightText verbatim: 'The NHS Version 2025.03.27 database, or any portion thereof, can be freely distributed as long as this metadata entry is included with each distribution...' \u2014 so the 'NHS-family metadata clause' characterisation is accurate.",
+   "correction": "Cosmetic only: layer 0 is named 'National Highway System (NHS)' rather than STRAHNET, and the copyright string says 'NHS Version', so the service reuses NHS metadata. Not a license problem, but attribution text should cite STRAHNET explicitly to avoid propagating the mislabel."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_National_Highway_Planning_Network/FeatureServer",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "count=626366 exactly as claimed (was a salvage observation, now verified live). copyrightText verbatim: '...work of the United States government as defined in 17 U.S.C. \u00a7 101... unrestricted public use.' serviceDescription: 'compiled on May 01, 2014'.",
+   "correction": "Worth surfacing that NHPN is 2014 vintage \u2014 older than the NN spine the researcher already flagged as stale. It should not be offered as a currency remedy for NN."
+  },
+  {
+   "url": "https://gisdata-caltrans.opendata.arcgis.com/api/feed/dcat-us/1.1.json",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "261,276 bytes, 66 datasets enumerated. Grep for STAA / 'National Network' / 'truck route' across the full serialized catalog: zero hits. 'California All Public Roads Network' license field reads exactly https://creativecommons.org/licenses/by/4.0 \u2014 CC-BY 4.0 confirmed on the wire, not public domain, as claimed. Other layers carry free-text disclaimer blobs in the license field instead of a license (e.g. 'Truck Average Daily Traffic' has a 600-word ADA/liability disclaimer, 'Freight Classification Yards' just says 'This dataset is public.'). robots.txt: Crawl-delay 60, /api/ not disallowed.",
+   "correction": "Precision note: the catalog does contain 7 truck/freight-adjacent datasets (Truck Average Daily Traffic, Commercial Vehicle Enforcement Facilities, Freight Classification Yards, Freight Intermodal Facilities, plus rail layers) \u2014 so 'zero truck datasets' would be wrong. But the researcher's actual claim was 'zero STAA/truck-route datasets', and that is correct: none of the 66 is a truck route network."
+  },
+  {
+   "url": "https://www.ecfr.gov/current/title-23/chapter-I/subchapter-G/part-658",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "714,657 bytes text/html. Page <title> = 'eCFR :: 23 CFR Part 658 -- Truck Size and Weight, Route Designations\u2014Length, Width and Weight Limitations'. Body contains 'Appendix A' (6x), 'National Network' (39x), '48 feet' (11x), '102 inches' (9x). Cross-verified structurally via https://www.ecfr.gov/api/versioner/v1/structure/2026-07-01/title-23.json (HTTP 200), which lists Part 658 with children 658.1 Purpose, 658.3 Policy statement, 658.5 Definitions, 658.7 Applicability, 658.9 National Network criteria, 658.11 Additions/deletions/exceptions/restrictions, 658.13 Length, 658.15 Width. robots.txt allows /current/ (only /search, /recent-changes, /on/, /compare/, /my/, /auth/ are disallowed)."
+  },
+  {
+   "url": "https://www2.census.gov/geo/tiger/TIGER2025/PRIMARYROADS/tl_2025_us_primaryroads.zip",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "HEAD returned HTTP/2 200, content-type: application/zip, content-length: 38379400 (36.6 MB), last-modified: Tue, 23 Sep 2025 02:15:56 GMT. File exists and is a real zip of the stated size. www2.census.gov/robots.txt allows general crawling (only named bad bots disallowed; Crawl-delay 30 for major crawlers). The researcher honestly reported feature count as 'unknown' \u2014 I did not download and count either, so it remains unknown.",
+   "correction": "The public-domain license claim is standard Census/TIGER policy but I did not open a Census terms page this run to read it \u2014 treat the license as [UNVERIFIED THIS RUN] even though it is very likely correct."
+  },
+  {
+   "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services?f=json",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "180,034 bytes; JSON keys ['currentVersion','services']; len(services)=1023 \u2014 matches the claimed 1,023 exactly. Enumeration surfaced NTAD_Freight_Analysis_Framework_Network_Nodes (the junction layer the researcher declared nonexistent) plus several unlabelled duplicate services: 'National_Network' (count=478999, copyrightText=''), 'nn_conv_comb_trucks_2025_v1' (layers=[] \u2014 empty shell, NOT a fresher truck network), 'NN' (layers=[]).",
+   "correction": "Anyone hoping 'nn_conv_comb_trucks_2025_v1' is a 2025 refresh of the National Network should not: it exposes zero layers. The unprefixed 'National_Network' service is a same-count (478,999) mirror with EMPTY copyrightText \u2014 always take NN from the NTAD_-prefixed service, which carries the 17 U.S.C. \u00a7101 text."
+  }
+ ],
+ "verdict_summary": "All 12 claimed URLs are live (HTTP 200). Numeric accuracy is unusually good: NN 478,999 / NN=1 453,529 / NN>0 454,830 / NN=0 24,169 / distinct ROUTEID 12,491 / distinct ID 478,999 / Delaware 472; NHFN 12,989; NHS 492,005; FAF5 487,394 with Truck NOT NULL 4,365 = 3,519 Prohibited + 718 Restrictions + 128 Reserved; STRAHNET 97,118; NHPN 626,366; catalog 1,023 services; HPMS 6,039,201 with NHS>0 409,627, NHFN>0 89,444, AADT_COMBINATION>0 1,125,655; Overpass US:I 975 relations; LNAME blank 411,754; SIGN1 variants ' I1'/'I1'/'IA1'; ID 444801/444802 genuinely duplicate on the proposed composite key. Every one of those reproduced on the wire. License text was read directly from copyrightText, not assumed, and the 17 U.S.C. \u00a7101 / metadata-must-travel distinction between NN-FAF5 and NHFN-NHS-STRAHNET is real.\n\nThree material defects. First, REFUTED: \"no national interchange or highway-junction point layer exists\" is false \u2014 NTAD_Freight_Analysis_Framework_Network_Nodes sits in the same catalog, is public domain, and carries Interchange, Exit_Number, Entry_or_Exit with real named values (4,485 / 3,102 / 4,472 populated of 974,788). Sparse, so computed junctions still needed, but those rows are free authoritative ground truth and should be ingested before reaching for ODbL OSM. Second, Overpass: overpass-api.de/robots.txt reads \"Disallow: /api/\" \u2014 the exact path proposed \u2014 which collides with the repo's non-negotiable robots.txt rule; OSMF policy also pushes bulk users to planet/Geofabrik extracts. Use extracts, not Overpass, for ingestion. Third, NN vintage: every row is VERSION 2020.01.10, YEAR 2018, so observed_at = 2020-12-22 is not supported by row attributes \u2014 the data is older than advertised.\n\nMinor: LNAME non-blank is 43,076 not 43,074; HPMS layer 0 is misnamed \"Culverts\"; unprefixed National_Network mirror has empty copyrightText; the no-state-mosaic conclusion generalizes from one state probed."
+}

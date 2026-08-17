@@ -1,0 +1,252 @@
+# Cycle 1 — Build Specification (Synthesis Output)
+# Generated 2026-05-23 from 15 R-agent YAML reports.
+# Priority formula: lift_point × (feasibility/5) × (confidence/5)
+# Diversification caps applied per plan Section 4 Step 3.
+
+cycle: 1
+timestamp_utc: "2026-05-23T13:30:00Z"
+v4_oof_baseline: 54.31
+v4_lb_banked: 56.98
+
+# ===== TOP RECOMMENDATIONS (post-dedup, post-diversification) =====
+
+selected_recommendations:
+  - id: R08_rec_1
+    title: "Full learned two-stage cascade"
+    technique_class: architecture
+    priority: 1.92
+    expected_oof_lift: 4.0  # range [1.0, 8.0]
+    bundled_with: [R03_rec_1, R02_rec_1]
+    rationale: |
+      Highest priority across all 15 reports. R08 cleanly explains why V8's
+      hierarchical gate was NOT exhaustion: V8 used same dominant features in
+      Stage-2. R08_rec_1 trains Stage-2 ONLY on suspect pool with ONLY subtle
+      features (X14/X49/X41/X46/X48) where t-stats are 4.4-5.0 vs hard-FP.
+      R08 explicitly states: "R08 + composition agent = highest-leverage Cycle 1
+      combination" — pairs with R03_rec_1 X43 chemistry.
+
+  - id: R02_rec_1
+    title: "CT-spread max(X4,X5,X6,X14) - min(...)"
+    technique_class: feature_engineering  # slot 1 of 2
+    priority: 0.96
+    expected_oof_lift: 1.2  # range [0.4, 3.0]
+    bundled_into_build: V23  # also runs alone in V25 for isolation testing
+    rationale: |
+      Confidence 4 (highest among feature_eng recs). Zhu et al. MDPI Metals
+      2020 directly cites head/tail cooling-rate divergence as defect driver.
+      30-min implementation. Synergizes with V23 cascade as additional Stage-1
+      feature.
+
+  - id: R06_rec_2
+    title: "Robust Focal Loss (RFL) — joint imbalance + label-noise"
+    technique_class: other  # loss function
+    priority: 0.96
+    expected_oof_lift: 1.5  # range [0.2, 4.0]
+    bundled_into_build: V24
+    rationale: |
+      Standout recommendation: Robust Focal Loss (Yao et al. 2023 arXiv:2310.05067)
+      is designed for joint label-noise + imbalance — exactly our problem
+      (Elkan-Noto c=0.154 noise + 19.5:1 imbalance). Avg rank 1.73 vs baseline
+      3.38 on 15 binary datasets.
+
+  - id: R12_rec_1
+    title: "Roll-campaign wear ordinal position features"
+    technique_class: feature_engineering  # slot 2 of 2 (SATURATED)
+    priority: 0.96
+    expected_oof_lift: 1.2  # range [0.4, 2.5]
+    bundled_into_build: V25
+    rationale: |
+      V5 only built binary 'any_campaign_zero' flag + log transforms. The
+      ordinal within-campaign counter (coils_since_last_zero, campaign_id,
+      norm_campaign_pos) is structurally new. Hard FP pairs (689,690) and
+      (188,189) likely sit at early-campaign positions → reduced score. Pure
+      pandas cumcount, zero new libraries.
+
+  - id: R05_rec_3
+    title: "BorderlineSMOTE-1 (replace vanilla SMOTE)"
+    technique_class: imbalance
+    priority: 0.80
+    expected_oof_lift: 1.0  # range [0.3, 2.5]
+    bundled_into_build: V26
+    rationale: |
+      Hard-7 coils (OOF proba 0.014-0.027, barely above V4 threshold) ARE the
+      textbook borderline minority samples BorderlineSMOTE was designed for.
+      Strongest theory-problem alignment of any imbalance variant. Drop-in
+      replacement, <1h effort.
+
+# ===== BUNDLED RECOMMENDATIONS (carry into V23 alongside R08_rec_1) =====
+
+bundled_into_v23:
+  - id: R03_rec_1
+    title: "X43 chemistry within-grade test + Si-proxy ratios"
+    technique_class: feature_engineering
+    expected_oof_lift_conditional: 1.2  # IF X43 passes within-grade variance test
+    rationale: |
+      R08's own architecture spec: "Stage-2 with named chemistry ratios is the
+      difference between AUC 0.77 (cascade alone, +4 OOF) and AUC 0.85+ (+8-10
+      OOF, rank 15-30 territory)." This is the highest-leverage feature_eng
+      decision in Cycle 1. Gate: within-grade variance ratio < 0.10 required.
+      If gate fails, fall back to pure cascade.
+
+# ===== REJECTED RECOMMENDATIONS (with reasons) =====
+
+rejected:
+  - id: R14_rec_1
+    title: "Rank-blend + isolated threshold (V10 fix)"
+    reason: "Plan forbids blended submissions across builds (V10 lesson encoded as forbidden move). Surfaced to Boss as Cycle 2 candidate after V23-V26 establish new single-model baseline."
+  - id: R10_rec_1
+    title: "Mondrian split-conformal + uncertainty-gated decision"
+    reason: "Calibration slot taken; defer to Cycle 2 as post-hoc enhancement once we have multiple new-build OOFs to anchor conformal sets on."
+  - id: R09_rec_1
+    title: "BBSE label-prior shift + threshold reanchor"
+    reason: "Not a lift recommendation (R09 itself says 'LB-cal tool', expected lift 0.0). However: critical for understanding why test runs +2.67 over OOF — apply as MEASUREMENT instrument during Phase D, not as a build."
+  - id: R04_rec_1
+    title: "TabICLv2 OOF meta-feature stack"
+    reason: "Architecture slot taken by R08 cascade. High Cycle 2 candidate if V23 doesn't beat V4 by ≥2 OOF — TabICLv2 has orthogonal inductive bias and could rescue."
+  - id: R07_rec_1, R07_rec_3
+    title: "DevNet, PReNet semi-sup anomaly meta-feature"
+    reason: "Other slot taken by R06_rec_2. High Cycle 2 candidate. PReNet has highest ceiling estimate (+3.0 OOF) among R07 variants."
+  - many_others
+    reason: "Lower-priority within their technique_class. Re-eligible for Cycle 2 or as bundled additions."
+
+# ===== BUILDS DISPATCHED (Phase C) =====
+
+builds:
+
+  - build_id: V23
+    name: "Two-stage cascade + X43 chemistry + CT-spread"
+    builder: ml-engineer-agent
+    base: build_v4
+    output_dir: build_v23/
+    recommendations: [R08_rec_1, R03_rec_1, R02_rec_1]
+    files_to_create:
+      - build_v23/build_v23.py
+      - build_v23/approach.md
+      - build_v23/oof_v23.parquet
+      - build_v23/test_meta_v23.parquet
+      - build_v23/chosen_threshold_v23.json
+      - build_v23/expected_submission.csv
+      - build_v23/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.31
+      - bootstrap_lower_ci >= 53.0
+      - hard7_caught >= 1
+      - easy59_caught >= 58
+      - hard_fp_avoided >= 5
+    expected_oof_lift_combined: 5.0  # range [1.5, 10.0]
+    failure_modes:
+      - "X43 within-grade variance test fails → drop X43, fall back to pure cascade + CT-spread"
+      - "Stage-2 underfits on 700 suspect pool → reduce feature set further"
+      - "X29-X33 force-block hypothesis wrong → CT-spread still independent"
+    reuse:
+      - ml_harness/utils/cv.py
+      - ml_harness/utils/metrics.py
+      - ml_harness/utils/ensemble.py
+      - ml_harness/utils/submission.py
+      - build_v4/v4_final_features.json
+      - build_v4/oof_v4.parquet  # Stage-1 source for cascade
+
+  - build_id: V24
+    name: "V4 with Robust Focal Loss"
+    builder: ml-engineer-agent
+    base: build_v4
+    output_dir: build_v24/
+    recommendations: [R06_rec_2]
+    files_to_create:
+      - build_v24/build_v24.py
+      - build_v24/approach.md
+      - build_v24/oof_v24.parquet
+      - build_v24/chosen_threshold_v24.json
+      - build_v24/expected_submission.csv
+      - build_v24/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.31
+      - bootstrap_lower_ci >= 53.0
+      - easy59_caught >= 58
+    expected_oof_lift: 1.5  # range [0.2, 4.0]
+    failure_modes:
+      - "Custom objective gradient/hessian bug → revert to focal loss (R06_rec_1)"
+      - "r/q params over-shrink positives → fall back to gamma=1, alpha=0.7"
+    reuse:
+      - ml_harness/utils/cv.py
+      - ml_harness/utils/metrics.py
+      - build_v4/v4_final_features.json
+
+  - build_id: V25
+    name: "Roll-campaign ordinal + Force-block grade z-scores"
+    builder: data-engineer-agent  # feature build
+    base: build_v4
+    output_dir: build_v25/
+    recommendations: [R12_rec_1, R01_rec_1]
+    files_to_create:
+      - build_v25/build_v25.py
+      - build_v25/approach.md
+      - build_v25/oof_v25.parquet
+      - build_v25/chosen_threshold_v25.json
+      - build_v25/expected_submission.csv
+      - build_v25/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.31
+      - bootstrap_lower_ci >= 53.0
+      - hard_fp_avoided >= 5
+    expected_oof_lift_combined: 2.0  # range [0.5, 4.5]
+    failure_modes:
+      - "X29-X33 block correlation test fails → drop force-block z-scores, keep R12 alone"
+      - "Campaign features highly correlated with V5 log(X34/X36) → marginal SHAP contribution"
+    reuse:
+      - ml_harness/utils/cv.py
+      - ml_harness/utils/metrics.py
+      - build_v4/v4_final_features.json
+
+  - build_id: V26
+    name: "V4 with BorderlineSMOTE-1"
+    builder: ml-engineer-agent
+    base: build_v4
+    output_dir: build_v26/
+    recommendations: [R05_rec_3]
+    files_to_create:
+      - build_v26/build_v26.py
+      - build_v26/approach.md
+      - build_v26/oof_v26.parquet
+      - build_v26/chosen_threshold_v26.json
+      - build_v26/expected_submission.csv
+      - build_v26/solution.ipynb
+    acceptance_gates:
+      - oof_score >= 54.31
+      - bootstrap_lower_ci >= 53.0
+      - easy59_caught >= 58
+    expected_oof_lift: 1.0  # range [0.3, 2.5]
+    failure_modes:
+      - "BorderlineSMOTE-1 collapses on small per-fold positive count (53) → fall back to BorderlineSMOTE-2 or SMOTEENN"
+    reuse:
+      - ml_harness/utils/cv.py
+      - ml_harness/utils/metrics.py
+      - build_v4/v4_final_features.json
+
+# ===== PARALLELISM PLAN (Phase C) =====
+
+dispatch_strategy:
+  parallel: true
+  rationale: "V23, V24, V25, V26 are independent. Each writes to its own build_v<N>/ directory. No shared output files. Dispatch all 4 in a single Agent batch."
+
+# ===== CALIBRATION INSTRUMENT (apply during Phase D, not a build) =====
+
+phase_d_instrument:
+  - id: R09_rec_1_as_instrument
+    title: "BBSE label-prior shift quantification"
+    purpose: |
+      For each new build, run BBSE on V4 OOF + new OOF to confirm the +2.67
+      LB-OOF delta still holds for the new build's probability distribution.
+      If delta changes significantly, Set F calibrated-LB gate must be updated
+      for that build only. Standard procedure applied to every new oof_v<N>.parquet.
+
+# ===== SUMMARY =====
+
+summary:
+  builds_to_dispatch: 4
+  technique_classes_covered: [architecture, feature_engineering, other, imbalance]
+  highest_priority_pick: R08_rec_1 (cascade)
+  highest_leverage_combo: V23 (cascade + X43 chemistry + CT-spread)
+  expected_best_oof: 59.31  # V4 baseline 54.31 + V23 expected +5.0
+  expected_best_lb: 61.98   # +2.67 calibration delta
+  total_expected_active_time_min: 90  # all 4 builds running in parallel

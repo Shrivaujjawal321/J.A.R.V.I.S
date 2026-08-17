@@ -1,0 +1,52 @@
+{
+  "chosen_threshold": 0.010350131462830519,
+  "strategy": "maximize_(recall+precision)/2_exact_unique_thresholds",
+  "predicted_lb_score": 53.83275261324042,
+  "oof_recall": 1.0,
+  "oof_precision": 0.07665505226480836,
+  "oof_n_positives": 861,
+  "oof_total": 1352,
+  "oof_positive_rate": 0.6368343195266272,
+  "meta_oof_auc": 0.8824049201187615,
+  "fold_aucs_lgb": [
+    0.8231961836613001,
+    0.8785436353529739,
+    0.8033522897336127,
+    0.8886560909907213,
+    0.8533373241544447
+  ],
+  "fold_aucs_xgb": [
+    0.8103756708407871,
+    0.895497498610339,
+    0.815624064651302,
+    0.9126010176593834,
+    0.8497455851541456
+  ],
+  "fold_aucs_cat": [
+    0.8539057841383424,
+    0.8988326848249028,
+    0.8599221789883268,
+    0.9182879377431907,
+    0.8775815624064651
+  ],
+  "mean_auc_lgb": 0.8494171047786105,
+  "mean_auc_xgb": 0.8567687673831914,
+  "mean_auc_cat": 0.8817060296202456,
+  "smote_variants_per_fold": [
+    "borderline-1",
+    "borderline-1",
+    "borderline-1",
+    "borderline-1",
+    "borderline-1"
+  ],
+  "synthetic_samples_per_fold": [
+    255,
+    256,
+    255,
+    255,
+    255
+  ],
+  "avg_synthetic_samples": 255.2,
+  "v4_oof_score": 54.31,
+  "delta_vs_v4": -0.47724738675957923
+}

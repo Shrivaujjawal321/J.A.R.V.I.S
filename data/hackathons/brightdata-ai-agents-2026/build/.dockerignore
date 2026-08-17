@@ -1,0 +1,66 @@
+# --- Version control ---
+.git
+.gitignore
+.github
+
+# --- Frontend (not in image — deployed to Vercel) ---
+frontend/
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env*.local
+
+# --- Dev + test artefacts ---
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.ruff_cache
+.mypy_cache
+*.egg-info
+dist/
+build/
+*.whl
+
+# --- Secrets (never in image) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- Cache (populated at runtime, not baked in) ---
+.cache/
+*.cache
+
+# --- Data artefacts ---
+data/cost_tracker.json
+data/evals/
+data/*.json
+
+# --- Docs and assets ---
+README.md
+ARCHITECTURE.md
+assets/
+*.md
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Docker itself ---
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# --- Scripts (CI/tooling — not runtime deps) ---
+scripts/
+Makefile

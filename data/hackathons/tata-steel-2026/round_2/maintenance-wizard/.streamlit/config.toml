@@ -1,0 +1,49 @@
+[theme]
+base                             = "dark"
+primaryColor                     = "#3B82F6"
+backgroundColor                  = "#09090F"
+secondaryBackgroundColor         = "#0F1117"
+textColor                        = "#E8E8F2"
+font                             = "sans serif"
+
+baseRadius                       = "medium"
+buttonRadius                     = "medium"
+borderColor                      = "rgba(255,255,255,0.11)"
+showWidgetBorder                 = true
+
+dataframeBorderColor             = "rgba(255,255,255,0.07)"
+dataframeHeaderBackgroundColor   = "#1E2638"
+
+linkColor                        = "#60A5FA"
+linkUnderline                    = false
+
+chartCategoricalColors           = [
+    "#3B82F6",
+    "#34D399",
+    "#A78BFA",
+    "#FBBF24",
+    "#FB923C",
+    "#F87171",
+]
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url    = "https://fonts.gstatic.com/s/ibmplexsans/v19/zYXgKVElMYYaJe8bpLHnCwDKjQ76AIFsdP3pBms.woff2"
+weight = 400
+style  = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url    = "https://fonts.gstatic.com/s/ibmplexsans/v19/zYXhKVElMYYaJe8bpLHnCwDKjXr8AIFscg.woff2"
+weight = 600
+style  = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url    = "https://fonts.gstatic.com/s/ibmplexmono/v19/-F6qfjptAgt5VM-kVkqdyU8n5igg1l9kn-s.woff2"
+weight = 400
+style  = "normal"
+
+[client]
+toolbarMode      = "viewer"
+showErrorDetails = false

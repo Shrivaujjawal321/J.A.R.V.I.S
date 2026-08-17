@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EDITH — Master Architecture</title>
+<style>
+  :root{
+    --bg:#f4f6fa;--panel:#ffffff;--panel-2:#eaeef5;--ink:#161b24;--muted:#5c6774;--border:#d3dae4;
+    --accent:#d97706;--accent-soft:#fdf0dd;
+    --blue:#1f6feb;--blue-bg:#e3edff;
+    --green:#1a7f37;--green-bg:#e6f4ec;--red:#cf222e;--red-bg:#ffebeb;--amber:#9a6700;--amber-bg:#fbf2d7;
+    --violet:#7d4fd3;--violet-bg:#efe7ff;--teal:#0f766e;--teal-bg:#dcf3f0;--pink:#c02670;--pink-bg:#fde7f1;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0b0c10;--panel:#15161d;--panel-2:#1e2029;--ink:#e9ebf0;--muted:#9aa2af;--border:#2c2f3b;
+    --accent:#f0a03c;--accent-soft:#33230d;
+    --blue:#5aa2ff;--blue-bg:#132a4d;
+    --green:#4ecb6a;--green-bg:#0f2a18;--red:#ff7b72;--red-bg:#2f1416;--amber:#e3b341;--amber-bg:#2b2310;
+    --violet:#b28df5;--violet-bg:#221540;--teal:#38d0be;--teal-bg:#0b2a26;--pink:#f077ad;--pink-bg:#33101f;
+  }}
+  :root[data-theme="light"]{--bg:#f4f6fa;--panel:#ffffff;--panel-2:#eaeef5;--ink:#161b24;--muted:#5c6774;--border:#d3dae4;--accent:#d97706;--accent-soft:#fdf0dd;--blue:#1f6feb;--blue-bg:#e3edff;--green:#1a7f37;--green-bg:#e6f4ec;--red:#cf222e;--red-bg:#ffebeb;--amber:#9a6700;--amber-bg:#fbf2d7;--violet:#7d4fd3;--violet-bg:#efe7ff;--teal:#0f766e;--teal-bg:#dcf3f0;--pink:#c02670;--pink-bg:#fde7f1;}
+  :root[data-theme="dark"]{--bg:#0b0c10;--panel:#15161d;--panel-2:#1e2029;--ink:#e9ebf0;--muted:#9aa2af;--border:#2c2f3b;--accent:#f0a03c;--accent-soft:#33230d;--blue:#5aa2ff;--blue-bg:#132a4d;--green:#4ecb6a;--green-bg:#0f2a18;--red:#ff7b72;--red-bg:#2f1416;--amber:#e3b341;--amber-bg:#2b2310;--violet:#b28df5;--violet-bg:#221540;--teal:#38d0be;--teal-bg:#0b2a26;--pink:#f077ad;--pink-bg:#33101f;}
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:30px 14px 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:960px;margin:0 auto;}
+  .themebtn{position:fixed;top:12px;right:12px;z-index:20;font-family:var(--mono);font-size:12px;cursor:pointer;background:var(--panel);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 11px;}
+
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  h1{font-size:clamp(24px,5vw,36px);margin:6px 0 6px;font-weight:800;letter-spacing:-.5px;}
+  .sub{color:var(--muted);font-size:14.5px;max-width:68ch;}
+  h2{font-size:20px;margin:44px 0 4px;display:flex;align-items:baseline;gap:9px;}
+  h2 .n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:6px;font-weight:700;}
+  .lead{color:var(--muted);font-size:13.5px;margin:2px 0 14px;}
+
+  .arch{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+  .layer{border:2px solid var(--border);border-radius:14px;padding:14px 16px;background:var(--panel);}
+  .layer .ltitle{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800;font-size:14px;margin-bottom:2px;}
+  .layer .ltag{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:999px;font-weight:700;letter-spacing:.4px;}
+  .layer .ldesc{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .boxes{display:flex;flex-wrap:wrap;gap:8px;}
+  .bx{flex:1 1 130px;min-width:120px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;}
+  .bx b{display:block;font-size:12.5px;}
+  .bx span{color:var(--muted);font-size:11px;}
+  .bx.hl{background:var(--accent-soft);border-color:var(--accent);}
+  .bx.hl b{color:var(--accent);}
+  .flow-arrow{text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:6px 0;}
+  .l-data{border-color:var(--teal);}   .l-data .ltag{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal);}
+  .l-detect{border-color:var(--amber);} .l-detect .ltag{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber);}
+  .l-orch{border-color:var(--accent);}  .l-orch .ltag{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+  .l-know{border-color:var(--violet);}  .l-know .ltag{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet);}
+  .l-trust{border-color:var(--red);}    .l-trust .ltag{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+  .l-ui{border-color:var(--blue);}      .l-ui .ltag{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue);}
+
+  .pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:14px 0;}
+  .stage{flex:1 1 135px;min-width:135px;border-radius:12px;padding:11px 12px;border:2px solid var(--border);background:var(--panel);}
+  .stage .num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--muted);}
+  .stage b{display:block;font-size:13.5px;margin:2px 0;}
+  .stage p{margin:4px 0 0;font-size:11.5px;color:var(--muted);}
+  .stage.sup{border-color:var(--accent);background:var(--accent-soft);}
+  .stage.sup b{color:var(--accent);}
+  .parr{display:flex;align-items:center;font-family:var(--mono);color:var(--muted);font-size:14px;}
+
+  .note{background:var(--panel);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
+  .note b{color:var(--accent);}
+  .say{background:var(--green-bg);border-left:4px solid var(--green);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
+  .say b{color:var(--green);}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:14px 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px 15px;}
+  .card h3{margin:0 0 6px;font-size:14.5px;}
+  .card p,.card li{font-size:12.5px;color:var(--muted);margin:4px 0;}
+  code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border);}
+
+  .cheat{overflow-x:auto;border:1px solid var(--border);border-radius:11px;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:540px;}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--panel-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+
+  footer{margin-top:48px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:14px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeToggle">◐ theme</button>
+<div class="wrap">
+
+  <div class="kicker">Tata Steel Round 2 · Interview Master Diagram</div>
+  <h1>EDITH — Agentic Maintenance Copilot</h1>
+  <p class="sub">Problem: plant ka data bikhra hua hai (manuals, logs, sensors) — fault diagnose karna slow. Solution: EDITH — sensor se prioritized action tak, <b>explainable aur hallucination-free.</b> Interviewer ko upar se neeche samjhao.</p>
+
+  <!-- ================= 6 LAYERS ================= -->
+  <h2><span class="n">1</span> The Big Picture — 6 Layers</h2>
+  <p class="lead">Bolne ka order: "Data comes in, anomaly is detected, a supervisor runs five specialist agents, they pull knowledge from RAG and ML models, a trust layer verifies everything, and the engineer sees it on a live dashboard."</p>
+
+  <div class="arch">
+
+    <div class="layer l-data">
+      <div class="ltitle">📡 LAYER 1 — DATA <span class="ltag">SENSORS + DOCUMENTS</span></div>
+      <div class="ldesc">Do tarah ka input: live machine data + plant knowledge.</div>
+      <div class="boxes">
+        <div class="bx hl"><b>Sensor stream (Kafka)</b><span>real-time readings — temp, vibration, pressure. Research-based synthetic; <b>OPC-UA/MQTT live feed se swap-ready (IT-OT)</b></span></div>
+        <div class="bx"><b>Manuals + logs corpus</b><span>maintenance manuals, incident logs — RAG ka source</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ readings continuously ▼</div>
+
+    <div class="layer l-detect">
+      <div class="ltitle">🚨 LAYER 2 — DETECTION <span class="ltag">KAB JAAGNA HAI</span></div>
+      <div class="ldesc">Har reading pe nazar — problem dikhi to hi aage ka system jaagta hai.</div>
+      <div class="boxes">
+        <div class="bx"><b>Threshold monitor</b><span>danger limit cross → trigger</span></div>
+        <div class="bx"><b>IsolationForest</b><span>unsupervised anomaly — bina label ke abnormal pakadta hai</span></div>
+        <div class="bx hl"><b>🟢🟡🔴 Color alerts</b><span>good / watch / stop — non-expert operator bhi graph pe dekh le</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ anomaly → query ▼</div>
+
+    <div class="layer l-orch">
+      <div class="ltitle">🎯 LAYER 3 — ORCHESTRATION <span class="ltag">SUPERVISOR + 5 AGENTS · STATIC DAG</span></div>
+      <div class="ldesc">Custom <b>deterministic supervisor</b> (LangGraph reject kiya) — fixed one-direction chain (DAG), no loops, no surprise routing. Har agent apne facts <b>shared reasoning trace</b> mein add karta hai.</div>
+      <div class="boxes">
+        <div class="bx hl"><b>Supervisor</b><span>intent check → chain start</span></div>
+        <div class="bx"><b>1 Diagnosis</b><span>kya kharabi hai</span></div>
+        <div class="bx"><b>2 Predictor</b><span>RUL — kitni life bachi (regression)</span></div>
+        <div class="bx"><b>3 Root-Cause</b><span>kyun hua</span></div>
+        <div class="bx"><b>4 Recommender</b><span>kya karna hai</span></div>
+        <div class="bx"><b>5 Prioritizer</b><span>pehle kya — risk × spares × lead-time</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ agents facts yahan se lete hain ▼</div>
+
+    <div class="layer l-know">
+      <div class="ltitle">📚 LAYER 4 — KNOWLEDGE <span class="ltag">RAG + ML + FINE-TUNED SLM</span></div>
+      <div class="ldesc">Agents guess nahi karte — yahan se <b>facts</b> pull karte hain.</div>
+      <div class="boxes">
+        <div class="bx hl"><b>RAG pipeline</b><span>manuals → overlap chunks → <b>bge-small</b> embeddings → <b>ChromaDB</b> → <b>FlashRank</b> reranker → best context</span></div>
+        <div class="bx"><b>LightGBM models</b><span>RUL regression + fault-type classification (dono supervised)</span></div>
+        <div class="bx"><b>Qwen 3B SLM (QLoRA)</b><span>steel-maintenance pe fine-tuned — sasta, <b>on-prem deployable = plant data private</b></span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ likhne se pehle check ▼</div>
+
+    <div class="layer l-trust">
+      <div class="ltitle">🛡️ LAYER 5 — TRUST <span class="ltag">HALLUCINATION KE KHILAF 3 GATES</span></div>
+      <div class="ldesc">Galat maintenance advice = mehnga + unsafe. Isliye teen taale.</div>
+      <div class="boxes">
+        <div class="bx"><b>Prompt-to-template</b><span>EK LLM call — numbered facts se fixed template bharta hai, khud se kuch nahi jodta</span></div>
+        <div class="bx hl"><b>NLI faithfulness gate (DeBERTa)</b><span>har claim source se verify — unverified → flag</span></div>
+        <div class="bx"><b>Human-in-the-loop</b><span>final action engineer leta hai — AI recommend karta hai, karta nahi</span></div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">│ verified answer ▼</div>
+
+    <div class="layer l-ui">
+      <div class="ltitle">🖥️ LAYER 6 — DASHBOARD <span class="ltag">ENGINEER KYA DEKHTA HAI</span></div>
+      <div class="ldesc">Next.js dashboard — live graph + diagnosis card + reasoning trace.</div>
+      <div class="boxes">
+        <div class="bx"><b>Live sensor graph</b><span>🟢🟡🔴 states — illiterate operator bhi samajh le</span></div>
+        <div class="bx"><b>SSE streaming</b><span>jawab live type hota hua dikhta hai</span></div>
+        <div class="bx hl"><b>Reasoning trace</b><span>har agent ka step visible — <b>explainable, auditable</b> (JD keyword!)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="say">🎤 <b>2-line summary (ratlo):</b> "EDITH watches live sensor streams; on an anomaly, a deterministic supervisor runs five specialist agents — diagnosis to prioritization. Every fact comes from RAG or ML models, an NLI gate verifies every claim, and the engineer sees an explainable trace — never a guess."</div>
+
+  <!-- ================= JOURNEY ================= -->
+  <h2><span class="n">2</span> Fault Journey — sensor se action tak</h2>
+  <div class="pipe">
+    <div class="stage"><div class="num">1</div><b>Reading aayi</b><p>Kafka stream se temp/vibration</p></div>
+    <div class="parr">→</div>
+    <div class="stage"><div class="num">2</div><b>Anomaly!</b><p>threshold cross / IsolationForest flag → 🔴</p></div>
+    <div class="parr">→</div>
+    <div class="stage sup"><div class="num">3</div><b>Supervisor</b><p>5-agent chain chalata hai (DAG)</p></div>
+    <div class="parr">→</div>
+    <div class="stage"><div class="num">4</div><b>Facts + RAG</b><p>models predict, manuals se procedure</p></div>
+    <div class="parr">→</div>
+    <div class="stage"><div class="num">5</div><b>NLI verify</b><p>har claim source se match</p></div>
+    <div class="parr">→</div>
+    <div class="stage"><div class="num">6</div><b>Engineer</b><p>prioritized action + trace — seconds mein, hours nahi</p></div>
+  </div>
+
+  <!-- ================= ML MAP ================= -->
+  <h2><span class="n">3</span> ML Map — kaunsa model, kaunsa kaam</h2>
+  <div class="cheat"><table>
+    <thead><tr><th>Kaam</th><th>Model</th><th>Type</th><th>Kyun</th></tr></thead>
+    <tbody>
+      <tr><td>Machine life (RUL)</td><td>LightGBM regressor</td><td><b>Supervised · Regression</b> (output = NUMBER)</td><td>tabular sensor features pe GBM best, CPU pe fast</td></tr>
+      <tr><td>Fault type</td><td>LightGBM classifier</td><td><b>Supervised · Classification</b> (output = CATEGORY)</td><td>labeled fault categories</td></tr>
+      <tr><td>Anomaly detection</td><td>IsolationForest</td><td><b>Unsupervised</b> (no labels)</td><td>naye/unknown failure patterns bhi pakde</td></tr>
+      <tr><td>Language/explanation</td><td>Qwen 3B + QLoRA</td><td>Fine-tuned SLM</td><td>domain tone + on-prem privacy + sasta</td></tr>
+      <tr><td>Claim verification</td><td>DeBERTa NLI</td><td>Entailment check</td><td>"kya ye claim source se nikalta hai?"</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note">💡 <b>Ye table interview-gold hai:</b> ek hi project mein supervised (dono types) + unsupervised + fine-tuning + NLI — JD ke 5 topics ek saath cover. "R2 has both — RUL is regression, fault-type is classification" bolna mat bhoolna.</div>
+
+  <!-- ================= DECISIONS ================= -->
+  <h2><span class="n">4</span> Design Decisions — "Ye kyun, wo kyun nahi"</h2>
+  <div class="grid2">
+    <div class="card"><h3>✅ Custom deterministic DAG &nbsp;❌ LangGraph</h3><p>Prototype banaya, phir reject: single machine + must-not-crash demo ke liye fixed chain <b>zyada reliable</b> — no dynamic routing surprises, no framework debugging. Flow deterministic = har run same order = auditable.</p></div>
+    <div class="card"><h3>✅ LightGBM &nbsp;❌ LSTM autoencoder</h3><p>Evaluate kiya — LSTM ko zyada data + GPU chahiye. Tabular lag/rolling features + GBM = same accuracy, CPU pe fast. <b>"Right tool, not fancy tool."</b></p></div>
+    <div class="card"><h3>✅ Fine-tuned 3B SLM &nbsp;❌ bada API LLM</h3><p>Plant data confidential — on-prem SLM se <b>data bahar nahi jaata</b>. QLoRA se free Colab GPU pe train hua. Sasta + private + fast.</p></div>
+    <div class="card"><h3>✅ NLI gate &nbsp;❌ "LLM pe bharosa"</h3><p>Maintenance advice galat = unsafe. Alag DeBERTa model har claim source se check karta hai — LLM khud ko check nahi kar sakta. <b>Trust by architecture, not by hope.</b></p></div>
+    <div class="card"><h3>✅ Template synthesis &nbsp;❌ free-form generation</h3><p>Final answer ek fixed template se banta hai, numbered facts bhar ke — consistent, auditable, hallucination ki jagah hi nahi.</p></div>
+    <div class="card"><h3>✅ Synthetic data (research-based) &nbsp;❌ random fake data</h3><p>Pehle research — kaunsi machines, kahan sensors, real failure modes. Us par based realistic data. Design OPC-UA swap-ready = production path clear.</p></div>
+  </div>
+
+  <!-- ================= NUMBERS ================= -->
+  <h2><span class="n">5</span> Numbers — quote karne ke liye</h2>
+  <div class="cheat"><table>
+    <thead><tr><th>Number</th><th>Kya</th></tr></thead>
+    <tbody>
+      <tr><td><b>5</b></td><td>specialist agents (Diagnosis → Predictor → RCA → Recommender → Prioritizer)</td></tr>
+      <tr><td><b>3B</b></td><td>Qwen SLM size — QLoRA (4-bit) se fine-tuned</td></tr>
+      <tr><td><b>2</b></td><td>ML models per machine — RUL regressor + fault classifier</td></tr>
+      <tr><td><b>3</b></td><td>trust gates — template · NLI · human-in-loop</td></tr>
+      <tr><td><b>3</b></td><td>alert states — good / watch / stop</td></tr>
+      <tr><td><b>seconds vs hours</b></td><td>diagnosis time — the business result line</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================= CLOSING ================= -->
+  <h2><span class="n">6</span> Closing Lines</h2>
+  <div class="say">🎤 <b>Result line (har walkthrough ka END):</b> "The engineer gets an explainable, prioritized diagnosis in <b>seconds instead of hours</b> — and because of the NLI gate and reasoning trace, they can <b>trust</b> it."</div>
+  <div class="say">🎤 <b>Jarvis connect:</b> "Jarvis was my lab — EDITH is the industrial version. Manager-worker became the supervisor, RAG memory became manuals retrieval, the critic became the NLI faithfulness gate."</div>
+
+  <footer>EDITH Master Architecture · Tata Steel R2 · interview edition · 6 layers ek page pe</footer>
+</div>
+<script>
+(function(){var b=document.getElementById('themeToggle'),r=document.documentElement;b.addEventListener('click',function(){var c=r.getAttribute('data-theme');if(!c)c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',c==='dark'?'light':'dark');});})();
+</script>
+</body>
+</html>

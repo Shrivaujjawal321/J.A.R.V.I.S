@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S. — Architecture Visualizer</title>
+<style>
+  :root{
+    --bg:#070b14; --bg2:#0c1220; --panel:#0f1729; --panel2:#131c30;
+    --line:#1e2c44; --txt:#cdd9ef; --dim:#7d8db0; --mut:#56688c;
+    --cyan:#36e0ff; --cyan-dim:#1a8aa8; --gold:#ffce5c; --green:#48e6a0;
+    --red:#ff6b7d; --violet:#b388ff; --blue:#5b9dff; --orange:#ff9d5c;
+    --glow:0 0 24px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:radial-gradient(1200px 700px at 70% -10%, #0e1830 0%, var(--bg) 55%);
+    color:var(--txt); font:15px/1.6 'Inter',-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  code,.mono{font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+  a{color:var(--cyan); text-decoration:none}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+  section{padding:64px 0; border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+  .eyebrow{color:var(--cyan); font:600 12px/1 'JetBrains Mono',monospace; letter-spacing:.22em;
+    text-transform:uppercase; margin-bottom:14px; display:flex; gap:10px; align-items:center}
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--cyan); display:inline-block; box-shadow:var(--glow) var(--cyan)}
+  h2{font-size:30px; font-weight:800; letter-spacing:-.02em; margin-bottom:8px}
+  h2 .hi{color:var(--cyan)}
+  .lead{color:var(--dim); max-width:760px; margin-bottom:32px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:rgba(7,11,20,.78); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; gap:8px; height:58px}
+  nav .brand{font:800 16px/1 'JetBrains Mono',monospace; letter-spacing:.12em; color:#fff; margin-right:auto}
+  nav .brand b{color:var(--cyan)}
+  nav a{color:var(--dim); font-size:13px; padding:7px 11px; border-radius:8px; transition:.2s}
+  nav a:hover{color:#fff; background:var(--panel2)}
+  @media(max-width:860px){nav a{display:none} nav a.show{display:inline}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:90px 0 70px; text-align:center; position:relative}
+  .reactor{width:150px; height:150px; margin:0 auto 30px; position:relative}
+  .ring{position:absolute; inset:0; border-radius:50%; border:2px solid var(--cyan-dim)}
+  .ring.r1{inset:0; border-top-color:var(--cyan); animation:spin 7s linear infinite}
+  .ring.r2{inset:18px; border-right-color:var(--cyan); animation:spin 5s linear infinite reverse; opacity:.7}
+  .ring.r3{inset:36px; border-bottom-color:#fff; animation:spin 3.5s linear infinite; opacity:.5}
+  .core{position:absolute; inset:54px; border-radius:50%;
+    background:radial-gradient(circle, #eafcff 0%, var(--cyan) 45%, var(--cyan-dim) 100%);
+    box-shadow:0 0 40px var(--cyan), 0 0 80px var(--cyan-dim); animation:pulse 2.4s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{transform:scale(1); opacity:.92} 50%{transform:scale(1.12); opacity:1}}
+  .hero h1{font-size:60px; font-weight:900; letter-spacing:.08em; line-height:1;
+    background:linear-gradient(180deg,#fff,#8fb6e8); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero .tag{color:var(--cyan); font:600 14px/1 'JetBrains Mono',monospace; letter-spacing:.18em; margin-top:14px}
+  .hero p{color:var(--dim); max-width:620px; margin:22px auto 0}
+  .pill-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:30px}
+  .pill{font:600 12px/1 'JetBrains Mono',monospace; padding:9px 13px; border-radius:99px;
+    border:1px solid var(--line); background:var(--panel); color:var(--dim)}
+  .pill b{color:var(--cyan)}
+
+  /* ---------- generic card ---------- */
+  .grid{display:grid; gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2)); border:1px solid var(--line);
+    border-radius:14px; padding:20px}
+  .card h3{font-size:16px; margin-bottom:6px; display:flex; align-items:center; gap:9px}
+  .card p{color:var(--dim); font-size:13.5px}
+  .dot{width:9px; height:9px; border-radius:50%; flex:none; box-shadow:var(--glow) currentColor}
+
+  /* ---------- architecture stack ---------- */
+  .stack{display:flex; flex-direction:column; gap:0; align-items:center}
+  .tier-box{width:100%; max-width:860px; border:1px solid var(--line); border-radius:14px;
+    background:linear-gradient(180deg,var(--panel),var(--bg2)); padding:18px 22px; position:relative}
+  .tier-box .lbl{position:absolute; top:-10px; left:18px; font:700 11px/1 'JetBrains Mono',monospace;
+    letter-spacing:.14em; text-transform:uppercase; padding:3px 9px; border-radius:6px; background:var(--bg)}
+  .tier-row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:6px}
+  .node{flex:1; min-width:140px; background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; text-align:center; transition:.2s}
+  .node:hover{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan-dim)}
+  .node .nm{font:600 13px/1.2 'JetBrains Mono',monospace; color:#fff}
+  .node .ds{font-size:11.5px; color:var(--mut); margin-top:5px}
+  .arrow{height:34px; width:2px; background:linear-gradient(180deg,var(--cyan),transparent);
+    position:relative; margin:2px 0}
+  .arrow::after{content:"▼"; position:absolute; bottom:-2px; left:-6px; color:var(--cyan); font-size:11px}
+
+  /* ---------- pipeline (interactive) ---------- */
+  .pipe{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  @media(max-width:860px){.pipe{grid-template-columns:1fr}}
+  .step{background:linear-gradient(180deg,var(--panel),var(--bg2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; cursor:pointer; transition:.22s; position:relative; overflow:hidden}
+  .step::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c)}
+  .step:hover,.step.active{transform:translateY(-4px); border-color:var(--c); box-shadow:0 12px 30px -12px var(--c)}
+  .step .num{font:800 26px/1 'JetBrains Mono',monospace; color:var(--c); opacity:.85}
+  .step .t{font-weight:700; margin:8px 0 4px; font-size:15px}
+  .step .m{font:600 11px/1 'JetBrains Mono',monospace; color:var(--mut)}
+  .step .d{font-size:12.5px; color:var(--dim); margin-top:8px}
+  .detail{margin-top:18px; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--cyan);
+    border-radius:12px; padding:20px; min-height:90px}
+  .detail h4{font-size:15px; margin-bottom:8px; color:#fff}
+  .detail .file{font:600 11px/1 'JetBrains Mono',monospace; color:var(--cyan); margin-bottom:10px; display:inline-block}
+  .detail ul{margin:8px 0 0 0; padding-left:18px; color:var(--dim); font-size:13.5px}
+  .detail li{margin:4px 0}
+
+  /* ---------- sequence (API call) ---------- */
+  .seq{counter-reset:s; display:flex; flex-direction:column; gap:0}
+  .seq .row{display:grid; grid-template-columns:46px 1fr; gap:16px; align-items:stretch}
+  .seq .gut{display:flex; flex-direction:column; align-items:center}
+  .seq .bub{width:46px; height:46px; border-radius:50%; display:grid; place-items:center; flex:none;
+    background:var(--panel2); border:1px solid var(--line); font:800 15px/1 'JetBrains Mono',monospace; color:var(--cyan)}
+  .seq .ln{width:2px; flex:1; background:linear-gradient(180deg,var(--cyan-dim),var(--line)); margin:4px 0}
+  .seq .row:last-child .ln{display:none}
+  .seq .body{padding-bottom:22px}
+  .seq .body .hd{font-weight:700; font-size:15px}
+  .seq .body .hd .who{font:600 11px/1 'JetBrains Mono',monospace; color:var(--gold); margin-left:8px}
+  .seq .body .cd{margin-top:8px; background:#060a12; border:1px solid var(--line); border-radius:9px;
+    padding:11px 13px; font:12.5px/1.6 'JetBrains Mono',monospace; color:#a9c4ea; overflow-x:auto; white-space:pre}
+  .seq .body p{color:var(--dim); font-size:13px; margin-top:6px}
+  .tok{color:var(--cyan)} .tk2{color:var(--gold)} .tk3{color:var(--green)} .cmt{color:var(--mut)}
+
+  /* ---------- memory loop ---------- */
+  .loop{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media(max-width:860px){.loop{grid-template-columns:1fr}}
+  .memcol{background:linear-gradient(180deg,var(--panel),var(--bg2)); border:1px solid var(--line); border-radius:14px; padding:20px}
+  .memcol h3{display:flex; gap:9px; align-items:center; margin-bottom:12px; font-size:16px}
+  .flowline{display:flex; flex-direction:column; gap:8px}
+  .fl{display:flex; align-items:center; gap:10px; font:600 12.5px/1.3 'JetBrains Mono',monospace; color:var(--dim)}
+  .fl .b{padding:7px 10px; border-radius:8px; background:var(--panel2); border:1px solid var(--line); color:#fff}
+  .fl .ar{color:var(--cyan)}
+
+  /* ---------- safety tiers ---------- */
+  .tiers{display:grid; gap:12px}
+  .tierline{display:grid; grid-template-columns:90px 1fr 150px; gap:16px; align-items:center;
+    border:1px solid var(--line); border-radius:12px; padding:14px 18px; background:var(--panel);
+    border-left:4px solid var(--c)}
+  @media(max-width:680px){.tierline{grid-template-columns:1fr}}
+  .tierline .tn{font:800 14px/1 'JetBrains Mono',monospace; color:var(--c)}
+  .tierline .ex{font-size:13px; color:var(--dim)}
+  .tierline .pol{font:600 11px/1.3 'JetBrains Mono',monospace; text-align:right; color:#fff}
+  @media(max-width:680px){.tierline .pol{text-align:left}}
+
+  /* ---------- file table ---------- */
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line)}
+  th{color:var(--mut); font:600 11px/1 'JetBrains Mono',monospace; letter-spacing:.1em; text-transform:uppercase}
+  td .fp{font:600 12.5px/1 'JetBrains Mono',monospace; color:var(--cyan)}
+  td.d{color:var(--dim)}
+
+  .foot{padding:48px 0; text-align:center; color:var(--mut); font-size:13px}
+  .badge{display:inline-block; font:600 11px/1 'JetBrains Mono',monospace; padding:4px 9px; border-radius:6px;
+    border:1px solid var(--line); color:var(--dim); margin:0 3px}
+  .hl{color:var(--cyan)} .hg{color:var(--gold)} .hgr{color:var(--green)} .hr{color:var(--red)}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand">J<b>.</b>A<b>.</b>R<b>.</b>V<b>.</b>I<b>.</b>S</div>
+  <a href="#arch">Architecture</a>
+  <a href="#pipe">Pipeline</a>
+  <a href="#api">API Call</a>
+  <a href="#mem">Memory</a>
+  <a href="#safe">Safety</a>
+  <a href="#stack">Stack</a>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero wrap">
+  <div class="reactor">
+    <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+    <div class="core"></div>
+  </div>
+  <h1>J.A.R.V.I.S.</h1>
+  <div class="tag">PERSONAL MULTI-AGENT AI · BACKEND VISUALIZER</div>
+  <p>Ek Claude-Code ke upar bana multi-agent assistant. Ek FastAPI daemon manager ki tarah —
+     <b style="color:var(--cyan)">intent → recall → worker → critic</b> pipeline chalata hai, 93 specialist sub-agents ko delegate karta hai,
+     aur reply bhejne se pehle hallucination verify karta hai.</p>
+  <div class="pill-row">
+    <span class="pill"><b>FastAPI</b> daemon</span>
+    <span class="pill"><b>asyncio</b> orchestration</span>
+    <span class="pill"><b>ChromaDB</b> RAG</span>
+    <span class="pill"><b>Claude</b> Agent SDK</span>
+    <span class="pill"><b>systemd</b> deploy</span>
+    <span class="pill"><b>~20k</b> LOC Python</span>
+  </div>
+</header>
+
+<!-- ARCHITECTURE -->
+<section id="arch"><div class="wrap">
+  <div class="eyebrow">System Design</div>
+  <h2>The <span class="hi">big picture</span> — ek brain, kai haath</h2>
+  <p class="lead">Interfaces upar, ek hi stateful manager (daemon) beech mein, aur disposable workers neeche.
+     Classic <b style="color:var(--txt)">orchestrator-worker</b> pattern. Daemon down ho to bridge seedha CLI subprocess spawn kar deta hai — fail karega nahi.</p>
+
+  <div class="stack">
+    <div class="tier-box">
+      <span class="lbl" style="color:var(--gold)">① Interfaces — user ke entry points</span>
+      <div class="tier-row">
+        <div class="node"><div class="nm">Telegram Bot</div><div class="ds">@jarvis_Ujjawal_Bot · httpx</div></div>
+        <div class="node"><div class="nm">Voice</div><div class="ds">Whisper STT → Piper TTS</div></div>
+        <div class="node"><div class="nm">Cron jobs</div><div class="ds">briefings · digests</div></div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+    <div class="tier-box" style="border-color:var(--cyan-dim); box-shadow:0 0 40px -20px var(--cyan)">
+      <span class="lbl" style="color:var(--cyan)">② jarvis-core daemon — THE MANAGER</span>
+      <div class="tier-row">
+        <div class="node" style="flex:1 1 100%"><div class="nm">FastAPI · 127.0.0.1:8765 · systemd</div>
+          <div class="ds">/chat · /task · /goal · /approval · /digest · /health — localhost-only, no exposed port</div></div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+    <div class="tier-box">
+      <span class="lbl" style="color:var(--green)">③ /chat pipeline — 4 layers</span>
+      <div class="tier-row">
+        <div class="node"><div class="nm">1 · Intent</div><div class="ds">Haiku · classify</div></div>
+        <div class="node"><div class="nm">2 · Recall</div><div class="ds">Chroma · RAG</div></div>
+        <div class="node"><div class="nm">3 · Worker</div><div class="ds">Claude · do</div></div>
+        <div class="node"><div class="nm">4 · Critic</div><div class="ds">Haiku · verify</div></div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+    <div class="tier-box">
+      <span class="lbl" style="color:var(--violet)">④ Execution layer — Agent SDK</span>
+      <div class="tier-row">
+        <div class="node"><div class="nm">Claude Agent SDK</div><div class="ds">spawns worker subprocess</div></div>
+        <div class="node"><div class="nm">93 sub-agents</div><div class="ds">.claude/agents/*</div></div>
+        <div class="node"><div class="nm">MCP servers</div><div class="ds">Gmail·Cal·Notion·Chrome</div></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- PIPELINE INTERACTIVE -->
+<section id="pipe"><div class="wrap">
+  <div class="eyebrow">Working Structure</div>
+  <h2>The <span class="hi">/chat</span> pipeline — har step click karke dekho</h2>
+  <p class="lead">Har message in 4 layers se guzarta hai. Steps <b style="color:var(--txt)">1 &amp; 2 parallel</b> chalte hain
+     (latency = max, not sum). Har layer ka apna kill-switch hai aur har layer <b style="color:var(--txt)">fail-open</b> karta hai.</p>
+
+  <div class="pipe">
+    <div class="step active" style="--c:var(--blue)" data-k="intent">
+      <div class="num">01</div><div class="t">Intent</div><div class="m">Haiku 4.5 · 3s</div>
+      <div class="d">Message ko 8 categories mein classify — task/question/feedback/correction…</div>
+    </div>
+    <div class="step" style="--c:var(--green)" data-k="recall">
+      <div class="num">02</div><div class="t">Recall (RAG)</div><div class="m">ChromaDB · embeddings</div>
+      <div class="d">Vector DB se top-5 relevant memory chunks nikaal ke prompt mein inject.</div>
+    </div>
+    <div class="step" style="--c:var(--cyan)" data-k="worker">
+      <div class="num">03</div><div class="t">Worker</div><div class="m">Claude · Agent SDK</div>
+      <div class="d">Asli kaam — reasoning, tool-use, sub-agent delegation. Session resumable.</div>
+    </div>
+    <div class="step" style="--c:var(--gold)" data-k="critic">
+      <div class="num">04</div><div class="t">Critic</div><div class="m">Haiku 4.5 · 8s</div>
+      <div class="d">Draft ko 4 rubrics pe verify; fail → 1 revision; confidence tag.</div>
+    </div>
+  </div>
+
+  <div class="detail" id="detail"><!-- filled by JS --></div>
+</div></section>
+
+<!-- API CALL SEQUENCE -->
+<section id="api"><div class="wrap">
+  <div class="eyebrow">API Call Flow</div>
+  <h2>Ek message ka <span class="hi">poora safar</span> — request to reply</h2>
+  <p class="lead">Aap Telegram pe likhte ho. Yeh hai exact backend journey — actual code paths ke saath. Yahi interview mein "walk me through a request" ka answer hai.</p>
+
+  <div class="seq">
+    <div class="row"><div class="gut"><div class="bub">1</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">User → Telegram bridge <span class="who">bridge/telegram_bridge.py</span></div>
+        <p>Aap "kal ka schedule batao" likhte ho. Bridge message receive karta hai (async handler — event loop kabhi block nahi hota).</p>
+        <div class="cd"><span class="cmt"># bridge tries the daemon first, CLI subprocess as fallback</span>
+USE_DAEMON = <span class="tk3">True</span>   <span class="cmt"># JARVIS_USE_DAEMON</span>
+reply = <span class="tk2">await</span> _call_via_daemon(prompt, user_id)</div></div></div>
+
+    <div class="row"><div class="gut"><div class="bub">2</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">Bridge → daemon <span class="who">HTTP POST · httpx</span></div>
+        <p>HTTP call jarvis-core ko. Tight connect-timeout — agar daemon down ho to 5s mein fail-over to CLI subprocess (poora read-timeout wait nahi karta).</p>
+        <div class="cd"><span class="tok">POST</span> http://127.0.0.1:<span class="tk2">8765</span>/chat
+{ <span class="tk3">"user_id"</span>: "ujjwal", <span class="tk3">"message"</span>: "kal ka schedule batao",
+  <span class="tk3">"resume_session"</span>: true }</div></div></div>
+
+    <div class="row"><div class="gut"><div class="bub">3</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">Daemon: Intent ∥ Recall <span class="who">daemon.py:185 · parallel</span></div>
+        <p>Dono ek saath fire — intent ek asyncio task, recall ek thread (Chroma sync hai). Phir dono ka result combine.</p>
+        <div class="cd">intent_task = asyncio.<span class="tok">create_task</span>(classifier.classify(msg))
+recall    = <span class="tk2">await</span> asyncio.<span class="tok">to_thread</span>(recaller.gather, msg)
+intent    = <span class="tk2">await</span> intent_task
+<span class="cmt"># → builds: intent_block + &lt;jarvis_memory_context&gt; + USER MESSAGE</span></div></div></div>
+
+    <div class="row"><div class="gut"><div class="bub">4</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">Daemon → Worker <span class="who">orchestrator.py · Claude Agent SDK</span></div>
+        <p>Augmented prompt ek Claude Code worker ko jaata hai. Worker ka cwd = project root, isliye usse saare 93 sub-agents, MCP, skills dikhte hain. Auth = OAuth token (no API key).</p>
+        <div class="cd">outcome = <span class="tk2">await</span> run_worker(augmented_prompt,
+              resume_session_id=resume_id, max_turns=<span class="tk2">15</span>)
+<span class="cmt"># SDK streams messages → text + session_id + cost collected</span></div></div></div>
+
+    <div class="row"><div class="gut"><div class="bub">5</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">Daemon: Critic verify <span class="who">critic.py · Haiku</span></div>
+        <p>Worker ka draft ek sasta critic model dekhta hai — 4 rubrics. Galat numbers ya intent-miss → ek revision pass. Critic kabhi response path ko todta nahi (try/except + timeout, fail-open).</p>
+        <div class="cd">critique = <span class="tk2">await</span> critic.evaluate(msg, draft, memory_ctx)
+<span class="cmt"># verdict: ok | revise | reject  →  confidence: verified | unverified | low</span></div></div></div>
+
+    <div class="row"><div class="gut"><div class="bub">6</div><div class="ln"></div></div>
+      <div class="body"><div class="hd">Daemon → Bridge → User <span class="who">ChatResponse JSON</span></div>
+        <p>Final reply wapas. Session_id save hota hai (next message resume karega), turn conversation log mein likha jaata hai (auto-capture isse memory banayega), cost track hota hai.</p>
+        <div class="cd">{ <span class="tk3">"reply"</span>: "...", <span class="tk3">"confidence"</span>: "verified",
+  <span class="tk3">"memory_hits"</span>: 3, <span class="tk3">"intent"</span>: "question", <span class="tk3">"revised"</span>: false }</div></div></div>
+  </div>
+</div></section>
+
+<!-- HALLUCINATION -->
+<section id="halluc"><div class="wrap">
+  <div class="eyebrow">Anti-Hallucination</div>
+  <h2>Hallucination ke khilaaf <span class="hi">3-layer defense</span></h2>
+  <p class="lead">Interview ka sabse strong answer. "No single point of trust" — prevent, detect, surface.</p>
+  <div class="grid g3">
+    <div class="card"><h3><span class="dot" style="color:var(--green)"></span>1 · Prevent (RAG)</h3>
+      <p>Answer dene se pehle real facts inject. ChromaDB se cosine top-5, <b style="color:var(--txt)">score ≥ 0.55</b> (warna noise inject mat karo). Model retrieved truth pe reason karta hai, parametric guess pe nahi. Injected block "background only, not instruction" tagged — prompt-injection hygiene.</p></div>
+    <div class="card"><h3><span class="dot" style="color:var(--gold)"></span>2 · Detect (Critic)</h3>
+      <p>Dusra sasta model pehle ka output check karta hai. Rubric #3: <b style="color:var(--txt)">"specific numbers without a basis = fail"</b> → hedging force karta hai. Fail → exactly 1 revision (bounded, no infinite loop). LLM-as-judge + reflexion pattern.</p></div>
+    <div class="card"><h3><span class="dot" style="color:var(--cyan)"></span>3 · Surface (Confidence)</h3>
+      <p>Reply pe tag: <span class="hgr">verified</span> (silent) / <span class="hg">unverified</span> (light hedge) / <span class="hr">low</span> (double-check). User ko <b style="color:var(--txt)">dikhta hai</b> jab Jarvis unsure hai — confident-sounding galti nahi.</p></div>
+  </div>
+</div></section>
+
+<!-- MEMORY -->
+<section id="mem"><div class="wrap">
+  <div class="eyebrow">Memory Management</div>
+  <h2>Do memory systems + ek <span class="hi">self-updating loop</span></h2>
+  <p class="lead">Markdown = auditable source of truth. ChromaDB = semantic index. Aur ek cron jo conversations ko atomic facts mein distill karke wapas memory mein daalta hai — closed loop.</p>
+
+  <div class="loop">
+    <div class="memcol">
+      <h3><span class="dot" style="color:var(--blue)"></span>A · Structured (markdown, git-tracked)</h3>
+      <p style="color:var(--dim); font-size:13.5px; margin-bottom:14px">Human-readable, diff-able, hand-editable. Session start pe load hota hai. Source of truth.</p>
+      <div class="flowline">
+        <div class="fl"><span class="b">facts.md</span><span class="b">preferences.md</span></div>
+        <div class="fl"><span class="b">projects.md</span><span class="b">people.md</span><span class="b">habits.md</span></div>
+        <div class="fl" style="margin-top:6px; color:var(--mut)">type: / zone: frontmatter per fact</div>
+      </div>
+    </div>
+    <div class="memcol">
+      <h3><span class="dot" style="color:var(--green)"></span>B · Episodic (vector, for recall)</h3>
+      <p style="color:var(--dim); font-size:13.5px; margin-bottom:14px">all-MiniLM-L6-v2 embeddings (384-dim, local). Yahi Recall layer query karta hai.</p>
+      <div class="flowline">
+        <div class="fl"><span class="b">chunk ~500 tok</span><span class="ar">→</span><span class="b">embed</span></div>
+        <div class="fl"><span class="b">ChromaDB</span><span class="ar">→</span><span class="b">cosine top-k</span></div>
+        <div class="fl" style="margin-top:6px; color:var(--mut)">data/memory/chroma/ (persistent)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="memcol" style="margin-top:16px">
+    <h3><span class="dot" style="color:var(--gold)"></span>The self-updating loop — Phase C auto-capture</h3>
+    <div class="fl" style="flex-wrap:wrap; margin-top:8px">
+      <span class="b">conversation</span><span class="ar">→</span>
+      <span class="b">conversations.jsonl</span><span class="ar">→</span>
+      <span class="b">auto_capture.py (every 30 min)</span><span class="ar">→</span>
+      <span class="b">Haiku summarise → atomic facts</span><span class="ar">→</span>
+      <span class="b">dedup by hash</span><span class="ar">→</span>
+      <span class="b" style="color:var(--cyan)">ChromaDB</span>
+    </div>
+    <p style="color:var(--dim); font-size:13px; margin-top:12px">Memory static dump nahi hai — conversations se khud grow karta hai. Idempotent (content-hash dedup) so duplicate facts nahi bante.</p>
+  </div>
+</div></section>
+
+<!-- SAFETY -->
+<section id="safe"><div class="wrap">
+  <div class="eyebrow">Responsible AI</div>
+  <h2>Tiered Trust — <span class="hi">autonomy with guardrails</span></h2>
+  <p class="lead">Siemens (industrial) ko ye answer bahut pasand aayega. Irreversible actions hamesha human-confirm maangte hain — even in full-auto.</p>
+  <div class="tiers">
+    <div class="tierline" style="--c:var(--green)"><div class="tn">TIER 1</div>
+      <div class="ex">Reads, drafts, screenshots, sub-agent dispatch, save to outputs/</div>
+      <div class="pol">always auto</div></div>
+    <div class="tierline" style="--c:var(--blue)"><div class="tn">TIER 2</div>
+      <div class="ex">File writes in repo, calendar create, memory writes, local git ops</div>
+      <div class="pol">auto + audit log</div></div>
+    <div class="tierline" style="--c:var(--gold)"><div class="tn">TIER 3</div>
+      <div class="ex">Send email · submit form · delete data · git push · purchases · publish</div>
+      <div class="pol">ALWAYS confirm</div></div>
+    <div class="tierline" style="--c:var(--red)"><div class="tn">TIER 4</div>
+      <div class="ex">System-file destruction · phishing · auth-bypass · ToS violation</div>
+      <div class="pol">refused · no override</div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3><span class="dot" style="color:var(--violet)"></span>Autonomous overnight goals (Phase 3)</h3>
+    <p><code>/goal_add</code> → daemon <b style="color:var(--txt)">decomposes</b> into sub-tasks (JSON-schema validated, max fan-out 8) → Tier 1/2 parallel run → <b style="color:var(--txt)">Tier-3 pauses for morning approval</b> → 06:30 digest. Hard caps: <span class="hg">$5 budget + 2h duration</span> per goal; exceeded → fail, no more workers. Runaway loop impossible.</p></div>
+</div></section>
+
+<!-- BACKEND FILES -->
+<section id="files"><div class="wrap">
+  <div class="eyebrow">Full Backend</div>
+  <h2>Code map — <span class="hi">kaunsi file kya karti hai</span></h2>
+  <p class="lead">Saara intelligence <code>jarvis_core/</code> mein. Bridge thin transport hai. Scripts cron/utility.</p>
+  <div class="card" style="padding:8px 20px">
+  <table>
+    <thead><tr><th>File</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><span class="fp">daemon.py</span></td><td class="d">FastAPI app + all routes. The /chat 4-layer pipeline lives here. Lifespan loads state, starts scheduler.</td></tr>
+      <tr><td><span class="fp">orchestrator.py</span></td><td class="d">Agent SDK dispatcher. run_worker (1) + run_parallel_workers (asyncio.gather fan-out) + aggregate_results.</td></tr>
+      <tr><td><span class="fp">intent.py</span></td><td class="d">Pre-recall Haiku classifier — 8 categories + priority. Word-boundary urgency/correction heuristics.</td></tr>
+      <tr><td><span class="fp">recall.py</span></td><td class="d">RAG layer. Queries ChromaDB, score-threshold + token-budget trim, builds &lt;jarvis_memory_context&gt; block.</td></tr>
+      <tr><td><span class="fp">critic.py</span></td><td class="d">Silent reviewer. 4-rubric JSON verdict → optional 1 revision. Fail-open, logged to critic.jsonl.</td></tr>
+      <tr><td><span class="fp">confidence.py</span></td><td class="d">verified/unverified/low tag logic + visible annotation helper.</td></tr>
+      <tr><td><span class="fp">decomposer.py</span></td><td class="d">Breaks an autonomous goal into single-level, schema-validated sub-tasks (Tier-labeled).</td></tr>
+      <tr><td><span class="fp">scheduler.py</span></td><td class="d">Background goal loop — picks up QUEUED goals, runs Tier 1/2, queues Tier-3 approvals.</td></tr>
+      <tr><td><span class="fp">state.py</span></td><td class="d">In-memory state + 5-min disk sync. Conversations, tasks, goals, approvals persist across restarts.</td></tr>
+      <tr><td><span class="fp">models.py</span></td><td class="d">Pydantic v2 schemas — every request/response validated. ChatRequest, WorkerSpec, GoalRecord…</td></tr>
+      <tr><td><span class="fp">bridge/telegram_bridge.py</span></td><td class="d">Telegram interface. Async. HTTP→daemon with CLI-subprocess fallback. ~40 slash commands.</td></tr>
+      <tr><td><span class="fp">scripts/episodic_memory.py</span></td><td class="d">ChromaDB + sentence-transformers wrapper. Chunk, embed, recall(query, k).</td></tr>
+      <tr><td><span class="fp">scripts/auto_capture.py</span></td><td class="d">Cron (30 min) — distills conversations into atomic facts, dedups, ingests to vector store.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<!-- STACK -->
+<section id="stack"><div class="wrap">
+  <div class="eyebrow">Tech Stack</div>
+  <h2>What it's <span class="hi">built on</span></h2>
+  <div class="grid g4">
+    <div class="card"><h3 style="font-size:14px">Orchestration</h3><p>Python · FastAPI · asyncio · Claude Agent SDK · uvicorn</p></div>
+    <div class="card"><h3 style="font-size:14px">LLM</h3><p>Claude Opus/Sonnet (workers) · Haiku 4.5 (intent + critic) · OAuth token, no API key</p></div>
+    <div class="card"><h3 style="font-size:14px">Memory / RAG</h3><p>ChromaDB · sentence-transformers (all-MiniLM-L6-v2) · git-tracked markdown</p></div>
+    <div class="card"><h3 style="font-size:14px">Interface</h3><p>Telegram (httpx) · Voice: Whisper STT + Piper TTS</p></div>
+    <div class="card"><h3 style="font-size:14px">Integrations</h3><p>MCP — Gmail · Calendar · Drive · Notion · Chrome DevTools</p></div>
+    <div class="card"><h3 style="font-size:14px">Deployment</h3><p>systemd user services + timers (daemon, bridge, crons)</p></div>
+    <div class="card"><h3 style="font-size:14px">Validation / Test</h3><p>Pydantic v2 · pytest (35+) · eval framework · JSONL observability</p></div>
+    <div class="card"><h3 style="font-size:14px">Scale</h3><p>~20k LOC · 93 sub-agents · stateless horizontal worker fan-out</p></div>
+  </div>
+</div></section>
+
+<div class="foot wrap">
+  <div style="margin-bottom:14px">
+    <span class="badge">orchestrator-worker</span><span class="badge">RAG</span><span class="badge">self-correction</span>
+    <span class="badge">tiered autonomy</span><span class="badge">fail-open</span><span class="badge">observability</span>
+  </div>
+  J.A.R.V.I.S. — built by Ujjawal · "The model is one component; the <span class="hl">system</span> is the engineering."
+</div>
+
+<script>
+  // ---- Pipeline interactive detail ----
+  const DETAILS = {
+    intent:{c:'var(--blue)', t:'01 · Intent Classification', f:'jarvis_core/intent.py · Haiku 4.5 · 3s timeout',
+      li:['Message ko 8 categories mein daalta hai: task / question / feedback / strategic / emotional / correction / greeting / unknown.',
+          'Plus priority (low/normal/high/urgent) + confidence score.',
+          'Word-boundary heuristics: "production down" → urgent; "from now on" → correction.',
+          'Slash commands → synthetic "task". Trivial msgs skip. Kill-switch: JARVIS_INTENT_ENABLED=0.',
+          'WHY: cheap routing signal so the expensive model isn\'t doing classification work.']},
+    recall:{c:'var(--green)', t:'02 · Recall (RAG grounding)', f:'jarvis_core/recall.py → scripts/episodic_memory.py · ChromaDB',
+      li:['User message se ChromaDB ko query — cosine top-k=5 relevant memory chunks.',
+          'Score threshold 0.55 — neeche wale drop (relevant nahi to noise inject mat karo).',
+          '2000-token budget; lowest-score chunks pehle trim. Block: <jarvis_memory_context>.',
+          'Skip: greetings, slash commands, msgs < 30 chars. Kill-switch: JARVIS_RECALL_ENABLED=0.',
+          'WHY: model retrieved facts pe reason kare, parametric guess pe nahi → hallucination kam.']},
+    worker:{c:'var(--cyan)', t:'03 · Worker (the doer)', f:'jarvis_core/orchestrator.py · Claude Agent SDK',
+      li:['Augmented prompt (intent + memory + msg) ek Claude Code session ko jaata hai.',
+          'cwd = project root → worker ko 93 sub-agents, MCP servers, skills, CLAUDE.md sab dikhte hain.',
+          'Auth = CLAUDE_CODE_OAUTH_TOKEN (Max subscription) — no developer API key.',
+          'session_id capture hota hai → next message resume karega (multi-turn continuity).',
+          'Parallel mode (/task): N workers via asyncio.gather, each independent context window.']},
+    critic:{c:'var(--gold)', t:'04 · Critic (verify + revise)', f:'jarvis_core/critic.py · Haiku 4.5 · 8s',
+      li:['Draft ko 4 rubrics pe score: INTENT / MEMORY / CLAIMS / TONE.',
+          'CLAIMS rubric: "specific numbers without a basis = fail" → forces hedging.',
+          'Verdict: all pass → ok/verified · 1-2 fail → revise/unverified · 3+ → revise/low · harmful → reject.',
+          'revise → exactly ONE revision pass (bounded). Fail-open: timeout/error → ship original, tag unverified.',
+          'WHY: self-correction before Boss sees it. LLM-as-judge + reflexion. Logged to critic.jsonl.']},
+  };
+  const detail = document.getElementById('detail');
+  function render(k){
+    const d = DETAILS[k];
+    detail.style.borderLeftColor = d.c;
+    detail.innerHTML = '<span class="file">'+d.f+'</span><h4>'+d.t+'</h4><ul>'+
+      d.li.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+  }
+  document.querySelectorAll('.step').forEach(s=>{
+    s.addEventListener('click',()=>{
+      document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      render(s.dataset.k);
+    });
+  });
+  render('intent');
+</script>
+</body>
+</html>

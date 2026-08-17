@@ -1,0 +1,100 @@
+{
+  "oof_auc": 0.7262544802867382,
+  "oof_f1": 0.7577639751552795,
+  "threshold": 0.49000000000000016,
+  "tp_in_top67": 49,
+  "gate1_pass": true,
+  "gate2_pass": true,
+  "gate3_pass": true,
+  "all_pass": true,
+  "top20_unlabeled": [
+    {
+      "CoilID": 1118,
+      "v67_proba": 0.9993
+    },
+    {
+      "CoilID": 1434,
+      "v67_proba": 0.9981
+    },
+    {
+      "CoilID": 1347,
+      "v67_proba": 0.9958
+    },
+    {
+      "CoilID": 1494,
+      "v67_proba": 0.9958
+    },
+    {
+      "CoilID": 1274,
+      "v67_proba": 0.9942
+    },
+    {
+      "CoilID": 1085,
+      "v67_proba": 0.9939
+    },
+    {
+      "CoilID": 485,
+      "v67_proba": 0.9933
+    },
+    {
+      "CoilID": 670,
+      "v67_proba": 0.9916
+    },
+    {
+      "CoilID": 361,
+      "v67_proba": 0.9916
+    },
+    {
+      "CoilID": 961,
+      "v67_proba": 0.9915
+    },
+    {
+      "CoilID": 1491,
+      "v67_proba": 0.9913
+    },
+    {
+      "CoilID": 639,
+      "v67_proba": 0.9912
+    },
+    {
+      "CoilID": 1087,
+      "v67_proba": 0.9908
+    },
+    {
+      "CoilID": 1233,
+      "v67_proba": 0.9907
+    },
+    {
+      "CoilID": 962,
+      "v67_proba": 0.99
+    },
+    {
+      "CoilID": 954,
+      "v67_proba": 0.99
+    },
+    {
+      "CoilID": 684,
+      "v67_proba": 0.9899
+    },
+    {
+      "CoilID": 732,
+      "v67_proba": 0.9899
+    },
+    {
+      "CoilID": 1492,
+      "v67_proba": 0.9885
+    },
+    {
+      "CoilID": 1425,
+      "v67_proba": 0.988
+    }
+  ],
+  "feature_count": 51,
+  "labeled_n": 134,
+  "unlabeled_n": 205,
+  "seeds": [
+    42,
+    137,
+    1000
+  ]
+}

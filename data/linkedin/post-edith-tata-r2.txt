@@ -1,0 +1,18 @@
+A steel plant never really sleeps — and when a critical asset fails without warning, every minute of unplanned downtime burns money and risk.
+
+For Round 2 of the Tata Steel National AI/ML Hackathon, that was the problem I set out to solve.
+
+The problem 👇
+In heavy industry, maintenance is still mostly reactive. By the time a pump, motor or furnace throws a fault, the damage is done. The knowledge to act fast — failure histories, P&IDs, SOPs, past root causes — sits buried across manuals and logs an engineer can't search mid-crisis. Slow diagnosis, guesswork on root cause, no reliable read on how long an asset has left.
+
+What I built — EDITH, an agentic maintenance copilot 👇
+A 5-agent chain that takes a live alarm end to end: Diagnosis → Root Cause → Remaining-Useful-Life → Prioritization → Recommendations.
+• Grounded on a purpose-built 1.25M-row physics-based dataset — every number from structured ML, not an LLM guess.
+• A hybrid RAG pipeline with a faithfulness gate that scores every claim against its source — zero hallucinated facts.
+• Live monitoring of 15 assets that auto-fires diagnosis on the first sustained alarm. Fast path < 300ms.
+• All six required outputs incl. a downloadable PDF report. Qualified into Round 2.
+
+🎥 90-second demo: https://youtu.be/2upa03Ye9Zg
+💻 https://github.com/Shrivaujjawal321 · https://ujjawal-shrivastav.vercel.app/
+
+#AI #MachineLearning #AgenticAI #PredictiveMaintenance #TataSteel #RAG #IndustrialAI

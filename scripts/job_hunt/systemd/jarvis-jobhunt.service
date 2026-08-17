@@ -1,0 +1,15 @@
+[Unit]
+Description=Jarvis job-outreach engine — daily AI/ML cold outreach + follow-ups + report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Documents/J.A.R.V.I.S.
+ExecStart=%h/Documents/J.A.R.V.I.S./.venv/bin/python -m scripts.job_hunt.daily_engine
+StandardOutput=append:%h/Documents/J.A.R.V.I.S./data/logs/jobhunt-engine.log
+StandardError=append:%h/Documents/J.A.R.V.I.S./data/logs/jobhunt-engine.log
+TimeoutStartSec=20min
+
+[Install]
+WantedBy=default.target

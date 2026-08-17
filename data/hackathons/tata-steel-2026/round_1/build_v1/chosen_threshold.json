@@ -1,0 +1,22 @@
+{
+  "chosen_threshold": 0.02,
+  "chosen_recall": 0.9242424242424242,
+  "chosen_precision": 0.07770700636942675,
+  "tp": 61,
+  "fp": 724,
+  "fn": 5,
+  "criteria_met": false,
+  "rationale": "Recall=1.0 at thr=0.0028 BUT test proba floor=0.0168 causes all-positive collapse. Using thr=0.02 instead: OOF recall=0.924, precision=0.078. Test positives ~17%. Prioritize recall, accept precision gap \u2014 v2 will close it.",
+  "target_recall": 1.0,
+  "target_precision": 0.9,
+  "oof_auc": 0.8265175078938687,
+  "recall_at_r1_0": {
+    "threshold": 0.002757421408395818,
+    "precision": 0.05871886120996441
+  },
+  "max_recall_at_prec90": {
+    "threshold": null,
+    "recall": 0.0,
+    "precision": 0.0
+  }
+}

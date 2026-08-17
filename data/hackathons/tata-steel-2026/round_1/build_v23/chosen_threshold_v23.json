@@ -1,0 +1,18 @@
+{
+  "chosen_threshold": 0.027633213388146373,
+  "strategy": "maximize_(recall+precision)/2_exact_unique_thresholds_stage2_oof",
+  "predicted_lb_score": 57.0818,
+  "oof_score": 54.41176470588235,
+  "oof_recall": 1.0,
+  "oof_precision": 0.08823529411764706,
+  "oof_n_positives": 748,
+  "oof_total": 1352,
+  "v4_oof_baseline": 54.31,
+  "delta_vs_v4": 0.10176470588234565,
+  "stage2_oof_auc": 0.7203796203796203,
+  "stage2_suspect_pool_size": 836,
+  "stage2_suspect_positives": 66,
+  "T_s1": 0.013,
+  "x43_chemistry_confirmed": false,
+  "x43_variance_ratio": 0.7858528734647395
+}

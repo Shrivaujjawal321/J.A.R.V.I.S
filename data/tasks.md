@@ -4,6 +4,13 @@
 
 ## Active
 
+### 🎉 TATA STEEL R1 — SHORTLISTED FOR ROUND 2 (confirmed 2026-06-02)
+
+- [ ] **[P0]** ⏰ **WEBINAR — Tata Steel AI Leadership Team** — *4 June 2026 (Thu), 5:00–6:00 PM IST* · Cisco WebEx
+  Join: https://tatasteel.webex.com/tatasteel/j.php?MTID=m0e9f76c4c4adc0ed583f07bca7fb08d1 · No. 2401 825 9874 · Pwd `Web@2026`
+  Context: pre-launch AI-vision session; Round 2 challenge drops AFTER this. #tata-steel #round-2 #boss-action
+- [ ] **[P0]** Await Round 2 problem launch (post-webinar) → activate agentic system (defect-detector, predictive-maintenance, process-optimizer, RCA + orchestrator) #tata-steel #round-2
+
 ### 🏆 Tata Steel AI Hackathon 2026 — Winning Plan (P0 — FT offer = resume P0 solve)
 
 **Folder**: `data/hackathons/tata-steel-2026/`  ·  **Plan**: see `journal/2026-05-13.md`  ·  **Time budget**: 60 hrs

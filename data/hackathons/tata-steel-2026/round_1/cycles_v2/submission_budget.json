@@ -1,0 +1,11 @@
+{
+  "limit_per_day": 3,
+  "used_history": [
+    {"date": "2026-05-22", "version": "V2", "submission_id": "128322368", "score": 50.18868},
+    {"date": "2026-05-23", "version": "V4", "submission_id": "128339983", "score": 56.98113}
+  ],
+  "today_used": 0,
+  "today_remaining": 3,
+  "banked_lb": 56.98,
+  "banked_version": "V4"
+}

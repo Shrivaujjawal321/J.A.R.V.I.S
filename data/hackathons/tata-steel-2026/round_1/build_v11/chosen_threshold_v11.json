@@ -1,0 +1,20 @@
+{
+  "best_variant": "V11+V5+V9 mean",
+  "chosen_threshold": 0.01987475070550928,
+  "chosen_score_oof": 54.96987951807228,
+  "recall_at_T": 1.0,
+  "precision_at_T": 0.09939759036144578,
+  "n_pos_test": 144,
+  "oof_auc": 0.8873179697440974,
+  "lb_estimate_corrected": 57.639879518072284,
+  "bootstrap_ci_oof": [
+    53.86995729527336,
+    56.193370383730894
+  ],
+  "bootstrap_ci_calibrated": [
+    56.53995729527336,
+    58.863370383730896
+  ],
+  "v11_standalone_score": 53.51874003189793,
+  "v4_actual_lb": 56.98113
+}

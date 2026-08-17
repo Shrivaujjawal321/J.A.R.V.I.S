@@ -1,0 +1,6 @@
+# DEMO ONLY — fabricated credentials for the AuditAgent showcase. Not real.
+AWS_ACCESS_KEY_ID = "AKIA4T7HZ2QK9WD3MNXP"
+AWS_SECRET_ACCESS_KEY = "hT8kLpQ2mNvR7sXwYz4aB6cD9eF1gH3jK5lM0nP2"
+STRIPE_SECRET_KEY = "sk_live_51Hb9KdLmNpQrStUvWxYz0123456789AbCdEfGh"
+GITHUB_TOKEN = "ghp_1A2b3C4d5E6f7G8h9I0jK1l2M3n4O5p6Q7r8"
+DB_PASSWORD = "Pr0d!Db_p@ssw0rd_9f3a2c"

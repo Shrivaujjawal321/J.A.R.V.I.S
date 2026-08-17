@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 390,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 495,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 166,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 72,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 39,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 220,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 12,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 257,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Massachusetts",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  }
+]

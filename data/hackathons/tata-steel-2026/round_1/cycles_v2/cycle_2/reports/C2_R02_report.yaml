@@ -1,0 +1,127 @@
+agent_id: C2_R02
+topic: ct-spread-on-new-stage-1
+cycle: 2
+timestamp_utc: "2026-05-23T17:30:00Z"
+status: ok
+
+context_summary: |
+  V23 placed CT-spread features only in Stage-2 (836-row pool). CT-spread t-stat=3.51
+  within pool confirms signal. Stage-2 AUC was 0.72 (836 rows, 7.9% prevalence).
+  V4 Stage-1 CatBoost is frozen/irreproducible (AUC 0.8622 fresh vs 0.8756 original).
+  CoilID 473: proba=threshold=0.02763 in V23 — marginal Hard-7 TP. Cycle 2 target:
+  CT features at Stage-1 level on from-scratch LGB-RFL + TabICLv2 + CatBoost.
+
+recommendations:
+  - id: C2_R02_rec_1
+    title: "CT features at Stage-1 level (not Stage-2 only)"
+    technique_class: feature_engineering
+    novel_vs_v23: true
+    dedup_check:
+      conflicts_with: [V23]
+      distinction: "V23: CT features Stage-2 only. This: Stage-1 + Stage-2."
+    expected_lift_oof:
+      point: 0.6
+      low: 0.2
+      high: 1.5
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+    confidence:
+      score: 4
+      evidence_anchor: |
+        V23 approach.md: v_ct_spread t-stat=3.51 (p=4.7e-4) within suspect pool.
+        Zhu et al. MDPI Metals 2020. DOI: 10.3390/met10030382.
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: C2_R02_rec_2
+    title: "Grade-CV-safe CT deviation with fold cache"
+    technique_class: feature_engineering
+    novel_vs_v23: true
+    dedup_check:
+      conflicts_with: [V5, V23]
+      distinction: "V5 used X18 vs 890C Ar3; V23 no grade stratification; this: X14 vs grade-mean."
+    expected_lift_oof:
+      point: 0.8
+      low: 0.3
+      high: 2.0
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+    confidence:
+      score: 3
+      evidence_anchor: "ISIJ Int 2018, DOI:10.2355/isijinternational.ISIJINT-2017-614. 80C grade windows."
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_R02_rec_3
+    title: "CT-spread + pool-AUC gate before Stage-2"
+    technique_class: architecture
+    novel_vs_v23: true
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.8
+    feasibility:
+      score: 4
+      effort_hours: 0.5
+    confidence:
+      score: 3
+      evidence_anchor: "Reasoning-only. Validated by V23 Stage-2 underperformance risk."
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: C2_R02_rec_4
+    title: "Bainite CT-flag in LGB-RFL at Stage-1"
+    technique_class: feature_engineering
+    novel_vs_v23: true
+    dedup_check:
+      conflicts_with: [V23]
+      distinction: "V23: flag in Stage-2 CatBoost only. This: Stage-1 LGB-RFL with RFL synergy."
+    expected_lift_oof:
+      point: 0.4
+      low: 0.1
+      high: 1.0
+    feasibility:
+      score: 5
+      effort_hours: 0.3
+    confidence:
+      score: 3
+      evidence_anchor: "Springer 2022 DOI:10.1007/s11665-021-05565-y. ISIJ Int 2015."
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+coil_473_verdict: |
+  CoilID 473 is inferred to be a THERMAL defect (weak activation on X13/X10/X32 roll-force
+  features → not roll-force driven). Expected CT signature: elevated v_ct_spread (>30C)
+  or negative v_ct_dev_grade (below grade-specific optimal). CT features at Stage-1 level
+  with AUC 0.90 target should push 473 proba to 0.05-0.15 range. Verification: query
+  oof_new.parquet for row 473 after build — if proba < 0.03, escalate to C2_N02.
+
+stage_2_within_pool_ct_discriminability:
+  v23_t_stat: 3.51
+  p_value: "4.7e-4"
+  direction: "TPs have HIGHER spread than FPs (physics-consistent)"
+  with_stronger_stage1:
+    expected_pool_size: "650-700 rows"
+    expected_prevalence: "9.4-10.2%"
+    expected_stage2_auc: 0.78
+    oof_lift_vs_v23: "+2.5 pts (low +1.0, high +4.0)"
+
+cross_topic_links:
+  C2_R08: "CT features slot into R08's stronger Stage-1 architecture."
+  C2_N01: "CT features drop-in to N01's from-scratch harness. 8 features, all confirmed columns."
+  C2_N03: "N03 is the implementation vessel for this full spec."
+
+notes_for_synthesis: |
+  Priority order: rec_1 (Stage-1 CT) > rec_2 (grade-stratified CT dev) > rec_4 (bainite flag RFL) > rec_3 (pool gate).
+  CT lift is CONDITIONED on Stage-1 AUC >= 0.90 from C2_N01/R08. CT alone on V4-level = +0.1-0.5 OOF only.
+  Compounded OOF target: 57.0 [calibrated LB ~59.7].

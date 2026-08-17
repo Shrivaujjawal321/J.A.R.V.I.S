@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 24,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 90,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 6,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 10,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 7,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 46,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 2,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 10,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Nebraska",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  }
+]

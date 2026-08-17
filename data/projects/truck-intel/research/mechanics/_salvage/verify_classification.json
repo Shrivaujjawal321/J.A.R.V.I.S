@@ -1,0 +1,103 @@
+{
+ "checked": [
+  {
+   "url": "https://www.census.gov/naics/2022NAICS/2022_NAICS_Descriptions.xlsx",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 263,810 bytes, content-type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, real XLSX (Microsoft Excel 2007+). Parsed sheet1 manually: 2126 total rows INCLUDING the header ['Code','Title','Description'] => 2125 data rows, not 2126. Substantive claim verified verbatim: 8111 'passenger cars, trucks, and vans, and all trailers'; 81111 same; 811111 same; 811114 same; 811121 'automotive vehicle and trailer bodies'; 811191 'passenger cars, trucks, and vans'; 811198 same; 811310 title literally 'Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance'.",
+   "correction": "Row count is 2,125 data rows (2,126 = header included). License nuance: 17 USC 105 public-domain status holds for this federal work, but https://www.census.gov/about/policies/citation.html (200) states 'Data users ... should cite the Census Bureau as the source of the original data' \u2014 a documented citation expectation, so 'no attribution obligation' is legally true but policy-incomplete. The NAICS conclusion itself is CONFIRMED and is the strongest finding in the report."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/tag/stats?key=shop&value=truck_repair",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 341 bytes, application/json. data_until 2026-07-22T00:59:05Z. shop=truck_repair all=813 (nodes 369, ways 441, relations 3). Independently re-probed the other claimed tags: shop=car_repair all=290,346; shop=truck all=1,419; shop=trailer all=279; shop=tyres all=40,774; hgv=yes all=217,517 with ways=206,476. Every single number matches the researcher exactly.",
+   "correction": "None on the numbers. One operational caveat the researcher omitted: https://taginfo.openstreetmap.org/robots.txt (200) contains 'User-agent: * / Disallow: /api'. Automated pulls should therefore be low-volume, cached and UA-identified via polite_get, and taginfo should never be treated as a bulk-ingest source."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/keys/all?query=service%3Avehicle&rp=200&sortname=count_all&sortorder=desc",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 204,041 bytes, application/json. Response total=749 and len(data)=749 \u2014 the rp=200 paging parameter is IGNORED by this endpoint, so 749 keys came back, not 200. 731 of the 749 start with 'service:vehicle'; the other 18 are lifecycle-prefixed (disused:service:vehicle:*, was:service:vehicle:*). Truck-relevant keys observed: service:vehicle:truck_repair 1,381 / truck_sales 95 / truck_parts 53 / truck_tyres 52 / used_truck_sales 24 / truck_trailer 16 / new_truck_sales 10.",
+   "correction": "Row count is 749, not 200. This actually strengthens the lane: service:vehicle:truck_repair=1,381 is a LARGER global signal than shop=truck_repair=813, and the researcher never surfaced that number even though it is the single best truck-vs-car discriminator in OSM."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/key/combinations?key=service%3Avehicle%3Atruck_repair&rp=15&sortname=together_count&sortorder=desc",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "200, 44,776 bytes, application/json. total=464 and len(data)=464 \u2014 rp=15 ignored again, so the API returned 464 co-occurring keys, not 15. Top 15 by together_count: shop 1370, name 1117, addr:street 828, addr:housenumber 749, addr:city 738, addr:postcode 691, phone 675, building 517, website 506, opening_hours 500, service:vehicle:car_repair 495, service:vehicle:oil_change 360, service:vehicle:diagnostics 340, brand 325, operator 325.",
+   "correction": "464 rows, not 15 (the researcher truncated client-side and reported it as the API result). Substantively useful and unreported: 495 of 1,381 truck_repair objects ALSO carry service:vehicle:car_repair, i.e. ~36% are mixed car+truck shops \u2014 a real precision problem for any binary truck classifier."
+  },
+  {
+   "url": "https://overpass.kumi.systems/api/interpreter",
+   "http_status": "502 then 200",
+   "claim_holds": "REFUTED",
+   "evidence": "First POST returned 502 Bad Gateway (nginx/1.26.3). Retried: 200. Query used: area['ISO3166-1'='US'][admin_level=2] + node/way/relation ['shop'='truck_repair'] + out count. kumi.systems (osm_base 2026-07-02) returned nodes=64, ways=205, relations=0, total=269. Cross-checked https://overpass-api.de/api/interpreter (osm_base 2026-07-23, fresher): nodes=69, ways=203, relations=0, total=272. License CONFIRMED from the response body itself: 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.'",
+   "correction": "The claimed US count of 242 (64/178/0) is WRONG. Actual US shop=truck_repair today is 272 (69 nodes, 203 ways, 0 relations) on overpass-api.de, 269 on kumi. The node figure 64 matched kumi but the way figure 178 vs 205 did not \u2014 the researcher's ways count is off by 27 and the total by 30. Also: kumi is flaky (502 on first hit); any ingest must handle 502 and fail loudly per the ops.source_runs honesty rule rather than record an empty result as success."
+  },
+  {
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/docs/schema/concepts/by-theme/places/overture_categories.csv",
+   "http_status": "200",
+   "claim_holds": "REFUTED",
+   "evidence": "File itself: 200, 148,502 bytes, text/plain, 2118 lines = 1 header ('Category code; Overture Taxonomy') + 2117 category rows \u2014 the 2,117 count CONFIRMS. But the LICENSE claim does not. https://api.github.com/repos/OvertureMaps/schema (200) reports license spdx_id 'CC-BY-4.0', and https://raw.githubusercontent.com/OvertureMaps/schema/main/LICENSE (200) is the Creative Commons Attribution 4.0 International text. Separately, https://docs.overturemaps.org/attribution/ (200) shows the Places DATA theme is NOT single-licensed: Meta, Microsoft, PinMeTo, Krick, RenderSEO, DAC, BrightQuery = CDLA Permissive 2.0; Foursquare = 'Copyright 2024 Foursquare Labs, Inc. All rights reserved. Available under Apache 2.0'; AllThePlaces = CC0 1.0.",
+   "correction": "THIS IS THE MOST DAMAGING ERROR IN THE REPORT \u2014 two distinct license mistakes. (1) The CSV the researcher actually downloaded lives in the schema repo, which is CC-BY-4.0, not CDLA-Permissive-2.0. (2) The Places data theme is a MIX of CDLA-Permissive-2.0 + Apache-2.0 (Foursquare rows) + CC0-1.0 (AllThePlaces rows), and Overture's own attribution page requires PER-CONTRIBUTOR attribution \u2014 the blanket string '(c) Overture Maps Foundation' the researcher proposed is not what Overture asks for. core.businesses rows sourced from Overture must carry the contributing provider so the correct notice can be emitted."
+  },
+  {
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 37,973 bytes, text/html. Page states 'Status : Endorsed by the OSMF board 2014-06-06' \u2014 endorsement date CONFIRMED. Operative sentence verified verbatim: 'If you use OpenStreetMap data along with non-OpenStreetMap data for a given Feature Type, then the share-alike condition would apply regardless of whether some data for that Feature Type is in a different layer than the other data for that Feature Type.' The cited example is verified verbatim and IS under the heading 'Examples of where you DO need to share your non-OpenStreetMap data': 'You add restaurants in one area from non-OpenStreetMap data based on comparison with OpenStreetMap data in other layers.' Page footer: 'Content is available under Creative Commons Attribution-ShareAlike 2.0 license' \u2014 CC-BY-SA 2.0 CONFIRMED. Last edited 31 July 2016, oldid=3982.",
+   "correction": "Claim holds in full. Two additions the researcher should have flagged: (a) the guideline's own framing is scoped to 'making and publicly publishing visual 2D maps (a Produced Work)', so applying it to a queryable database is a conservative extension, not a direct reading; (b) the safe-harbour direction is also verbatim present \u2014 'if all data for that Feature Type is from non-OpenStreetMap sources, then the ODbL share-alike conditions do not apply to that Feature Type' \u2014 which is precisely what ruling 3.1-4a preserves. The recommendation to keep OSM out of core.businesses is well-founded."
+  },
+  {
+   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "200, 51,177 bytes, text/html. Canonical page titled 'Open Data Commons Open Database License (ODbL) v1.0'. Preamble present verbatim: 'The Open Database License (ODbL) is a license agreement intended to allow users to freely share, modify, and use this Database while maintaining this same freedom for others.' Page also links a plain-language summary and a plain-text version. Clause 4.5(b), which the OSMF guideline quotes, is consistent with what the guideline reproduces.",
+   "correction": "None."
+  },
+  {
+   "url": "https://huggingface.co/api/datasets/foursquare/fsq-os-places/tree/main",
+   "http_status": "200 (tree) / 401 (files)",
+   "claim_holds": "PARTIAL",
+   "evidence": "Tree API: 200, 390 bytes \u2014 exposes exactly release/ (dir), .gitattributes, NOTICE.txt (582 B), README.md (8011 B), matching the researcher. BUT fetching https://huggingface.co/datasets/foursquare/fsq-os-places/raw/main/NOTICE.txt returns HTTP 401 'Access to dataset foursquare/fsq-os-places is restricted. You must have access to it and be authenticated'; README.md likewise. Dataset metadata API (200) reports gated:'auto', top-level license:null, tags include 'license:apache-2.0', cardData.license 'apache-2.0', downloads 6167, lastModified 2026-07-09, configs pointing at release/dt=2026-07-09/{places,categories,deltas}/parquet/*.parquet, size_categories 100M<n<1B.",
+   "correction": "'verified_live=true' overstates it \u2014 the repo listing is public but every actual file is 401-gated. Apache-2.0 is supported only by HF metadata/tags, NOT by a NOTICE.txt anyone verified, because NOTICE.txt is unreadable without auth. More importantly the researcher omitted the gate terms, which are visible in extra_gated_prompt: accepting them means you 'agree to allow repository authors to use your employer or entity name and logo in descriptions of its partners on its website, in media, and in marketing materials', plus extra_gated_fields Organization/Title/Country. That is a real, non-monetary ToS obligation on a project whose constraint is keyless/free \u2014 still legal and still free, but it must be a conscious decision, not silently labelled 'free_key'. Row count remains unknown (not observed)."
+  },
+  {
+   "url": "file:///home/ujjwal/Documents/truck-intel/data/config/category_map.yaml",
+   "http_status": "n/a (local, exists)",
+   "claim_holds": "PARTIAL",
+   "evidence": "File exists, 10,355 bytes, 187 lines, mtime 2026-07-22 23:34. Parsed with PyYAML: top-level keys are exactly ['overture','fsq','unreachable_from_sources']. overture = 43 entries, fsq = 24 entries => 67 source-category mappings total. unreachable_from_sources is a 5-element list: def_retail, truck_wash, truck_parking, cat_scale, weigh_station.",
+   "correction": "The 5-entry unreachable list is exactly right. The mapping count is NOT '~90' \u2014 it is 67 (43 Overture + 24 FSQ). Anyone sizing the classifier's coverage off '~90' would overestimate existing mapping breadth by ~34%."
+  },
+  {
+   "url": "file:///home/ujjwal/Documents/truck-intel/sql/schema_phase2.sql",
+   "http_status": "n/a (local, exists)",
+   "claim_holds": "PARTIAL",
+   "evidence": "Queried the live DB via docker exec truckintel-pg psql. core.businesses total = 2,981 (CONFIRMED). Category breakdown: restaurant 1093, cafe 628, atm_bank 362, grocery 265, hotel 220, pharmacy 144, fast_food 126, medical 55, laundry 53, fuel_station 25, towing 6, truck_repair 1, tire_service 1, motel 1, truck_dealer 1 \u2014 every truck-relevant figure the researcher quoted (1 truck_repair, 1 tire_service, 1 truck_dealer, 6 towing) is CONFIRMED. quality.ai_decisions exists in sql/schema_phase2.sql lines 264-276 with exactly 10 columns (decision_id, job, input_hash, model, prompt_version, input, verdict, rationale, decided_by, created_at) plus UNIQUE(job,input_hash,decided_by) \u2014 the '10-column audit shape' CONFIRMED. Ruling 3.1-4a confirmed at sql/schema_phase2.sql:130.",
+   "correction": "One citation error: the present_in CHECK constraint is NOT in schema_phase2.sql. It is in sql/schema_wave2.sql lines 95-97: present_in TEXT[] NOT NULL CONSTRAINT businesses_present_in_permissive CHECK (present_in <@ ARRAY['overture','fsq'] AND cardinality(present_in) >= 1). Also worth stating: quality.ai_decisions currently holds 0 rows \u2014 the table shape is real but no verdicts have ever been written, so there is no existing precedent to build on."
+  },
+  {
+   "url": "https://data.ny.gov/resource/fmuw-smd7.json",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "$select=count(1) returned [{\"count_1\":\"10405\"}] \u2014 10,405 CONFIRMED. https://data.ny.gov/api/views/fmuw-smd7.json (200): name 'Vehicle Inspection Stations Across New York State Map', license None, licenseId None, attribution 'NYS DMV' \u2014 the researcher's Socrata-metadata observation is literally correct. But 'license unknown' is not the end of the story: data.ny.gov's footer links /dataset/OPEN-NY-Terms-Of-Use/77gx-ii52, a PDF blob I downloaded from https://data.ny.gov/download/77gx-ii52/application/pdf (200, 128,817 bytes, 6-page PDF) and extracted with pdftotext.",
+   "correction": "License is NOT unknown. The OPEN-NY Terms of Use (last modified March 8, 2013) state verbatim: 'The OPEN NY Terms of Service do not contain restrictions requiring members of the public to use attribution, to re-post the license terms with any re-uses of the data, to impose share-alike or technical restrictions, nor require the public to obtain pre-approval before re-use of the data' and 'use our government information however you wish, in private sector projects'. So: storage + commercial reuse + redistribution allowed, no attribution required, no share-alike. Two caveats the honest write-up must carry: the Intellectual Property section grants only 'a non-exclusive, REVOCABLE license', and the State reserves the right to require you in writing to cease use. It is permissive-by-ToU, not public-domain \u2014 do not label it CC0."
+  },
+  {
+   "url": "https://data.ny.gov/resource/nhjr-rpi2.json",
+   "http_status": "200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "SOURCE THE RESEARCHER MISSED, found via https://api.us.socrata.com/api/catalog/v1. $select=count(1) => 54,563 rows. 'Facilities Licensed by the Department of Motor Vehicles (DMV)', attribution NYS DMV, attributionLink http://www.dmv.ny.gov/repairshop.htm. Columns include facility_name, facility_street, facility_city, facility_zip_code, facility_county, owner_name, business_type, expiration_date, georeference. business_type distribution measured via $group: RS 18272, DLU 10815, ISP 10405, RSB 3426, ATV 3117, TRS 1746, DLW 1463, DLN 1340, DLB 905, DIS 551, ABK 503, IVC 450, ISD 329, SCP 236, YTB 233, ISF 221, DLS 202, DIA 170, SCC 117, MCC 31, SLP 31. The official column description decodes every code: RS=Repair Shop, RSB=Repair Shop Body, ISP=Public Inspection Station, ISF=Fleet Inspection Station, DIS=Dismantler, TRS=Transporter, etc.",
+   "correction": "This dataset SUPERSEDES the two the researcher cited \u2014 fmuw-smd7 (10,405) and 2art-mint (10,405) are just the ISP slice, and icjc-x44x 'Vehicle Repair Shops Across New York State' (3,426, verified) is just the RSB slice, of this same 54,563-row registry. It gives licensed repair shops with name+street+city+ZIP+county+georeference under the permissive OPEN-NY ToU, which is a genuinely usable free ground-truth/enrichment layer for NY. CRITICALLY, it also reinforces the researcher's core thesis: none of the 21 business_type codes is truck-specific \u2014 RS and RSB are vehicle-agnostic, exactly like NAICS 811111/811114. So state licensing registries independently fail as a truck-vs-car signal."
+  },
+  {
+   "url": "https://data.nj.gov/resource/t6tk-mr48.json",
+   "http_status": "200",
+   "claim_holds": "PARTIAL",
+   "evidence": "The researcher asserted 'NJ 1,167' but supplied NO NJ URL \u2014 the only URL in the source row was the NY one. I located the dataset myself: data.nj.gov t6tk-mr48 'Vehicle Inspection Facility Locations'. $select=count(1) => [{\"count_1\":\"1167\"}], so the number is CONFIRMED. https://data.nj.gov/api/views/t6tk-mr48.json (200): license None, licenseId None, attribution 'NJMVC'; columns type, lic_id, st_nm, adr_street, adr_city, adr_state, zip, phone_no, county, inspection_type, geocoded_column. For terms I followed data.nj.gov's own footer link to https://nj.gov/nj/legal.shtml (200, after the legal.html->legal.shtml redirect).",
+   "correction": "Two fixes. (1) An unciteable number is not a verified number \u2014 the NJ count must ship with its URL (https://data.nj.gov/resource/t6tk-mr48.json). (2) License is not unknown here either: NJ legal Section F states 'The State of New Jersey has made the content of these pages available to the public and anyone may view, copy or distribute State information found here without obligation to the State, unless otherwise stated on particular material or information to which a restriction on free use may apply,' with an explicit no-warranty-of-third-party-copyright caveat. Note also this dataset already carries county and zip \u2014 which is exactly the US mapping for the India-vocabulary 'District' and 'PIN Code' fields, obtainable here without any TIGER/Line spatial join for NJ."
+  }
+ ],
+ "verdict_summary": "Adversarial result: 4 CONFIRMED, 6 PARTIAL, 2 REFUTED, plus 2 better sources the researcher missed. The lane's central conclusions survive; several of its citations do not.\n\nMost damaging error (as predicted, it is a license claim): the Overture categories CSV. The researcher labelled it CDLA-Permissive-2.0 with attribution \"(c) Overture Maps Foundation\". Neither half is right. The CSV they downloaded sits in github.com/OvertureMaps/schema, which the GitHub API and the LICENSE file both report as CC-BY-4.0. And docs.overturemaps.org/attribution shows the Places DATA theme is a mix \u2014 CDLA-Permissive-2.0 for Meta/Microsoft/PinMeTo/Krick/RenderSEO/DAC/BrightQuery, Apache-2.0 for Foursquare (\"Copyright 2024 Foursquare Labs, Inc. All rights reserved\"), CC0-1.0 for AllThePlaces \u2014 with per-contributor attribution required. core.businesses must therefore record which provider each row came from.\n\nSecond refutation: the Overpass US count. Claimed 242 (64/178/0). Measured today: 272 (69 nodes, 203 ways, 0 relations) on overpass-api.de, 269 on kumi, which also 502'd on first hit.\n\nSmaller PARTIALs: NAICS is 2,125 data rows not 2,126 (header counted); taginfo's rp= parameter is ignored so keys/all returned 749 not 200 and combinations returned 464 not 15; category_map.yaml has 67 mappings not ~90; the FSQ HF repo is gated (files 401, and the gate lets Foursquare use your employer name/logo in marketing); the present_in CHECK is in schema_wave2.sql not schema_phase2.sql; the NJ count shipped with no URL.\n\nBiggest miss, and it cuts both ways: \"license unknown\" for NY/NJ is wrong. OPEN-NY's Terms of Use explicitly waive attribution, share-alike and pre-approval and permit commercial reuse (but grant only a revocable licence \u2014 not CC0). NJ legal Section F is similarly permissive. And data.ny.gov nhjr-rpi2 (54,563 licensed DMV facilities, name/street/ZIP/county/georeference) supersedes both datasets cited \u2014 while independently confirming the thesis, since none of its 21 business_type codes is truck-specific.\n\nThe two load-bearing judgements \u2014 NAICS cannot separate truck from car repair, and OSM verdicts must not be persisted into core.businesses \u2014 both verified verbatim against source and should be kept."
+}

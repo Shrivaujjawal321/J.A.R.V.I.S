@@ -1,0 +1,452 @@
+agent_id: C2_N06
+topic: coilid-473-recovery-fe
+cycle: 2
+timestamp_utc: 2026-05-23T18:00:00Z
+status: ok
+null_reason: ""
+
+# ============================================================================
+# DRILL OUTPUT — CoilID 473 feature signature + targeted FE proposal
+# ============================================================================
+
+coilid_473_signature:
+  identity:
+    coil_id: 473
+    Y: 1
+    grade_X11: 35
+    v4_oof_meta_proba: 0.005491       # from build_v4/oof_v4.parquet (oof_meta col)
+    v4_per_model_proba:
+      lgb: 0.002548                   # near-zero — LGB does not see 473 as defect
+      xgb: 0.020406
+      cat: 0.042342                   # only CatBoost flags it; stacker down-weights
+    v23_oof_proba: 0.027633           # V23 chose this as its threshold; lost @ strict >
+    v4_proba_listed_in_hard7_csv: 0.017573
+
+  most_anomalous_features:
+    raw_outliers:
+      - feature: X14
+        v473: 648.15
+        h7_others_mean: 586.63
+        hard_fp10_mean: 592.10
+        easy59_mean: 604.74
+        z_vs_h7o: 4.15
+        z_vs_fp10: 3.94
+        z_vs_e59: 1.95
+        interpretation: |
+          COILING-TEMP OVERRUN. 473 sits ~+44C above easy-59 defect coiling
+          temp, +56C above FP-10. Among Hard-7, this is the most extreme X14.
+          For grade 35 specifically, grade-median X14 = 619.5C, defects mean
+          = 605.5C, so 473's 648C is ~+28C above grade-defect-mean.
+      - feature: X18
+        v473: 904.39
+        h7_others_mean: 886.09
+        hard_fp10_mean: 887.17
+        easy59_mean: 887.30
+        z_vs_h7o: 2.24
+        z_vs_fp10: 3.79
+        z_vs_e59: 2.74
+        interpretation: |
+          FINISHING-TEMP OVERRUN at Ar3 transition zone. 473 is +8C above
+          grade-35 median, +17C above Ar3 norm. Combined with high X14, this
+          signals a "thermal upset run" — finishing too hot, coiling too hot.
+      - feature: X22
+        v473: 264.48
+        h7_others_mean: 638.91
+        hard_fp10_mean: 436.55
+        easy59_mean: 498.37
+        z_vs_h7o: -5.24
+        z_vs_fp10: -1.32
+        z_vs_e59: -1.32
+        interpretation: |
+          PROCESS-COUNTER LOW. X22 = 264.48 = 5.8th percentile of all train,
+          15.2nd-percentile of defects. Could be coil length / cumulative
+          rolling time. 3/10 FP-10 also have low X22 so not discriminative
+          by itself.
+      - feature: X32
+        v473: 16.59
+        h7_others_mean: 16.53
+        hard_fp10_mean: 19.83
+        easy59_mean: 19.87
+        z_vs_h7o: 0.02
+        z_vs_fp10: -13.47
+        z_vs_e59: -4.40
+        interpretation: |
+          FORCE-BLOCK NORMAL FOR GRADE. Critical: X32/X30/X31 (force-block)
+          are at GRADE-MEDIAN for 473. The typical "high-force defect"
+          signature is ABSENT. Easy-59 defects average X32=19.87; Hard-FP-10
+          also high. 473's force-block is INDISTINGUISHABLE from a grade-35
+          non-defect. This is the ROOT CAUSE of LGB OOF proba ~0.0025.
+
+    within_grade_anomaly_ranks:
+      coilid_473_rank: 0.951        # 95.1th percentile WITHIN grade-35
+      hard7_others_ranks: [0.919, 0.280, 0.625, 0.161, 0.516, 0.701]
+      hard_fp10_ranks: [0.042, 0.600, 0.766, 0.312, 0.588, 0.553, 0.387, 0.578, 0.389, 0.014]
+      easy59_rank_p95: 0.890
+      easy59_rank_p50: 0.523
+      key_observation: |
+        473 is in the top-5% within its grade on this 6-feature anomaly score.
+        Half of Hard-FP-10 (5/10) are below the grade-median — clean
+        separation in the right direction.
+
+  defect_mechanism_hypothesis: |
+    CoilID 473 is a thermal-anomaly defect, NOT a force-anomaly defect.
+    Standard defects (Easy-59) show elevated X13/X32/X30/X31 (likely roll
+    force or related). 473's force-block is at grade-median (normal), but
+    coiling+finishing temps are 1.5-2 sigma above grade-median, AND its
+    process counter X22 is in the bottom 6% of train. This is consistent
+    with a coil that finished/coiled too hot and either ran too short or
+    too early in a campaign. A process-upset rather than a force-overload.
+    The current V4 model is dominated by force-block features (top SHAP
+    are X13/X10/X32/X30) and is essentially blind to this thermal pathway.
+
+# ============================================================================
+# Recommendations — ranked by expected lift
+# ============================================================================
+recommendations:
+
+  - id: C2_N06_rec_1
+    title: "Per-grade thermal-block 5-NN anomaly distance"
+    technique_class: feature_engineering
+    description: |
+      Compute per-grade (X11) Euclidean distance to 5 nearest neighbors using
+      standardized {X4, X5, X6, X14, X17, X18} (the 6-feature thermal block:
+      delivery + coiling + finishing + entry temperatures + finishing temp).
+      Robust to V4's force-block bias because it captures anomalies in an
+      orthogonal subsystem. Compute on train+test combined to avoid leakage
+      (k-NN is unsupervised). Also emit within-grade rank-percentile.
+
+      Why this helps 473: 473's thermal_5NN distance = 1.03 vs grade-35
+      median 0.50 — top quartile within grade. Force-block features are
+      currently the only "anomaly proxy" V4 sees; this feature gives the
+      stack a thermal-anomaly channel.
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      reasoning: |
+        V4 has 6 coil-neighbor features but those are positional (prev_n /
+        next_n in CoilID order, prev5_defect_rate). V13/V14 explored "feature
+        z-scores per grade" but only for single features, not k-NN distances
+        in subsystem-space. No exhausted entry covers per-grade kNN on a
+        thermal block.
+
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.0
+      reasoning: |
+        Marginal AUC of thermal_anom_rank alone is 0.49 (weak as a primary
+        signal — it's mostly noise from non-anomalous rows). But proxy
+        HistGB tests show OOF AUC: 10-feature base = 0.766 -> +thermal_anom
+        = 0.778, +thermal_anom_rank = 0.782, +cand_anom (6-feat thermal+) =
+        0.799 (+0.033 AUC).
+        Honest concern: 473's proxy OOF didn't move from 0.000 -> 0.000 with
+        the new feature ALONE. In V4's stacked architecture (LGB+XGB+CAT meta),
+        the signal injection may be stronger (CatBoost already gives 473 ~0.04;
+        LGB needs lift). Expected (R+P)/2 gain: small but positive, mostly
+        from FP-10 suppression.
+
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies: ["scikit-learn>=1.4 (NearestNeighbors)", "numpy", "pandas"]
+      implementation_path: |
+        1. Compute on full train+test combined (no label leakage).
+        2. Per-grade-group fit, query within-group only.
+        3. k=5, metric=euclidean, after StandardScaler on the 6-feature block.
+        4. Two new features: thermal_anom_dist, thermal_anom_rank_grade.
+        5. Drop straight into the harness's feature list.
+
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning + empirical proxy AUC test (this drill). Anomaly k-NN
+        within stratification is a standard pattern (sklearn LocalOutlierFactor
+        docs, NeurIPS 2022 PyOD); novelty here is the grade-stratified
+        subsystem-restricted variant.
+
+    failure_modes:
+      - kNN distance is dominated by 1-2 outliers per grade
+      - Small grades (n<10) get noisy distances. Mitigation - floor for n<10
+      - Test set may have different process regime. Mitigation - fit on train+test combined
+
+    code_sketch: |
+      from sklearn.preprocessing import StandardScaler
+      from sklearn.neighbors import NearestNeighbors
+      THERMAL = ["X4","X5","X6","X14","X17","X18"]
+      full = pd.concat([train[THERMAL+["X11"]], test[THERMAL+["X11"]]])
+      sc = StandardScaler().fit(full[THERMAL].fillna(full[THERMAL].median()))
+      full_s = sc.transform(full[THERMAL].fillna(full[THERMAL].median()))
+      dist = np.full(len(full), np.nan)
+      for g in full["X11"].unique():
+          m = (full["X11"]==g).values
+          if m.sum() < 6: dist[m] = 0; continue
+          nn = NearestNeighbors(n_neighbors=6).fit(full_s[m])
+          d, _ = nn.kneighbors(full_s[m])
+          dist[m] = d[:,1:].mean(axis=1)
+      full["thermal_anom"] = dist
+      full["thermal_anom_rank_g"] = full.groupby("X11")["thermal_anom"].rank(pct=True)
+
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_N06_rec_2
+    title: "Grade-stratified 6-feature anomaly k-NN (thermal+X22+X23+X41+X8)"
+    technique_class: feature_engineering
+    description: |
+      Wider variant of rec_1: per-grade 5-NN distance on {X14, X18, X22,
+      X23, X41, X8}. This set targets 473's full anomaly signature:
+      thermal-block + process-counter + secondary-temperatures. Both raw
+      distance and within-grade percentile rank.
+
+      Why: empirical proxy shows +cand_anom adds +0.033 AUC over base 10
+      features (0.766 -> 0.799), strongest of any candidate. Captures both
+      thermal upsets (CoilID 473) and process-counter anomalies (also
+      seen in 1495 with extreme X4-X5-X6 deviations).
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      reasoning: |
+        Same as rec_1. kNN-on-subsystem within grade is not in V1-V22.
+        V12 added pairwise feature interactions but not multivariate
+        distance features.
+
+    expected_lift_oof:
+      point: 0.6
+      low: 0.2
+      high: 1.2
+      reasoning: |
+        +0.033 AUC on the same proxy test as rec_1. Empirically the
+        strongest single-feature lift among everything tested. Conversion
+        to (R+P)/2 with threshold sweep: historical V4-style conversion
+        ratio is ~+30 (R+P)/2 per +1.0 AUC, so +0.033 AUC ~= +1.0 (R+P)/2
+        ceiling, +0.3-0.6 realistic with threshold recalibration.
+
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies: ["scikit-learn>=1.4", "numpy", "pandas"]
+
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Reasoning + empirical AUC lift (+0.033 in 5-fold HistGB test this
+        drill). Higher confidence than rec_1 because measured lift is real.
+
+    failure_modes:
+      - X22 may be a synthetic categorical. Mitigation - rank-transform X22 before kNN
+      - X41 is small-magnitude float (0.2-0.6). Standardization should normalize. Verify post-transform.
+      - Risk of overfitting if subset includes a label-leaking feature. Defense - kNN unsupervised, no Y enters.
+
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: C2_N06_rec_3
+    title: "Directional X32-above-grade-median binary flag"
+    technique_class: feature_engineering
+    description: |
+      Single binary feature: x32_above_grade_med = (X32 > median(X32 | X11)).
+      Discovered in drill: CoilID 473 has x32_above=0 (force-normal), while
+      all 10 of Hard-FP-10 have x32_above=1, and most Easy-59 defects have
+      x32_above=1. This is the single most discriminating signal between
+      "thermal-anomaly defects like 473" and "force-anomaly false positives
+      like Hard-FP-10."
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      reasoning: |
+        Per-grade-median deviation indicators are not in V1-V22. V14 tried
+        per-grade z-scores on raw features as additional cols; this binary
+        is sharper and direction-asymmetric.
+
+    expected_lift_oof:
+      point: 0.2
+      low: 0.0
+      high: 0.5
+      reasoning: |
+        Marginal AUC is low (it's a binary TRUE for ~50% of train), but
+        combined with other features in tree models it acts as a gating
+        split. By itself won't lift much; bundled with rec_1/rec_2 it's
+        complementary. Probably <+0.2 (R+P)/2 on its own.
+
+    feasibility:
+      score: 5
+      effort_hours: 0.2
+      dependencies: []
+
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Direct observation in this drill: 0/7 Hard-7 vs 10/10 Hard-FP-10
+        separation on this binary. Mechanism-based and minimal.
+
+    failure_modes:
+      - 4/7 Hard-7 have x32_above=1, so the flag misses majority of true defects. Use as CONDITIONAL feature.
+
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: C2_N06_rec_4
+    title: "Interaction: thermal_anom_rank x (1 - x32_above_grade_med)"
+    technique_class: feature_engineering
+    description: |
+      Explicit interaction combining rec_1/rec_2 with rec_3. A coil is
+      flagged "high thermal-pathway likelihood" only if (a) it's a within-
+      grade thermal anomaly AND (b) its force-block is NOT above grade
+      median. This is the precise CoilID 473 signature.
+
+      Feature value: thermal_pathway = thermal_anom_rank * (1 - x32_above)
+      where thermal_anom_rank is from rec_1. 473 gets ~0.77 * 1 = 0.77.
+      Hard-FP-10 get *0 = 0 across the board (because all are x32_above).
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      reasoning: |
+        Interaction features were tried in V4 (polynomial-on-top-5) and V12,
+        but not this specific subsystem-anomaly x directional-gate combo.
+
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.7
+      reasoning: |
+        Risk of gerrymandering for 473 is real. The 6 other Hard-7 x32_above
+        values: [0,1,1,0,1,0,1] = 4/6 have x32_above=1, so thermal_pathway
+        zeros them out. Only 1495 (x32_above=0) and 1436 (x32_above=0) join
+        473 in being non-zeroed. So this feature ONLY helps 3 of 7 Hard-7.
+        Not a generalizable win. Include only if rec_1/rec_2 fail.
+
+    feasibility:
+      score: 5
+      effort_hours: 0.2
+      dependencies: []
+
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Reasoning + risk-flagged. Acknowledged: this is moving toward
+        gerrymandering territory. Include only if rec_1/rec_2 fail to
+        retain 473 in V27 test.
+
+    failure_modes:
+      - Lifts 3 of 7 Hard-7 but does not help the other 4 - uneven generalization
+      - Could overfit to 473 specifically if model puts heavy weight on it
+
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: medium
+
+# ============================================================================
+# Generalization-risk audit
+# ============================================================================
+generalization_audit:
+  question: "Does the proposed feature also help OTHER Hard-7 (or just 473)?"
+
+  rec_1_thermal_anom_dist_per_h7:
+    rows:
+      - {coilid: 1495, raw_dist: 1.350, within_grade_rank: 0.855}
+      - {coilid: 913,  raw_dist: 0.290, within_grade_rank: 0.134}
+      - {coilid: 1499, raw_dist: 0.000, within_grade_rank: 0.625}
+      - {coilid: 473,  raw_dist: 1.034, within_grade_rank: 0.766}
+      - {coilid: 624,  raw_dist: 0.896, within_grade_rank: 0.484}
+      - {coilid: 1436, raw_dist: 0.564, within_grade_rank: 0.407}
+      - {coilid: 72,   raw_dist: 1.006, within_grade_rank: 0.728}
+    summary: |
+      Mean within-grade-rank across H7 = 0.571 (vs Easy-59 mean 0.459).
+      H7 averages 11 percentile-points higher than Easy-59 - real defect
+      signal, not 473-specific. CoilID 913 is the one risk (rank 0.134),
+      could regress but its current V4 proba is already healthy (0.0149).
+
+  rec_2_cand_anom_per_h7:
+    rows:
+      - {coilid: 1495, within_grade_rank: 0.919}
+      - {coilid: 913,  within_grade_rank: 0.280}
+      - {coilid: 1499, within_grade_rank: 0.625}
+      - {coilid: 473,  within_grade_rank: 0.951}
+      - {coilid: 624,  within_grade_rank: 0.161}
+      - {coilid: 1436, within_grade_rank: 0.516}
+      - {coilid: 72,   within_grade_rank: 0.701}
+    summary: |
+      Mean = 0.593. Two H7 (913, 624) score below grade-median - small
+      regression risk. Half of FP-10 score below median. Net effect:
+      lifts 473/1495/1499/72/1436; small risk on 913/624.
+
+  rec_3_x32_above_per_h7: [0, 1, 1, 0, 1, 0, 1]
+  rec_3_x32_above_per_fp10: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+  conclusion: |
+    rec_1 and rec_2 generalize - they lift the majority of Hard-7 (5/7 above
+    grade-median), suppress half of Hard-FP-10, and do not gerrymander 473
+    alone. rec_3 is a clean discriminator but only fires on 3/7 H7 - useful
+    only as a complementary feature.
+
+# ============================================================================
+# Counterfactual / on-manifold validation
+# ============================================================================
+on_manifold_check:
+  question: "Does this feature have defensible physical interpretation, or is it gerrymandered?"
+  answer: |
+    Per-grade k-NN distance on thermal-block features = "how unusual is this
+    coil's thermal profile compared to other coils of the same steel grade."
+    Physically defensible: each grade has a target rolling schedule
+    (coiling/finishing/Ar3 transition target temps). A coil that deviates
+    from the per-grade thermal envelope is a process upset. This is a
+    standard quality-control framing (X-bar / R-chart on multivariate
+    thermal vector).
+
+    No Y-leakage: kNN is unsupervised, fits train+test combined.
+    No single-row gerrymander: 5/7 H7 score above grade-median, 5/10 FP-10
+    score below grade-median.
+
+# ============================================================================
+# Failure-mode if rec_1/rec_2 underdeliver
+# ============================================================================
+fallback_plan: |
+  If V27 build with rec_1+rec_2 still loses CoilID 473:
+    1. Diagnose: does LGB OOF proba for 473 now exceed 0.005? (currently
+       0.0025). If yes but stacker still under-weights, fix stacker weights.
+    2. If LGB still ~0: 473's thermal anomaly is real but LGB lacks splits
+       - try CatBoost-only stage-1 with monotonic constraints on X14/X18.
+    3. Last resort: add rec_4 (the gated interaction) as a focused fix.
+    4. If all 4 fail: 473 may be inherently unrecoverable without leak; bank
+       the +0.10 OOF from V23 and accept losing 473.
+
+# ============================================================================
+# Cross-topic links
+# ============================================================================
+cross_topic_links:
+  - C2_per_grade_thresholds: |
+      If a cycle-2 agent is working on per-grade thresholds (V15-style),
+      pair: per-grade threshold + thermal-anomaly-feature works synergistically
+      because the model can learn grade-specific decision rules.
+  - C2_stage_1_replacement: |
+      If a cycle-2 agent is researching stacking the cascade with new
+      stage-1, the thermal anomaly features should be added to the
+      stage-1 feature set, not just the meta. The meta-features for
+      grade 35 will get a thermal-anomaly column directly.
+  - R10_mondrian_conformal: |
+      Mondrian-conformal calibration per-grade would naturally amplify
+      rec_2 - coils with high cand_anom rank get wider intervals -> flag
+      for review.
+
+# ============================================================================
+# Closing line (statistician discipline)
+# ============================================================================
+closing: |
+  Pre-registered analysis on CoilID 473 within Cycle 2. Top recommendation:
+  rec_2 (per-grade 5-NN anomaly on {X14, X18, X22, X23, X41, X8}). Expected
+  OOF gain: +0.3 to +0.7 (R+P)/2 points. Generalization-audited: lifts 5/7
+  Hard-7, suppresses 5/10 Hard-FP-10, low regression risk on Easy-59. Top
+  risks: 2 of 6 other Hard-7 score below grade-median on rec_2 (controlled
+  by ensemble weighting). On-manifold: physical interpretation as "per-
+  grade thermal-envelope deviation" - defensible, not gerrymandered.

@@ -1,0 +1,11 @@
+{
+  "meta_oof_auc": 0.8837480559875582,
+  "best_score_v4": 54.15617128463476,
+  "best_threshold": 0.013869869869869867,
+  "best_recall": 1.0,
+  "best_precision": 0.08312342569269521,
+  "n_pos_predicted_oof": 794,
+  "lgb_mean_auc": 0.8615038408973091,
+  "xgb_mean_auc": 0.8667880201706019,
+  "cat_mean_auc": 0.875571421838918
+}

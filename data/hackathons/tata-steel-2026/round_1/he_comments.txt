@@ -1,0 +1,215 @@
+comments in the Your Answer section.
+Click Submit.
+Download dataset
+Upload Prediction File
+Please upload the prediction file in the format as stated in the problem.
+Currently: hackathon/tata-steel-ai-hackathon/uploads/mlproblems/21343f7056-expected_submission.csv
+Change: 
+Upload Source Files
+You need to submit a zip or tar archive consisting of a text file explaining your approach, details about feature engineering, tools you used and the relevant source files.
+Currently: hackathon/tata-steel-ai-hackathon/uploads/mlfiles/e2ecddb655-submission_v2.zip  Clear
+Change: 
+COMMENTS (23)
+SORT BY: 
+Timestamp
+Relevance
+Cancel
+chilkuri UdayKiran
+17 hours ago
+
+successfully completed using ai tools. Iam glad to had such an AI HAckathon.
+
+ 1 vote
+ Reply
+MADDIPATLA PHANINDRA
+17 hours ago
+
+so u got 100 score?
+
+ 1 vote
+ Reply
+Dondeti yaswanth reddy
+15 hours ago
+
+i got 74
+
+ 0 votes
+ Reply
+MADDIPATLA PHANINDRA
+15 hours ago
+
+great
+
+ 1 vote
+ Reply
+Dondeti yaswanth reddy
+14 hours ago
+
+you?
+
+ 0 votes
+ Reply
+MADDIPATLA PHANINDRA
+14 hours ago
+
+60
+
+ 0 votes
+ Reply
+PAWAN KUMAR
+9 hours ago
+
+only ml model are allowed or deep learning can be used too ?
+
+ 2 votes
+ Reply
+bairirahulsai16
+17 hours ago
+
+Successfully finished..
+
+ 1 vote
+ Reply
+Durga Prasad
+17 hours ago
+
+Successfully Completed end-to-end implementation.
+
+ 0 votes
+ Reply
+Jannela Chaitanya
+14 hours ago
+
+can we do multiple submissions ?
+
+ 0 votes
+ Reply
+Anant Singh
+13 hours ago
+
+yes
+
+ 0 votes
+ Reply
+Pramod kumar Jaiswal
+13 hours ago
+
+done
+
+ 0 votes
+ Reply
+karthikeyan E
+12 hours ago
+
+submited
+
+ 0 votes
+ Reply
+karthikeyan E
+12 hours ago
+
+submited
+
+ 0 votes
+ Reply
+Ansh Kumar Singh
+12 hours ago
+
+I have uploaded my submission just now after how much time I will be able to see my rank on leaderboard
+
+ 0 votes
+ Reply
+Ansh Kumar Singh
+12 hours ago
+
+Can anyone tell me after how much time the name is shown on leaderboard after submission
+
+ 0 votes
+ Reply
+Pramod kumar Jaiswal
+11 hours ago
+
+46.41 bad
+
+ 0 votes
+ Reply
+Arnab Chatterjee
+9 hours ago
+
+What's the actual score function? Not able to get it. Is it F1 macro, recall?
+
+ 0 votes
+ Reply
+Akanksha Kesarkar
+9 hours ago
+
+nice challenge
+
+ 0 votes
+ Reply
+Saket Jha
+4 hours ago
+
+is deep learning model allowed ?
+
+ 0 votes
+ Reply
+Kondavaripalli Yagna Sree
+2 hours ago
+
+submited
+
+ 0 votes
+ Reply
+Jagadeswararao Vana
+2 hours ago
+
+I have successfully solved the Defect Detection in Hot Rolling challenge.
+
+Key Approach Highlights:
+- Models: Ensemble of LightGBM, XGBoost, and CatBoost classifiers trained on the full dataset.
+- Cross-Validation: Evaluated using Stratified 5-Fold Cross-Validation.
+- Post-processing & Thresholding: Selected a tuned probability threshold of 0.05 on the ensemble test probabilities. This guarantees 100% Recall (0 false negatives) and minimizes False Positives (False Positive Rate < 3%).
+
+Zipped source files (Hot_Rolling_Defect_Detection.ipynb, expected_submission.csv, and README.txt) have been uploaded to the source files section.
+
+ 0 votes
+ Reply
+Bishwanath Choudhary
+an hour ago
+
+Successfully Completed
+
+ 0 votes
+ Reply
++1-650-461-4192
+For sales enquiry
+contact@hackerearth.com
+For support
+support@hackerearth.com
+For Developers
+Hackathons
+Challenges
+Jobs
+Practice
+Campus Ambassadors
+For Businesses
+Hackathons
+Assessments
+FaceCode
+Learning and Development
+Knowledge
+Practice
+Interview Prep
+Codemonk
+Engineering Blog
+Company
+About us
+Careers
+Press
+Support
+Contact
+Privacy Policy
+© 2026 HackerEarth All rights reserved  Terms of Service  Privacy Policy
+
+?

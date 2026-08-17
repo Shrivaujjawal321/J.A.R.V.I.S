@@ -1,0 +1,495 @@
+{
+ "summary": "Lane 4 verdict: of the six \"hard\" fields, exactly two are legally achievable for free (Google Maps URL, Photos-with-caveats) and four have no free legal US source (Average Rating, Review Count, Review Summary, WhatsApp Number). The Google path is closed by clause, not by price: Google Maps Platform ToS \u00a73.2.3(a) \"No Scraping\" states verbatim that Customer will not \"pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services\", nor \"copy and save business names, addresses, or user reviews\", and \u00a73.2.3(c)(iv) specifically forbids using \"latitude/longitude values from the Places API as an input for point-in-polygon analysis\" \u2014 which is precisely the route-buffer operation this project is built on. The only Google caching permission is Service Specific Terms \u00a7A.3 \"Google ID Caching\", limited to ID values such as place_id. So even with a paid billing account, storing ratings/reviews/photos in Postgres is a ToS breach, not merely an expense. Yelp is closed twice over: robots.txt has a bare `User-Agent: * / Disallow: /`, and the Fusion API terms \u00a75 cap caching at 24 hours, forbid using content \"to update or create your own database of business listing information\", and forbid commercial use without written consent. Scraping is likewise out \u2014 Yelp disallows all, Justdial explicitly disallows `/us/` (and is India-only regardless), and while YellowPages allows a generic UA it sets `Content-Signal: ai-train=no, use=reference` and Disallows ClaudeBot. The genuinely good news is the Google Maps URL field: the Maps URLs API documentation states \"You don't need a Google API key to use Maps URLs\", and a link built from our own lat/lon contains zero Google Maps Content, so \u00a73.2.3 never attaches \u2014 this satisfies the field honestly and for free. For photos, Mapillary (CC BY-SA, free token, attribution required) and Wikimedia Commons (keyless geosearch, verified returning per-file licences) are legal, but I measured Commons coverage to be landmarks rather than commercial frontages, so expect very low hit rates. On WhatsApp I got a hard measured zero: an Overpass query across the whole US for car_repair/truck_repair/tyres shops carrying `contact:whatsapp` or `whatsapp` returned total=0, against 17,937 such objects globally \u2014 the field is unfillable in the US, exactly as suspected. The most consequential finding for architecture is the ODbL one: the OSMF Horizontal Layers Guideline states that if OSM and non-OSM data are mixed for the same Feature Type, \"the share-alike condition would apply regardless of whether some data for that Feature Type is in a different layer\" \u2014 so conflating OSM mechanic shops with Overture ones would make the merged shop table a Derivative Database and force ODbL on the whole thing. The repo's existing ruling 3.1-4a is therefore correct and must be kept. A related trap nobody has flagged: Overture's Transportation theme is ODbL (OSM-derived), so if the not-yet-existing routes table is built from it, ODbL contaminates every downstream \"distance from route\" attribute; routes should come from public-domain federal sources such as the FHWA/BTS National Highway Freight Network instead.",
+ "sources": [
+  {
+   "name": "Google Maps Platform Terms of Service \u2014 \u00a73.2.3 Restrictions Against Misusing the Services",
+   "url": "https://cloud.google.com/maps-platform/terms/",
+   "owner": "Google",
+   "license": "Proprietary ToS (not a data licence)",
+   "access": "paid",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML legal text",
+   "us_coverage": "n/a",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "ratings",
+    "reviews",
+    "photos",
+    "business names",
+    "addresses"
+   ],
+   "why_it_matters": "This is the single clause that kills the Google option. \u00a73.2.3(a) No Scraping: 'Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download ... places information ...; (iii) copy and save business names, addresses, or user reviews'. \u00a73.2.3(b) No Caching: 'Customer will not cache Google Maps Content except as expressly permitted under the Maps Service Specific Terms.' \u00a73.2.3(c)(iv) forbids 'use latitude/longitude values from the Places API as an input for point-in-polygon analysis' \u2014 i.e. the route-buffer query itself. \u00a73.2.3(c)(vii) forbids using Maps Content 'to improve machine learning and artificial intelligence models' \u2014 which kills LLM review summarisation.",
+   "caveats": "Fetched raw HTML and de-tagged because the page is JS-heavy and WebFetch truncated it; quotes above are verbatim from the retrieved document text.",
+   "tos_verdict": "prohibited",
+   "tos_evidence_url": "https://cloud.google.com/maps-platform/terms/"
+  },
+  {
+   "name": "Google Maps Platform Service Specific Terms \u2014 \u00a7A.3 Google ID Caching",
+   "url": "https://cloud.google.com/maps-platform/terms/maps-service-terms",
+   "owner": "Google",
+   "license": "Proprietary ToS",
+   "access": "paid",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML legal text",
+   "us_coverage": "n/a",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "place_id"
+   ],
+   "why_it_matters": "The ONLY caching permission Google grants, and it is narrow: 'Customer may cache the Google ID values from the Services that return such field and allow caching, in accordance with its Documentation. For example, Customer may cache (a) place_id from Places API, Directions API, Geolocation API and Routes API, (b) pano_ID, from Street View Static API, and (c) video_ID from Aerial View API.' Note it permits caching IDs only \u2014 never ratings, review text, review counts, photos, hours, or phone.",
+   "caveats": "This permission presupposes the ID was obtained through a licensed API call. It does not authorise storing a place_id harvested by scraping.",
+   "tos_verdict": "cache_limited",
+   "tos_evidence_url": "https://cloud.google.com/maps-platform/terms/maps-service-terms"
+  },
+  {
+   "name": "Google Maps URLs API (documented deep-link format)",
+   "url": "https://developers.google.com/maps/documentation/urls/get-started",
+   "owner": "Google",
+   "license": "Documented public URL scheme; no data licence attaches because no Google content is retrieved",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "URL template",
+   "us_coverage": "national",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "google_maps_url"
+   ],
+   "why_it_matters": "This is the honest, free way to satisfy the 'Google Maps URL' field. The docs state verbatim: 'You don't need a Google API key to use Maps URLs.' Documented forms are https://www.google.com/maps/search/?api=1&query=<lat>,<lon> and https://www.google.com/maps/dir/?api=1&... , with 'api=1' required in every request. Because the URL is assembled from OUR lat/lon (Overture/FSQ/OSM-sourced), it embeds zero Google Maps Content, so ToS \u00a73.2.3 never attaches and nothing needs to be cached.",
+   "caveats": "Legal only while the URL is built from coordinates we already own. The moment you call Places API to resolve a place_id to embed in the link, you are inside the Maps Platform agreement with all its storage restrictions.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "tos_evidence_url": "https://developers.google.com/maps/documentation/urls/get-started"
+  },
+  {
+   "name": "Google Maps Platform pricing \u2014 March 2025 free-tier change",
+   "url": "https://developers.google.com/maps/billing-and-pricing/march-2025",
+   "owner": "Google",
+   "license": "Proprietary",
+   "access": "paid",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML",
+   "us_coverage": "n/a",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "pricing"
+   ],
+   "why_it_matters": "Establishes that Places API is not free in the sense this project requires: effective 1 March 2025 Google 'replaced the USD $200 monthly recurring credit with a free monthly usage threshold for each Core Services SKU' (10,000 free requests/month for the Essentials example given, Geocoding). A billing account with a payment instrument is still required to enable Places API at all. Combined with the \u00a73.2.3 storage ban, Places is both paid-gated AND non-storable.",
+   "caveats": "The precise per-SKU allowances for Essentials/Pro/Enterprise (commonly reported as 10,000/5,000/1,000) were NOT stated on the page I fetched; that split is [UNVERIFIED] from secondary sources. The $200-credit language still visible on the usage-and-billing page is stale. Free-tier size is moot anyway given the storage prohibition.",
+   "tos_verdict": "prohibited",
+   "tos_evidence_url": "https://cloud.google.com/maps-platform/terms/"
+  },
+  {
+   "name": "Yelp robots.txt",
+   "url": "https://www.yelp.com/robots.txt",
+   "owner": "Yelp Inc.",
+   "license": "n/a",
+   "access": "scrape_prohibited",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "robots.txt",
+   "us_coverage": "national",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "rating",
+    "review_count",
+    "reviews",
+    "photos"
+   ],
+   "why_it_matters": "Unambiguous total prohibition for any non-whitelisted agent. The wildcard block is exactly two lines: 'User-Agent: *' / 'Disallow: /'. The file header additionally states: 'Use of any robot, spider, service search/retrieval application, or other automated device, process or means to access, retrieve, copy, scrape, or index any portion of the service or any content is prohibited, except as expressly permitted by Yelp.' ClaudeBot, GPTBot, CCBot, PerplexityBot and anthropic-ai are all separately enumerated. Scraping Yelp is off the table.",
+   "caveats": "Only ~31 named search-engine agents get any Allow rules, and those are limited to specific /biz_photos/ city patterns.",
+   "tos_verdict": "prohibited",
+   "tos_evidence_url": "https://www.yelp.com/robots.txt"
+  },
+  {
+   "name": "Yelp Fusion API Terms of Use \u2014 \u00a75 restrictions",
+   "url": "https://terms.yelp.com/developers/api_terms",
+   "owner": "Yelp Inc.",
+   "license": "Proprietary API ToU",
+   "access": "free_key",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML legal text",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "rating",
+    "review_count",
+    "review excerpts"
+   ],
+   "why_it_matters": "Closes the 'just use the official API' escape hatch. \u00a75(a) forbids to 'cache, record, pre-fetch, or otherwise store any portion of the Yelp Content for a period longer than twenty-four (24) hours' and forbids any 'scraping or bulk download operations'. \u00a75(b) forbids to 'modify the Yelp Content, or use it to update or create your own database of business listing information' \u2014 a direct hit on this project's core.businesses table. \u00a75(d) forbids use 'for any commercial purpose without the express written consent of Yelp'. A 24-hour TTL is incompatible with a persisted enrichment table carrying observed_at.",
+   "caveats": "www.yelp.com/developers/api_terms 302-redirects to terms.yelp.com; both verified 200. Display Requirements additionally mandate Yelp-branded star sprites and 'read more' links back to Yelp, and list 'Store data longer than 24 hours' as a prohibited practice.",
+   "tos_verdict": "cache_limited",
+   "tos_evidence_url": "https://terms.yelp.com/developers/api_terms"
+  },
+  {
+   "name": "Yelp Display Requirements",
+   "url": "https://terms.yelp.com/developers/display_requirements/",
+   "owner": "Yelp Inc.",
+   "license": "Proprietary",
+   "access": "free_key",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML",
+   "us_coverage": "national",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "rating display",
+    "review excerpt display"
+   ],
+   "why_it_matters": "Confirms the 24-hour storage ban independently of the API terms: 'Store data longer than 24 hours' is listed under prohibited practices. Also mandates 'The following Yelp-branded stars sprite must be used when representing a Yelp rating. Generic or unbranded stars are not permitted' and 'Include read more links to full reviews whenever you use review excerpts.'",
+   "caveats": "Even a compliant live-passthrough integration would force Yelp branding into the product UI and could not populate a stored rating column.",
+   "tos_verdict": "cache_limited",
+   "tos_evidence_url": "https://terms.yelp.com/developers/display_requirements/"
+  },
+  {
+   "name": "YellowPages.com robots.txt",
+   "url": "https://www.yellowpages.com/robots.txt",
+   "owner": "Thryv/YP",
+   "license": "n/a",
+   "access": "scrape_prohibited",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "robots.txt",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "business listings",
+    "ratings"
+   ],
+   "why_it_matters": "Nuanced, and the nuance matters. The wildcard block is 'User-agent: * / Content-Signal: search=yes,ai-train=no,use=reference / Allow: /' \u2014 so a generic crawler is not path-blocked. BUT the file opens 'As a condition of accessing this website, you agree to abide by the following content signals' and declares ai-train=no with use=reference, and expressly reserves rights under Article 4 of EU Directive 2019/790. ClaudeBot, GPTBot, CCBot, Google-Extended, Amazonbot, Bytespider and meta-externalagent are each Disallow: /.",
+   "caveats": "Content-Signal permits building a search index, not building a competing structured business database. Bulk extraction of ratings into a redistributable dataset is outside the 'search=yes, use=reference' grant and would additionally need a check against YP's site ToS. Treat as prohibited for this use.",
+   "tos_verdict": "prohibited",
+   "tos_evidence_url": "https://www.yellowpages.com/robots.txt"
+  },
+  {
+   "name": "Justdial robots.txt",
+   "url": "https://www.justdial.com/robots.txt",
+   "owner": "Just Dial Ltd (India)",
+   "license": "n/a",
+   "access": "scrape_prohibited",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "robots.txt",
+   "us_coverage": "n/a \u2014 India-only directory",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "ratings",
+    "reviews"
+   ],
+   "why_it_matters": "Doubly irrelevant and doubly disallowed. The wildcard block explicitly contains 'Disallow: /us/' and 'Disallow: /gapi/ratings' \u2014 the two paths that would matter. Justdial is an India directory with no meaningful US business coverage, so it appears in the requested field list only as an artefact of the India-vocabulary source spec.",
+   "caveats": "Interesting quirk: Justdial explicitly Allows ClaudeBot/GPTBot/anthropic-ai at the root, but the wildcard /us/ and /gapi/ratings disallows still make the target paths off-limits, and there is no US data to gather anyway.",
+   "tos_verdict": "prohibited",
+   "tos_evidence_url": "https://www.justdial.com/robots.txt"
+  },
+  {
+   "name": "OSM Foundation \u2014 Horizontal Map Layers Guideline (ODbL community guideline)",
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+   "owner": "OpenStreetMap Foundation",
+   "license": "Guideline interpreting ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML",
+   "us_coverage": "n/a",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "licence interpretation"
+   ],
+   "why_it_matters": "THE decisive document for whether OSM mechanic shops may be merged with Overture ones. It states: 'For all features of a given type (Feature Types) (e.g. streets, restaurants, parks, cemeteries), if all data for that Feature Type is from non-OpenStreetMap sources, then the ODbL share-alike conditions do not apply to that Feature Type.' But critically, if OSM and non-OSM are mixed for the same Feature Type, 'the share-alike condition would apply regardless of whether some data for that Feature Type is in a different layer.' Physical table separation does NOT save you. It further lists 'Non-OSM restaurants added based on comparison with OSM layers' as REQUIRING share-alike \u2014 which is exactly what conflation/dedup is.",
+   "caveats": "This means the repo's ruling 3.1-4a (OSM lives only in osm.*, joined at query time) is necessary but must be enforced semantically, not just structurally: if a query-time join is used to decide which Overture shops to keep or drop, that is comparison-based derivation and share-alike attaches.",
+   "tos_verdict": "share_alike_viral",
+   "tos_evidence_url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline"
+  },
+  {
+   "name": "OSM Foundation \u2014 Collective Database Guideline",
+   "url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline",
+   "owner": "OpenStreetMap Foundation",
+   "license": "Guideline interpreting ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML",
+   "us_coverage": "n/a",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "licence interpretation"
+   ],
+   "why_it_matters": "Defines the safe harbour and the escape route. A Collective Database exists where 'the data used for a particular data type is either all OSM or all non-OSM within the same regional cut', and notably 'Two data sets need not be physically separated to qualify as independent for purposes of the definition of a Collective Database.' Its worked examples confirm the boundary: attaching non-OSM phone numbers to OSM restaurants by reference does NOT trigger share-alike on the phone numbers, but 'Merging proprietary restaurants with OSM data creates a Derivative Database, triggering share-alike obligations.'",
+   "caveats": "The URL genuinely contains the doubled '_Guideline_Guideline' suffix; the shorter form 404s. Verified 200 as given.",
+   "tos_verdict": "share_alike_viral",
+   "tos_evidence_url": "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Collective_Database_Guideline_Guideline"
+  },
+  {
+   "name": "Open Database License (ODbL) 1.0 \u2014 full text",
+   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+   "owner": "Open Data Commons",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML legal text",
+   "us_coverage": "n/a",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "licence text"
+   ],
+   "why_it_matters": "Supplies the definitions the guidelines interpret. Derivative Database = 'a database based upon the Database, and includes any translation, adaptation, arrangement, modification, or any other alteration of the Database or of a Substantial part of the Contents.' Collective Database = 'this Database in unmodified form as part of a collection of independent databases in themselves that together are assembled into a collective whole.' \u00a74.4 share-alike triggers on Public Use of a Derivative Database. \u00a74.5 is the key relief valve: creating a Produced Work 'does not create a Derivative Database for purposes of Section 4.4', though \u00a74.3 notice still applies. \u00a74.6 requires offering recipients the whole Derivative Database or an alterations file in machine-readable form.",
+   "caveats": "\u00a74.5's Produced Work relief means SERVING a rendered result to a human is materially different from PUBLISHING a downloadable merged dataset. That distinction should drive the API/export design.",
+   "tos_verdict": "share_alike_viral",
+   "tos_evidence_url": "https://opendatacommons.org/licenses/odbl/1-0/"
+  },
+  {
+   "name": "Overture Maps \u2014 attribution and per-theme licensing",
+   "url": "https://docs.overturemaps.org/attribution/",
+   "owner": "Overture Maps Foundation",
+   "license": "Places = CDLA-Permissive-2.0 (plus Apache-2.0 for FSQ-sourced, CC0-1.0 for AllThePlaces); Base/Buildings/Divisions/Transportation = ODbL",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML / GeoParquet",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "names",
+    "categories",
+    "phones",
+    "websites",
+    "socials",
+    "emails",
+    "addresses",
+    "confidence"
+   ],
+   "why_it_matters": "Confirms the legal basis of the existing core.businesses table AND surfaces a trap. Places is the ONLY theme not under ODbL \u2014 its sources (Meta, Microsoft, PinMeTo, Krick, RenderSEO, DAC, BrightQuery) are CDLA-Permissive-2.0, Foursquare-sourced rows are Apache-2.0, AllThePlaces rows are CC0-1.0. That is why the repo's CHECK constraint present_in <@ ARRAY['overture','fsq'] is sound. The trap: Transportation is explicitly ODbL, '\u00a9 OpenStreetMap contributors. Available under the Open Database License'.",
+   "caveats": "CRITICAL FOR THIS TASK: there is no routes table yet. If truck routes are built from Overture Transportation or from osm.ways, the route geometry is ODbL, and every derived 'distance_from_route' / 'nearest_route_point' attribute is computed from ODbL data \u2014 risking Derivative Database status for the whole enriched shop table. Source routes from public-domain federal data instead.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://docs.overturemaps.org/attribution/"
+  },
+  {
+   "name": "CDLA-Permissive-2.0 licence text",
+   "url": "https://cdla.dev/permissive-2-0/",
+   "owner": "Linux Foundation",
+   "license": "CDLA-Permissive-2.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "HTML legal text",
+   "us_coverage": "n/a",
+   "approx_rows": "n/a",
+   "fields_provided": [
+    "licence text"
+   ],
+   "why_it_matters": "Confirms Overture Places imposes essentially no viral burden. \u00a72.1: 'A Data Recipient may share Data, with or without modifications, so long as the Data Recipient makes available the text of this agreement with the shared Data.' \u00a73.1: 'This agreement does not impose any restriction or obligations with respect to the use, modification, or sharing of Results.' No share-alike, no named-attribution requirement beyond shipping the licence text.",
+   "caveats": "Obligation is to ship the licence text alongside shared Data \u2014 cheap, but must actually be implemented in any export/download endpoint.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://cdla.dev/permissive-2-0/"
+  },
+  {
+   "name": "Foursquare Open Source Places",
+   "url": "https://docs.foursquare.com/data-products/docs/access-fsq-os-places",
+   "owner": "Foursquare Labs, Inc.",
+   "license": "Apache-2.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "Parquet / Iceberg / PMTiles / HuggingFace",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "name",
+    "category",
+    "address",
+    "phone",
+    "website",
+    "lat",
+    "lon",
+    "hours (varies)"
+   ],
+   "why_it_matters": "The second permissively-licensed POI source and the natural partner to Overture Places for building an all-non-OSM mechanic-shop Feature Type (which is what keeps the Collective Database safe harbour intact). Apache-2.0, no API key needed for the open dataset. Distributed via HuggingFace (huggingface.co/datasets/foursquare/fsq-os-places), Snowflake Marketplace, and S3 vector tiles at s3://fsq-os-places-us-east-1/release/vector-tiles/latest/fsq-os-places.pmtiles.",
+   "caveats": "Carries no ratings, no review counts and no photos \u2014 so it does not help the hard fields, only the identity/contact fields. Apache-2.0 requires preserving the copyright/licence notice ('Copyright 2024 Foursquare Labs, Inc.').",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://docs.foursquare.com/data-products/docs/access-fsq-os-places"
+  },
+  {
+   "name": "Mapillary Terms of Service (imagery licence) + Developer API",
+   "url": "https://www.mapillary.com/terms?locale=en_US",
+   "owner": "Mapillary / Meta",
+   "license": "CC BY-SA (user-contributed imagery), per ToS \u00a73(b)",
+   "access": "free_key",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "REST (graph.mapillary.com) + vector tiles",
+   "us_coverage": "partial \u2014 street-level, dense on major corridors, sparse on rural/industrial frontage",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "photo_url",
+    "captured_at",
+    "lat",
+    "lon",
+    "compass_angle"
+   ],
+   "why_it_matters": "The single best free legal route to a 'photo of the shop frontage', because it is street-level imagery captured along roads \u2014 which is exactly where route-adjacent truck shops sit. ToS \u00a73(b): 'Your use of any User Content provided by other users is subject to the Creative Commons Share Alike (CC BY-SA) license, unless we indicate otherwise.' \u00a711 sets the attribution duty: 'If you are downloading individual images and serving them from your own servers, you must attribute the image(s) by visibly displaying the Mapillary logo and linking back to the Mapillary homepage or corresponding Mapillary image page.'",
+   "caveats": "Requires a free access token \u2014 I confirmed graph.mapillary.com/images rejects unauthenticated calls (returned 500, not a clean 401). Radius search is capped at 50m radius and bbox queries must be under 0.01 degrees square, so harvesting is many small paged calls, not a bulk download. CC BY-SA is share-alike on the IMAGE, so storing a URL + attribution is far safer than rehosting. \u00a712 forbids re-identifying blurred faces/plates. Imagery is a street view, not a curated business photo \u2014 it shows the frontage, it does not confirm the business.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://www.mapillary.com/terms?locale=en_US"
+  },
+  {
+   "name": "Wikimedia Commons \u2014 geosearch API",
+   "url": "https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=39.12%7C-88.5434&ggsradius=5000&ggsnamespace=6&prop=imageinfo&iiprop=url%7Cextmetadata",
+   "owner": "Wikimedia Foundation",
+   "license": "Per-file: CC0 / Public domain / CC BY / CC BY-SA (free licences only)",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "JSON (MediaWiki API)",
+   "us_coverage": "national but extremely sparse for commercial premises",
+   "approx_rows": "5 returned for the 5km test around Effingham, IL (limit was set to 5)",
+   "fields_provided": [
+    "image_url",
+    "license_short_name",
+    "coordinates",
+    "title"
+   ],
+   "why_it_matters": "A genuinely keyless, genuinely free photo source that returns per-file licence metadata inline, so you can filter to reusable licences programmatically. I ran a live geosearch and it returned licences of CC BY 2.0, CC BY-SA 2.0 and Public domain \u2014 machine-readable via extmetadata.LicenseShortName.",
+   "caveats": "Coverage is the problem, not the licence. My live test near a US interstate town returned an Amtrak station, a theatre and a county jail \u2014 landmarks, not businesses. Commons has essentially no coverage of ordinary US truck repair shops. Realistic hit rate for 'photo of THIS shop' is near zero; treat as opportunistic garnish, never as a populated column.",
+   "tos_verdict": "store_with_attribution",
+   "tos_evidence_url": "https://commons.wikimedia.org/wiki/Commons:Licensing"
+  },
+  {
+   "name": "OSM taginfo + Overpass \u2014 measured WhatsApp tag reality",
+   "url": "https://taginfo.openstreetmap.org/api/4/key/stats?key=contact%3Awhatsapp",
+   "owner": "OpenStreetMap contributors",
+   "license": "ODbL 1.0",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "JSON",
+   "us_coverage": "national query executed",
+   "approx_rows": "contact:whatsapp = 17,937 objects globally (14,960 nodes / 2,867 ways / 110 relations, 11,001 distinct values); bare whatsapp key = 117 objects globally; shop=truck_repair = 813 objects globally. US repair shops with ANY whatsapp tag = 0.",
+   "fields_provided": [
+    "contact:whatsapp"
+   ],
+   "why_it_matters": "This is the hard measurement that settles the WhatsApp field. I ran an Overpass query over area[ISO3166-1=US] for shop in (car_repair, truck_repair, tyres) carrying contact:whatsapp OR whatsapp. Result: total=0, across nodes, ways and relations. Data timestamp 2026-07-23T07:58:11Z. Globally the tag exists 17,937 times but the US count for this category is exactly zero \u2014 confirming the field is an artefact of the India-market source spec.",
+   "caveats": "Query scoped to three shop values; a broader amenity/craft sweep might find a handful, but zero on the core categories is decisive enough. Note also that shop=truck_repair is only 813 objects WORLDWIDE, which independently signals OSM alone cannot carry this project's shop discovery.",
+   "tos_verdict": "share_alike_viral",
+   "tos_evidence_url": "https://www.openstreetmap.org/copyright"
+  },
+  {
+   "name": "FHWA/BTS National Highway Freight Network (NHFN) \u2014 candidate public-domain route source",
+   "url": "https://geodata.bts.gov/datasets/usdot::national-highway-freight-network-nhfn",
+   "owner": "US DOT / Bureau of Transportation Statistics",
+   "license": "US Government work \u2014 public domain (17 U.S.C. \u00a7105), no share-alike",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "GeoJSON / shapefile / Esri REST",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "route geometry",
+    "route name",
+    "route class"
+   ],
+   "why_it_matters": "Directly relevant to Lane 4 because route licence determines downstream contamination. There is currently NO routes table. If routes are built from osm.ways or Overture Transportation, they are ODbL and every derived distance_from_route / nearest_route_point / route_id attribute is computed from ODbL data, which risks pulling the whole enriched shop table into Derivative Database territory. Sourcing routes from federal public-domain data severs that chain entirely.",
+   "caveats": "I verified the dataset landing page returns 200 but did NOT download or inspect the geometry, field list or row count \u2014 those are Lane 1/2 questions. Row count and schema: unknown. Note https://www.fhwa.dot.gov/planning/national_highway_freight_network/ returns 404, so cite the BTS geodata portal, not that FHWA path.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "tos_evidence_url": "https://www.usa.gov/government-works"
+  },
+  {
+   "name": "US Census TIGER/Line \u2014 county and ZCTA boundaries (District/PIN mapping)",
+   "url": "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html",
+   "owner": "US Census Bureau",
+   "license": "US Government work \u2014 public domain",
+   "access": "keyless",
+   "verified_live": true,
+   "http_status": "200",
+   "format": "shapefile / GeoJSON",
+   "us_coverage": "national",
+   "approx_rows": "unknown",
+   "fields_provided": [
+    "county name",
+    "county FIPS",
+    "state",
+    "ZCTA5"
+   ],
+   "why_it_matters": "Supplies the correct US mapping for the India-vocabulary fields. 'District' maps to County (Census county + FIPS code), and 'PIN Code' maps to ZIP Code \u2014 but the legally and technically honest polygon is the Census ZCTA (ZIP Code Tabulation Area), because USPS ZIP codes are mail-carrier routes, not areas, and no free authoritative ZIP polygon exists. Public domain, so no attribution or share-alike burden, and safe to spatially join against ODbL-free layers.",
+   "caveats": "ZCTA is an approximation of ZIP, not an equivalence \u2014 some ZIPs have no ZCTA and vice versa. If a shop's own address string carries a ZIP from Overture/FSQ, prefer that literal value and use ZCTA only as a derived/spatial fallback, flagged as such.",
+   "tos_verdict": "ok_to_store_and_serve",
+   "tos_evidence_url": "https://www.usa.gov/government-works"
+  }
+ ],
+ "recommendations": [
+  "VERDICT \u2014 Average Rating: NO-SOURCE-EXISTS (free+legal). Google is PROHIBITED by ToS \u00a73.2.3(a)(iii) ('copy and save business names, addresses, or user reviews') regardless of payment; Yelp is PROHIBITED for storage by API ToU \u00a75(a) (24h cap) and \u00a75(b) (no own listing database); Overture Places schema has NO rating field; OSM has no rating concept. Fallback design: keep the column, leave it NULL, render 'unknown' per the repo honesty rule. Do NOT silently drop the column \u2014 a NULL that renders 'unknown' is the honest signal that no free legal source exists.",
+  "VERDICT \u2014 Review Count: NO-SOURCE-EXISTS (free+legal), same evidence chain as rating. Fallback: NULL/'unknown'. Same reasoning.",
+  "VERDICT \u2014 Review Summary: PROHIBITED, and it is the worst of the six. Google ToS \u00a73.2.3(a)(iii) bans saving user reviews AND \u00a73.2.3(c)(vii) separately bans using Maps Content 'to improve machine learning and artificial intelligence models, including to train, test, validate or fine-tune' \u2014 so LLM-summarising Google reviews breaches two clauses. Yelp \u00a75(b) bans derived databases. Fallback: drop the field entirely from the published schema rather than carry a permanently-NULL column that invites someone to fill it illegally.",
+  "VERDICT \u2014 Google Maps URL: LEGAL+FREE. Build it, do not fetch it. Use the documented keyless format https://www.google.com/maps/search/?api=1&query=<lat>,<lon> from coordinates we already hold under CDLA/Apache/CC0. Evidence: 'You don't need a Google API key to use Maps URLs' (developers.google.com/maps/documentation/urls/get-started). Store it as a computed/generated column, not a fetched one, so it is self-evidently free of Google Maps Content. Never call Places API to resolve a place_id for the link \u2014 that single call drags the whole row inside the Maps Platform agreement.",
+  "VERDICT \u2014 Photos: LEGAL+FREE with a severe coverage caveat. Mapillary is the primary (CC BY-SA, free token, street-level so it actually sees roadside frontages); Wikimedia Commons geosearch is the keyless secondary. Fallback design: store photo_url + photo_license + photo_attribution + photo_source, and REFERENCE rather than rehost \u2014 CC BY-SA share-alike applies to the image, and linking sidesteps it cleanly while Mapillary ToS \u00a711 makes rehosting trigger a logo-display duty. Expect a very low fill rate; set expectations now rather than after the backfill.",
+  "VERDICT \u2014 WhatsApp Number: NO-SOURCE-EXISTS, measured not assumed. My Overpass query across the entire US for car_repair/truck_repair/tyres with contact:whatsapp OR whatsapp returned total=0. Global contact:whatsapp is 17,937 objects, overwhelmingly non-US. Fallback: drop the field for the US build and record WHY in the schema comment, so the India-vocabulary origin of the request is documented and nobody re-adds it later. The only theoretical carrier is Overture Places 'socials' occasionally holding a wa.me URL \u2014 opportunistic at best, never a column you can promise.",
+  "KEEP ruling 3.1-4a, but enforce it semantically rather than structurally. The OSMF Horizontal Layers Guideline says mixing OSM and non-OSM for the same Feature Type triggers share-alike 'regardless of whether some data for that Feature Type is in a different layer'. So physical separation into osm.* is necessary but NOT sufficient: if you query-time join osm shops against Overture shops to dedup, drop, or enrich, that is comparison-based derivation and ODbL attaches to the result. Pick ONE lane and hold it.",
+  "STRONGEST DESIGN RECOMMENDATION \u2014 go all-non-OSM for the mechanic-shop Feature Type. Build core.businesses truck_repair exclusively from Overture Places (CDLA-Permissive-2.0) + Foursquare OS Places (Apache-2.0) + AllThePlaces (CC0). Per the Collective Database Guideline this keeps the shop layer a Collective Database with zero share-alike, and it preserves the existing CHECK constraint present_in <@ ARRAY['overture','fsq'] exactly as written. The cost is honest and should be stated: you forgo OSM's shop coverage. Note OSM only has 813 shop=truck_repair objects WORLDWIDE, so the sacrifice is small \u2014 this is a cheap win, not a painful trade.",
+  "FIX THE ROUTE-LAYER LICENCE BEFORE BUILDING THE ROUTES TABLE. This is the highest-leverage finding in this lane. There is no routes table yet, which means the decision is still free. If routes come from osm.ways or Overture Transportation (both ODbL), then distance_from_route, nearest_route_point and route_id are all derived from ODbL data and can pull the enriched shop table into Derivative Database status. Source routes from federal public-domain data (FHWA/BTS NHFN, verified live) and the contamination chain never starts.",
+  "EXPLOIT ODbL \u00a74.5 in the API design. 'Creating a Produced Work does not create a Derivative Database for purposes of Section 4.4.' So SERVING a rendered per-shop page or map tile to a human is materially safer than PUBLISHING a downloadable merged dataset, which would trigger \u00a74.6's duty to offer the entire Derivative Database in machine-readable form. If a bulk export endpoint is ever added, gate it by licence lane: export the all-permissive shop layer freely, and require ODbL notice + share-alike on anything touching OSM geometry.",
+  "US VOCABULARY MAPPING (the field list is India-shaped): District -> County (use Census county name + 5-digit FIPS). PIN Code -> ZIP Code, but store the literal ZIP from the Overture/FSQ address string as primary and use Census ZCTA only as a spatially-derived fallback flagged as approximate \u2014 USPS ZIPs are carrier routes, not polygons, and no free authoritative ZIP polygon exists. WhatsApp Number -> no US equivalent; the US business-contact norm is phone/SMS/email, all of which Overture and FSQ do carry.",
+  "IMPLEMENT A PER-FIELD LICENCE LEDGER, not just a per-row source_id. Because different columns in the same row will carry different licences (Overture name = CDLA, Mapillary photo = CC BY-SA, NHFN route distance = public domain), the existing (source_id, run_id, ingested_at, observed_at) tuple is not sufficient to discharge attribution. Add a field-level or at minimum column-group-level licence tag so the attribution block can be generated automatically and correctly at serve time.",
+  "DO NOT SCRAPE ANY OF THE FOUR DIRECTORIES. Yelp: 'User-Agent: * / Disallow: /' plus an explicit ToS-embedded automation ban. Justdial: 'Disallow: /us/' and 'Disallow: /gapi/ratings', and it is India-only anyway. YellowPages: technically Allow for a generic UA, but Content-Signal declares ai-train=no/use=reference and it Disallows ClaudeBot \u2014 bulk extraction into a redistributable database exceeds the grant. Google Maps: \u00a73.2.3(a) forbids scraping outright. There is no clever UA or pacing that makes any of these compliant; the block is contractual, not technical."
+ ],
+ "unfillable_or_risky": [
+  {
+   "field_or_claim": "Average Rating",
+   "problem": "No free legal US source exists that permits persistent storage. Google Maps Platform ToS \u00a73.2.3(a)(iii) forbids 'copy and save business names, addresses, or user reviews' and \u00a73.2.3(b) forbids caching except for Google IDs; Yelp Fusion ToU \u00a75(a) caps any storage at 24 hours and \u00a75(b) forbids using content 'to update or create your own database of business listing information'. Overture Places schema contains no rating field; OSM has no rating concept.",
+   "best_legal_alternative": "Leave the column NULL so it renders 'unknown' per the repo honesty rule, and surface a generated Google Maps deep link so a human can check the rating themselves. If a proxy signal is genuinely needed, Overture's own 'confidence' ConfidenceScore is a legitimate CDLA-licensed field \u2014 but it measures record confidence, not customer satisfaction, and must never be relabelled as a rating."
+  },
+  {
+   "field_or_claim": "Review Count",
+   "problem": "Identical to rating \u2014 the only sources (Google, Yelp) contractually forbid persistence. Free permissive POI datasets (Overture Places, FSQ OS Places) carry no review data at all.",
+   "best_legal_alternative": "NULL rendering as 'unknown'. Do not substitute an unrelated count (e.g. number of source datasets a shop appears in) and present it as review count \u2014 that would be exactly the kind of fabrication the repo honesty rules forbid."
+  },
+  {
+   "field_or_claim": "Review Summary",
+   "problem": "Doubly prohibited on the Google path: \u00a73.2.3(a)(iii) bans saving user reviews, and \u00a73.2.3(c)(vii) separately bans using Google Maps Content 'to improve machine learning and artificial intelligence models, including to train, test, validate or fine-tune the models' \u2014 which covers LLM summarisation of scraped reviews. Yelp \u00a75(b) bans derived databases and \u00a75(d) bans commercial use without written consent.",
+   "best_legal_alternative": "Remove the field from the published schema entirely rather than shipping a permanently-NULL column. A dropped field with a documented reason is honest; a NULL column labelled 'review summary' is an invitation for someone downstream to fill it from a prohibited source."
+  },
+  {
+   "field_or_claim": "WhatsApp Number",
+   "problem": "Measured empirically as zero, not merely rare. An Overpass query across area[ISO3166-1=US] for shop in (car_repair, truck_repair, tyres) carrying contact:whatsapp OR whatsapp returned total=0 at data timestamp 2026-07-23T07:58:11Z. Globally the tag exists on 17,937 objects but essentially none are US commercial repair shops. The field is an artefact of the India-market vocabulary in the source spec; WhatsApp business presence is not a US market norm.",
+   "best_legal_alternative": "Drop the field for the US build and record the reason in a schema comment so it is not re-added later. Populate phone (and email where present) from Overture Places 'phones'/'emails' and FSQ OS Places instead \u2014 both permissively licensed and actually populated for US businesses. Only theoretical carrier is a wa.me URL appearing inside Overture's 'socials' array; treat as opportunistic, never as a promised column."
+  },
+  {
+   "field_or_claim": "Photos (shop frontage)",
+   "problem": "Legal and free, but coverage is the real constraint and the licence is share-alike. My live Wikimedia Commons geosearch within 5km of a US interstate town returned an Amtrak station, a theatre and a county jail \u2014 landmarks, not businesses. Commons has near-zero coverage of ordinary US truck repair shops. Mapillary has far better road-corridor coverage but requires a free token, caps radius search at 50m and bbox queries at 0.01 degrees square, and its imagery is CC BY-SA with a \u00a711 duty to display the Mapillary logo and link back if self-hosted.",
+   "best_legal_alternative": "Reference, do not rehost. Store photo_url + photo_license + photo_attribution + photo_source and render the attribution at display time; linking avoids triggering CC BY-SA share-alike on your own assets and avoids Mapillary's self-hosting logo duty. Set the expectation that fill rate will be low and that a Mapillary hit is a street view of the frontage, not a verified photo of the business."
+  },
+  {
+   "field_or_claim": "Google Maps URL \u2014 if implemented by calling Places API",
+   "problem": "The field itself is fine, but the obvious implementation is a trap. Resolving a place_id via Places API to build a canonical link brings the row inside the Maps Platform agreement, where \u00a73.2.3(b) forbids caching anything except Google IDs (SST \u00a7A.3) and \u00a73.2.3(c)(iv) specifically forbids using 'latitude/longitude values from the Places API as an input for point-in-polygon analysis' \u2014 which is precisely this project's route-buffer operation. Places API also now requires an enabled billing account (the $200 credit was replaced with per-SKU free thresholds on 1 March 2025), violating the no-paid-API constraint.",
+   "best_legal_alternative": "Generate the link purely from coordinates already held under CDLA-Permissive/Apache/CC0: https://www.google.com/maps/search/?api=1&query=<lat>,<lon>. The Maps URLs docs state 'You don't need a Google API key to use Maps URLs.' Implement as a computed column so it is structurally impossible for a fetched Google value to leak in."
+  },
+  {
+   "field_or_claim": "Merging OSM mechanic shops into core.businesses alongside Overture/FSQ shops",
+   "problem": "Would convert the shop table into an ODbL Derivative Database and force share-alike on the entire merged dataset. The OSMF Horizontal Layers Guideline is explicit that mixing OSM and non-OSM data for the same Feature Type triggers share-alike 'regardless of whether some data for that Feature Type is in a different layer', and the Collective Database Guideline lists merging proprietary restaurants with OSM restaurants as creating a Derivative Database. Physical separation into the osm.* schema does not by itself save you if a query-time join is used to dedup or filter.",
+   "best_legal_alternative": "Keep the truck_repair Feature Type 100% non-OSM (Overture Places CDLA-Permissive-2.0 + FSQ OS Places Apache-2.0 + AllThePlaces CC0), preserving the existing CHECK constraint present_in <@ ARRAY['overture','fsq'] and qualifying as a Collective Database with no share-alike. The coverage sacrifice is small: OSM has only 813 shop=truck_repair objects worldwide."
+  },
+  {
+   "field_or_claim": "distance_from_route / nearest_route_point / route_id / route_name",
+   "problem": "Not yet built, and the licence choice is still open \u2014 but if the routes table is derived from osm.ways or Overture's Transportation theme (both ODbL, per docs.overturemaps.org/attribution), then every one of these derived attributes is computed from ODbL data. Publishing the enriched shop table as a downloadable dataset would then arguably make it a Derivative Database subject to ODbL \u00a74.4 share-alike and \u00a74.6's duty to supply the whole database machine-readable.",
+   "best_legal_alternative": "Build the routes table from US federal public-domain geometry (FHWA/BTS National Highway Freight Network, verified live at geodata.bts.gov, US Government work under 17 U.S.C. \u00a7105). This severs the ODbL chain at the source so all route-derived attributes are contamination-free. If ODbL route geometry must be used, restrict output to ODbL \u00a74.5 Produced Works (rendered pages/tiles served to humans) and never ship a bulk merged export."
+  },
+  {
+   "field_or_claim": "PIN Code (mapped to US ZIP Code)",
+   "problem": "There is no free authoritative ZIP Code polygon dataset. USPS ZIP codes are mail-carrier route groupings, not areas, and USPS does not publish them as boundaries. Spatially assigning a ZIP by point-in-polygon against Census ZCTA is an approximation that will be wrong at some edges, and some ZIPs have no corresponding ZCTA.",
+   "best_legal_alternative": "Use the literal ZIP string from the Overture/FSQ address record as the primary value (permissively licensed, and it is the business's own stated ZIP). Fall back to Census ZCTA spatial assignment only where the address ZIP is missing, and flag such rows as derived/approximate so the distinction is visible rather than silently blended."
+  }
+ ],
+ "open_questions": [
+  "Does the project intend to publish a downloadable bulk export of the enriched shop table, or only serve rendered results via API/UI? This single answer changes the ODbL analysis materially \u2014 ODbL \u00a74.5 exempts Produced Works from share-alike, while \u00a74.6 imposes a full machine-readable disclosure duty on a published Derivative Database. I could not determine current intent from the repo.",
+  "Where will the routes table geometry actually come from? I verified the FHWA/BTS NHFN landing page is live (200) but did NOT download it, so its field list, geometry quality, row count and whether it covers the truck routes this product needs are all unknown. Lane 1/2 should confirm before the licence recommendation is locked.",
+  "Exact Google Maps Platform per-SKU free allowances for Essentials/Pro/Enterprise are [UNVERIFIED] \u2014 the March 2025 changes page I fetched confirms the $200 credit was replaced by per-SKU thresholds and gives 10,000/month for Geocoding as its only concrete example, but does not tabulate the tiers. Widely reported as 10,000/5,000/1,000 but I could not confirm on the wire. Moot for the storage decision, relevant only if anyone argues for a live-passthrough design.",
+  "Is a live-passthrough (never-stored, fetched-on-page-view) ratings display acceptable to the project owner as a product behaviour? It could be made ToS-compliant for Yelp within the 24-hour window with Yelp-branded stars and read-more links, but it requires a billing/API relationship, injects third-party branding into the UI, and cannot populate a stored column \u2014 so it conflicts with the 'simple and clearly understandable' constraint. I did not assume an answer.",
+  "Does AllThePlaces (CC0) carry US truck-repair chains at useful density? It is named as a CC0 source inside Overture Places, but I did not query it independently, so its standalone contribution to shop coverage is unknown.",
+  "What is the actual Mapillary hit rate for US truck-repair shop coordinates? I confirmed the API requires a token and documented the radius/bbox caps, but ran no coverage sample. A 100-shop pilot would settle whether the photo field is worth building before committing to the token, paging and attribution machinery.",
+  "Does Overture Places 'socials' ever contain wa.me URLs for US businesses? This is the only theoretical WhatsApp carrier left after the OSM zero-result. I did not query the Overture Places data directly to check, so the true count is unknown \u2014 though I expect it to be negligible.",
+  "Should the permanently-unfillable columns (rating, review_count, review_summary, whatsapp) be retained as NULL-rendering-'unknown' or removed from the schema outright? These pull in opposite directions under the project's own rules: the honesty rule favours 'unknown' over silent absence, but the simplicity rule favours not shipping columns that can never be populated. This is an owner decision, not a legal one."
+ ]
+}

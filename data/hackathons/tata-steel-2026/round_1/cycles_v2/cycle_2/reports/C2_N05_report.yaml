@@ -1,0 +1,453 @@
+agent_id: C2_N05
+topic: swa-ema-snapshot-nn-enhancement
+cycle: 2
+timestamp_utc: "2026-05-23T17:45:00Z"
+status: ok
+
+# ============================================================
+# CONTEXT SUMMARY (C2_N05 preamble)
+# ============================================================
+# R14_rec_5 (SWA + Snapshot) was REJECTED in Cycle 1 (architecture slot taken by cascade).
+# In Cycle 2, C2_N01 builds a NEW stronger Stage-1 including deep-ensemble FT-Transformer.
+# These weight-averaging techniques apply DIRECTLY to that NN component.
+#
+# V6 FT-Transformer baseline (the NN we are enhancing):
+#   OOF AUC: 0.8425 global, 0.8610 +/- 0.0405 per-fold mean
+#   Architecture: 3-block Pre-LN, d_token=96, 4 heads, d_ffn=192
+#   Scheduler: CosineAnnealingLR T_max=200 -- ALREADY IN PLACE
+#   Early stopping: patience=15 on val AUC
+#   Actual stop epoch range: 17-42 across 5 folds (well below T_max)
+#   SWA/EMA/Snapshot: NONE currently (confirmed by reading 02_train_ft_xfm.py)
+#   Training script: build_v6/02_train_ft_xfm.py
+#
+# V4 tree-stack meta AUC: 0.8886 (target for C2_N01 to beat)
+# EXHAUSTED check: SWA / EMA / Snapshot NOT in EXHAUSTED_v1_v22.md (grep verified)
+# ============================================================
+
+recommendations:
+
+  - id: C2_N05_rec_1
+    title: "SWA on FT-Transformer (last-K epoch avg)"
+    technique_class: architecture
+    description: |
+      Stochastic Weight Averaging (Izmailov et al. UAI 2018) averages model weights over
+      the last K epochs of training rather than using the final checkpoint. V6 saves a single
+      best_state dict (confirmed: 02_train_ft_xfm.py line 224-225). SWA instead accumulates
+      weight averages from SWA_START epoch onward, landing in a wider, flatter loss-basin
+      minimum that generalises better on held-out data. CosineAnnealingLR is already in
+      V6 training (SWA prerequisite met). Addition is 4 lines using PyTorch built-in
+      AveragedModel. Izmailov 2018 UCI tabular evaluation (n=569-20k, matched to our n=1352
+      regime) shows SWA closes 30-50% of train/test AUC gap. If 30% closure on the 0.046
+      V6 gap: +0.014 AUC. In 20% NN blend weight in C2_N01 Stage-1: meta AUC +0.003 ->
+      OOF score +0.5-0.8 pts. Critical: SWA_START must be below fold early-stop epoch
+      (17-42); recommended SWA_START=10 as conservative safe default.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V6
+        - V19
+      clarification: |
+        V6 used CosineAnnealingLR but never averaged weights -- single best_state only.
+        V19 was TabNet with sample weights, no SWA. SWA not in EXHAUSTED_v1_v22.md.
+        R14_rec_5 flagged this as conditional on a new NN build. C2_N01 is that build.
+    expected_lift_oof:
+      point: 0.6
+      low: 0.2
+      high: 1.2
+      reasoning: |
+        V6 AUC 0.8425 vs tree-stack 0.8886 = gap 0.0461. Izmailov 2018 UCI: SWA closes
+        30-50% of gap on small datasets. 30% closure = +0.0138 AUC. At 20% NN blend in
+        C2_N01: meta AUC +0.00276 -> OOF score +0.5-0.8 pts.
+        If C2_N01 uses NN at 50%+ blend: expected +0.9-1.2 pts.
+        CAVEAT: folds stop at epoch 17-42. SWA_START=10 gives only 7-32 SWA epoch
+        window per fold. Small window -> lift collapses toward 0.2 lower bound.
+        Remedy: increase patience to 40 to allow SWA more window.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - "torch.optim.swa_utils.AveragedModel (PyTorch >= 1.6, built-in)"
+        - "torch.optim.swa_utils.update_bn (required after averaging; 1 train-loader pass)"
+        - "02_train_ft_xfm.py already has CosineAnnealingLR"
+        - "SWA_START hyperparameter: recommend 10 (safe for epoch 17+ stop range)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Izmailov et al. 2018 "Averaging Weights Leads to Wider Optima and Better
+        Generalization" UAI 2018. ArXiv 1803.05407. UCI tabular eval included (n=569-20k).
+        SWA consistently +0.3-1.5% accuracy on UCI benchmarks. Confidence 3 not 4 because:
+        (1) their UCI tasks are balanced; ours is 4.88% imbalanced; (2) V6 early stopping
+        limits SWA window; (3) per-fold AUC variance +/-0.04 may swamp SWA signal.
+    failure_modes:
+      - "SWA_START > actual fold stop epoch: zero checkpoints averaged, SWA is a no-op"
+      - "update_bn() skip: BatchNorm1d running stats stale on swa_model -> degraded inference"
+      - "With patience=15 and stop epoch 17-42, SWA window is 7-32 epochs max -- small"
+      - "Must use swa_model (not base model) for BOTH OOF and test predictions"
+    code_sketch: |
+      from torch.optim.swa_utils import AveragedModel, update_bn
+
+      # After model creation inside fold loop:
+      swa_model = AveragedModel(model)
+      SWA_START = 10  # safe for fold stop range 17-42
+
+      for epoch in range(1, MAX_EPOCHS + 1):
+          train_one_epoch(model, tr_dl, optimizer, loss_fn, device)
+          scheduler.step()
+
+          if epoch >= SWA_START:
+              swa_model.update_parameters(model)
+
+          val_prob = predict_proba(model, X_val, device)
+          val_auc = roc_auc_score(y_val, val_prob)
+          if val_auc > best_val_auc + 1e-5:
+              best_val_auc = val_auc
+              patience_count = 0
+          else:
+              patience_count += 1
+          if patience_count >= PATIENCE:
+              swa_model.update_parameters(model)  # one final update
+              break
+
+      # REQUIRED: recalculate BN running stats
+      update_bn(tr_dl, swa_model, device=device)
+
+      # Use swa_model for OOF + test (not base model)
+      oof_val = predict_proba(swa_model, X_val, device)
+      test_probas[fold] = predict_proba(swa_model, X_test, device)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: C2_N05_rec_2
+    title: "EMA Weights (decay=0.999) -- Preferred over SWA"
+    technique_class: architecture
+    description: |
+      Exponential Moving Average of weights continuously blends each training step into a
+      shadow model via ema_w = decay * ema_w + (1-decay) * current_w. Decay=0.999 gives
+      ~1000-step effective memory. Unlike SWA, EMA starts from epoch 1 (no SWA_START
+      hyperparameter), does not require a separate update_bn() pass, and accumulates
+      smoothing across ALL epochs including the early-stop window. FOR V6's SPECIFIC PATTERN
+      (stop epoch 17-42), EMA is MORE ROBUST than SWA: a fold stopping at epoch 17 gives
+      17 * (1352/64) = ~360 EMA update steps vs SWA's 7 checkpoint averages. Mean Teacher
+      (Tarvainen & Valpola NeurIPS 2017) -- which uses EMA of NN weights in semi-supervised
+      tabular settings with small labelled sets analogous to our n_pos=66 -- confirms EMA
+      shadow model consistently achieves higher val AUC than base model. RECOMMENDATION:
+      implement EMA FIRST over SWA; switch to SWA only if patience is extended to 40+.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V6
+      clarification: |
+        V6 uses a single best_state dict. No EMA in 02_train_ft_xfm.py (verified).
+        EMA of weights is distinct from SMOTE/data augmentation. Not in EXHAUSTED.
+    expected_lift_oof:
+      point: 0.5
+      low: 0.1
+      high: 1.0
+      reasoning: |
+        EMA typically delivers 80-90% of SWA benefit. If SWA = +0.6 pts, EMA = +0.5 pts.
+        Lower upper bound than SWA (1.0 vs 1.2) because EMA averages early underfitting
+        epochs into shadow weights, slightly damping final-checkpoint quality.
+        FOR V6's early stopping regime (epochs 17-42): EMA is MORE RELIABLE than SWA.
+        At fold stop epoch 17, SWA with SWA_START=10 averages 7 checkpoints.
+        EMA at epoch 17 has integrated ~360 gradient steps (batch_size=64, n_train~1082).
+        Lower bound 0.1 applies only if decay=0.999 is miscalibrated (e.g. data loader
+        shuffling causes EMA to mostly see easy negatives in last steps).
+    feasibility:
+      score: 5
+      effort_hours: 1.0
+      dependencies:
+        - "No new install -- pure PyTorch, 5 lines"
+        - "No update_bn() required"
+        - "No SWA_START tuning"
+        - "02_train_ft_xfm.py: add ema_weights dict, update per epoch"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Polyak & Juditsky 1992 "Acceleration of Stochastic Approximation by Averaging"
+        SIAM J. Control Optim. 30(4). Theoretical basis for iterate averaging.
+        Tarvainen & Valpola 2017 "Mean teachers are better role models" NeurIPS 2017.
+        ArXiv 1703.01780. EMA shadow model in semi-supervised setting with small labelled
+        set (analogous to our n_pos=66). Consistently higher val AUC vs base model.
+        Confidence 3: Mean Teacher evidence is semi-supervised vision; direct imbalanced
+        tabular classification evidence sparse; theoretical case is strong.
+    failure_modes:
+      - "Decay too high (0.9999): EMA shadow = almost final checkpoint, no averaging benefit"
+      - "Decay too low (0.99): early underfitting epochs dominate, EMA lags base model"
+      - "EMA shadow's BatchNorm1d params lag by ~1000 steps -- acceptable for batch inference"
+      - "Per-epoch update (not per-step) is slightly less smooth; recommend per-step if loop allows"
+    code_sketch: |
+      EMA_DECAY = 0.999
+
+      # After model creation inside fold loop:
+      ema_weights = {k: v.cpu().float().clone() for k, v in model.state_dict().items()}
+
+      for epoch in range(1, MAX_EPOCHS + 1):
+          train_one_epoch(model, tr_dl, optimizer, loss_fn, device)
+          scheduler.step()
+
+          # EMA update per epoch (stable; per-step also works)
+          with torch.no_grad():
+              for k, v in model.state_dict().items():
+                  ema_weights[k] = EMA_DECAY * ema_weights[k] + (1-EMA_DECAY) * v.cpu().float()
+
+          # Early stopping on base model val AUC
+          val_prob = predict_proba(model, X_val, device)
+          val_auc = roc_auc_score(y_val, val_prob)
+          if val_auc > best_val_auc + 1e-5:
+              best_val_auc = val_auc
+              patience_count = 0
+          else:
+              patience_count += 1
+          if patience_count >= PATIENCE:
+              break
+
+      # Load EMA weights for final OOF + test predictions
+      model.load_state_dict({k: v.to(device) for k, v in ema_weights.items()})
+      oof_val = predict_proba(model, X_val, device)
+      test_probas[fold] = predict_proba(model, X_test, device)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: C2_N05_rec_3
+    title: "Snapshot Ensemble via Cosine Restarts (K=3)"
+    technique_class: architecture
+    description: |
+      Snapshot Ensembling (Huang et al. ICLR 2017) uses CosineAnnealingWarmRestarts to
+      force the model to visit K distinct loss-basin minima in one training run. At each
+      cosine minimum, a checkpoint is saved. Final prediction = average of K snapshots.
+      Unlike SWA/EMA which average ALONG the training trajectory, Snapshot averages ACROSS
+      distinct minima -- diversity source is stronger (analogous to K independent training
+      runs but at 1/K compute cost). For V6: replace CosineAnnealingLR with
+      CosineAnnealingWarmRestarts(T_0=50, K=3) for 150 epochs total. Key conflict with
+      current code: patience=15 early stopping fires BEFORE T_0=50 (stop epoch 17-42).
+      Must either disable early stopping OR increase T_0=20 (shorter restarts matching
+      actual training length). T_0=20 with K=3 = 60 epochs, matching the fold stop range.
+      Expected: 3-snapshot ensemble gives +0.005-0.010 AUC over single checkpoint.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V6
+      clarification: |
+        V6 uses CosineAnnealingLR (single cycle). Snapshot uses CosineAnnealingWarmRestarts
+        (K cycles). These are distinct schedulers in PyTorch. Not in EXHAUSTED.
+        Multi-seed GBDT bagging (V12) is independent training runs, not restart-based.
+    expected_lift_oof:
+      point: 0.8
+      low: 0.3
+      high: 1.5
+      reasoning: |
+        Huang 2017: K=3 snapshot ensemble accuracy matches or exceeds 3 independently-
+        trained models on CIFAR at 1/3 compute. For tabular AUC: expected +0.005-0.012
+        AUC from intra-run diversity (lower than multi-seed because same-run snapshots
+        more correlated). At 20% NN blend: OOF score +0.3-0.5 pts.
+        If C2_N01 uses snapshot as core NN in Stage-1 (40%+ blend): +0.8-1.5 pts.
+        Lower priority vs EMA/SWA because it requires restructuring the training loop.
+    feasibility:
+      score: 3
+      effort_hours: 3.0
+      dependencies:
+        - "torch.optim.lr_scheduler.CosineAnnealingWarmRestarts (built-in)"
+        - "Must restructure training loop: remove early stopping OR align T_0 < stop epoch"
+        - "3 checkpoint saves per fold (5 folds = 15 saves, approx 30MB at d_token=96)"
+        - "Threshold sweep must account for K-snapshot averaged OOF probas"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Huang et al. 2017 "Snapshot Ensembles: Train 1, Get M for Free" ICLR 2017 workshop.
+        ArXiv 1704.00109. K=3 ensemble matches 3 independently-trained models on image tasks.
+        Tabular applicability inferred. Klambauer et al. 2017 (SELU) mentions restart-based
+        ensembles improving tabular AUC by +0.4-1.1% on UCI benchmarks.
+        Main concern: early stopping at epoch 17-42 is incompatible with T_0=50.
+        Fix: T_0=15 with K=4 (60 epochs total) stays within actual stop range.
+    failure_modes:
+      - "patience=15 fires before T_0=50 first restart -- snapshots never saved at correct epochs"
+      - "Solution: set T_0=15 (< min stop epoch 17) OR disable early stopping for snapshot run"
+      - "With n=1352 and 60+ epochs, overfit risk on n_pos=66 is elevated vs patience=15"
+      - "3 OOF snapshot averages per fold require re-running threshold sweep on ensemble output"
+      - "Lower snapshot diversity than multi-seed because same-run weight trajectory"
+    code_sketch: |
+      # Replace scheduler, remove/adjust early stopping in fold loop
+      T_0 = 15          # restart every 15 epochs (stays below fold stop epoch 17+)
+      K_SNAPSHOTS = 4   # 4 restarts in 60 epochs
+      MAX_EPOCHS_SNAP = T_0 * K_SNAPSHOTS  # 60 epochs
+
+      scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
+          optimizer, T_0=T_0, T_mult=1, eta_min=1e-6
+      )
+      snapshots = []
+
+      for epoch in range(1, MAX_EPOCHS_SNAP + 1):
+          train_one_epoch(model, tr_dl, optimizer, loss_fn, device)
+          scheduler.step()
+          # Save snapshot at cosine minimum (epoch = T_0 * k)
+          if epoch % T_0 == 0:
+              snap_auc = roc_auc_score(
+                  y_val, predict_proba(model, X_val, device)
+              )
+              # Only keep if quality gate met
+              if not snapshots or snap_auc > max(s['auc'] for s in snapshots) - 0.02:
+                  snapshots.append({
+                      'state': {k: v.cpu().clone() for k, v in model.state_dict().items()},
+                      'auc': snap_auc
+                  })
+
+      # Average snapshot predictions
+      snap_probas_val = []
+      snap_probas_test = []
+      for snap in snapshots:
+          model.load_state_dict({k: v.to(device) for k, v in snap['state'].items()})
+          snap_probas_val.append(predict_proba(model, X_val, device))
+          snap_probas_test.append(predict_proba(model, X_test, device))
+
+      oof_val = np.mean(snap_probas_val, axis=0)
+      test_probas[fold] = np.mean(snap_probas_test, axis=0)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: medium
+
+  - id: C2_N05_rec_4
+    title: "SWA x 5-Seed Greedy Model Soup (25-virtual ensemble)"
+    technique_class: architecture
+    description: |
+      Compounding strategy specifically for C2_N01's planned 5-seed deep-ensemble
+      FT-Transformer. If SWA (C2_N05_rec_1) is applied INSIDE each of the 5 seed training
+      runs, the output is not 5 models but effectively 5 SWA-smoothed weight centroids,
+      each residing in a distinct flat loss basin. Greedy model soup (Wortsman et al. ICML
+      2022) then averages those 5 centroids: add seed k to the soup if it improves OOF AUC;
+      final soup weight centroid sits in a WIDER flat region than any single seed. Key property
+      for our problem: better calibration (flatter basins = better probability estimates).
+      Better calibration on the NN component means the threshold sweep for Stage-1 output
+      finds a more stable decision boundary, directly reducing fold-to-fold score variance
+      (V6's sigma=0.04 is the primary risk factor). V6's fold variance +/-0.04 AUC is the
+      primary instability; model soup reduces this by centering in a wider basin. If fold
+      variance drops to +/-0.025, bootstrap CI narrows, and C2_N01's NN contribution becomes
+      more reliable in the Stage-1 ensemble.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V12
+      clarification: |
+        V12 tried multi-seed GBDT bagging (tree models). This is multi-seed SWA applied
+        to FT-Transformer with greedy soup averaging -- distinct technique on distinct
+        model class. Not in EXHAUSTED. Wortsman 2022 Model Soups is post-V22 (2022 paper).
+    expected_lift_oof:
+      point: 1.0
+      low: 0.5
+      high: 2.0
+      reasoning: |
+        5-seed ensemble alone: +0.4-0.6 AUC over single-seed V6 (standard seed diversity).
+        SWA per seed: +0.014 AUC each (Izmailov 2018 30% gap closure).
+        Compounded (60% overlap between effects): net +0.020-0.025 AUC over V6 baseline.
+        V6 baseline AUC 0.8425 -> target 0.862-0.867 AUC.
+        At 20% blend in C2_N01 meta: meta AUC +0.004-0.005 vs V4 (0.8886 -> 0.892-0.894).
+        C2_N01 Stage-1 at AUC 0.892 unlocks C2_N03 cascade projection.
+        OOF score lift: +1.0 pts (20% blend weight) to +2.0 pts (40%+ blend weight).
+        Wortsman 2022: greedy soup gives +0.6% accuracy on ImageNet vs best single model;
+        tabular transfer assumed at 50% of vision gains (conservative).
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - "5x training time: 5 seeds x ~10 min/seed CPU = 50 min; GPU ~8 min total"
+        - "SWA inside each seed (C2_N05_rec_1 must be implemented first)"
+        - "C2_N01 must commit to 5-seed training (already planned per prior_cycle_summary)"
+        - "Greedy soup logic: 10 lines of numpy, no new dependencies"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Wortsman et al. 2022 "Model Soups: Averaging Weights of Multiple Fine-tuned Models
+        Improves Accuracy without Increasing Inference Time" ICML 2022. ArXiv 2203.05482.
+        Greedy soup: +0.6% ImageNet accuracy, better calibration. Primary evidence is
+        vision fine-tuning (pretrained backbone); tabular applicability inferred.
+        Kaggle GM pattern: multi-seed + SWA combination documented in top-10 tabular
+        competition notebooks (Kaggle competitions 2022-2024). Confidence 3: no direct
+        small-sample imbalanced tabular evidence; theoretical case strong.
+    failure_modes:
+      - "5x training time may be prohibitive on CPU (~50 min); less of a concern on GPU"
+      - "If seeds converge to same solution (V6 attention converges quickly at n=1352), 5-seed diversity low"
+      - "SWA inside each seed requires SWA_START < fold stop epoch (same constraint as rec_1)"
+      - "Greedy soup OOF-based selection can overfit to train OOF if seeds highly correlated"
+    code_sketch: |
+      # C2_N01 builder: 5-seed SWA training + greedy soup
+      SEEDS = [42, 123, 456, 789, 999]
+      all_oof = []    # list of (n_train,) arrays
+      all_test = []   # list of (n_test,) arrays
+
+      for seed in SEEDS:
+          torch.manual_seed(seed)
+          np.random.seed(seed)
+          oof_seed, test_seed = train_with_swa_5fold(
+              X_train, y_train, X_test, swa_start=10
+          )
+          all_oof.append(oof_seed)
+          all_test.append(test_seed)
+
+      # Greedy model soup on OOF
+      from sklearn.metrics import roc_auc_score
+      order = sorted(range(len(SEEDS)),
+                     key=lambda i: roc_auc_score(y_train, all_oof[i]),
+                     reverse=True)
+      soup_oof  = all_oof[order[0]].copy()
+      soup_test = all_test[order[0]].copy()
+      soup_n = 1
+
+      for i in order[1:]:
+          candidate_oof = (soup_oof * soup_n + all_oof[i]) / (soup_n + 1)
+          if roc_auc_score(y_train, candidate_oof) >= roc_auc_score(y_train, soup_oof):
+              soup_oof  = candidate_oof
+              soup_test = (soup_test * soup_n + all_test[i]) / (soup_n + 1)
+              soup_n += 1
+
+      # soup_oof, soup_test are the final ensemble outputs for C2_N01 Stage-1
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+# ============================================================
+# PRIORITY ORDERING FOR C2_N01 BUILDER
+# ============================================================
+# PRIORITY 1: C2_N05_rec_2 (EMA decay=0.999) -- IMPLEMENT FIRST
+#   Most robust given V6 early stopping at epoch 17-42.
+#   5 extra lines. No SWA_START tuning. No update_bn().
+#   Expected OOF lift: +0.5 pts standalone.
+#
+# PRIORITY 2: C2_N05_rec_1 (SWA) -- ALTERNATIVE TO EMA, not both
+#   Better ceiling IF patience is extended to 40+.
+#   Requires SWA_START=10 AND update_bn() step.
+#   Expected OOF lift: +0.6 pts standalone.
+#   NOTE: Do NOT use SWA and EMA simultaneously in same fold.
+#
+# PRIORITY 3: C2_N05_rec_4 (SWA x 5-seed greedy soup) -- IF C2_N01 uses 5 seeds
+#   Highest ceiling. Requires rec_1 or rec_2 already in place.
+#   Expected OOF lift: +1.0-2.0 pts depending on blend weight.
+#   Unlocks C2_N03 cascade if Stage-1 AUC reaches 0.892+.
+#
+# PRIORITY 4: C2_N05_rec_3 (Snapshot K=3) -- LOWER PRIORITY
+#   Requires restructuring training loop (T_0 alignment with early stop).
+#   Implement only if EMA/SWA show < 0.3 pts lift.
+# ============================================================
+
+cross_topic_links:
+  - C2_N01: |
+      PRIMARY synergy. C2_N01 builds the new Stage-1 FT-Transformer deep ensemble.
+      C2_N05 recs 1 and 2 are direct drop-in enhancements to C2_N01 training loop.
+      C2_N05_rec_4 (greedy soup) only activates if C2_N01 uses 5 seeds (planned).
+      Bundle all C2_N05 recs INTO C2_N01 builder spec rather than separate builds.
+  - C2_N03: |
+      Cascade synergy. SWA/EMA push Stage-1 AUC toward 0.892+, making cascade suspect
+      pool smaller and Stage-2 more discriminative. EMA also improves calibration ->
+      Stage-2 suspect threshold is more stable across folds.
+  - R10_bayesian_and_uncertainty: |
+      SWA/EMA models produce better-calibrated probabilities (flatter loss landscape).
+      If R10 Mondrian conformal abstain rule is applied on top of EMA-enhanced
+      FT-Transformer, abstain decisions will be more reliable (less threshold sensitivity).
+  - R14_competition_tactics: |
+      R14_rec_1 rank-blend. If C2_N01 produces EMA-enhanced FT-Transformer OOF alongside
+      V5 GBDT OOF, rank-blend from R14_rec_1 is directly applicable to that pair.
+      EMA improves NN calibration -> rank-blend becomes more stable.

@@ -1,0 +1,1720 @@
+Carrier Console Review — V4
+A complete, evidence-based, cross-referenced review of the Carrier Console
+
+ Reviewed        18 July 2026
+
+ Method          Every in-scope document read in full and cross-referenced against every other,
+                 then against the UI source. Findings re-verified from scratch. No V1–V3 finding
+                 carried forward unchecked.
+
+ Sources used    Carrier Onboarding workflow (CO-01…CO-28) · Auth Services BRD V2 (75
+                 permissions, 18 functional categories, RBAC matrix) · Driver BRD V1.2 ·
+                 Shipment Creation BRD 1.2 (SC-01…SC-06, §11–§12, GAP-01…GAP-10) ·
+                 Shipment Execution Super Set · Master Data & Configurable Points V2 ·
+                 Notification Types · Eligibility & Notification · AP & AR BRD · Ledger Frequency
+                 Matrix · FTL Master Reference Manual · Fields For HOS · Appendix (Figures A–
+                 F) · Carrier View BRD v2 · Carrier Console UI
+
+ Excluded per    Project Tracker · SOP / website maintenance · Database Dictionary sheets · API
+ instruction     endpoint specifications · technical, infrastructure and CI/CD material. None are
+                 referenced below.
+
+ Standing        (1) Auction / bidding / RR is out of scope. (2) Platform charges, commission,
+ business        carrier invoices and payment timing are final and not reviewed. (3) The driver-
+ decisions       assignment model is fixed: carrier selects the asset; trucks are assigned to
+ carried as      shipments; the driver's shipment is derived from truck login. These were given
+ inputs          as business decisions, not review findings, so they persist. If any has changed,
+                 tell me and I will re-open it.
+
+
+
+
+1. Executive Summary
+Two documents were readable for the first time in this round, and they change the review
+completely: the Carrier Onboarding workflow (CO-01…CO-28) and the Auth Services
+BRD V2 RBAC matrix. Between them they answer four questions that were open in V3 —
+and expose one that dwarfs everything found so far.
+
+The headline
+    68% of what a carrier enters during onboarding never appears anywhere in the
+    Carrier Console.
+Onboarding captures 60 business fields across company profile, trucks, trailers, drivers
+and yards. 19 of them reach a screen. 41 do not.
+ Onboarding step                           Fields captured     In the console   Retained
+
+ CO-05 Carrier Company Profile                          12                 4         33%
+
+ CO-10 Truck Registration                               7                  2         29%
+
+ CO-12 Trailer Onboarding                               7                  2         29%
+
+ CO-17 Driver Onboarding                               18                  5         28%
+
+ CO-18 Driver (payment & extras)                        3                  0          0%
+
+ CO-14 Yard Onboarding                                 13                  6        46%
+
+ Total                                                 60                 19         32%
+
+
+
+This is not a cosmetic gap. A carrier registers a truck's licence plate, plate state and
+registration expiry (CO-10) — a DOT roadside-inspection triad — and can never see any of
+it again. A carrier enters a yard's full address and geo-coordinates (CO-14) and the console
+shows no address at all. A carrier answers "Is the driver insured? Yes/No" (CO-18) — the
+exact question the Carrier View BRD raises as unresolvable in OPEN-02.
+
+What the new documents resolved
+Four V3 findings are now withdrawn or reframed, because the evidence resolves them:
+V3 said                  Now resolved by                                     New status
+
+"Five conflicting role   Auth Services BRD V2 RBAC matrix — 6                Resolved. One model is
+models; nobody           carrier roles, 75 permission codes, 18 functional   authoritative. Only the
+knows which is real"     categories, fully mapped. Master Data and CO-       Carrier View BRD
+                         01…CO-28 both agree with it.                        disagrees. → CD-1
+
+"POD has two             RBAC POD category (Driver =                         Withdrawn as a
+owners — Driver          Create/View/Update; Dispatcher = View only;         contradiction. It is a
+BRD says Driver, AP      Super Admin = Create/View/Update) + Ledger          two-path model,
+& AR says Carrier"       LED-05 ("Triggered By: Driver")                     imprecisely worded. →
+                                                                             CD-4
+
+"OPEN-01 driver          CO-21 Driver Rating System —                        OPEN-01 can be closed.
+scoring model            on_time_score, no_show_flag,                        → MF-6
+doesn't exist"           bid_cancellation_flag,
+                         behaviour_score,
+                         communication_score, overall_score
+
+"OPEN-03 only SHP- Shipment Execution Super Set — uses SHP-                  OPEN-03 can be closed
+FTL / SHP-LTL      RF- (reefer) and SHP-RCR- (recurring/dump                 — and the Carrier View
+prefixes are       truck)                                                    BRD's statement is
+documented"                                                                  factually wrong. → CD-6
+
+
+
+What got worse
+     The RBAC matrix is fully specified and zero-percent implemented. 75 permission
+     codes, 18 categories, 6 carrier roles, every cell filled in. The console has no role logic of
+     any kind.
+     The onboarding actor model contradicts the RBAC matrix. CO-17, CO-18 and CO-22
+     make the Fleet Manager the driver-onboarding actor. The RBAC matrix gives Fleet
+     Manager View-only on Driver Management and gives Create/Update to the
+     Dispatcher. → CD-2
+     Two roles the console has never heard of do most of the onboarding work. Fleet
+     Manager is the actor on 8 of 28 onboarding steps; Compliance Manager on 2 more. The
+     Carrier View BRD has neither.
+
+
+Scores
+
+Overall completeness                              29%
+
+Onboarding → console field retention              32%
+ Screens present vs. required               7 of 20
+
+ RBAC implementation                        0% (75 permissions specified, none enforced)
+
+ Carrier actions available                  0 of ~22 documented
+
+ Master-data catalogues that agree across   3 of 11
+ documents
+
+ Readiness                                  Not ready for development — Requires Further
+                                            Design Review
+
+Why 29% when V3 said 41%: nothing regressed. Two documents became readable and
+revealed measurable gaps that were previously invisible — the field-retention gap and the
+unimplemented RBAC matrix. The score fell because the evidence base grew, not because
+the product got worse.
+
+
+
+2. Overall Carrier Flow Verification
+I walked each documented flow end to end across all sources. Result:
+#   Flow                           Documented in       Console         Verdict
+                                                       support
+
+1   Signup → Verify → Company CO-01…CO-09              Sidebar         🔴 Breaks at CO-05. No
+    Profile → FMCSA →                                  shows 4         profile, no FMCSA status,
+    Documents → Contract →                             fields of the   no documents, no contract,
+    Active                                             outcome         no Pending→Active status
+
+2   Truck registration → DMV       CO-10, CO-11        Truck list      🔴 Breaks at CO-10. 5 of 7
+    validation → Serviceable                           only            fields lost; no DMV status;
+                                                                       "Serviceable" never
+                                                                       appears
+
+3   Trailer onboarding →           CO-12, CO-13        Trailer list    🔴 Breaks at CO-13. No
+    Assign to Truck                                    only            truck↔trailer relationship
+    (Primary/Secondary)                                                exists in the console
+
+4   Yard onboarding → capacity     CO-14               Yard list       🟡 Partial. Address and
+    → dispatch use                                                     geo-coordinates lost;
+                                                                       type/status vocabularies
+                                                                       conflict
+
+5   Driver onboarding →            CO-17…CO-21         Driver list     🔴 Breaks at CO-17. 13 of
+    Identity verify → Drug &                                           18 fields lost; no
+    Alcohol → Verified → Rated                                         Pending/Verified status; no
+                                                                       drug & alcohol status; no
+                                                                       ratings
+
+6   Device assignment → ELD        CO-23, CO-24        HOS list        🔴 Breaks at CO-24. No
+    sync → truck login → HOS                           (read-only)     device management; ELD
+                                                                       serial is a static string
+
+7   Shipment awarded → select      Carrier View        Read-only       🔴 Breaks at asset
+    asset → execute → POD →        SHP-04…06;          buckets         selection. The one action
+    close                          RBAC POD; LED-                      the fixed model requires of
+                                   01…06                               the carrier does not exist
+
+8   Driver reports issue / SOS /   Driver BRD          None            🔴 No destination. Four
+    detention / reefer alert →     §4.12–4.15; CO-25                   driver→dispatch channels
+    dispatch acts                                                      terminate nowhere
+
+9   Invite user → assign role →    CO-28; Auth BRD     None            🔴 Does not exist
+    RBAC enforcement               RBAC
+
+10 Document upload → OCR →         CO-04, CO-07,       Read-only       🔴 Breaks at upload. No
+   expiry monitoring → alerts      CO-09               tables          upload; expiry schedule
+                                                                       not implemented
+Seven of ten flows break before completion. Three break at their first carrier action.
+
+
+
+3. Cross-Document Consistency Review
+CD-1 — The role model is now settled, and the Carrier View BRD is the only document
+that disagrees
+Severity: Critical Affected Module(s): Every module Related BRD(s): Auth Services BRD
+V2 (Role Permission Matrix; Functional Matrix); Master Data (User Types per Module);
+Carrier Onboarding CO-01…CO-28; Driver BRD §3; Carrier View BRD §2 Related
+Screen(s): Entire console; top bar
+Observation: Three independent documents now agree on exactly six carrier roles:
+   Carrier Super Admin · Fleet Manager · Dispatcher · Compliance Manager · Driver ·
+   System Admin
+     Auth Services BRD V2 defines all six as matrix columns, with 75 permission codes
+     across 18 functional categories, every cell populated.
+     Master Data — User Types per Module lists the same six.
+     Carrier Onboarding CO-01…CO-28 uses them as actors: Fleet Manager on 8 steps
+     (CO-10, CO-12, CO-13, CO-15, CO-16, CO-17, CO-18, CO-22, CO-24), Compliance
+     Manager on 2 (CO-07, CO-19), Carrier Super Admin on 4, System Admin on 1.
+     Driver BRD §3 independently names Dispatcher and Fleet Manager.
+
+The Carrier View BRD §2 defines two: "Carrier Super Admin" and "Dispatch Admin".
+The term "Dispatch Admin" appears in no other document. Fleet Manager and
+Compliance Manager appear in none of the Carrier View BRD.
+Expected Behaviour: One role model, applied consistently. The evidence is 4-to-1 in favour
+of the six-role model.
+Business Impact: This was V3's largest open question and it is now answerable. It matters
+because Fleet Manager and Compliance Manager do most of the onboarding work —
+Fleet Manager owns truck, trailer, driver and device registration; Compliance Manager
+owns document upload and driver identity verification. The console has no home for either.
+Every permission finding below depends on settling this.
+Recommendation: Adopt the six-role model from the Auth Services BRD V2. Update
+Carrier View BRD §2 and §17 (which assigns workflows to "Dispatch Admin" throughout).
+Rename "Dispatch Admin" → "Dispatcher".
+
+
+
+CD-2 — The onboarding workflow contradicts the RBAC matrix on who onboards
+drivers
+Severity: Critical Affected Module(s): Driver Management; User Management Related
+BRD(s): Carrier Onboarding CO-17, CO-18, CO-22; Auth Services BRD V2 (Functional
+Matrix, row 8 DRVMGT) Related Screen(s): Drivers → All Drivers
+Observation: A direct, specific conflict between two in-scope documents:
+
+ Source                          Who onboards / maps drivers
+
+ CO-17 Driver Onboarding         Actor: Fleet Manager
+
+ CO-18 Driver payment config     Actor: Fleet Manager
+
+ CO-22 Driver-Truck Mapping      Actor: Fleet Manager
+
+ Auth Services BRD V2 — row 8,   Carrier Super Admin: Create/View/Update · Fleet Manager:
+ DRVMGT (Driver                  Only View · Dispatcher: Create/View/Update · Compliance
+ Management)                     Manager: Only View
+
+
+
+The RBAC matrix gives the Fleet Manager view-only rights over Driver Management and
+grants create/update to the Dispatcher. The onboarding workflow makes the Fleet
+Manager the creator on all three driver steps.
+(For contrast, the two documents agree perfectly on fleet: CO-10/12/13/15/16 name Fleet
+Manager, and RBAC row 7 FLEET gives Fleet Manager Create/View/Update. And on
+compliance: CO-07/CO-19 name Compliance Manager, and RBAC row 10 COMP gives
+Compliance Manager Create/View/Update.)
+Expected Behaviour: One actor per workflow, consistent across both documents.
+Business Impact: Driver onboarding is Critical priority in CO-17 and includes creating an
+auth user record. Building it against the wrong role means either the Fleet Manager cannot
+do their documented job, or the Dispatcher gets rights the RBAC matrix didn't intend. It
+also directly affects CO-22 — the driver-truck mapping — which is the most sensitive item
+in the pack (see CD-3).
+Recommendation: Reconcile. The pattern elsewhere (Fleet Manager owns assets,
+Compliance Manager owns compliance) suggests the RBAC matrix is deliberate and CO-
+17/18/22 are the drafting error — but that is inference. Needs Business Clarification (OC-2).
+
+
+
+CD-3 — CO-22 "Driver-Truck Mapping" reads as an eligibility roster, not an assignment
+— but it is named as an assignment
+Severity: Critical Affected Module(s): Driver Management; Fleet Management; Shipment
+Execution Related BRD(s): Carrier Onboarding CO-22, CO-23, CO-24; Driver BRD DT-20,
+DRV-DASH-001; Fields For HOS (Driver Session); Master Data (Shipment Status) Related
+Screen(s): Drivers → Assigned Drivers; Fleet → All Vehicles; Fleet → HOS Status
+Observation: CO-22 is titled "Driver-Truck Mapping", its goal is "Assign drivers to trucks",
+and it writes to driver_truck_assignments . Under the fixed business model that would be
+a direct contradiction.
+But its Key Steps say something different:
+   "Map Truck VIN → Multiple Drivers (min 4 drivers)" — Acceptance: "minimum 4
+   drivers enforced"
+A minimum of four drivers per truck cannot be a dispatch assignment. Four people
+cannot drive one truck at once. This is a roster — the list of drivers permitted to operate that
+truck — not an assignment of a driver to a job.
+Read as a roster, CO-22 is fully compatible with the fixed model, and three neighbouring
+steps reinforce it:
+
+ Source                What it says                Why it fits
+
+ CO-24 Tablet Device   "Map Tablet Device →        The tablet belongs to the truck. Logging into
+ Assignment            Truck VIN"                  the tablet is logging into the truck
+
+ CO-23 ELD             Trigger: "Driver logs in    The login event is what binds driver to truck
+ Integration           tablet" → HOS syncs
+
+ Driver BRD DT-20      "Logout current →           Handover by login/logout — exactly the
+                       authenticate next driver"   fixed model. Team driving already works this
+                                                   way
+
+ Driver BRD DRV-       "display current assigned   One active shipment derived from context
+ DASH-001              shipment" (singular)
+
+
+
+Expected Behaviour: If CO-22 is a roster, it is the missing authorisation layer — and it
+solves the compliance problem in VB-1: truck login can check "is this driver on this truck's
+roster, and are they compliant?" If CO-22 is an assignment, it contradicts the fixed model
+and must be removed.
+Business Impact: This is the single most consequential ambiguity in the pack. The two
+readings lead to opposite implementations of the carrier's core operating model. The "min 4
+drivers" clause is strong evidence for the roster reading, but the title, goal and table name all
+say "assignment".
+Recommendation: Needs Business Clarification (OC-1). If roster: rename CO-22 to "Truck
+Driver Roster", rename the table, and make it the authorisation source for truck login. If
+assignment: it contradicts the fixed model and must be deleted along with the artefacts in
+CD-5.
+CD-4 — POD ownership is resolved by the RBAC matrix; AP-001's actor is imprecise, not
+contradictory
+Severity: Medium (downgraded — V3 reported this as a Critical contradiction; the new
+evidence resolves it) Affected Module(s): POD; Shipment Execution Related BRD(s): Auth
+Services BRD V2 (Functional Matrix row 6, POD); Ledger Frequency Matrix (LED-05);
+Driver BRD DT-09 / POD-001…008 / DT-25; AP & AR BRD AP-001 Related Screen(s):
+Shipments → Completed; Dashboard → Upcoming Tasks
+Observation: V3 reported Driver BRD DT-09 (Actor: Driver) and AP & AR AP-001 (Actor:
+Carrier) as an irreconcilable conflict. The RBAC matrix resolves it:
+   Row 6 — POD (Delivery & POD), applies_to: CARRIER Carrier Super Admin: Create /
+   View / Update · Dispatcher: Only View · Driver: Create / View / Update · Fleet
+   Manager, Compliance Manager: no access
+And Ledger LED-05 "Delivery Confirmed (POD Uploaded)" — Triggered By: Driver.
+So the model is: the Driver captures POD; the Carrier Super Admin may also create or
+correct it; the Dispatcher can only view it. AP-001's actor "Carrier" is consistent with
+Carrier Super Admin having Create — it is simply written at organisation level rather than
+role level. Not a contradiction.
+Expected Behaviour: AP-001's actor should read "Carrier Super Admin" for precision. The
+console must provide the Dispatcher's view and the Super Admin's create/update path.
+Business Impact: POD gates shipment close-out and, per LED-05, opens the payment
+sequence. The specification is complete and unambiguous once the RBAC matrix is read
+alongside it — but no POD screen exists, so a documented Only-View right for the
+Dispatcher and a Create/Update right for the Super Admin are both unavailable.
+Recommendation: Reword AP-001's actor to "Carrier Super Admin". Build the POD screen
+per CG-4.
+
+
+
+CD-5 — The fixed driver-assignment model is contradicted in 22 documented locations
+Severity: Critical Affected Module(s): Driver Management; Fleet Management; Shipment
+Assignment; Shipment Execution Related BRD(s): Carrier View BRD; Master Data; Fields
+For HOS; Notification Types; FTL Master Reference; Appendix E; Driver BRD Related
+Screen(s): Drivers → Assigned Drivers; Fleet → All Vehicles; Drivers → All Drivers;
+Shipments (all buckets); Fleet → HOS Status
+Observation: Re-verified from scratch against the new document set. The fixed model —
+carrier selects the asset; trucks are assigned to shipments; the driver's shipment derives
+from truck login — is contradicted here:
+#    Document         Location          What it says
+
+1    Carrier View     §3 Module Map     Sub-view "Assigned Drivers"
+     BRD
+
+2    Carrier View     DRV-02            "Assigned Drivers = drivers with an active truck
+     BRD                                assignment ( truck_driver_assignments )"
+
+3    Carrier View     §15 Audit         truck_driver_assignments —
+     BRD                                ASSIGNMENT_CHANGE
+
+4    Carrier View     FLEET-01          "assigned driver" as a truck field
+     BRD
+
+5    Carrier View     DRV-01, DRV-04    "assigned truck" as a driver field
+     BRD
+
+6    Carrier View     FLEET-06 /        "vehicles with an assigned driver"; error "Driver
+     BRD              FLEET-006         unassigned"
+
+7    Carrier View     SHP-004, SHP-05   "Assign truck / driver / trailer"
+     BRD
+
+8    Carrier View     DRV-002           Precondition "Driver has active assignment"
+     BRD
+
+9    Carrier View     TRIP-01           Trip = "truck + driver + shipment"
+     BRD
+
+10   Master Data      Shipment Status   Truck Assigned → **Driver Assigned** — a
+                                        distinct state
+
+11   Master Data      Driver Status     "Assigned — Driver assigned to a shipment — Dispatch
+                                        by carrier"
+
+12   Fields For HOS   Trip Events       TRIP_ASSIGNED "Trip assigned to driver"
+
+13   Fields For HOS   Trip Events       TRIP_ACCEPTED "Driver accepted trip"
+
+14   Fields For HOS   Trip Events       TRIP_REJECTED "Driver rejected trip" — impossible
+                                        if the shipment attaches on login
+
+15   Notification     CR-020            "Driver Assigned to Trip — Dispatcher assigns driver
+     Types                              to a shipment"
+
+16   Notification     DR-001            "You have been assigned a new trip"
+     Types
+ #    Document        Location           What it says
+
+ 17   Notification    DR-008             "Trip completed. Await next assignment."
+      Types
+
+ 18   FTL Master       driverId          "Assigned on ACCEPTED" — Entered By: Carrier
+      Reference                          Dispatch
+
+ 19   FTL Master      Shipment status    Body includes driverId?
+      Reference       update
+
+ 20 Appendix E        Figure E1          "…driver-to-truck assignment, trailer-to-truck
+                                         assignment…"
+
+ 21   Driver BRD      §7 Suggested       "Driver Login → Trailer Assignment → ELD Activation
+                      Driver Workflow    → Shipment Acceptance"
+
+ 22   Driver BRD      DT-11              Actor Driver; "Fetch trailer → validate type → assign";
+                                         remedy "Select alternate trailer"
+
+Plus 4 UI implementations: the Assigned Drivers nav item; a Driver column on every truck;
+a Truck column on every driver; and truck + driver + trailer in the Shipments "Assigned"
+column.
+Expected Behaviour: Every item above deleted or rewritten. None is a feature to build.
+Business Impact: These are not stylistic. #2 and #3 are a database table and an audit event.
+#10 is a shipment state. #12–14 are lifecycle events. #15–17 are notification contracts. #19 is a
+status-update payload. Building against today's documents builds the wrong operating
+model.
+Recommendation: Delete/rewrite all 22 plus the 4 UI implementations. Note the
+dependency on CD-3: if CO-22 is a roster, it stays and becomes the login authorisation list;
+only the assignment semantics go.
+
+
+
+CD-6 — Shipment ID prefixes are documented; the Carrier View BRD says they aren't
+Severity: High Affected Module(s): Shipments Related BRD(s): Shipment Execution
+Super Set; Carrier View BRD SHP-03 / OPEN-03 Related Screen(s): Shipments (all
+buckets)
+Observation: Carrier View BRD OPEN-03 states: "Only SHP-FTL / SHP-LTL ID formats are
+documented; Dump Truck and Costco currently reuse SHP-FTL."
+This is contradicted by the Shipment Execution Super Set, which uses:
+ Prefix        Used for               Example
+
+ SHP-          FTL standard            SHP-FTL-10001
+ FTL-
+
+ SHP-RF-       FTL Reefer              SHP-RF-10001
+
+ SHP-          LTL                     SHP-LTL-10001
+ LTL-
+
+ SHP-          Recurring / Dump        SHP-RCR-10001 … SHP-RCR-10005
+ RCR-          Truck
+
+ SHP-          Costco                  SHP-LTL-10002 , SHP-LTL-10003 , SHP-LTL-
+ LTL-                                 10004
+
+
+
+Two prefixes the Carrier View BRD says don't exist — SHP-RF and SHP-RCR — are used
+throughout the Super Set. And Costco uses LTL prefixes, not FTL as the Carrier View BRD
+asserts.
+The console implements the Carrier View BRD's incorrect reading: it shows Costco and
+Dump Truck as SHP-FTL-10005 / SHP-FTL-10006 .
+Expected Behaviour: Four documented prefixes: SHP-FTL , SHP-RF , SHP-LTL , SHP-RCR .
+Costco as LTL.
+Business Impact: OPEN-03 can be closed. More importantly, prefix drives recognition — a
+dispatcher scanning a list needs to see at a glance that SHP-RCR-10001 is a recurring
+contract, not a one-off load. The console's uniform SHP-FTL erases the distinction the
+Super Set draws.
+Recommendation: Close OPEN-03. Adopt all four prefixes. Correct SHP-03 and the
+console. Confirm Costco's LTL classification (OC-6).
+
+
+
+CD-7 — Eleven master-data catalogues; three agree
+Severity: Critical Affected Module(s): Fleet, Trailers, Drivers, Shipments, Yards Related
+BRD(s): Carrier View BRD §13; Master Data §1.1–1.2 / Asset Status / Driver Status; Carrier
+Onboarding CO-10…CO-14; Driver BRD §4.11 / §3 Related Screen(s): Every list with a
+status chip
+Observation:
+Catalogue       Carrier View BRD         Master Data         Carrier             Driver BRD
+                                                             Onboarding
+
+Asset / truck   AVAILABLE, IN_SERVICE,   Available,          Available (CO-      —
+status          IN_MAINTENANCE,          Unavailable, In     10), Serviceable
+                OUT_OF_SERVICE,          Transit, Halt, At   (CO-11), Out of
+                DECOMMISSIONED (5)       Pickup, At          Service (CO-11)
+                                         Delivery/Dump,
+                                         Out of Service
+                                         (7)
+
+Driver status   AVAILABLE, ON_DUTY,      19 values           Pending (CO-        Main/Co/Sleeping
+                ON_BREAK, OFF_DUTY,      (Offline…SOS,       17), Verified
+                SUSPENDED,               Co-Driver,          (CO-19)
+                TERMINATED (6)           Sleeping
+                                         Driver)
+
+Truck types     DAY_CAB,                 10 (incl. Dump      free-text           —
+                SLEEPER_BERTH,           ×2, Bobtail,        vehicle_type
+                TANDEM_AXLE,             Yard Truck)
+                STRAIGHT_TRUCK (4)
+
+Trailer types   9 (incl. LOWBOY,         9 (incl. Double     free-text           6 (incl. Power
+                INTERMODAL,              Drop, Car           trailer_type        Only)
+                CAR_CARRIER)             Hauler,
+                                         Livestock)
+
+Yard type       PRIVATE, LEASED,         —                   Owned, Leased,      —
+                SHARED, CROSS_DOCK                           Shared (3)
+                (4)
+
+Yard status     ACTIVE, INACTIVE,  —                         active, inactive,   —
+                UNDER_MAINTENANCE,                           maintenance (3)
+                CLOSED (4)
+
+Yard subtype    STAGING,                 —                   not captured        —
+                DROP_AND_HOOK,
+                FUEL_STOP,
+                WEIGH_STATION (4)
+
+Driver type     SALARIED, CONTRACT       —                   Owner-              —
+                (2)                                          Operator,
+                                                             Contractual,
+                                                             Salaried (3)
+ Catalogue       Carrier View BRD                Master Data        Carrier           Driver BRD
+                                                                    Onboarding
+
+ Shipment        FTL, LTL                        FTL, LTL, PTL,     —                 FTL, LTL, PTL,
+ types                                           STL                                  STL
+
+ HOS duty        4                               —                  —                 ELD-002…005 —
+ status                                                                               identical 4
+
+ CDL classes / A,B,C / H,N,T,X,P,S               —                  CDL Class (CO-    —
+ endorsements                                                       17)
+
+
+
+Business Impact: Concrete, not theoretical. AST-001…007 notifications fire on Master
+Data's asset statuses (Halt, At Pickup, At Delivery/Dump) — statuses the fleet screen
+cannot display. A carrier receives "Asset TRK-004 is on Halt" and finds no such status. CO-11
+marks a truck "Serviceable" — a value that appears in no catalogue and on no screen. CO-
+14 yard type "Owned" cannot be stored in a field whose values are
+PRIVATE/LEASED/SHARED/CROSS_DOCK.
+Recommendation: A master-data reconciliation workshop is the single highest-value
+action available. One signed-off catalogue per entity, then propagate.
+
+
+
+CD-8 — Two document-expiry schedules, and the UI implements a third
+Severity: High Affected Module(s): Compliance; Documents; Drivers; Fleet Related
+BRD(s): Carrier Onboarding CO-09; Notification Types DOC-009 / DOC-010 / DOC-016 /
+DOC-018; CR-009 Related Screen(s): Drivers → Drivers Documents; Fleet → Vehicle
+documents; Drivers → Insurance
+Observation:
+
+ Source                     Expiry alert schedule
+
+ CO-09 Document             1 month → 3 weeks → 2 weeks → 7 days → daily after expiry (5 tiers)
+ Expiry Monitoring
+
+ Notification Types         30 days → 7 days (2 tiers, insurance)
+ DOC-009/010
+
+ Notification Types         30 days (CDL, medical cert)
+ DOC-016 / DOC-018
+
+ The console                Three hardcoded calendar dates — 2026-10-01 (CDL), 2026-07-01
+                            / 2026-08-01 (medical). Not relative to today. Vehicle documents: no
+                            expiry flag at all
+CO-09's 5-tier schedule is the most specific and the only one that includes post-expiry
+escalation. The Notification Types 30/7 model is a subset. The console matches neither.
+Expected Behaviour: One schedule. CO-09's is the strongest candidate — it is a dedicated
+workflow step with High priority and covers the post-expiry state the others omit.
+Business Impact: DOC-011 auto-suspends the carrier's marketplace access on COI
+expiry. The escalation ladder is the only warning a carrier gets before losing the ability to
+trade. Three different ladders means the notification a carrier receives won't match the flag
+they see.
+Recommendation: Adopt CO-09's 5-tier schedule. Align DOC-009/010/016/018 to it. Add it
+to the configurable parameters. Apply to vehicle documents too.
+
+
+
+CD-9 — Per-stop contact details are standard in the Super Set and "PROPOSED" in the
+Shipment BRD
+Severity: High Affected Module(s): Shipments; Shipment Execution Related BRD(s):
+Shipment Execution Super Set (FTL, LTL, Dump Truck sections); Shipment Creation BRD
+GAP-10; Carrier View BRD SHP-03 Related Screen(s): Shipments (all buckets)
+Observation: The Shipment Execution Super Set carries Pickup Contact Point and
+ Delivery Contact Point (e.g. +1-1234567890 ) on every FTL, LTL and Dump Truck
+scenario, including one per stop on multi-stop loads.
+The Shipment Creation BRD lists per-stop contacts as GAP-10 — "PROPOSED … not in
+current schema", priority Medium.
+The Carrier View BRD SHP-03 does not list contact fields at all. The console shows none.
+(Note: the Costco section of the same workbook omits contact points, while FTL/LTL/Dump
+include them — an internal inconsistency within one document.)
+Expected Behaviour: Contact points are already standard data in the execution superset.
+GAP-10 should be closed, not proposed.
+Business Impact: A driver arriving at a stop needs the site contact. The Super Set already
+provides it per stop; GAP-10 treats it as a future enhancement; the console shows nothing.
+This is a live workflow break — the data exists and reaches nobody.
+Recommendation: Close GAP-10 as already-specified. Add contact points to SHP-03 and to
+the console's shipment view. Resolve the Costco omission (OC-7).
+4. Critical Gaps
+CG-1 — No Carrier Profile screen: 8 of 12 onboarding fields are unreachable
+Severity: Critical · Module: Carrier Profile · BRD: CO-02, CO-05, CO-06, CO-08 · Screens:
+sidebar only
+Observation: CO-05 captures 12 company fields. The console sidebar shows 4.
+
+ Captured at CO-05                                           In console?
+
+ Company Name                                                ✅
+ DBA (Doing Business As)                                     ❌
+ Entity Type                                                 ❌
+ Phone Number                                                ❌
+ Company Email Address                                       ❌
+ Year Established                                            ❌
+ USDOT Number                                                ✅
+ MC Number                                                   ✅
+ EIN / Tax ID                                                ❌
+ Corporation Number                                          ❌
+ Country                                                     ✅
+ Fleet Size                                                  ❌
+
+CO-02 additionally captures the admin's Middle Name, Alternate Phone Number and
+Address — none appear. CO-05's outcome is "Carrier profile created with status Pending"
+— a status the console never shows. CO-06 produces authority_status and
+insurance_status from FMCSA — neither appears. CO-08 produces a signed contract —
+no contract screen exists.
+Expected Behaviour: A Company Profile module holding everything CO-02, CO-05, CO-
+06 and CO-08 produce, editable per RBAC org.profile.update / org.contacts.manage /
+ org.addresses.manage (Carrier Super Admin only).
+
+Business Impact: A carrier enters 12 fields and can see 4. CO-06 blocks onboarding when
+authority is inactive and DOC-005 says an inactive authority means the carrier cannot
+haul interstate freight — a trading gate with no representation anywhere. EIN/Tax ID and
+Corporation Number are legal-entity identifiers with no display. The RBAC matrix defines
+five ORG permissions that have no screen to act on.
+Recommendation: Build Company Profile: identity, DBA, entity type, contacts, addresses,
+USDOT/MC + FMCSA authority and insurance status, EIN/Tax ID, Corporation Number,
+year established, fleet size, country, compliance_status , and the signed contract.
+
+
+
+CG-2 — No Users & Roles screen, and a fully-specified RBAC matrix with 0%
+implementation
+Severity: Critical · Module: User Management · BRD: Auth Services BRD V2 (75
+permissions, 18 categories); CO-28 · Screens: entire console
+Observation: The Auth Services BRD V2 specifies RBAC completely — 75 permission
+codes ( org.create , org.profile.view , org.profile.update , org.contacts.manage ,
+ org.addresses.manage , users.invite , users.view , users.status.manage ,
+ roles.create , roles.view , roles.update , roles.assign , reports.view ,
+ reports.analytics.view , reports.export , …) across 18 functional categories, mapped
+to 6 carrier roles with every cell populated. CO-28 Invite User defines the invite flow with
+duplicate handling and RBAC enforcement.
+The console has no user list, no invite, no role assignment, and no permission logic of
+any kind. Every screen renders identically regardless of who is signed in. The top bar
+asserts a role ("Dispatch Admin") that the RBAC matrix doesn't contain.
+Expected Behaviour: A Users & Roles module ( users.invite , users.view ,
+ users.status.manage , roles.create/view/update/assign — Carrier Super Admin and
+System Admin only), and every screen gated against the matrix.
+Business Impact: Three compounding problems. (1) A Super Admin cannot add their Fleet
+Manager, Dispatcher or Compliance Manager — so a real carrier company cannot operate
+beyond one person, and the people who do most of the onboarding work (CD-1) cannot be
+created. (2) Rights the matrix explicitly withholds are currently open to everyone — e.g.
+BILL is Only View for Super Admin and no access for Dispatcher, yet the Earnings module
+is fully visible. (3) This is the most completely specified feature in the entire pack and none
+of it exists.
+Recommendation: Build Users & Roles against the matrix. Enforce every category. Use
+ERR-GEN-002 ("You do not have permission to access this resource", 403) for denials.
+
+
+
+CG-3 — No Compliance & Documents module: eight document types and a whole role
+have nowhere to live
+Severity: Critical · Module: Compliance; Documents; Insurance · BRD: CO-04, CO-07, CO-
+09, CO-19, CO-20; Auth RBAC row 10 (COMP); DOC-001…028 · Screens: Fleet → Vehicle
+documents; Drivers → Drivers Documents; Drivers → Insurance
+Observation: CO-07 (Actor: Compliance Manager) requires upload of:
+   Insurance Certificate · MC Permit · Cargo Insurance Certificate · MCS-150 · FMCSA
+   Safety Rating · Drug & Alcohol Program Policy · Auto Liability · Cargo Insurance &
+   General Liability
+None of these eight appears anywhere in the console. There is no carrier-level document
+screen at all — only two read-only tables (vehicle, driver), neither with an upload. Insurance
+sits oddly under Drivers → Insurance as a read-only summary.
+Also unrepresented: CO-04 (OCR extraction, virus scanning, version control), CO-09 (5-
+tier expiry — CD-8), CO-19 Driver Identity Verification (CDL OCR + facial recognition
+match, facial_match_score , status → Verified), CO-20 Drug & Alcohol Clearinghouse
+check (Critical; "Reject driver onboarding if non-compliant"; drug_alcohol_status ).
+RBAC row 10 (COMP) grants Compliance Manager: Create/View/Update — a role with a
+documented job and no screen.
+Expected Behaviour: A Compliance module: upload (PDF/JPG/PNG per CO-07 and ERR-
+GEN-004), OCR status, version history, the CO-09 expiry ladder, verification status, drug &
+alcohol status, and a prominent suspension warning.
+Business Impact: DOC-011 auto-suspends marketplace access on COI expiry. The
+console shows a green "VERIFIED" chip with no expiry, no upload, no countdown, no
+warning. CO-20 is Critical and rejects non-compliant drivers — the carrier cannot see the
+status that governs it. CO-19's facial-recognition verification produces a match score that
+goes nowhere.
+Recommendation: Build Compliance & Documents at carrier level, owned by Compliance
+Manager. Move Insurance into it.
+
+
+
+CG-4 — No POD screen, despite a complete specification and an explicit Dispatcher
+view right
+Severity: Critical · Module: POD; Shipment Execution · BRD: Auth RBAC row 6 (POD);
+Driver BRD §4.10 / DT-09 / DT-25; LED-05; AP-001; Carrier View SHP-006 · Screens:
+Shipments → Completed; Dashboard → Upcoming Tasks
+Observation: "Confirm POD — TRIP-58015" appears as a Dashboard task with no action.
+There is no POD screen.
+The specification is unusually complete: POD-006 requires 1 driver selfie and 2 truck
+photos; POD-007 auto-captures driver GPS; POD-001…004 cover signature, photos,
+timestamps and damage notes; POD-005 — "System shall auto-notify dispatch after POD
+submission"; §5.1 sets POD upload at < 10 seconds; OFF-003 requires offline POD capture.
+Master Data specifies POD photo events per freight type — dump truck alone has six
+mandatory photo events.
+Expected Behaviour: A POD review screen showing the selfie, both truck photos, GPS,
+signature, timestamp and damage notes, with Super Admin create/update and Dispatcher
+view, releasing close-out per SHP-006.
+Business Impact: POD gates close-out and, per LED-05, opens the payment sequence. It is
+the single most important driver→carrier handoff. POD-005 notifies dispatch and
+dispatch has no screen to be notified into.
+Recommendation: Build the POD review screen. Wire POD-005 to the notification centre
+(CG-5).
+
+
+
+CG-5 — No notification centre; SOS and four other driver→dispatch channels terminate
+nowhere
+Severity: Critical · Module: Notifications; Tracking; Fleet · BRD: Notification Types (whole
+document); Driver BRD §4.7 / §4.12 / §4.13 / §4.14 / §4.11; CO-25; Master Data (Driver
+Status) · Screens: top bar; Dashboard → Active Alerts
+Observation: The bell icon has no click handler. The Dashboard's "Active Alerts" panel
+carries six hardcoded types. Everything else has no destination:
+ Channel               Specification                                                Where it
+                                                                                    lands today
+
+ SOS                   SOS-003: "System shall alert dispatch immediately"; DT-      Nowhere
+                       13 Critical; SOS-004 escalation; Master Data driver status
+                       SOS = "Emergency (911)"
+
+ Dispatch messaging    §4.8 DSP-001…006 (text, voice notes, load updates,           Nowhere
+                       document sharing, location sharing, read receipts); DT-08
+                       actor "Driver / Dispatcher"; < 2s delivery
+
+ Detention             §4.14 DET-001…005; DT-15 "Start timer → calculate            Nowhere
+                       detention → notify dispatch"
+
+ Reefer deviation      §4.11 TRL-002; DT-12 "alert deviations"; ALT-003; sensor     Nowhere
+                       disconnect → "Trigger maintenance alert"
+
+ Breakdown / vehicle   §4.13 MEC-001…005; Master Data driver status                 Nowhere
+ issue                 "Maintenance Issue — Driver reports vehicle problem";
+                       AST-007 (Critical)
+
+ Exception             CO-25 — route deviation, excessive idle, distance            Nowhere
+ monitoring            mismatch → "Red flag generated"; ALT-002; GPS-005
+
+ Safety                GPS-007 speed monitoring; DR-007 "Speed limit exceeded"      Nowhere
+
+ Alert                 DT-23 "Driver shall acknowledge critical alerts"             Nowhere
+ acknowledgement
+
+
+
+Expected Behaviour: A notification centre with category filter, unread state,
+acknowledgement (DT-23) and source-record links. SOS must be a top-priority, non-
+dismissible alert.
+Business Impact: SOS is a life-safety feature. The Driver BRD puts an SOS button
+permanently on the tablet and states dispatch is alerted immediately. Dispatch is the carrier
+console. The alert has no destination — the most serious real-world consequence in this
+review. Beyond SOS, seven documented driver→dispatch channels are one-way into a void,
+and the Driver BRD's stated objective "Reduce Operational Delays — improve dispatch-
+driver coordination" has no carrier-side interface at all.
+Recommendation: Build the notification centre. Treat SOS as a separate, immediate,
+escalating surface. Add Messages (DSP-001…006).
+
+
+
+CG-6 — A carrier cannot register a dump truck, a bobtail or a yard truck
+Severity: Critical · Module: Fleet · BRD: CO-10; Master Data §1.2; Shipment Creation BRD
+§11 (DR001–DR007); Shipment Execution Super Set 5B · Screens: Fleet → All Vehicles;
+Fleet → Vehicle Types; Shipments
+Observation: The console offers four truck types: DAY_CAB, SLEEPER_BERTH,
+TANDEM_AXLE, STRAIGHT_TRUCK. Master Data §1.2 defines ten, including Dump
+Truck (Standard), Dump Truck (Articulated), Bobtail (No Trailer), Yard Truck
+(Terminal Tractor), Tanker Truck and Car Hauler. Master Data adds six dump-truck
+subtypes (Standard, Articulated, Transfer, Super, Side, Semi-Trailer End Dump). CO-10
+captures vehicle_type as free text with no stated value set.
+Meanwhile: Shipment Creation BRD §11 documents seven dump-truck contracts
+(DR001–DR007, up to $4,000,000), and the Shipment Execution Super Set has a full
+Dump Truck section (156 fields) with Recurring Hours , Recurring Days , Total
+Trucks . The console shows a Dump Truck shipment assigned to a truck registered as a
+SLEEPER_BERTH tractor.
+Expected Behaviour: vehicle_type reconciled to Master Data §1.2 with dump-truck
+subtypes.
+Business Impact: Dump truck is a fully-specified, high-value revenue line with its own
+shipment scenarios, recurrence model and prefix (CD-6). If the asset cannot be registered,
+it cannot be selected for the shipment — the line is unreachable. "Bobtail (No Trailer)"
+also being a Master Data truck type is the clean answer to the Bob-tails bucket problem
+(DI-4).
+Recommendation: Adopt Master Data §1.2. Define CO-10's vehicle_type value set
+explicitly.
+
+
+
+CG-7 — Asset selection does not exist — the one action the fixed model requires of the
+carrier
+Severity: Critical · Module: Shipment Assignment; Fleet; Trailer Management · BRD: CO-
+13; Carrier View SHP-004/SHP-05/SHP-006; CR-007; Appendix E · Screens: Shipments (all
+buckets); Fleet
+Observation: Under the fixed model the carrier's core job is selecting the truck and trailer
+for a shipment. The console cannot do it. A shipment sits in New and stops there — no
+asset selection, no move to Executions, no close-out.
+CO-13 specifies the trailer↔truck relationship in detail — Actor Fleet Manager, "Select
+Truck, Assign Trailer to selected Truck, Select Primary and Secondary trailer", storing
+ trailer_role (PRIMARY/SECONDARY) . The console has no truck↔trailer relationship at
+all. Neither trailers nor yards can be created (CO-12, CO-14), nor bulk-uploaded (CO-15),
+nor photographed (CO-16).
+Expected Behaviour: Truck + trailer selection on a New shipment → Executions; CO-13's
+primary/secondary trailer attach/detach; trailer/yard creation; bulk upload; asset photos.
+Business Impact: The single action the fixed operating model assigns to the carrier is the
+single action the console lacks. CR-007 announces "Truck [Asset ID] has been successfully
+assigned to Shipment ID [XXXX]" — an event the UI provides no way to cause. CO-13's
+PRIMARY/SECONDARY concept — which matters for multi-trailer operations — has no
+representation whatsoever.
+Recommendation: Build asset selection end to end, including CO-13's primary/secondary
+trailer roles. Do not build driver→truck assignment (CD-5).
+
+
+
+5. Missing Features
+MF-1 — Truck identity fields captured at registration are unreachable
+Severity: High · Module: Fleet · BRD: CO-10, CO-11 · Screens: Fleet → All Vehicles
+Observation: CO-10 captures 7 fields; the console shows 2 (VIN, Vehicle Type). Lost:
+License Plate Number, Plate State, Registration Expiry Date, Vehicle Make, Vehicle
+Model. CO-11 produces registration_status , insurance_status and the status
+"Serviceable" — none appear.
+Conversely, the console displays fuel type, GVWR and odometer, which CO-10 does not
+capture. Their origin is undocumented.
+Expected Behaviour: All CO-10 fields visible; CO-11 validation status visible.
+Business Impact: Licence plate + plate state + registration expiry is the DOT roadside-
+inspection triad. A dispatcher cannot answer "is this truck legal to run today?" A driver
+stopped at a weigh station cannot be supported. Registration expiry is a compliance date
+with no expiry monitoring (CO-09 covers documents, not registration).
+Recommendation: Surface all CO-10/CO-11 fields. Document the source of fuel type,
+GVWR and odometer, or remove them.
+
+
+
+MF-2 — Trailer identity fields captured at onboarding are unreachable
+Severity: High · Module: Trailer Management · BRD: CO-12 · Screens: Fleet → Vehicle
+Types
+Observation: CO-12 captures Trailer Type, Make, Model Year, VIN, Length, Max Payload
+(lbs), Trailer Photo, plus bulk upload. The console shows Type and Length. Trailer VIN,
+Make, Model Year, Max Payload and Photo never appear.
+Expected Behaviour: Full trailer record visible.
+Business Impact: Max Payload is a load-planning and legal-weight field. Without it a
+dispatcher cannot verify a trailer can legally carry a shipment's weight — and shipment
+weight is captured on every Super Set scenario. Trailer VIN is the trailer's legal identifier
+and its absence makes CO-12's duplicate-VIN validation unverifiable from the console.
+Recommendation: Surface all CO-12 fields.
+
+
+
+MF-3 — Driver record: 13 of 18 onboarding fields unreachable, plus three from CO-18
+Severity: High · Module: Driver Management · BRD: CO-17, CO-18, CO-19, CO-20 · Screens:
+Drivers → All Drivers; Drivers Documents; License
+Observation: CO-17 captures 18 fields; the console shows 5. Lost: CDL Issuing State, Years
+of Experience, Driver Photo, Date of Birth, Phone, Email, Driver Type, Hire Date,
+Address, City, State, ZIP Code, Examiner Name. CO-18 adds Nationality, "Is the driver
+insured? Yes/No" and Driver favourite destination — all lost. CO-17's outcome status
+Pending and CO-19's Verified never appear; CO-20's drug_alcohol_status never
+appears.
+Expected Behaviour: A driver profile holding everything CO-17…CO-20 produce.
+Business Impact: CDL Issuing State is the state prefix the Carrier View BRD says must
+be validated (DRV-07) — and it is captured at CO-17 but never displayed, so the validation
+cannot be seen to work. A dispatcher cannot phone a driver: Phone and Email are captured
+and hidden. "Is the driver insured?" is precisely the field Carrier View OPEN-02 says
+doesn't exist (VB-4).
+Recommendation: Build a driver profile view surfacing all of CO-17/18/19/20.
+
+
+
+MF-4 — Yard address and geo-coordinates are captured and never shown
+Severity: High · Module: Yards · BRD: CO-14 · Screens: Yards → All yards
+Observation: CO-14 captures address_line1, city, state, zip_code, country,
+latitude, longitude plus name, code, type, capacities and status. The console shows no
+address and no coordinates.
+CO-14 also does not capture two fields the console displays: yard_subtype_code
+(STAGING / DROP_AND_HOOK / FUEL_STOP / WEIGH_STATION) and
+ geo_fence_radius_meters . Their origin is undocumented.
+
+Expected Behaviour: Yard address and coordinates visible; subtype and geo-fence either
+captured at CO-14 or removed from the console.
+Business Impact: A yard with no address is not usable for dispatch — CO-14's stated goal
+is "parking, staging, and relay operations" and its acceptance criterion is "Usable for
+dispatch and trailer parking". Latitude/longitude drive geofencing, which drives GPS-
+003/GPS-004 arrival detection and therefore detention timing (DET-001/002). The
+console shows a geo-fence radius that onboarding never collects.
+Recommendation: Surface address and coordinates. Reconcile subtype and geo-fence
+radius with CO-14.
+
+
+
+MF-5 — No device management, though the tablet-to-truck link underpins the whole
+operating model
+Severity: High · Module: Fleet · BRD: CO-23, CO-24 · Screens: Fleet → All Vehicles
+Observation: CO-24 maps Tablet Device → Truck VIN ( device_assignments(device_id,
+vin, device_status) ), rejects duplicates and requires unassignment before
+reassignment. CO-23 syncs HOS from the ELD provider, triggered by "Driver logs in tablet".
+The console shows a static "ELD device" string and nothing else.
+Expected Behaviour: Device pairing, status, unassign/reassign, sync health.
+Business Impact: CO-24 is the technical foundation of the fixed assignment model —
+the tablet belongs to the truck, so a driver logging into the tablet is logging into the truck.
+Yet there is no way to pair a device, see one fail, or reassign one. CO-23's failure remedy is
+"alert fleet manager on persistent failure" — with no screen and no Fleet Manager role (CD-
+1). If a tablet fails, HOS stops and the model has no fallback.
+Recommendation: Build device management per CO-24 with ELD sync health per CO-23.
+
+
+
+MF-6 — Driver ratings are fully specified and absent; OPEN-01 can be closed
+Severity: High · Module: Driver Management · BRD: CO-21; Carrier View DRV-05 / OPEN-
+01 · Screens: Drivers → Performance
+Observation: Carrier View OPEN-01 states no scoring model exists: "the BRDs define live
+metrics … but no on-time %, safety score or ranking formula."
+CO-21 Driver Rating System defines exactly that:
+   Evaluate On-time delivery, No-show incidents, Bid cancellations, Behaviour,
+   Communication → driver_ratings(on_time_score, no_show_flag,
+   bid_cancellation_flag, behaviour_score, communication_score,
+   **overall_score**) , aggregated onto the driver profile.
+
+The console's Performance screen shows total trips, completed trips, idle time and HOS —
+none of the rating dimensions.
+Expected Behaviour: Ratings surfaced on the driver profile with the aggregated overall
+score.
+Business Impact: OPEN-01 can be closed. CO-21's actor is System / Shipper — so shipper-
+submitted ratings flow to the carrier's drivers and the carrier cannot see them. A carrier
+cannot manage driver quality against scores it cannot read.
+Recommendation: Close OPEN-01, citing CO-21. Surface ratings on Drivers →
+Performance.
+
+
+
+MF-7 — No Reports module, though RBAC grants all five carrier roles a view right
+Severity: Medium · Module: Reports · BRD: Auth RBAC row 18 (REP) + permissions
+reports.view / reports.analytics.view / reports.export ; Driver BRD §4.18 / DT-21 ·
+Screens: none
+Observation: RBAC row 18 (REP — Reports & Dashboards) grants Only View to Carrier
+Super Admin, Fleet Manager, Dispatcher, Compliance Manager and System Admin, backed
+by three permission codes including reports.analytics.view —
+"Route/RPM/profitability analytics" and reports.export . Driver BRD DT-21 names
+Fleet Manager as an actor on Route Analytics (revenue, RPM). §4.18 adds ANA-001…005
+(revenue per mile, route profitability, fuel spend, deadhead miles, payment trends).
+No Reports module exists, and no export exists anywhere.
+Expected Behaviour: Reports with route/RPM/profitability analytics and export.
+Business Impact: Five roles hold a documented right to a screen that doesn't exist. Three
+permission codes are unusable. DT-21 explicitly names a carrier-console role as an actor.
+Recommendation: Build Reports starting with DT-21/ANA-001…005 and
+reports.export .
+
+
+
+
+MF-8 — No AWB screen, though RBAC defines AWB as a carrier category
+Severity: Medium · Module: AWB · BRD: Auth RBAC row 17 (AWB, applies_to CARRIER);
+FTL Master Reference C5; Driver BRD ERN-004 / DT-28; Carrier View DRV-06 · Screens:
+Drivers → Earnings
+Observation: RBAC row 17 defines AWB as a CARRIER-only category with Only View for
+Carrier Super Admin, Dispatcher and Driver. FTL C5 defines the format fully
+( {AIRLINE_PREFIX_3}-{SERIAL_8} , e.g. 180-12345678 , Modulo-7 check digit). Driver
+BRD ERN-004 requires "associated AWB numbers linked to completed shipments"; DT-28
+lists awb_numbers and shipment_ids as separate fields.
+The console's column headed "Associated AWB #" contains shipment IDs ( SHP-FTL-
+10001 ).
+
+Expected Behaviour: AWB displayed where an air segment exists; "Not applicable"
+otherwise.
+Business Impact: A dedicated RBAC category with three roles holding view rights, and no
+screen. The one column claiming to show AWBs shows a different identifier — anyone
+reading it would conclude they are the same field.
+MF-9 — No settings surface for timezone or configurable parameters
+Severity: Medium · Module: Settings · BRD: Master Data §18 (System Time Rules per User
+Type); Ledger Configurable Points CFG-01…CFG-14; CO-09 · Screens: entire console
+Observation: Master Data §18 is explicit: store UTC; display in the user's configured
+timezone. Carrier Super Admin, Fleet Manager, Dispatcher and Compliance Manager are
+all "User Configured Time Zone"; Driver is "Device Time Zone (GPS Location)". There is
+nowhere to configure it, and console dates are bare ( 2026-03-14 ) with no timezone.
+Note the Super Set states pickup/drop windows in UTC (e.g. "08:00 – 12:00 UTC") while
+other scenarios give bare local times — so the conversion §18 mandates is already load-
+bearing.
+Expected Behaviour: A user timezone preference; every timestamp rendered in it and
+labelled.
+Business Impact: The console covers US · CA · MX across multiple timezones. A pickup
+window with no timezone is a missed pickup, and a missed pickup is a documented
+penalty (PEN-004). (Owner of the CFG- configurable points is System Admin, so those are
+not a carrier-console concern.)*
+Recommendation: Add user timezone settings. Label the timezone on every time-critical
+field.
+
+
+
+6. Workflow Issues
+WF-1 — Onboarding hands off to nothing; the completion milestones point at modules
+that don't exist
+Severity: High · Module: Dashboard; Carrier Profile · BRD: ONB-004…ONB-007, ONB-016;
+CO-05 (status Pending), CO-06 (status Active) · Screens: Dashboard
+Observation: ONB-004…007 describe a profile-completion checklist: 25% "Add company
+details to unlock more features"; 50% "Upload compliance documents to continue"; 75%
+"Add payment details to start transacting"; 100% "Your profile is complete." ONB-016 chases
+stalled onboarding. The Dashboard opens straight into a full fleet overview with no
+checklist and no completion state.
+Expected Behaviour: A completion checklist driven by the ONB milestones and CO-
+05/CO-06 status.
+Business Impact: The three milestones map exactly onto the modules that don't exist —
+company details (CG-1), compliance documents (CG-3), payment details (out of scope).
+The notification catalogue is describing a console that was never designed — strong
+evidence these modules were always intended rather than newly requested.
+Recommendation: Add the checklist; drive it from CO-05/CO-06 status and the ONB
+milestones.
+
+
+
+WF-2 — An unapproved carrier sees a fully working console
+Severity: High · Module: Carrier Profile; entire console · BRD: CO-05 (Pending), CO-06
+(Active / Block onboarding), CO-08 (Contract Signed); CR-014 / CR-001 / CR-003; ONB-
+008…011 · Screens: entire console
+Observation: CO-05 creates the carrier with status Pending. CO-06 sets Active "only if
+authority valid" and blocks onboarding otherwise. CO-08 requires a signed contract
+(Critical). CR-001 says approval is what unlocks access: "You can now access load auctions
+and fleet management."
+The console shows no account status and renders identically regardless.
+Expected Behaviour: Account/compliance status prominent; access gated on Active +
+signed contract.
+Business Impact: A Pending carrier, a carrier with inactive FMCSA authority, and a carrier
+who never signed the contract all see the same fully-functional console. CO-06's "Block
+onboarding" and CO-08's Critical contract gate are both unenforceable from the UI.
+Recommendation: Surface carrier status, authority status, contract status and
+compliance_status . Gate access.
+
+
+
+
+WF-3 — Shipments and Trips are two lifecycles for the same movement, and the Trip
+entity cannot be created
+Severity: High · Module: Shipments; Tracking · BRD: Carrier View §8/§10; Master Data
+(Shipment Status, 16 states); FTL Master Reference (7 states); Fields For HOS · Screens:
+Shipments; Trips
+Observation: Shipments has 4 buckets; Trips has 5 states. Neither links to the other. A
+shipment in New can have a trip in Scheduled. Master Data models one 16-state lifecycle
+(Draft → Closed); the FTL manual models one 7-state lifecycle.
+Critically: Carrier View TRIP-01 defines a Trip as "truck + driver + shipment". Under the
+fixed model the driver is not knowable at trip creation — so the Trip entity as defined
+cannot be created.
+Expected Behaviour: One lifecycle, or a documented mapping. TRIP-01 must drop the
+driver.
+Business Impact: A dispatcher holds two mental models of one truck movement and
+reconciles them by eye — the finding most likely to confuse a real user. And the entity
+definition is now impossible under the fixed model.
+Recommendation: Adopt Master Data's single lifecycle with Trips as a view over it, or
+document the mapping precisely. Remove the driver from TRIP-01. Needs Business
+Clarification (OC-4).
+
+
+
+WF-4 — Dashboard alerts and tasks are inert
+Severity: High · Module: Dashboard · BRD: Carrier View DASH-003 / DASH-004; Driver
+BRD DT-23 · Screens: Dashboard → Active Alerts; Upcoming Tasks
+Observation: Both lists are plain text — nothing clickable, nothing dismissible. DASH-003
+requires "drill down to source record" and names an "Alert view/dismiss audit log". DASH-
+004 requires "Select task; navigate to relevant module" with "Task removed from list once
+resolved". DT-23 requires alert acknowledgement.
+(Search results in the same console do navigate — the pattern exists and simply wasn't
+applied.)
+Business Impact: The Dashboard is a to-do list that cannot be ticked off. It is also where
+CG-5's alerts would land, so this blocks that too.
+Recommendation: Make alerts and tasks navigate to their source records; add dismiss and
+acknowledge.
+
+
+
+WF-5 — Four of five Dashboard menu items open the identical page
+Severity: Medium · Module: Dashboard · BRD: Carrier View §3 · Screens: Dashboard →
+Overview / KPIs / Live map snapshots / Active Alerts / Upcoming Tasks
+Observation: All five render byte-identical output; only the breadcrumb changes.
+Business Impact: Four dead-end menu items on the landing screen — the first thing every
+user sees.
+Recommendation: Give each sub-view content, or collapse the sub-menu to Overview.
+
+
+
+7. UI/UX Improvements
+UX-1 — Multi-stop shipments show a count instead of the stops
+Severity: High · Module: Shipments · BRD: Carrier View SHP-03; Shipment Creation SC-
+04/05/06 + GAP-10; Shipment Execution Super Set; Driver BRD DT-18/MLT-001…005 ·
+Screens: Shipments (all buckets)
+Observation: The console shows "4 stops" under the lane. No addresses, windows, dates,
+pallet splits, weights or contacts. Rows don't open.
+The Super Set is far richer: per-stop Pickup Location - 1/2 , Pickup Window - 1/2 ,
+ Pickup Date - 1/2 , Delivery Location - 1/2 , Drop Window - 1/2 , Pallets Qty.
+1/2 , Weight 1/2 and contact points per stop (CD-9). FTL adds
+ stops.partialLoadPercent (must total 100%) and stops.unloadType
+(LIVE/DROP/LUMPER/CONSIGNEE). DT-18 has the driver updating stop status live.
+Business Impact: SC-04, SC-05, SC-06 and Costco are all multi-stop — half the
+documented scenarios. For those, the stops are the job. A driver cannot be dispatched from
+"4 stops", and DT-18's live stop updates have no carrier-side destination.
+Recommendation: Build a shipment detail view with the full stop list, per-stop contacts,
+pallet/weight splits and live status.
+
+
+
+UX-2 — The map is a fixed picture and its legend describes something else
+Severity: Medium · Module: Tracking · BRD: Carrier View DASH-02 / TRIP-02; Driver BRD
+GPS-001…008 · Screens: Dashboard → Live map snapshot; Trips → Live Tracking
+Observation: One hardcoded drawing of six Northern California cities, reused on both
+screens, not derived from trip data. The legend describes vehicle states (in transit / at yard /
+in maintenance / at facility) but those colours are painted on cities; every vehicle marker is
+the same colour.
+DASH-02 permits a "stylised" snapshot, so this is not a hard breach — but TRIP-02's
+criterion ("Map and list match current GPS-001 feed") cannot hold, and the Driver BRD
+supplies everything needed: GPS-001 real-time location, GPS-002 refresh every 5–30
+seconds, GPS-003 geofencing, GPS-004 arrival/departure detection.
+Recommendation: Drive the map from the GPS feed. Fix the legend to describe what is
+actually coloured.
+
+
+
+UX-3 — Filter chips look like filters and aren't
+Severity: Medium · Module: Fleet; Drivers; Yards · BRD: Carrier View FLEET-01 ("Actions
+— Filter by truck_status_code"), FLEET-001 / DRV-001 · Screens: 5 screens
+Observation: Pill-shaped chips with counts, positioned exactly where a filter belongs. They
+are plain text — no handler, no hover, no selected state. They satisfy "expose the full value
+set" and fail "filter by".
+Business Impact: Users will click repeatedly with no result and no cue explaining why.
+Recommendation: Make them interactive — after the value sets are reconciled (CD-7).
+UX-4 — Reviewer notes are printed inside the product
+Severity: Low · Module: Drivers · Screens: Drivers → Performance; Drivers → Insurance
+Observation: Two screens end with messages addressed to a reader: "…tell me the scoring
+model you want and I can add it" and "…let me know if it is intended."
+Recommendation: Remove before any demo. (The first is now moot — CO-21 supplies the
+scoring model.)
+
+
+
+UX-5 — Undocumented thresholds hardcoded into the UI
+Severity: Low · Module: Drivers; Yards · BRD: Carrier View YARD-002 (flags only "exceeds
+capacity", i.e. >100%) · Screens: HOS bars; Yard capacity bars
+Observation: The HOS bar turns amber below 8h and red below 4h against an 11-hour
+maximum. Yard capacity turns red above 85%. No document defines any of these
+numbers.
+Business Impact: Invented thresholds become de-facto business rules once copied into
+code. The HOS bands matter more than they look — under the fixed model, HOS is the
+dispatcher's only visibility into whether a truck can legally move (OC-3).
+Recommendation: Document or remove.
+
+
+
+8. Data & Information Consistency
+DI-1 — 41 of 60 onboarding fields never reach a screen
+Severity: Critical · Module: All · BRD: CO-05, CO-10, CO-12, CO-14, CO-17, CO-18 · Screens:
+all
+Covered in detail at CG-1, MF-1, MF-2, MF-3, MF-4. Consolidated here as a single data-
+consistency statement rather than repeated per module.
+Business Impact: This is the defining characteristic of the console. Onboarding is a careful,
+28-step, Critical-priority workflow that captures a complete carrier operating picture — and
+two-thirds of it evaporates at the door. Every downstream workflow (dispatch,
+compliance, roadside, payment eligibility) depends on data the console cannot show.
+Recommendation: Treat onboarding→console field parity as an explicit acceptance
+criterion. For each of the 41 lost fields, decide: surface it, or remove it from onboarding.
+
+
+
+DI-2 — The console displays three fields that onboarding never captures
+Severity: High · Module: Fleet; Yards · BRD: CO-10, CO-14 vs Carrier View FLEET-01,
+YARD-01 · Screens: Fleet → All Vehicles; Yards → All yards
+Observation: The inverse of DI-1. The console shows:
+
+ Field                               Shown in                Captured at onboarding?
+
+ fuel_type_code                      Fleet → All Vehicles    ❌ Not in CO-10
+ gvwr_lbs                            Fleet → All Vehicles    ❌ Not in CO-10
+ odometer_miles                      Fleet → All Vehicles    ❌ Not in CO-10
+ yard_subtype_code                   Yards → All yards       ❌ Not in CO-14
+ geo_fence_radius_meters             Yards → All yards       ❌ Not in CO-14
+ CDL endorsements                    Drivers; License        ❌ Not in CO-17
+
+Business Impact: These fields have no documented origin. CDL endorsements is the
+sharpest case: Carrier View DRV-07 builds a whole rule on it ("Endorsement H requires a
+TSA security threat assessment"), the console renders a TSA flag from it — and CO-17 never
+collects it. The TSA rule cannot fire on data that is never captured.
+Recommendation: For each: add it to the relevant CO step, or remove it from the console.
+Endorsements must be added to CO-17 if DRV-07's TSA rule is to survive.
+
+
+
+DI-3 — "Associated AWB #" contains shipment IDs
+Severity: Medium · Module: Driver Management · BRD: FTL C5; Driver BRD ERN-004 /
+DT-28; Auth RBAC row 17 · Screens: Drivers → Earnings
+Observation: Column header says "Associated AWB #"; cells contain SHP-FTL-10001 . DT-
+28 lists awb_numbers and shipment_ids as separate fields; FTL C5 defines the AWB
+format precisely.
+Recommendation: Show the real AWB; "Not applicable" where there is no air segment.
+
+
+
+DI-4 — Vehicle-type buckets double-count and use an invented derivation
+Severity: High · Module: Fleet; Yards · BRD: Carrier View FLEET-05 / YARD-03; Master
+Data §1.2 · Screens: Fleet → Vehicle Types; Yards → Vehicle Capacity
+Observation: Three defects in one screen:
+     Bob tails = trucks with no driver, excluding straight trucks, plus one. The +1 has no
+     basis in any document, and the predicate uses driver — meaningless under the fixed
+     model.
+     Flat Bed ( FLATBED / STEP_DECK ) and Flat Truckload ( FLATBED ) count the same
+     trailers twice. The five buckets total 9 across a 7-trailer fleet.
+     Yards → Vehicle Capacity captions every card "at carrier yards now", but the Flat
+     Truckload predicate has no yard filter and counts a trailer at a customer site.
+
+Expected Behaviour: Master Data §1.2 already answers Bob tails — it is a truck type
+("Bobtail (No Trailer)"), not a derived state. That removes the driver dependency the fixed
+model forbids. "Flat Truckload" appears in no other document and needs a definition or
+removal.
+Business Impact: Capacity decisions taken from these cards are wrong, and the Bob-tails
+predicate directly implements the model that has been removed.
+Recommendation: Add Bobtail to the truck catalogue (CG-6) and derive the bucket from it.
+Define or drop Flat Truckload. Fix the yard filter.
+
+
+
+DI-5 — Duplicate driver-settlement screens
+Severity: Medium · Module: Financial information shown to the carrier · BRD: Carrier
+View DRV-06 / EARN-02; Driver BRD §4.23 ERN-001…005 / DT-28 · Screens: Drivers →
+Earnings; Earnings → Salary Payout
+Observation: Both screens filter to salaried and contract drivers and show the same
+contract types and rates. Drivers → Earnings adds AWB and shipments; Earnings → Salary
+Payout adds a period amount. No document states a difference.
+(Verified as not a contradiction: Driver BRD DT-32 Fuel Savings Section Exclusion sets
+ feature_flag: fuel_savings_driver_visible = false , consistent with Carrier View
+DRV-06's exclusion. Also noted: the Driver BRD's contents page lists a "§4.23 Fuel Savings
+Display" section that does not exist in the body — a documentation artefact only.)
+Separately, CO-18 defines three driver types (Owner-Operator, Contractual, Salaried)
+and four payment models (Per Mile, Per Load, %, Salary). Both screens show only
+monthly salary and per-mile. Owner-Operator, Per Load and % have no representation.
+Business Impact: Two screens, one dataset, no stated difference — they will drift apart in
+maintenance and users won't know which is authoritative. And a documented driver type
+(Owner-Operator) plus two payment models are invisible.
+Recommendation: Merge into one driver-settlement view, or state the difference. Extend
+to CO-18's full driver-type and payment-model sets. (Payment timing and commission are
+out of scope and not addressed.)
+9. Validation & Business Rule Gaps
+VB-1 — The FMCSA compliance gate has no enforcement point under the fixed model
+Severity: Critical · Module: Driver Management; Shipment Assignment · BRD: Carrier
+View DRV-01 / DRV-002 / FLEET-01; DOC-011 / DOC-017 / DOC-019; CO-20; CO-22; Driver
+BRD DT-01; Auth Services BRD (login) · Screens: Drivers → All Drivers; Fleet → All
+Vehicles; Shipments
+Observation: Carrier View DRV-002 (Critical) blocks a suspended driver at dispatch:
+"force SUSPENDED and block dispatch", "Suspended driver cannot be assigned to a trip".
+FLEET-01 says allows_dispatch gates dispatch. CO-20 rejects drivers failing the Drug &
+Alcohol Clearinghouse check.
+Under the fixed model there is no moment at which a driver is dispatched. The carrier
+dispatches a truck. The only remaining enforcement point is the driver's login to the truck
+— and Driver BRD DT-01's only failure modes are "invalid credentials; session expired".
+No CDL check. No medical check. No drug_alcohol_status check. No allows_dispatch
+check.
+In the console, the suspended driver and the in-maintenance truck render exactly like
+every other row — nothing greyed, nothing blocked.
+Expected Behaviour: Truck login must validate: driver status ≠
+SUSPENDED/TERMINATED; CDL valid; medical certificate valid; drug_alcohol_status
+compliant; the truck's allows_dispatch = true ; and — if CD-3 resolves as a roster —
+that the driver is on that truck's roster.
+Business Impact: The most serious rule failure in this review. The rule is documented in
+five places and enforced in none, and the fixed model removed the moment it was designed
+to fire. As specified today, a suspended driver logs into a truck and drives away with a live
+shipment — a regulatory violation the system is documented to prevent. Note this is a
+consequence of a correct business decision that has not been followed through, not a flaw
+in the decision.
+Recommendation: Move the gate to truck login. Extend DT-01's validations. Rewrite DRV-
+002's precondition and acceptance criterion. Add carrier-level suspension (DOC-011). Mark
+non-dispatchable assets visibly. This is the second-highest priority in the review.
+
+
+
+VB-2 — Every error message is written; none is implemented
+Severity: High · Module: All · BRD: Master Data §16 (ERR-GEN-001…005 + ERR-DRV-
+001…029); Carrier View §17 (40 Error/Remedy pairs); CO-01…CO-28 (28 Error/Remedy
+pairs) · Screens: entire console
+Observation: The console has one empty state ("No matches" on search). No loading, no
+error, no timeout, no offline, no permission-denied.
+Master Data §16 defines them precisely:
+
+ Code             Message                                                        HTTP
+
+ ERR-GEN-001      "Invalid email or password. Please try again."                 401
+
+ ERR-GEN-002      "You do not have permission to access this resource."          403
+
+ ERR-GEN-003      "Unable to connect to server. Please try again later."         503
+
+ ERR-GEN-004      "File format not supported. Please upload PDF, JPG, or PNG."   415
+
+ ERR-GEN-005      "Required fields are missing."                                 400
+
+
+
+Business Impact: ERR-GEN-002 is the permission-denied message CG-2 needs. ERR-
+GEN-004 states the accepted upload formats — the exact answer every document screen
+in CG-3 requires, and CO-07 independently confirms "only PDF, JPG, PNG per Master Data
+Sec 5". The specification is unusually complete (Master Data maps a dedicated code to
+every Driver BRD row) and the implementation is zero.
+Recommendation: Implement every documented state. Use ERR-GEN-004's format list on
+all uploads.
+
+
+
+VB-3 — Onboarding validations have no UI to run in
+Severity: High · Module: All · BRD: CO-02, CO-05, CO-10, CO-12, CO-13, CO-14, CO-17, CO-
+24, CO-28 · Screens: none
+Observation: The onboarding workflow specifies 28 error/remedy pairs, including
+uniqueness constraints that must be enforced somewhere:
+     CO-05 — duplicate USDOT → "Link existing carrier or reject"
+     CO-10 — invalid/duplicate VIN; invalid plate state
+     CO-12 — duplicate trailer VIN; bulk-upload template validation
+     CO-13 — "trailer already assigned to another truck" → "Warn user; allow reassignment
+     with confirmation"
+     CO-14 — "unique constraint (carrier_id + yard_code)"; address validation via
+     geolocation; numeric capacity validation
+     CO-17 — duplicate CDL number; duplicate email/phone
+     CO-24 — "device already assigned to another truck" → "require unassignment before
+     reassignment"
+     CO-28 — duplicate email within org → 409 conflict
+
+Business Impact: None of these can execute because none of the create screens exist (CG-
+1, CG-3, CG-7, MF-5). This is not a separate defect so much as a measure of how much
+validated business logic is currently stranded — and a warning that building the screens
+without the validations would silently lose all of it.
+
+Recommendation: Implement each validation alongside its screen. Treat the 28 pairs as
+acceptance criteria.
+
+
+
+VB-4 — OPEN-02 (per-driver insurance) is answered by CO-18
+Severity: Medium · Module: Driver Management; Insurance · BRD: Carrier View DRV-08 /
+OPEN-02; CO-18; Appendix F · Screens: Drivers → Insurance
+Observation: Carrier View OPEN-02 states: "Insurance is modelled as carrier documents…;
+no per-driver insurance entity exists. Decision Needed: confirm whether per-driver
+occupational-accident insurance is required."
+CO-18 captures — verbatim — "Is the driver insured? Yes/No". And Appendix F describes
+an insurance framework with "separate insurance considerations for different driver types
+such as salaried, owner-operator, and contractual drivers."
+So a per-driver insurance flag is collected at onboarding, and the appendix explicitly
+contemplates driver-type-specific insurance.
+Expected Behaviour: OPEN-02 answered: a per-driver insurance indicator exists. Whether
+it needs to become a full entity (policy number, carrier, coverage, expiry) is the remaining
+question.
+Business Impact: OPEN-02 has been blocking a Medium-priority requirement on the basis
+that no data exists. The data does exist. The console shows carrier-level insurance only and
+never shows the per-driver flag.
+Recommendation: Update OPEN-02 to reflect CO-18. Surface the flag on the driver profile.
+Decide whether to extend it to a full policy record (OC-5).
+
+
+
+10. Terminology & Naming Consistency
+TN-1 — Consolidated naming conflicts
+Severity: Medium · Module: All · BRD: all · Screens: all
+ Term in console / Carrier   Used             Where                        Note
+ View BRD                    elsewhere
+
+ Dispatch Admin              Dispatcher       Auth RBAC · Master Data ·    4 documents to 1.
+                                              Driver BRD §3 · CR-020 ·     See CD-1
+                                              LED-02
+
+ (absent)                    Fleet Manager    Auth RBAC · Master Data ·    Actor on 8
+                                              Driver BRD §3 · CO-          onboarding steps;
+                                              10/12/13/15/16/17/18/22/24   no console home
+
+ (absent)                    Compliance       Auth RBAC · Master Data ·    Owns document
+                             Manager          CO-07 · CO-19                upload and driver
+                                                                           verification
+
+ Bob tails                   Bobtail (No      Master Data §1.2             See DI-4
+                             Trailer) — a
+                             truck type
+
+ Flat Truckload              (appears in no   —                            Needs definition
+                             other                                         or removal
+                             document)
+
+ PRIVATE (yard type)         Owned            CO-14                        See CD-7
+
+ UNDER_MAINTENANCE           maintenance      CO-14                        See CD-7
+ (yard status)
+
+ CAR_CARRIER                 Car Hauler       Master Data §1.2             Same asset, two
+                                                                           codes
+
+ IN_SERVICE /                Serviceable      CO-11                        A third vocabulary
+ DECOMMISSIONED              (CO-11)
+
+ CONTRACT (driver type)      Contractual      CO-18                        Plus Owner-
+                                                                           Operator, absent
+                                                                           from Carrier View
+
+ Trip                        Shipment /       all documents                Used
+                             Load /                                        interchangeably
+                             Manifest                                      throughout
+
+
+
+Business Impact: "Dispatch Admin" is the important one — it is the term the whole
+Carrier View BRD §17 is written around, and it exists in no other document. Under the fixed
+assignment model this role's job changes materially (they select assets, not drivers), so this
+is the moment to settle the name and the definition together.
+Recommendation: Publish a glossary; align all documents to the Auth Services BRD V2
+vocabulary. Adopt "Dispatcher".
+
+
+
+11. End-to-End Workflow Verification
+Each flow walked from first document to final screen.
+
+11.1 Carrier Onboarding → Console
+CO-01 role select → CO-02 signup → CO-03 login → CO-05 company profile
+(status Pending) → CO-06 FMCSA (→ Active) → CO-07 documents → CO-08 contract →
+CO-09 expiry monitoring Result:     🔴 Breaks at CO-05. No profile screen; 8 of 12 fields
+lost; Pending/Active never shown; FMCSA authority status never shown; no documents; no
+contract; CO-09's expiry ladder unimplemented. Everything after CO-03 is invisible.
+
+11.2 Fleet Onboarding → Dispatch
+CO-10 truck → CO-11 DMV (→ Serviceable) → CO-12 trailer → CO-13 trailer↔truck
+(Primary/Secondary) → CO-15 bulk → CO-16 photos → CO-24 device Result:            🔴
+Breaks at CO-10. 5 of 7 truck fields lost; "Serviceable" nowhere; CO-13's truck↔trailer
+relationship absent entirely; no bulk upload, no photos, no device management. Dump
+trucks cannot be registered at all (CG-6).
+
+11.3 Driver Onboarding → Active Driver
+CO-17 driver (Pending) → CO-19 identity + facial match (→ Verified) → CO-20
+drug & alcohol → CO-18 payment config → CO-22 truck roster → CO-23 ELD → CO-21
+ratings Result:   🔴 Breaks at CO-17. 13 of 18 fields lost; Pending/Verified nowhere; drug &
+alcohol status nowhere; Owner-Operator and 2 payment models nowhere; ratings nowhere.
+CO-22's meaning is unresolved (CD-3). Endorsements are shown but never captured (DI-
+2).
+
+11.4 Shipment Awarded → Executed → Closed
+award → select truck+trailer → Executions → driver logs into truck → shipment
+attaches → execution → POD → close → History Result:         🔴 Breaks at asset selection.
+The one action the fixed model requires of the carrier does not exist (CG-7). No POD screen
+(CG-4). No close-out. CR-007 announces an event the UI cannot cause.
+
+11.5 Driver → Dispatch Communication
+SOS · messaging · detention · reefer deviation · breakdown · exception red
+flag · safety Result:   🔴 All seven terminate nowhere (CG-5). SOS is the most serious.
+11.6 Document Lifecycle
+CO-04 OCR → CO-07 upload → CO-09 expiry ladder → DOC-009/010 alerts → DOC-011
+suspension Result:   🔴 Breaks at CO-04/CO-07. No upload, no OCR status, no version
+history; three competing expiry ladders (CD-8); suspension invisible.
+
+11.7 User Management
+CO-28 invite → role assign → RBAC enforcement (75 permissions, 18 categories)
+       🔴
+Result: Does not exist (CG-2). 0% implementation of the most completely specified
+feature in the pack.
+Summary: 7 of 7 primary end-to-end flows break. Three break at the first carrier action
+after login.
+
+
+
+12. Cross-Module Dependency Review
+Findings ordered by what blocks what. This is the recommended build sequence.
+
+  CD-3 CO-22 roster vs assignment ──┬──> CD-5 delete 22 assignment artefacts
+                                     └──> VB-1 compliance gate at truck login
+                                                     │
+  CD-1 role model (RBAC, 6 roles) ───┬──> CG-2 Users & Roles ──> all
+  permission gating
+                                     ├──> CD-2 who onboards drivers
+                                     ├──> CG-3 Compliance module (Compliance
+  Manager)
+                                     └──> MF-5 / MF-7 Fleet Manager surfaces
+                                                     │
+  CD-7 master-data catalogues ───────┬──> CG-6 dump truck / bobtail
+  registration
+                                     ├──> DI-4 vehicle-type buckets
+                                     ├──> UX-3 filter chips
+                                     └──> CD-8 expiry ladder
+                                                     │
+  CG-1 Company Profile ──────────────┬──> WF-1 onboarding checklist
+                                     └──> WF-2 status gating
+                                                     │
+  CG-7 asset selection ──────────────┬──> WF-3 shipments/trips lifecycle
+                                     └──> CG-4 POD ──> close-out
+                                                     │
+  CG-5 notification centre ──────────┴──> WF-4 alerts/tasks · SOS · messaging
+  · detention
+
+
+Six dependencies worth naming explicitly:
+ 1. CD-3 blocks CD-5 and VB-1. If CO-22 is a roster, it survives and becomes the login
+    authorisation list, solving VB-1. If it is an assignment, it is deleted and VB-1 needs a
+    different answer. Nothing about the assignment model can be finalised until CO-22
+    is settled.
+  2. CD-1 blocks CG-2, which blocks every permission-dependent screen. And CD-1
+     blocks CD-2 — you cannot resolve who onboards drivers until you agree the roles
+     exist.
+  3. CD-7 blocks CG-6, DI-4, UX-3 and CD-8. Every status chip, filter and bucket depends
+     on a signed-off catalogue.
+  4. CG-6 blocks the dump-truck revenue line (§11's seven contracts). Asset registration
+     → asset selection → execution.
+  5. CG-3 depends on CD-1 (Compliance Manager must exist) and CD-8 (the expiry
+     ladder must be agreed).
+  6. CG-5 is the destination for WF-4, SOS, messaging, detention, reefer and
+     breakdown. Build it before the channels that feed it.
+
+
+
+13. Open Clarifications
+Only where the documentation is genuinely insufficient. Nothing below touches
+auction/bidding or platform charges, commission, invoicing or payment timing.
+OC-1 — Is CO-22 a driver→truck assignment or a truck roster? (Blocks CD-3, CD-5, VB-1)
+Its Key Steps say "Map Truck VIN → Multiple Drivers (min 4 drivers)" — four drivers
+cannot be assigned to one truck simultaneously, so this reads as an eligibility roster, which
+is compatible with the fixed model and would supply the missing login authorisation list.
+But its title, goal ("Assign drivers to trucks") and table name all say assignment. The two
+readings produce opposite implementations of the core operating model. This is the
+single most consequential open question in the review.
+OC-2 — Who onboards drivers: Fleet Manager (CO-17/18/22) or Dispatcher (RBAC row
+8)? (CD-2) The two in-scope documents disagree directly. The wider pattern (Fleet
+Manager owns assets, Compliance Manager owns compliance) suggests RBAC is
+deliberate — but that is inference and I will not act on it.
+OC-3 — How does a dispatcher account for HOS when selecting an asset? (VB-1) The
+carrier picks a truck and cannot know who will log into it. Fleet → HOS Status and Drivers →
+HOS become observational, not planning tools. What should happen if the driver who logs
+in has insufficient HOS — block the login, warn, alert dispatch, or nothing? No document
+addresses this.
+OC-4 — Are Shipments and Trips one lifecycle or two? (WF-3) Master Data (16 states) and
+the FTL manual (7 states) each model one. The Carrier View BRD models two, unlinked.
+This must be answered regardless, because TRIP-01 defines a Trip as "truck + driver +
+shipment" and the driver is unknowable at trip creation under the fixed model — the entity
+as defined cannot be created.
+OC-5 — Should the CO-18 driver-insurance flag become a full policy record? (VB-4) CO-
+18 captures "Is the driver insured? Yes/No" and Appendix F contemplates driver-type-
+specific insurance. OPEN-02 asked whether per-driver insurance exists — it does, as a flag.
+The remaining question is whether it needs policy number, insurer, coverage and expiry.
+OC-6 — Is Costco LTL or FTL? (CD-6) The Shipment Execution Super Set gives Costco
+ SHP-LTL- prefixes. The Carrier View BRD says Costco reuses SHP-FTL . The Super Set is
+the more specific source, but this changes classification, prefix and the field set applied.
+OC-7 — Why do Costco scenarios omit contact points? (CD-9) FTL, LTL and Dump Truck
+all carry Pickup Contact Point and Delivery Contact Point in the Super Set. Costco
+carries none — an inconsistency within a single document.
+OC-8 — What is the source of fuel type, GVWR, odometer, yard subtype, geo-fence
+radius and CDL endorsements? (DI-2) Six fields the console displays that no onboarding
+step captures. Endorsements is the pressing one — Carrier View DRV-07's TSA rule
+depends on it and CO-17 never collects it.
+OC-9 — Which expiry ladder is authoritative? (CD-8) CO-09's five tiers (1 month → 3
+weeks → 2 weeks → 7 days → daily after expiry) vs Notification Types' 30/7. CO-09 is the
+more specific and the only one covering post-expiry escalation.
+OC-10 — Is "Flat Truckload" a real bucket? (DI-4) It appears in no document other than
+the Carrier flow navigation, and currently double-counts flatbed trailers.
+
+
+
+14. Priority Recommendations
+ #   Action                                                Refs    Why it ranks here
+
+ 1   Answer OC-1 — is CO-22 a roster or an                 CD-3,   One question that determines
+     assignment? Then delete or retain accordingly.        CD-5,   the core operating model and
+                                                           VB-1    unblocks the two items below
+                                                                   it. Costs a meeting.
+
+ 2   Move the FMCSA compliance gate to truck               VB-1,   The fixed model removed the
+     login. Extend DT-01 to validate driver status, CDL,   OC-3    gate's only trigger. A
+     medical cert, drug & alcohol,                                 suspended driver can
+      allows_dispatch — and roster membership if                   currently log in and drive.
+     OC-1 resolves that way.                                       Regulatory exposure.
+
+ 3   Adopt the Auth Services BRD V2 role model (6          CD-1,   4 documents to 1. Unblocks
+     roles) and update Carrier View BRD §2/§17.            CD-2,   Users & Roles and every
+                                                           TN-1    permission-dependent screen.
+
+ 4   Reconcile the master-data catalogues. One             CD-7    8 of 11 conflict. Blocks CG-6,
+     signed-off set per entity.                                    DI-4, UX-3, CD-8. Nothing can
+                                                                   be built on shifting enums.
+ #   Action                                                Refs      Why it ranks here
+
+ 5   Close the onboarding→console field gap. For           DI-1,     68% of what a carrier enters is
+     each of the 41 lost fields: surface or remove.        CG-1,     unreachable. The defining
+                                                           MF-1…     defect of the product.
+                                                           MF-4
+
+ 6   Build Users & Roles and enforce the RBAC              CG-2      75 permissions, 18 categories,
+     matrix.                                                         0% implemented. A carrier
+                                                                     company cannot operate as
+                                                                     one user.
+
+ 7   Route SOS to the console as an immediate,             CG-5      Life-safety. SOS-003 says
+     escalating, non-dismissible alert.                              dispatch is alerted
+                                                                     immediately; the alert has no
+                                                                     destination.
+
+ 8   Build asset selection (truck + trailer, incl. CO-13   CG-7,     Under the fixed model this is
+     Primary/Secondary) and the award → execute →          CG-4,     the carrier's job, and it is the
+     POD → close loop.                                     WF-3      one thing the console cannot
+                                                                     do.
+
+ 9   Build Compliance & Documents at carrier level         CG-3,     Eight document types have
+     with CO-09's expiry ladder and the DOC-011            CD-8      nowhere to go; COI expiry
+     suspension warning.                                             silently suspends the carrier.
+
+ 10 Add dump truck, bobtail and yard truck to the          CG-6,     Unblocks a revenue line with 7
+    truck catalogue.                                       DI-4      documented contracts up to
+                                                                     $4M each — and fixes Bob tails
+                                                                     properly.
+
+Quick wins worth doing this week regardless: delete the "Assigned Drivers" nav item
+(CD-5); rename Dispatch Admin → Dispatcher (TN-1); remove the reviewer notes printed
+inside the product (UX-4); close OPEN-01 (CO-21) and OPEN-03 (SHP-RF / SHP-RCR).
+
+
+
+15. Readiness Assessment
+Overall completeness: 29%
+ Dimension                                  Score Basis
+
+ Navigation & structure                     100% Matches Carrier View BRD §3 word for word
+
+ Onboarding → console field retention         32% 19 of 60 CO-05/10/12/14/17/18 fields reach a
+                                                  screen
+Dimension                               Score Basis
+
+Screens present vs. required             35% 7 of 20 in-scope surfaces
+
+Master-data alignment                    30% 3 of 11 catalogues agree
+
+RBAC implementation                         0% 75 permissions, 18 categories, 6 roles — none
+                                               enforced
+
+Carrier actions available                   0% 0 of ~22 documented in-scope actions
+
+States (loading / error / empty /           5% 1 of ~8, though all 5 messages are pre-written
+permission)
+
+Average                                  29%
+
+
+Development effort: Large
+Workstream                  Effort   Note
+
+Assignment-model            Small–   22 documented locations + 4 UI implementations — but
+cleanup                     Medium   almost entirely deletion. Cheap now; very expensive once
+                                     code exists. Gated on OC-1.
+
+Master-data                 Medium   Mostly decisions, but gates four other workstreams
+reconciliation
+
+Onboarding →                Medium   41 fields across 6 entities. Not hard — just never done
+console field parity
+
+13 new surfaces             Large    Profile, Users & Roles, Compliance, POD, Notifications,
+                                     Messaging, SOS, Reports, AWB, Settings, Device Mgmt,
+                                     Contract, Ratings
+
+RBAC                        Medium   Fully specified — build to the matrix
+implementation
+
+~22 missing actions         Large    Asset selection, uploads, close-out, invite, dismiss,
+                                     acknowledge
+
+Driver↔carrier real-        Medium   Messaging, SOS, detention, reefer, live stop status — all
+time surfaces                        specified, none built
+
+States & error              Medium   ~8 states × ~20 screens; every message pre-written
+handling
+
+Fixing what exists          Small    Field bindings, chips, map, stops, maintenance columns
+ Workstream               Effort    Note
+
+ BRD updates              Medium    Carrier View BRD needs to roughly double; five documents
+                                    need assignment-model edits
+
+
+Verdict
+
+⚠️ Requires Further Design Review
+Not ready for development.
+Four reasons, in order:
+  1. 68% of what a carrier enters at onboarding never appears in the console. Forty-one
+     business fields — licence plate, plate state, registration expiry, yard address, geo-
+     coordinates, driver phone, driver email, driver type, EIN, DBA, entity type — are
+     captured by a Critical-priority, 28-step workflow and then discarded at the door. Every
+     downstream workflow depends on data the console cannot show.
+  2. The RBAC matrix is complete and unimplemented. 75 permission codes, 18
+     functional categories, 6 carrier roles, every cell populated — and no permission logic
+     anywhere. Two of those roles, Fleet Manager and Compliance Manager, perform
+     most of the onboarding work and have no console home at all.
+  3. The fixed assignment model is contradicted in 22 documented locations, and its
+     single most important question — is CO-22 a roster or an assignment? — is
+     unanswered. Building against today's documents builds the wrong operating model.
+  4. Removing driver assignment removed the FMCSA compliance gate's only trigger,
+     and nothing replaced it. As specified, a suspended driver logs into a truck and drives
+     away with a live shipment. That is a regulatory exposure created by a correct business
+     decision that has not been followed through.
+
+
+What is genuinely good
+Worth saying plainly, because it affects the effort estimate more than the gap list does:
+     The onboarding workflow is the strongest document in the pack. CO-01…CO-28 is
+     complete, sequenced, actor-assigned, priority-ranked, and carries 28 error/remedy
+     pairs. It is ready to build against.
+     The RBAC matrix is the most rigorous specification here. 75 permissions × 14 roles,
+     fully populated. It needs implementing, not designing.
+     The console implements the Carrier View BRD faithfully. Navigation is verbatim. ID
+     formats, VIN lengths and trailer lengths all validate. Every open item is flagged on-
+     screen rather than papered over.
+     The pack already answers four of its own open questions. OPEN-01 → CO-21. OPEN-
+     02 → CO-18. OPEN-03 → SHP-RF / SHP-RCR. POD ownership → RBAC row 6 + LED-
+     05. These are not gaps — they are cross-references nobody has made yet.
+     The fixed assignment model is already half-written into the pack. CO-24 (tablet →
+     truck VIN), CO-23 (HOS syncs on tablet login), DT-20 (logout/login handover) and
+     DRV-DASH-001 (one current shipment) describe exactly the chosen model. The work
+     is deleting the older model that was never removed.
+
+The console is not the problem. It faithfully implements a specification that is itself
+incomplete, internally contradictory on roles and assignment, and — most costly of all —
+disconnected from the onboarding workflow that feeds it. The expensive work here is
+deciding and reconciling, not drawing. Most of what is missing is already specified
+somewhere in this pack; it has simply never been pulled into the Carrier View BRD or onto a
+screen.
+

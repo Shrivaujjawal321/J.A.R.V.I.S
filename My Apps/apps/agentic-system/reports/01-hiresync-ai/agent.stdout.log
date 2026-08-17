@@ -1,0 +1,5 @@
+Test run complete. **Status: green** — build passed on first try (Next.js 16.1.6 + Turbopack, 20 static pages, 11.2s compile), dev server came up on port 3001 in ~2s, and 8 routes (`/`, `/login`, `/dashboard`, `/jobs`, `/candidates`, `/analytics`, `/interviews`, `/settings`) all rendered without console errors. Auth-gated routes cleanly 307-redirect to `/login` via NextAuth middleware. No fixes were needed.
+
+One non-blocking build warning: Next.js 16 deprecates the `middleware` file convention in favor of `proxy` — flagged in the report but not addressed since the build succeeds.
+
+Report written to `/home/ujjwal/Documents/10 saas app/apps/agentic-system/reports/01-hiresync-ai/test.json`.

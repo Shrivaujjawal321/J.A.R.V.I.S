@@ -1,0 +1,98 @@
+# Path Traversal — user input into filesystem path (CWE-22, CWE-23)
+#
+# Detects user-controlled input flowing into open()/readFile/path.join/send_file
+# without normalization + confinement. This is the CVE-2026-27825 "MCPwnfluence"
+# class (arbitrary file read/write via traversal). High bounty signal.
+#
+# DEFENSIVE: rules flag the missing-confinement shape so the auditor can add
+# os.path.realpath() + startswith(BASE) confinement (validate_safe_path).
+rules:
+  # ── Python ────────────────────────────────────────────────────────────────
+  - id: jarvis-pathtraversal-python-tainted-open
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      Possible path traversal: user-controlled input flows into a filesystem path
+      (open / os.path.join / pathlib / send_file) without confinement. Resolve with
+      os.path.realpath and assert the result startswith an allowed base directory;
+      reject '..' and absolute paths before use.
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2025-BAC"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/22.html
+        - https://owasp.org/www-community/attacks/Path_Traversal
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: request.$ANY
+              - pattern: $REQ.args.get(...)
+              - pattern: $REQ.form.get(...)
+              - pattern: $REQ.json[...]
+              - pattern: $REQ.GET.get(...)
+              - pattern: $REQ.match_info[...]
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: werkzeug.utils.secure_filename(...)
+              - pattern: secure_filename(...)
+              - pattern: validate_safe_path(...)
+              - pattern: os.path.realpath(...)
+              - pattern: $P.startswith($BASE)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: open($P, ...)
+              - pattern: open($P)
+              - pattern: os.path.join($BASE, $P)
+              - pattern: pathlib.Path($P)
+              - pattern: flask.send_file($P, ...)
+              - pattern: send_file($P, ...)
+              - pattern: send_from_directory(..., $P, ...)
+              - pattern: shutil.copyfile($P, ...)
+
+  # ── JavaScript / TypeScript ───────────────────────────────────────────────
+  - id: jarvis-pathtraversal-node-tainted-readfile
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible path traversal: request input flows into a filesystem path
+      (fs.readFile / fs.createReadStream / path.join / res.sendFile) without
+      confinement. Resolve with path.resolve and assert the result starts with an
+      allowed base directory; reject '..' segments before use.
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2025-BAC"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/22.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query.$F
+              - pattern: req.query
+              - pattern: req.body.$F
+              - pattern: req.params.$F
+              - pattern: req.params
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: path.basename(...)
+              - pattern: validateSafePath(...)
+              - pattern: $P.startsWith($BASE)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fs.readFile($P, ...)
+              - pattern: fs.readFileSync($P, ...)
+              - pattern: fs.createReadStream($P, ...)
+              - pattern: fs.writeFile($P, ...)
+              - pattern: fs.writeFileSync($P, ...)
+              - pattern: path.join($BASE, $P)
+              - pattern: res.sendFile($P, ...)
+              - pattern: res.sendFile($P)

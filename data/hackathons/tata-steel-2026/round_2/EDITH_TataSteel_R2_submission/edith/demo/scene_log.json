@@ -1,0 +1,86 @@
+[
+ {
+  "id": "s01_open",
+  "start": 6.0,
+  "end": 17.25,
+  "caption": "THE EDITH \u2014 agentic maintenance copilot \u00b7 Tata Steel AI Hackathon R2",
+  "narration": "This is EDITH \u2014 an agentic maintenance copilot for a steel plant, built for the Tata Steel A I Hackathon. Fifteen critical machines stream live sensor data into one control room."
+ },
+ {
+  "id": "s02_verdict",
+  "start": 17.25,
+  "end": 27.75,
+  "caption": "Plain-language verdict \u2014 what's wrong, how urgent, what to do",
+  "narration": "Every machine gets a plain language verdict. This work roll bearing is healthy \u2014 EDITH recommends only routine monitoring, and the technical details are one click away."
+ },
+ {
+  "id": "s03_watch",
+  "start": 27.75,
+  "end": 38.62,
+  "caption": "Early gear-tooth wear detected \u2014 guided steps for the engineer",
+  "narration": "The mill gearbox shows early signs of gear tooth wear. EDITH explains what is happening, how urgent it is, and exactly what to do next \u2014 in the order an engineer needs it."
+ },
+ {
+  "id": "s04_alerts",
+  "start": 38.62,
+  "end": 51.25,
+  "caption": "Live monitoring \u2014 ISO-grounded thresholds \u00b7 self-explaining alerts",
+  "narration": "As the historian replays a real degradation episode, sensors cross their I S O grounded thresholds. Each alert explains itself \u2014 which sensor, what value, what limit \u2014 in plain words."
+ },
+ {
+  "id": "s05_ask",
+  "start": 51.25,
+  "end": 59.98,
+  "caption": "Ask EDITH \u2014 state-aware suggestions",
+  "narration": "The engineer asks EDITH directly. Suggestions are state aware \u2014 EDITH proposes the right question for this machine's current condition."
+ },
+ {
+  "id": "s06_answer",
+  "start": 59.98,
+  "end": 140.15,
+  "caption": "PS-format answer: diagnosis \u00b7 root cause \u00b7 RUL \u00b7 risk \u00b7 actions \u2014 all cited",
+  "narration": "The answer follows the problem statement's format \u2014 diagnosis, root cause, remaining useful life, risk, and prioritized actions. Every claim is cited to manuals, S O Ps and live sensor models, reasoned by a multi agent pipeline with Claude."
+ },
+ {
+  "id": "s07_trace",
+  "start": 140.15,
+  "end": 152.64,
+  "caption": "\"How EDITH decided\" \u2014 full multi-agent reasoning trace",
+  "narration": "And it is fully explainable. How EDITH decided opens the agent by agent reasoning trace \u2014 plan, diagnosis, prediction, prioritization, recommendation, and a faithfulness gate."
+ },
+ {
+  "id": "s08_feedback",
+  "start": 152.64,
+  "end": 159.03,
+  "caption": "Feedback loop \u2014 EDITH learns from the engineer",
+  "narration": "The engineer's feedback is learned. Confirmations and corrections adjust EDITH's future risk weighting."
+ },
+ {
+  "id": "s09_logbook",
+  "start": 159.03,
+  "end": 166.02,
+  "caption": "Automatic per-machine digital logbook",
+  "narration": "Every alert, diagnosis, report and correction is recorded automatically in a per machine digital logbook."
+ },
+ {
+  "id": "s10_roles",
+  "start": 166.02,
+  "end": 173.55,
+  "caption": "Role-based alert routing \u2014 operator / engineer / manager",
+  "narration": "Alerts are routed by role \u2014 a manager sees only the serious events, while operators see everything on their line."
+ },
+ {
+  "id": "s11_report",
+  "start": 173.55,
+  "end": 236.89,
+  "caption": "One-click structured report \u2014 shareable link + branded PDF",
+  "narration": "One click produces a structured maintenance report \u2014 shareable as a link and downloadable as a branded P D F."
+ },
+ {
+  "id": "s12_close",
+  "start": 236.89,
+  "end": 250.03,
+  "caption": "Fast \u00b7 grounded \u00b7 explainable \u2014 THE EDITH",
+  "narration": "EDITH runs fully local, on a self built, physics grounded dataset of one point two five million sensor readings \u2014 fast, grounded, and explainable. EDITH \u2014 maintenance intelligence for the plant floor."
+ }
+]

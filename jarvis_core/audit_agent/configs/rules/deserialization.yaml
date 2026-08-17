@@ -1,0 +1,89 @@
+# Insecure Deserialization (CWE-502)
+#
+# pickle.loads / yaml.load(unsafe) / Node deserialize on untrusted input → RCE.
+# These are high-severity (often direct RCE) and frequently missed when the
+# untrusted source is non-obvious.
+#
+# DEFENSIVE: flag the dangerous deserializer use so the auditor switches to a safe
+# loader (yaml.safe_load, json, allowlisted pickle, or a schema-validated parser).
+rules:
+  # ── Python pickle on tainted input ────────────────────────────────────────
+  - id: jarvis-deser-python-pickle-tainted
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      Insecure deserialization: untrusted input reaches pickle.loads / cPickle /
+      shelve, which executes arbitrary code on load. Never unpickle untrusted data;
+      use JSON or a schema-validated format, or sign+verify the payload.
+    metadata:
+      cwe: "CWE-502"
+      owasp: "A03:2025-SupplyChain"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/502.html
+        - https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: request.$ANY
+              - pattern: $REQ.data
+              - pattern: $REQ.get_data(...)
+              - pattern: $REQ.args.get(...)
+              - pattern: $REQ.form.get(...)
+              - pattern: base64.b64decode(...)
+              - pattern: $SOCK.recv(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: pickle.loads($X, ...)
+              - pattern: pickle.load($X, ...)
+              - pattern: cPickle.loads($X, ...)
+              - pattern: _pickle.loads($X, ...)
+
+  # ── Python yaml.load unsafe (no loader / Loader=) ─────────────────────────
+  - id: jarvis-deser-python-yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: >
+      Unsafe YAML deserialization: yaml.load without SafeLoader (or yaml.unsafe_load
+      / FullLoader) can instantiate arbitrary Python objects → RCE. Use
+      yaml.safe_load(...) or Loader=yaml.SafeLoader.
+    metadata:
+      cwe: "CWE-502"
+      owasp: "A03:2025-SupplyChain"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/502.html
+    patterns:
+      - pattern-either:
+          - pattern: yaml.load($X)
+          - pattern: yaml.load($X, Loader=yaml.Loader)
+          - pattern: yaml.load($X, Loader=yaml.FullLoader)
+          - pattern: yaml.unsafe_load($X)
+      - pattern-not: yaml.load($X, Loader=yaml.SafeLoader)
+      - pattern-not: yaml.load($X, Loader=yaml.CSafeLoader)
+
+  # ── Node — known unsafe deserialize / vm on untrusted input ───────────────
+  - id: jarvis-deser-node-unsafe
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Insecure deserialization: the 'node-serialize'/'serialize-to-js' unserialize
+      or vm.runInNewContext is used on request-derived input, enabling RCE via
+      embedded function payloads. Use JSON.parse with schema validation instead.
+    metadata:
+      cwe: "CWE-502"
+      owasp: "A03:2025-SupplyChain"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/502.html
+    patterns:
+      - pattern-either:
+          - pattern: $SER.unserialize($X)
+          - pattern: unserialize($X)
+          - pattern: vm.runInNewContext($X, ...)
+          - pattern: vm.runInThisContext($X, ...)

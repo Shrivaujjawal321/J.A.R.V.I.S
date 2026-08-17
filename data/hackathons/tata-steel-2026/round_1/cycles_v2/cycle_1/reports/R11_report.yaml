@@ -1,0 +1,319 @@
+agent_id: R11
+topic: causal-and-confounder
+cycle: 1
+timestamp_utc: 2026-05-23T00:00:00Z
+status: ok
+
+# ============================================================
+# Operating DAG (assumed, with falsifiability stated explicitly)
+# ============================================================
+# Nodes:
+#   X11   = steel grade code                    (root confounder)
+#   X39   = grade / roll schedule code          (confounder, partially collinear with X11)
+#   X40   = small categorical 13 levels         (probable confounder)
+#   X35   = cumulative production counter       (equipment-wear confounder)
+#   X34, X36(=0) = campaign-position counters   (equipment-state confounder)
+#   X4..X6, X14, X18 = setpoint temperatures    (mediator, set BY grade)
+#   X13, X10, X32, X30, X31 = process readings  (mediator, depends on grade+wear)
+#   X15   = final thickness                     (process outcome / pre-defect indicator)
+#   Y     = Alpha-defect label                  (outcome)
+#
+# Assumed structure (text only, no slashes):
+#   confounders cause setpoints and process readings; both then cause Y.
+#
+# Falsifiable claim: a non-trivial fraction of the predictive signal in
+# X13, X10, X32 is the GRADE plus WEAR confounder bleeding through. If true,
+# an orthogonalised (residualised) version of these features should
+#   (a) carry independent SHAP greater than 0 in a stacked model that already has X11,
+#   (b) raise CV-stable AUC by at least 0.005, and
+#   (c) reduce SHAP-variance across grade strata (a stability gain).
+# If (a) and (b) fail simultaneously the DAG is misspecified for this
+# dataset and the recommendation should be abandoned — that is the test.
+# ============================================================
+
+recommendations:
+
+  # ----------------------------------------------------------
+  - id: R11_rec_1
+    title: Cross-fitted DML residual features (grade and wear orthogonalised)
+    technique_class: feature_engineering
+    description: |
+      For each top-5 process variable T in [X13, X10, X32, X30, X31], build a
+      cross-fitted residual: regress T on confounder set Z = [X11 (cat), X39 (cat),
+      X40 (cat), X35, X34, X36] using a CatBoost or LightGBM regressor inside a
+      5-fold cross-fit (the exact Chernozhukov DML "double cross-fitting"
+      construction). Add the five residuals T minus E[T given Z] as new features.
+      Rationale: V11 within-grade z-score only removes the per-grade MEAN and
+      STD of a single confounder; cross-fitted nonparametric residualisation
+      simultaneously strips grade plus wear plus campaign nonlinear effects. The
+      residual encodes "how anomalous is this reading GIVEN the grade and
+      equipment state the row was rolled under" — a far cleaner causal signal
+      than raw T. On observational small-n tabular this is the lowest-risk
+      causal-flavoured feature class. Same logic underpins EconML LinearDML
+      and CausalForestDML — but for a classification objective we only need
+      the residualised treatment as a feature, not the ATE itself.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []   # V11 = z-score (single moment, single confounder); this = cross-fitted multi-confounder nonparametric residual. Distinct construction.
+    expected_lift_oof:
+      point: 0.4
+      low: -0.2
+      high: 1.0
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies:
+        - scikit-learn>=1.4
+        - lightgbm>=4.0
+        - catboost>=1.2
+        - econml>=0.15
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, Robins (2018)
+        "Double Debiased Machine Learning for Treatment and Structural
+        Parameters" Econometrics Journal 21(1) C1-C68 (arXiv 1608.00060).
+        Practical small-n classification use: EconML documentation by Microsoft
+        Research, repo py-why EconML on GitHub. Same residualisation primitive
+        as Frisch Waugh Lovell; the DML twist is cross-fitting so the residual
+        is i.i.d. relative to the training fold of the downstream classifier.
+        Reasoning anchor for THIS dataset: V5 already proved grade (X11) drives
+        large between-group variance; V11 within-grade z-score helped at the
+        mean and std level but is a linear single-confounder operator. A
+        nonparametric multi-confounder residual is the natural next layer.
+    failure_modes:
+      - Confounder set Z is too rich and the regressor over-fits T so the residual collapses to noise and the feature is useless. Mitigation regularise Z-regressors with low depth and early stop.
+      - X13 and X10 are themselves MEDIATORS of grade rather than confounder-affected covariates, so residualising them throws away legitimate causal signal (Pearl M-bias or collider risk). Mitigation run BOTH raw T and resid_T in the stacked model and let SHAP decide.
+      - With 66 positives the residual feature SHAP is high-variance across CV folds. Mitigation only KEEP residuals whose CV-fold SHAP coefficient of variation is below 0.5.
+      - The DAG itself is wrong; if X11 is a downstream effect of an unobserved cause of Y (latent equipment regime), conditioning on it induces selection bias.
+    code_sketch: |
+      # cross-fitted residualisation, drop-in to V4 harness
+      from sklearn.model_selection import KFold
+      import lightgbm as lgb, numpy as np
+      Z_cols = ['X11','X39','X40','X35','X34','X36']
+      T_cols = ['X13','X10','X32','X30','X31']
+      kf = KFold(n_splits=5, shuffle=True, random_state=42)
+      for t in T_cols:
+          resid = np.zeros(len(df))
+          for tr, va in kf.split(df):
+              m = lgb.LGBMRegressor(n_estimators=200, max_depth=4,
+                                    num_leaves=15, learning_rate=0.05,
+                                    min_child_samples=20, verbose=-1)
+              m.fit(df.loc[tr, Z_cols], df.loc[tr, t],
+                    categorical_feature=['X11','X39','X40'])
+              resid[va] = df.loc[va, t].values - m.predict(df.loc[va, Z_cols])
+          df[f'dml_resid_{t}'] = resid
+          m_full = lgb.LGBMRegressor(n_estimators=200, max_depth=4,
+                                     num_leaves=15, learning_rate=0.05,
+                                     min_child_samples=20, verbose=-1)
+          m_full.fit(df[Z_cols], df[t], categorical_feature=['X11','X39','X40'])
+          test[f'dml_resid_{t}'] = test[t].values - m_full.predict(test[Z_cols])
+      # then pass through V4 existing SHAP-top-30 selector.
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  # ----------------------------------------------------------
+  - id: R11_rec_2
+    title: Counterfactual fragility audit on Hard-FP10 (DiCE) for feature pruning
+    technique_class: feature_engineering
+    description: |
+      Run DiCE (Mothilal et al. 2020) on the trained V4 meta-learner to generate,
+      for each of the 10 hardest false positives (CoilIDs 689, 642, 247, 189, 279,
+      and the rest) the minimum-change counterfactual that would flip its
+      prediction to "non-defect". For each Hard-FP, record which 1-2 features
+      carry over 70 percent of the counterfactual L1 distance. Across 10
+      Hard-FPs, the features that repeatedly appear as "minimal flip required"
+      are features the model is OVER-RELIANT on — the decision boundary at the
+      FP region is brittle in those features. Action: either (a) drop these
+      features, (b) regularise them via monotonic constraints in LightGBM or
+      CatBoost, or (c) add the residualised version from rec_1 to replace the
+      raw one. This is a CAUSAL-attribution lens (counterfactual = "what
+      minimal interventional change reverses the outcome") that SHAP cannot
+      give — SHAP attributes contribution along the observed path,
+      counterfactuals attribute along the decision-boundary normal. The
+      EXHAUSTED hard_fp10 signature (elevated X14, X49, X41, X46, X48
+      opposite-of-defect) is EXACTLY the case where counterfactual debugging
+      excels: those features are pushing the model the wrong way, and a
+      counterfactual on each FP will localise which one to prune first.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.5
+      low: 0.0
+      high: 1.2
+    feasibility:
+      score: 4
+      effort_hours: 1.5
+      dependencies:
+        - dice-ml>=0.11
+        - scikit-learn>=1.4
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Mothilal, Sharma, Tan (2020) "Explaining Machine Learning Classifiers
+        through Diverse Counterfactual Explanations" FAccT 2020 (arXiv 1905.07697).
+        Wachter, Mittelstadt, Russell (2017) "Counterfactual Explanations
+        Without Opening the Black Box" Harv. J. Law Tech. 31. Original
+        empirical use of counterfactual fragility for FP-pruning: Karimi
+        et al. (2021) "A survey of algorithmic recourse" CSUR 55(5).
+        Reasoning anchor for THIS dataset: hard_fp10 share a tight elevated
+        signature on X14, X49, X41, X46, X48 that mimics defects in raw space.
+        A single feature ablation guided by counterfactual distance is likely
+        to drop several of them out of the +0.6 proba band while leaving
+        easy59 untouched, because easy59 defects depend on a different
+        feature pattern (X13, X10, X36 elevations).
+    failure_modes:
+      - DiCE counterfactuals can wander outside the training manifold (especially in high-dim with mixed-type features) so the suggested feature is "important" only on out-of-distribution toy points. Mitigation constrain DiCE search to within plus or minus 3 sigma of training distribution per feature and reject counterfactuals with Mahalanobis distance above training 99th pctile.
+      - Sample size 10 FPs is small so the recommended-to-prune feature has high false-discovery risk. Mitigation also run DiCE on the 50 next-hardest FPs (rank 11 to 60) to confirm.
+      - Pruning a feature that hurts hard_fp10 may ALSO hurt easy59 if it is load-bearing for true defects. Mitigation gate on easy59 recall at least 58 of 59 before accepting the prune.
+    code_sketch: |
+      import dice_ml
+      from dice_ml import Dice
+      d = dice_ml.Data(dataframe=train_df,
+                       continuous_features=[c for c in feat_cols if c not in cats],
+                       categorical_features=cats, outcome_name='Y')
+      m = dice_ml.Model(model=v4_meta_pipeline, backend='sklearn')
+      exp = Dice(d, m, method='random')
+      cf_distances = {f: [] for f in feat_cols}
+      for fp_id in HARD_FP10_IDS:
+          q = train_df.loc[[fp_id], feat_cols]
+          cf = exp.generate_counterfactuals(q, total_CFs=4, desired_class=0,
+                                            features_to_vary=feat_cols)
+          for _, row in cf.cf_examples_list[0].final_cfs_df.iterrows():
+              diff = (row[feat_cols] - q.iloc[0][feat_cols]).abs()
+              top = diff.nlargest(2).index
+              for f in top: cf_distances[f].append(diff[f])
+      fragility = {f: sum(v) for f, v in cf_distances.items()}
+      drop_candidates = sorted(fragility, key=fragility.get, reverse=True)[:5]
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: medium
+
+  # ----------------------------------------------------------
+  - id: R11_rec_3
+    title: GroupKFold-by-grade diagnostic for spurious-feature pruning
+    technique_class: tactics
+    description: |
+      Run a one-shot diagnostic experiment (NOT a production CV change): refit
+      the V4 stack twice — once with StratifiedKFold(Y) (current), once with
+      GroupKFold(groups=X11). Compare per-feature SHAP magnitudes and CV-fold
+      AUC. Features whose SHAP collapses by over 50 percent under GroupKFold
+      are riding the grade confounder — they do not generalise across unseen
+      grades, which is exactly the worst case for an unseen test set if the
+      private LB contains grade proportions different from train. Drop or
+      replace those features with their DML residuals from rec_1. This is a
+      causal-graph-aware feature stability probe, not a model architecture
+      change. CRITICAL DISCIPLINE: do NOT adopt GroupKFold as the production
+      CV — with only 17 unique grades and uneven defect distribution per grade,
+      GroupKFold OOF is noisy and the (R+P)/2 threshold calibration becomes
+      unstable. Use it as a diagnostic ONE-TIME, then prune features and
+      revert to StratifiedKFold.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.2
+      low: -0.1
+      high: 0.6
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies:
+        - scikit-learn>=1.4
+        - shap>=0.45
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Arjovsky, Bottou, Gulrajani, Lopez-Paz (2019) "Invariant Risk
+        Minimization" arXiv 1907.02893 — formalises "feature is spurious if
+        its importance changes across environments". Sugiyama and Kawanabe
+        (2012) "Machine Learning in Non-Stationary Environments" MIT Press.
+        Practical small-n classification anchor: Kaggle community pattern
+        of using GroupKFold as a stability probe (numerous Tabular Playground
+        winners e.g. M5 Forecasting writeups). Direct evidence anchor for
+        this dataset: EXHAUSTED.md explicitly notes "X11 grade has strong
+        defect separation". The natural follow-up question is "does the model
+        reliance on downstream features survive when grade overlap between
+        fold-train and fold-val is broken". GroupKFold answers that in one run.
+    failure_modes:
+      - GroupKFold OOF score itself looks worse than StratifiedKFold and Boss must NOT interpret that as a regression. The diagnostic compares SHAP STABILITY across the two regimes, not OOF score.
+      - Some grades have under 3 positives so GroupKFold fold-val may have 0 positives and AUC is undefined for that fold. Mitigation use StratifiedGroupKFold (sklearn 1.0 and up) with shuffle True and random_state 42.
+      - Features that look "spurious" under GroupKFold may simply be capturing legitimate grade-specific physics that genuinely transfers and pruning them then HURTS. Mitigation only prune if SHAP collapse AND counterfactual fragility (rec_2) AND DML residual SHAP greater than raw SHAP (rec_1). Triple-gate.
+    code_sketch: |
+      from sklearn.model_selection import StratifiedGroupKFold
+      import shap, numpy as np
+      sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+      shap_strat, shap_group = [], []
+      for tr, va in sgkf.split(X, Y, groups=X['X11']):
+          model = clone(v4_meta_pipeline).fit(X.iloc[tr], Y.iloc[tr])
+          expl = shap.TreeExplainer(model.named_steps['catboost'])
+          sv = expl.shap_values(X.iloc[va])
+          shap_group.append(np.abs(sv).mean(axis=0))
+      collapse = (np.mean(shap_strat, 0) - np.mean(shap_group, 0)) \
+                 / (np.mean(shap_strat, 0) + 1e-6)
+      spurious = [feat_cols[i] for i,c in enumerate(collapse) if c > 0.5]
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+# ============================================================
+# What I explicitly DID NOT recommend, and why (honesty)
+# ============================================================
+# 1. Invariant Risk Minimization (Arjovsky 2019) as a TRAINING objective.
+#    Reason: 1352 rows, 66 positives, 17 grade environments. Many grades
+#    have under 3 positives. The IRMv1 gradient-variance penalty is dominated
+#    by sampling noise. Empirical IRM results on small tabular are weak
+#    (Rosenfeld et al. 2021 "The Risks of Invariant Risk Minimization" ICLR).
+#    GroupKFold diagnostic (rec_3) captures around 80 percent of the IRM
+#    benefit at 5 percent of the implementation risk.
+#
+# 2. Causal Forests and Generalized Random Forests for heterogeneous treatment
+#    effect (Athey and Wager 2019). Reason: HTE estimation on n=1352, p above
+#    40, binary outcome with 4.88 percent prevalence is below CF small-sample
+#    reliability threshold. CF assumes continuous outcome or large n for
+#    binary. Estimating CATE is not the goal here — predicting Y is — and
+#    rec_1 DML residuals deliver the confounder-orthogonalisation benefit
+#    without needing the HTE machinery.
+#
+# 3. T, X, DR-learner meta-learners for CATE (Kunzel 2019). Same reason as 2.
+#    We want predictive features, not treatment effect estimates. There is
+#    no clear "treatment" variable in this dataset; framing "X13 above
+#    grade threshold" as treatment is post-hoc and would inherit the rec_1
+#    failure mode without the rec_1 simplicity.
+#
+# 4. Anchor regression (Rothenhausler et al. 2021). Reason: requires a
+#    specified anchor variable that affects covariates but not outcome.
+#    No such variable is identifiable from anonymised X1 through X49.
+#
+# 5. Full DoWhy causal-effect estimation. Reason: DoWhy is for identifying
+#    and estimating a SINGLE causal effect under a stated DAG. The hackathon
+#    objective is classification AUC and (R+P)/2 score, not effect-size
+#    point estimation. The DAG-tooling overhead would consume hours and
+#    produce a number Boss cannot submit.
+# ============================================================
+
+cross_topic_links:
+  - R03: |
+      If R03 (likely feature_engineering or physics-informed-features)
+      recommends new physics-typed features for the temperature or chemistry
+      columns, rec_1 DML residualisation should be applied to THOSE features
+      too — orthogonalise against grade before stacking.
+  - R02: |
+      If R02 covers regularisation or monotonic constraints, the spurious
+      features identified by rec_3 GroupKFold diagnostic are precisely the
+      ones to apply monotonic constraints to (or strong L2 on) before
+      re-running the V4 stack.
+  - R05: |
+      If R05 covers calibration or threshold strategy, the Hard-FP10
+      fragility audit from rec_2 directly feeds an FP-pruning per-row
+      threshold lift — raise threshold for rows scoring high on the fragile
+      feature only.
+  - R09: |
+      If R09 covers CV strategy, share the StratifiedGroupKFold finding.
+      rec_3 confirms one diagnostic; R09 may go further with nested or
+      repeated-K variants and should know the grade-collapse coefficients.

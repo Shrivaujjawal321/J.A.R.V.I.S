@@ -1,0 +1,18 @@
+[Unit]
+Description=Jarvis WhatsApp Gateway (Baileys — name-triggered public help bot)
+Documentation=file:///home/ujjwal/Documents/J.A.R.V.I.S./whatsapp/README.md
+After=network-online.target jarvis-core.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ujjwal/Documents/J.A.R.V.I.S.
+ExecStart=/home/ujjwal/.nvm/versions/node/v20.19.6/bin/node /home/ujjwal/Documents/J.A.R.V.I.S./whatsapp/gateway.mjs
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/jarvis-whatsapp.log
+StandardError=append:/home/ujjwal/Documents/J.A.R.V.I.S./data/logs/jarvis-whatsapp.log
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target

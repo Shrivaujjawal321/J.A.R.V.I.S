@@ -1,0 +1,38 @@
+{
+  "ensemble_detectors": [
+    "isoforest",
+    "copod"
+  ],
+  "all_detectors_fit": [
+    "isoforest",
+    "copod",
+    "ecod",
+    "lof"
+  ],
+  "per_detector_auc": {
+    "isoforest": 0.7473962015175079,
+    "copod": 0.688722371459541,
+    "ecod": 0.598932560441114,
+    "lof": 0.5294429520712569
+  },
+  "ensemble_auc": 0.7312078797304304,
+  "gate1_ensemble_auc_gt_065": true,
+  "gate2_recall_top10pct": {
+    "n_top10": 135,
+    "n_positives_in_top10": 15,
+    "pct_positives_captured": 0.22727272727272727,
+    "pass": true
+  },
+  "gate2_recall_top15pct": {
+    "n_positives_in_top15": 25,
+    "pct_positives_captured": 0.3787878787878788
+  },
+  "gate3_spearman_v44": {
+    "rho_meta": 0.44587306628231066,
+    "rho_lgb": 0.31022563477062187,
+    "rho_xgb": 0.35978611246656683,
+    "p": 5.132276888810205e-67,
+    "pass": true
+  },
+  "all_gates_pass": true
+}

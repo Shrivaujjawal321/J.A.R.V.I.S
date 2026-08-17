@@ -1,0 +1,102 @@
+[
+  {
+    "rank": 1,
+    "feature": "v7_Y_roll10",
+    "shap": 1.9041089066437267
+  },
+  {
+    "rank": 2,
+    "feature": "v5_ratio_X16_div_X14",
+    "shap": 0.31121168045439224
+  },
+  {
+    "rank": 3,
+    "feature": "poly_X36_X13_minus_X36",
+    "shap": 0.2860428139497151
+  },
+  {
+    "rank": 4,
+    "feature": "iso_score",
+    "shap": 0.25488101611813935
+  },
+  {
+    "rank": 5,
+    "feature": "prev5_defect_rate",
+    "shap": 0.23332152008628373
+  },
+  {
+    "rank": 6,
+    "feature": "X9",
+    "shap": 0.1923012403210068
+  },
+  {
+    "rank": 7,
+    "feature": "X6",
+    "shap": 0.18977294932443622
+  },
+  {
+    "rank": 8,
+    "feature": "v5_ratio_X13_div_X14",
+    "shap": 0.17063727269895237
+  },
+  {
+    "rank": 9,
+    "feature": "v7_X43_over_X41",
+    "shap": 0.15888322909474922
+  },
+  {
+    "rank": 10,
+    "feature": "X25",
+    "shap": 0.15681867598941346
+  },
+  {
+    "rank": 11,
+    "feature": "X14",
+    "shap": 0.15212535795708515
+  },
+  {
+    "rank": 12,
+    "feature": "X36",
+    "shap": 0.14641832364671037
+  },
+  {
+    "rank": 13,
+    "feature": "X27",
+    "shap": 0.14418725847032998
+  },
+  {
+    "rank": 14,
+    "feature": "v7_Y_roll20",
+    "shap": 0.14184625033301326
+  },
+  {
+    "rank": 15,
+    "feature": "X23",
+    "shap": 0.13452312706017555
+  },
+  {
+    "rank": 16,
+    "feature": "X13_rollmean5",
+    "shap": 0.1343048778012264
+  },
+  {
+    "rank": 17,
+    "feature": "X36_roll5",
+    "shap": 0.1339347645619056
+  },
+  {
+    "rank": 18,
+    "feature": "v7_CarbonEq_proxy",
+    "shap": 0.12388869822475931
+  },
+  {
+    "rank": 19,
+    "feature": "poly_X13_over_X36_X16",
+    "shap": 0.11620874240003262
+  },
+  {
+    "rank": 20,
+    "feature": "poly_X13_minus_X36_X16",
+    "shap": 0.114547541968411
+  }
+]

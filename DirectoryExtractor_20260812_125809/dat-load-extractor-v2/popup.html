@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DAT Load Extractor V2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Premium Modern Dark Theme Design System */
+    :root {
+      --bg-main: #090d16;
+      --bg-surface: #121826;
+      --bg-surface-hover: #1b2336;
+      --primary: #06b6d4;
+      --primary-hover: #0891b2;
+      --primary-glow: rgba(6, 182, 212, 0.15);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --danger: #f43f5e;
+      --danger-glow: rgba(244, 63, 94, 0.15);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-disabled: #64748b;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-focus: rgba(6, 182, 212, 0.4);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      width: 420px;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Header Section with Neon Glass Gradient */
+    .header {
+      background: linear-gradient(135deg, #022329 0%, #061a1e 50%, #031012 100%);
+      padding: 20px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+    .header h1 span {
+      background: linear-gradient(135deg, #22d3ee, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    /* Connection Status Bar */
+    .status-bar {
+      padding: 10px 24px;
+      background: rgba(18, 24, 38, 0.6);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+      transition: var(--transition);
+    }
+    .dot.ok {
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    #statusText {
+      font-weight: 500;
+    }
+
+    /* Premium Navigation Tabs */
+    .tabs {
+      display: flex;
+      background: #0d121f;
+      padding: 4px;
+      margin: 16px 24px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .tab:hover {
+      color: var(--text-main);
+    }
+    .tab.active {
+      background: var(--bg-surface);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    /* Content Cards & Groups */
+    .view-content {
+      padding: 0 24px;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group textarea, .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0d121f;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 12px;
+      resize: none;
+      transition: var(--transition);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .form-group textarea:focus, .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* Buttons Design System */
+    .btn {
+      width: 100%;
+      padding: 11px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #00a5c4);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-surface-hover);
+      border-color: var(--text-muted);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #e11d48);
+      color: #fff;
+    }
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--danger-glow);
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn-row .btn {
+      flex: 1;
+    }
+
+    /* Live Loading state */
+    .loading {
+      padding: 24px;
+      text-align: center;
+      background: var(--bg-surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin: 16px 24px;
+      box-shadow: var(--shadow-md);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(6, 182, 212, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.1, 0.9) infinite;
+      margin: 0 auto 12px;
+      filter: drop-shadow(0 0 4px var(--primary));
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    #loadingMsg {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    .loading-subtext {
+      font-size: 11px;
+      color: var(--text-disabled);
+      margin-top: 6px;
+    }
+
+    /* Statistics Dashboard Grid */
+    .info {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 12px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .info-card {
+      background: rgba(13, 18, 31, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 6px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .info-card span {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .info-card strong {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .info-card-highlight {
+      border-color: rgba(6, 182, 212, 0.15);
+    }
+    .info-card-highlight strong {
+      color: var(--primary);
+    }
+
+    /* WAL / Autopilot Progress Panel */
+    .progress-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 24px;
+      box-shadow: var(--shadow-md);
+    }
+    .progress-header {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .progress-row span { color: var(--text-muted); }
+    .progress-row strong { color: var(--text-main); }
+    
+    /* Elegant Live Progress Bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: #0d121f;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 12px 0 16px;
+      border: 1px solid var(--border);
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 6px var(--primary);
+    }
+
+    /* Error Message Panel */
+    .error-msg {
+      margin: 12px 24px;
+      padding: 10px 14px;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #fda4af;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Structured Export Dashboard Area */
+    .export-section {
+      padding: 0 24px 16px;
+    }
+    .export-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .btn-export {
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #0d121f;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-export:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-export svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+    }
+    .btn-export-solid {
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      border-color: transparent;
+      grid-column: span 3;
+      flex-direction: row;
+      justify-content: center;
+      padding: 10px;
+      font-size: 12px;
+      border-radius: 8px;
+      margin-top: 4px;
+      font-weight: 700;
+    }
+    .btn-export-solid:hover {
+      background: linear-gradient(135deg, #0f766e, #115e59);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+      border-color: transparent;
+    }
+
+    /* Live Data Preview Box */
+    .preview-box {
+      margin: 0 24px 20px;
+      background: #04060b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 110px;
+      overflow-y: auto;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 9px;
+      color: #64748b;
+      white-space: pre-wrap;
+      line-height: 1.3;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Global Footer details */
+    .footer {
+      padding: 12px 24px 16px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-disabled);
+      border-top: 1px solid var(--border);
+      background: #07090f;
+    }
+
+    /* Hidden Utility */
+    .hidden { display: none !important; }
+
+    /* Speed Mode Selector Styles */
+    .speed-btn {
+      padding: 6px 12px;
+      font-size: 11px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .speed-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .speed-btn.active {
+      background: var(--bg-surface-hover);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    /* Pulse animation for global STOP button */
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Header Title Grid -->
+  <div class="header">
+    <h1>
+      <svg style="width:20px;height:20px;fill:none;stroke:var(--primary);stroke-width:2;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      <span>DAT Load Extractor Pro</span>
+    </h1>
+    <p>Professional automatic load data extraction and high-fidelity reports</p>
+  </div>
+
+  <!-- Realtime Tab Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">Checking DAT page…</span>
+    </div>
+    <span style="font-size:9px;color:var(--text-disabled);font-weight:600;">v2.3.0 Pro</span>
+  </div>
+
+  <!-- Global STOP Operation Bar -->
+  <div id="globalStopPanel" class="hidden" style="padding: 10px 24px; border-bottom: 1px solid var(--danger); background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center;">
+    <button class="btn btn-danger" id="globalStopBtn" style="font-weight: 700; padding: 8px 16px; font-size: 12px; letter-spacing: 0.5px; animation: pulse-red 2s infinite; text-transform: uppercase; width: 100%;">
+      <svg style="width:14px;height:14px;fill:currentColor;vertical-align:middle;margin-right:6px;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      Stop All Operations
+    </button>
+  </div>
+
+  <!-- Loader Panel -->
+  <div class="loading hidden" id="loadingState">
+    <div class="spinner"></div>
+    <p id="loadingMsg">Extracting all available loads…</p>
+    <p class="loading-subtext">Optimizing browser threads. Keep the DAT tab focused.</p>
+  </div>
+
+  <!-- Speed Mode Selector -->
+  <div style="padding: 12px 24px 0; display: flex; align-items: center; justify-content: space-between;">
+    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Speed Mode</span>
+    <div style="display: flex; gap: 4px; background: #0d121f; padding: 2px; border-radius: 8px; border: 1px solid var(--border);">
+      <button class="speed-btn active" id="speedNormal">Normal</button>
+      <button class="speed-btn" id="speedFast">Fast</button>
+      <button class="speed-btn" id="speedUltra">Ultra</button>
+    </div>
+  </div>
+
+  <!-- Deep Extraction Controls -->
+  <div style="padding: 12px 24px 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Deep Extraction</span>
+      <div style="display: flex; gap: 4px; background: #0d121f; padding: 2px; border-radius: 8px; border: 1px solid var(--border);">
+        <button class="speed-btn active" id="deepOn">On</button>
+        <button class="speed-btn" id="deepOff">Off</button>
+      </div>
+    </div>
+    <p style="margin: 6px 0 0; font-size: 10px; line-height: 1.5; color: var(--text-disabled);">
+      Opens every load's detail view and walks route, rate, truck, contact, company and office
+      panels — including tabs, accordions and sub-links. Off = summary rows only (v2 behaviour).
+    </p>
+    <div id="deepConfigRow" style="display: flex; gap: 8px; margin-top: 8px;">
+      <div style="flex:1;">
+        <label style="display:block;font-size:10px;color:var(--text-muted);margin-bottom:3px;">Traversal depth</label>
+        <input type="number" id="deepDepth" value="3" min="1" max="6" style="width:100%;" />
+      </div>
+      <div style="flex:1;">
+        <label style="display:block;font-size:10px;color:var(--text-muted);margin-bottom:3px;">Max reveals / load</label>
+        <input type="number" id="deepClicks" value="26" min="0" max="80" style="width:100%;" />
+      </div>
+      <div style="flex:1;">
+        <label style="display:block;font-size:10px;color:var(--text-muted);margin-bottom:3px;">Retries</label>
+        <input type="number" id="deepRetries" value="1" min="0" max="3" style="width:100%;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Deep Extraction Progress Board -->
+  <div id="deepProgressPanel" class="progress-panel hidden" style="margin: 12px 24px 0;">
+    <div class="progress-header">
+      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+      Deep Extraction Progress
+    </div>
+    <div class="progress-row"><span>Loads found:</span><strong id="dpTotal">0</strong></div>
+    <div class="progress-row"><span>Processed:</span><strong><span id="dpProcessed">0</span> / <span id="dpTotalB">0</span></strong></div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="dpBarFill"></div>
+    </div>
+    <div class="progress-row"><span>Complete:</span><strong id="dpComplete" style="color:var(--accent);">0</strong></div>
+    <div class="progress-row"><span>Partial:</span><strong id="dpPartial" style="color:#f59e0b;">0</strong></div>
+    <div class="progress-row"><span>Failed:</span><strong id="dpFailed" style="color:var(--danger);">0</strong></div>
+    <div class="progress-row"><span>Fields extracted:</span><strong id="dpFields">0</strong></div>
+    <div class="progress-row"><span>Retries:</span><strong id="dpRetries2">0</strong></div>
+    <div id="dpCurrent" style="margin-top:8px;font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+    <div id="dpSections" style="margin-top:6px;font-size:10px;color:var(--text-disabled);line-height:1.6;"></div>
+  </div>
+
+  <!-- Mode Toggles -->
+  <div class="tabs">
+    <div class="tab active" id="tabManual">Current Extraction</div>
+    <div class="tab" id="tabAuto">Distributed Auto-Pilot</div>
+    <div class="tab" id="tabOmni">OmniScraper</div>
+  </div>
+
+  <!-- View: Manual Extractor Panel -->
+  <div id="viewManual" class="view-content">
+    <div class="actions" id="actionPanel" style="padding: 6px 0 16px;">
+      <button class="btn btn-primary" id="extractBtn">
+        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Start Extraction
+      </button>
+      <button class="btn btn-danger hidden" id="cancelBtn">
+        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Cancel Crawler
+      </button>
+    </div>
+  </div>
+
+  <!-- View: OmniScraper Panel -->
+  <div id="viewOmni" class="view-content hidden">
+    <div class="actions" id="omniActionPanel" style="padding: 6px 0 16px;">
+      <button class="btn btn-primary" id="extractOmniBtn" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
+        <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Extract Page Data
+      </button>
+    </div>
+  </div>
+
+  <!-- View: Auto-Pilot Orchestrator Parameters -->
+  <div id="viewAuto" class="view-content hidden">
+    <div class="form-group">
+      <label>Target States (Origins &amp; Destinations)</label>
+      <textarea id="autoStates" rows="3">Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, Florida, Georgia, Hawaii, Idaho, Illinois, Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts, Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada, New Hampshire, New Jersey, New Mexico, New York, North Carolina, North Dakota, Ohio, Oklahoma, Oregon, Pennsylvania, Rhode Island, South Carolina, South Dakota, Tennessee, Texas, Utah, Vermont, Virginia, Washington, West Virginia, Wisconsin, Wyoming</textarea>
+    </div>
+    <div class="form-group">
+      <label>Equipment Classes (Comma-separated)</label>
+      <textarea id="autoEquip" rows="2">Vans (Standard), Flatbeds, Reefers, Conestogas, Containers, Decks (Specialized), Decks (Standard), Dry Bulk, Hazardous Materials, Other Equipment, Tankers, Vans (Specialized)</textarea>
+    </div>
+    <div class="form-group">
+      <label>Load Capacity Settings</label>
+      <textarea id="autoLoadType" rows="1">Full &amp; Partial</textarea>
+    </div>
+
+    <!-- Distributed Parameter Grid -->
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;" class="form-group">
+        <label>Distributed Tabs</label>
+        <input type="number" id="cpuTabs" value="1" min="1" max="10" />
+      </div>
+      <div style="flex:1; display: none;" class="form-group">
+        <label>Perms per Batch</label>
+        <input type="number" id="ramBatchSize" value="1" min="1" max="20" />
+      </div>
+    </div>
+
+    <!-- Resource Parameter Grid -->
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;" class="form-group">
+        <label>CPU Limit (%)</label>
+        <input type="number" id="cpuThreshold" value="85" min="10" max="98" />
+      </div>
+      <div style="flex:1;" class="form-group">
+        <label>Max Retries</label>
+        <input type="number" id="maxRetries" value="3" min="0" max="10" />
+      </div>
+    </div>
+
+    <!-- Configuration Server Connection -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+      <button class="btn btn-secondary" id="saveConfigBtn" style="flex:1;padding:8px 12px;font-size:11px;">Save Config</button>
+      <div id="serverStatus" style="flex:1.5;padding:8px 12px;border-radius:8px;background:#0d121f;font-size:10px;font-weight:600;border:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">Checking server…</div>
+    </div>
+
+    <!-- Autopilot Trigger Button Row -->
+    <div style="margin-bottom:12px; display: flex; gap: 8px;">
+      <button class="btn btn-primary" id="startAutoBtn" style="flex: 1.5; background: linear-gradient(135deg, #10b981, #059669);">
+        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Launch
+      </button>
+      <button class="btn btn-secondary hidden" id="resumeAutoBtn" style="flex: 1.5; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border-color: transparent;">
+        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2M4 4h5v4"/></svg>
+        Resume
+      </button>
+      <button class="btn btn-danger" id="stopAutoBtn" style="flex: 1.5; background: linear-gradient(135deg, var(--danger), #e11d48);" disabled>
+        <svg style="width:14px;height:14px;fill:currentColor;vertical-align:middle;margin-right:2px;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        Stop
+      </button>
+      <button class="btn btn-secondary" id="openDashboardBtn" style="flex: 1; border-color: var(--primary); color: var(--primary); font-weight: 700; padding: 11px 8px;">
+        Dashboard
+      </button>
+    </div>
+
+    <!-- Autopilot Progress Status Board -->
+    <div id="walProgress" class="progress-panel hidden">
+      <div class="progress-header">
+        <svg style="width:16px;height:16px;animation:spin 3s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2M4 4h5v4"/></svg>
+        Distributed Progress Monitor
+      </div>
+      <div class="progress-row"><span>Crawl Session ID:</span><strong id="walTryId">-</strong></div>
+      <div class="progress-row"><span>Crawl Status:</span><strong id="walState">-</strong></div>
+      
+      <!-- Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="walProgressBarFill"></div>
+      </div>
+
+      <div class="progress-row"><span>Total Completed:</span><strong><span id="walCompleted">0</span> / <span id="walTotal">0</span> batches</strong></div>
+      <div class="progress-row" style="margin-top:2px;font-size:10px;color:var(--text-disabled);">
+        <span>Pending: <span id="walPending" style="color:var(--text-muted);font-weight:600;">0</span></span>
+        <span>Active slots: <span id="walInProgress" style="color:var(--primary);font-weight:600;">0</span></span>
+      </div>
+      <button id="mergeBtn" class="btn btn-primary btn-export-solid" style="margin-top:14px;display:none;">
+        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"/></svg>
+        Merge &amp; Save Results (.json)
+      </button>
+
+      <!-- Autopilot Save/Export Section -->
+      <div id="walExportSection" class="hidden" style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">
+        <div class="export-label">Export Current Session Data</div>
+        <div class="export-grid">
+          <button class="btn-export" id="walDownloadTxtBtn">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Save TXT
+          </button>
+          <button class="btn-export" id="walDownloadCsvBtn">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Save CSV
+          </button>
+          <button class="btn-export" id="walDownloadJsonBtn">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m-4-4h1a3 3 0 013 3v10a3 3 0 01-3 3H4"/></svg>
+            Save JSON
+          </button>
+        </div>
+        <button class="btn btn-primary btn-export-solid" id="walDownloadXlsxBtn" style="margin-top:8px;">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Save as Formatted Excel (.xlsx)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- General Status Errors -->
+  <div class="error-msg hidden" id="errorMsg">
+    <svg style="width:16px;height:16px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <span>Error occurred</span>
+  </div>
+
+  <!-- Dashboard Stats Indicators -->
+  <div class="info hidden" id="resultsPanel">
+    <div class="info-card info-card-highlight">
+      <span>Extracted Loads</span>
+      <strong id="loadCount">0</strong>
+    </div>
+    <div class="info-card">
+      <span>Page Goal Total</span>
+      <strong id="pageTotal">–</strong>
+    </div>
+    <div class="info-card">
+      <span>Empty Rows</span>
+      <strong id="emptyCount">0</strong>
+    </div>
+    <div class="info-card">
+      <span>Skipped Skeletons</span>
+      <strong id="skippedCount">0</strong>
+    </div>
+  </div>
+
+  <!-- Formatted Report Export Panel -->
+  <div class="actions hidden export-section" id="exportPanel">
+    <div class="export-label">Fast Clipboard Copy</div>
+    <div class="export-grid">
+      <button class="btn-export" id="copyTextBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+        Formatted TXT
+      </button>
+      <button class="btn-export" id="copyCSVBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Standard CSV
+      </button>
+      <button class="btn-export" id="copyJsonBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        Clean JSON
+      </button>
+    </div>
+
+    <div class="export-label" style="margin-top:12px;">Download Reports</div>
+    <div class="export-grid">
+      <button class="btn-export" id="downloadTxtBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Save TXT
+      </button>
+      <button class="btn-export" id="downloadCsvBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Save CSV
+      </button>
+      <button class="btn-export" id="downloadJsonBtn">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m-4-4h1a3 3 0 013 3v10a3 3 0 01-3 3H4"/></svg>
+        Save JSON
+      </button>
+    </div>
+
+    <!-- High fidelity premium Excel exporter button -->
+    <button class="btn btn-primary btn-export-solid" id="downloadXlsxBtn">
+      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Save as Formatted Excel (.xlsx)
+    </button>
+  </div>
+
+  <!-- Load Inspector: verify what was actually captured, load by load -->
+  <div class="progress-panel hidden" id="inspectorPanel" style="margin: 12px 24px 0;">
+    <div class="progress-header">
+      <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Load Inspector
+    </div>
+    <select id="inspectorSelect" style="width:100%;margin-bottom:8px;"></select>
+    <div id="inspectorBody" style="max-height:320px;overflow:auto;font-size:11px;line-height:1.6;"></div>
+  </div>
+
+  <!-- Raw Output Preview -->
+  <div class="preview-box hidden" id="preview"></div>
+
+  <!-- Branding Footer details -->
+  <div class="footer">
+    Developed by Antigravity · Secure load metrics
+  </div>
+
+  <!-- External dependency loading -->
+  <script src="xlsx.full.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

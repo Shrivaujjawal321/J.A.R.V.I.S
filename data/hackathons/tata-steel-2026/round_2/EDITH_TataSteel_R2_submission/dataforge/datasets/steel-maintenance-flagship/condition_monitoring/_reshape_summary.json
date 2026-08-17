@@ -1,0 +1,129 @@
+{
+  "long_file": "sensor_timeseries_long.csv",
+  "long_rows": 584556,
+  "rul_trajectories_file": "rul_trajectories_long.csv",
+  "rul_rows": 315116,
+  "rul_distinct_runs": 120,
+  "by_equipment": [
+    {
+      "file": "bf_sinter_fan_blower__BF_BLW_FAN01.csv",
+      "rows": 8736,
+      "sensors": 5,
+      "sensor_null_pct": 0.105,
+      "positive_rows": 1712,
+      "positive_pct": 19.6
+    },
+    {
+      "file": "bf_sinter_fan_blower__SP_SINT_FAN01.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.103,
+      "positive_rows": 1734,
+      "positive_pct": 19.85
+    },
+    {
+      "file": "continuous_caster_mould.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.103,
+      "positive_rows": 2096,
+      "positive_pct": 23.99
+    },
+    {
+      "file": "continuous_caster_segment.csv",
+      "rows": 8736,
+      "sensors": 5,
+      "sensor_null_pct": 0.128,
+      "positive_rows": 1962,
+      "positive_pct": 22.46
+    },
+    {
+      "file": "cooling_descaling_pump__BF_CW_PMP02.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.109,
+      "positive_rows": 1902,
+      "positive_pct": 21.77
+    },
+    {
+      "file": "cooling_descaling_pump__HSM_DSC_PMP01.csv",
+      "rows": 8736,
+      "sensors": 6,
+      "sensor_null_pct": 0.103,
+      "positive_rows": 1602,
+      "positive_pct": 18.34
+    },
+    {
+      "file": "eaf_bof_auxiliary.csv",
+      "rows": 8736,
+      "sensors": 3,
+      "sensor_null_pct": 0.206,
+      "positive_rows": 1924,
+      "positive_pct": 22.02
+    },
+    {
+      "file": "hot_strip_mill_stand.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.172,
+      "positive_rows": 1463,
+      "positive_pct": 16.75
+    },
+    {
+      "file": "hydraulics_agc_servo.csv",
+      "rows": 8736,
+      "sensors": 3,
+      "sensor_null_pct": 0.244,
+      "positive_rows": 1739,
+      "positive_pct": 19.91
+    },
+    {
+      "file": "ladle_crane.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.12,
+      "positive_rows": 2268,
+      "positive_pct": 25.96
+    },
+    {
+      "file": "large_induction_motor_vfd.csv",
+      "rows": 8736,
+      "sensors": 6,
+      "sensor_null_pct": 0.126,
+      "positive_rows": 1883,
+      "positive_pct": 21.55
+    },
+    {
+      "file": "mill_gearbox.csv",
+      "rows": 8736,
+      "sensors": 5,
+      "sensor_null_pct": 0.101,
+      "positive_rows": 1957,
+      "positive_pct": 22.4
+    },
+    {
+      "file": "raw_material_conveyor.csv",
+      "rows": 8736,
+      "sensors": 5,
+      "sensor_null_pct": 0.082,
+      "positive_rows": 2146,
+      "positive_pct": 24.57
+    },
+    {
+      "file": "reheating_furnace.csv",
+      "rows": 8736,
+      "sensors": 4,
+      "sensor_null_pct": 0.143,
+      "positive_rows": 2334,
+      "positive_pct": 26.72
+    },
+    {
+      "file": "rolling_mill_work_roll_bearing.csv",
+      "rows": 8736,
+      "sensors": 5,
+      "sensor_null_pct": 0.169,
+      "positive_rows": 2961,
+      "positive_pct": 33.89
+    }
+  ]
+}

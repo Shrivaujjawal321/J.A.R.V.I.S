@@ -1,0 +1,275 @@
+{
+  "description": "Inter-asset / inter-stage material-flow dependency DAG for plant-level bottleneck prioritization. A failure propagates downstream once the buffer is exhausted. Use with incident downtime + spares lead-time to rank concurrent failures.",
+  "stage_order": [
+    "raw_material_handling",
+    "iron_making",
+    "sintering",
+    "steelmaking",
+    "ladle_handling",
+    "casting",
+    "reheating",
+    "hot_rolling",
+    "cold_rolling",
+    "utilities"
+  ],
+  "nodes": [
+    {
+      "asset_id": "HSM.F3.WR.BRG01",
+      "equipment_class": "rolling_mill_work_roll_bearing",
+      "process_stage": "hot_rolling",
+      "criticality": 1,
+      "stage_throughput_tph": 350,
+      "area": "HOT_ROLLING"
+    },
+    {
+      "asset_id": "HSM.F1.GBX01",
+      "equipment_class": "mill_gearbox",
+      "process_stage": "hot_rolling",
+      "criticality": 1,
+      "stage_throughput_tph": 350,
+      "area": "HOT_ROLLING"
+    },
+    {
+      "asset_id": "HSM.F1.MTR01",
+      "equipment_class": "large_induction_motor_vfd",
+      "process_stage": "hot_rolling",
+      "criticality": 1,
+      "stage_throughput_tph": 350,
+      "area": "HOT_ROLLING"
+    },
+    {
+      "asset_id": "HSM.DSC.PMP01",
+      "equipment_class": "cooling_descaling_pump",
+      "process_stage": "hot_rolling",
+      "criticality": 2,
+      "stage_throughput_tph": 350,
+      "area": "HOT_ROLLING"
+    },
+    {
+      "asset_id": "BF.BLW.FAN01",
+      "equipment_class": "bf_sinter_fan_blower",
+      "process_stage": "iron_making",
+      "criticality": 1,
+      "stage_throughput_tph": 320,
+      "area": "BLAST_FURNACE"
+    },
+    {
+      "asset_id": "CCM.SEG.07",
+      "equipment_class": "continuous_caster_segment",
+      "process_stage": "casting",
+      "criticality": 1,
+      "stage_throughput_tph": 250,
+      "area": "CASTER_1"
+    },
+    {
+      "asset_id": "CCM.MOLD.01",
+      "equipment_class": "continuous_caster_mould",
+      "process_stage": "casting",
+      "criticality": 1,
+      "stage_throughput_tph": 250,
+      "area": "CASTER_1"
+    },
+    {
+      "asset_id": "HSM.STD.R1",
+      "equipment_class": "hot_strip_mill_stand",
+      "process_stage": "hot_rolling",
+      "criticality": 1,
+      "stage_throughput_tph": 350,
+      "area": "HOT_ROLLING"
+    },
+    {
+      "asset_id": "RM.CONV.ORE01",
+      "equipment_class": "raw_material_conveyor",
+      "process_stage": "raw_material_handling",
+      "criticality": 2,
+      "stage_throughput_tph": 1800,
+      "area": "RAW_MATERIAL"
+    },
+    {
+      "asset_id": "RHF.ZONE.SOAK",
+      "equipment_class": "reheating_furnace",
+      "process_stage": "reheating",
+      "criticality": 2,
+      "stage_throughput_tph": 300,
+      "area": "REHEAT_FURNACE"
+    },
+    {
+      "asset_id": "EAF.AUX.HYD01",
+      "equipment_class": "eaf_bof_auxiliary",
+      "process_stage": "steelmaking",
+      "criticality": 1,
+      "stage_throughput_tph": 300,
+      "area": "MELT_SHOP"
+    },
+    {
+      "asset_id": "BF.CW.PMP02",
+      "equipment_class": "cooling_descaling_pump",
+      "process_stage": "iron_making",
+      "criticality": 1,
+      "stage_throughput_tph": 320,
+      "area": "BLAST_FURNACE"
+    },
+    {
+      "asset_id": "SP.SINT.FAN01",
+      "equipment_class": "bf_sinter_fan_blower",
+      "process_stage": "sintering",
+      "criticality": 1,
+      "stage_throughput_tph": 550,
+      "area": "SINTER_PLANT"
+    },
+    {
+      "asset_id": "MS.LDC.CRN01",
+      "equipment_class": "ladle_crane",
+      "process_stage": "steelmaking",
+      "criticality": 1,
+      "stage_throughput_tph": 300,
+      "area": "MELT_SHOP"
+    },
+    {
+      "asset_id": "CRM.AGC.SV01",
+      "equipment_class": "hydraulics_agc_servo",
+      "process_stage": "cold_rolling",
+      "criticality": 1,
+      "stage_throughput_tph": 180,
+      "area": "COLD_ROLLING"
+    }
+  ],
+  "stage_edges": [
+    {
+      "from": "raw_material_handling",
+      "to": "sintering",
+      "buffer_hours": 8,
+      "coupling": "strong"
+    },
+    {
+      "from": "raw_material_handling",
+      "to": "iron_making",
+      "buffer_hours": 12,
+      "coupling": "strong"
+    },
+    {
+      "from": "sintering",
+      "to": "iron_making",
+      "buffer_hours": 10,
+      "coupling": "strong"
+    },
+    {
+      "from": "iron_making",
+      "to": "steelmaking",
+      "buffer_hours": 6,
+      "coupling": "strong"
+    },
+    {
+      "from": "steelmaking",
+      "to": "ladle_handling",
+      "buffer_hours": 2,
+      "coupling": "strong"
+    },
+    {
+      "from": "ladle_handling",
+      "to": "casting",
+      "buffer_hours": 1.5,
+      "coupling": "strong"
+    },
+    {
+      "from": "casting",
+      "to": "reheating",
+      "buffer_hours": 24,
+      "coupling": "medium"
+    },
+    {
+      "from": "reheating",
+      "to": "hot_rolling",
+      "buffer_hours": 2,
+      "coupling": "strong"
+    },
+    {
+      "from": "hot_rolling",
+      "to": "cold_rolling",
+      "buffer_hours": 72,
+      "coupling": "weak"
+    },
+    {
+      "from": "utilities",
+      "to": "steelmaking",
+      "buffer_hours": 0.5,
+      "coupling": "strong"
+    },
+    {
+      "from": "utilities",
+      "to": "casting",
+      "buffer_hours": 0.5,
+      "coupling": "strong"
+    },
+    {
+      "from": "utilities",
+      "to": "hot_rolling",
+      "buffer_hours": 0.5,
+      "coupling": "strong"
+    }
+  ],
+  "stage_downstream_reach": {
+    "raw_material_handling": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "iron_making",
+      "ladle_handling",
+      "reheating",
+      "sintering",
+      "steelmaking"
+    ],
+    "iron_making": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "ladle_handling",
+      "reheating",
+      "steelmaking"
+    ],
+    "sintering": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "iron_making",
+      "ladle_handling",
+      "reheating",
+      "steelmaking"
+    ],
+    "steelmaking": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "ladle_handling",
+      "reheating"
+    ],
+    "ladle_handling": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "reheating"
+    ],
+    "casting": [
+      "cold_rolling",
+      "hot_rolling",
+      "reheating"
+    ],
+    "reheating": [
+      "cold_rolling",
+      "hot_rolling"
+    ],
+    "hot_rolling": [
+      "cold_rolling"
+    ],
+    "cold_rolling": [],
+    "utilities": [
+      "casting",
+      "cold_rolling",
+      "hot_rolling",
+      "ladle_handling",
+      "reheating",
+      "steelmaking"
+    ]
+  },
+  "bottleneck_rule": "priority_score = process_criticality(1=highest) -> weight 0.35; delay_severity(downtime_hours vs buffer) 0.30; spares_availability(in_stock?) 0.20; procurement_lead_time_weeks 0.15. Lower buffer + more downstream_reach => higher propagation cost."
+}

@@ -1,0 +1,55 @@
+{
+  "tabnet_oof_auc": 0.8561548612092935,
+  "tabnet_oof_auc_per_fold": [
+    0.8142516398330353,
+    0.8652028904947193,
+    0.815624064651302,
+    0.9248727925770727,
+    0.8916492068243042
+  ],
+  "v5_meta_oof_auc": 0.8886139780385504,
+  "chosen_config": "V5-only (reference)",
+  "chosen_oof_auc": 0.8886139780385504,
+  "chosen_he_score_gated": 0.5365219357756671,
+  "chosen_threshold": 0.021783567134268537,
+  "bootstrap_mean": 0.5416937489500717,
+  "bootstrap_ci_lo": 0.5170621930508954,
+  "bootstrap_ci_hi": 0.5707082351366984,
+  "calibrated_lb_est": 56.32219357756671,
+  "n_positives_test": 148,
+  "n_gated_test": 138,
+  "tta_delta_mean": 0.0006245945114642382,
+  "tta_delta_std": 0.0009691556333564222,
+  "all_configs": {
+    "TabNet-only (TTA)": {
+      "oof_auc": 0.8561548612092935,
+      "he_score": 0.5229249011857707,
+      "thresh": 0.04338677354709419
+    },
+    "TabNet-only (no-TTA)": {
+      "oof_auc": 0.8561548612092935,
+      "he_score": 0.5229249011857707,
+      "thresh": 0.04338677354709419
+    },
+    "V5+TabNet 80/20 (TTA)": {
+      "oof_auc": 0.8869762948301051,
+      "he_score": 0.5354457572502686,
+      "thresh": 0.021783567134268537
+    },
+    "V5+TabNet 70/30 (TTA)": {
+      "oof_auc": 0.8837244922003865,
+      "he_score": 0.535181236673774,
+      "thresh": 0.019819639278557115
+    },
+    "V5+TabNet 50/50 (TTA)": {
+      "oof_auc": 0.8777746359394883,
+      "he_score": 0.534375,
+      "thresh": 0.01589178356713427
+    },
+    "V5-only (reference)": {
+      "oof_auc": 0.8886139780385504,
+      "he_score": 0.5360262008733625,
+      "thresh": 0.021783567134268537
+    }
+  }
+}

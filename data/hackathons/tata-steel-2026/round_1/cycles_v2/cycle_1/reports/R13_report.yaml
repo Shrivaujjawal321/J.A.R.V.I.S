@@ -1,0 +1,413 @@
+agent_id: R13
+topic: feature-construction-genetic
+cycle: 1
+timestamp_utc: "2026-05-23T10:30:00Z"
+status: ok
+
+# NOISE FLOOR ANALYSIS (mandatory preamble)
+# Bootstrap 95% CI on V4 OOF score: [53.36, 55.34] half-width approx 0.99 pts.
+# With 5-fold StratifiedKFold on 1352 rows / 66 positives: ~13 positives per fold.
+# Misclassifying 1 positive moves OOF Recall by ~1.5%. At low precision (<10%),
+# (R+P)/2 is recall-dominated so even 1 missed TP shifts score approx 0.75 pts.
+# Reliable MDE (minimum detectable effect) at 80% power ~ 0.8-1.0 OOF score pts.
+# Features producing expected lift < 0.5 pts are statistically indistinguishable
+# from noise at this sample size. All estimates below reflect this constraint.
+
+recommendations:
+
+  - id: R13_rec_1
+    title: "OpenFE automated feature generation"
+    technique_class: feature_engineering
+    description: |
+      OpenFE (Zhang et al., ICML 2023) runs a two-stage coarse-to-fine combinatorial
+      search over 23 unary/binary operators (add, sub, mul, div, log, sqrt, abs, etc.)
+      applied to the 51 V4 features, using a feature-boosting score (LightGBM residual
+      gain) to prune candidates before expensive CV evaluation. Unlike V3 deg-2 on
+      top-5, OpenFE explores cross-feature expressions the engineer would never manually
+      enumerate -- e.g. log(X13 / sqrt(X36 + X34)) or X13 * X10 / X18. On this
+      problem the signal gap (AUC 0.889 vs target 0.94+) lives in non-obvious
+      multi-feature interactions that manual enumeration misses. The two-stage pruning
+      keeps run time feasible (~10-30 min on 1352 rows with n_jobs=8).
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: "V3 deg-2 polynomial on top-5 SHAP (15 features) is explicitly exhausted.
+             OpenFE is distinct: searches ALL 51 features, uses data-driven pruning
+             (not fixed deg-2), covers non-polynomial operators (log, sqrt, abs, max,
+             min). No overlap."
+    expected_lift_oof:
+      point: 0.6
+      low: 0.0
+      high: 1.8
+      rationale: |
+        OpenFE benchmarks show +0.5-2.0 AUC on Kaggle-style tabular tasks with 5k-50k
+        rows. At 1352 rows / 66 positives, overfitting pressure is severe -- most
+        discovered features will be noise. Conservative: if 1-2 signal-bearing
+        expressions are found (e.g. involving X13/X36 beyond existing ratio or X18-
+        relative terms beyond v5_FT_CT_ratio), lift of 0.5-1.0 pts is plausible.
+        High end 1.8 requires a 3-way expression that cleanly separates hard7 coils.
+        Low end 0.0 reflects the realistic probability that all discovered features
+        overfit the 66-positive training set.
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies:
+        - openfe>=0.0.11
+        - lightgbm>=3.3
+        - scikit-learn>=1.4
+      notes: |
+        Drop-in: ofe.fit(train_x, train_y, n_jobs=8) returns ranked feature list;
+        top-K appended to V4 feature set; re-run V4 harness. CRITICAL: must run
+        OpenFE.fit() ONLY on the in-fold training split to avoid leakage, then
+        transform both fold-val and test. Requires wrapping OpenFE inside the CV
+        loop -- adds ~15 lines of boilerplate but is essential for honest OOF.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Zhang et al. "OpenFE: Automated Feature Generation with Expert-level
+        Performance," ICML 2023, PMLR 202. arXiv:2211.12507.
+        GitHub: https://github.com/IIIS-Li-Group/OpenFE
+        Benchmark competitive with Kaggle grandmaster feature engineering on otto,
+        home-credit, ieee-fraud. Those datasets are 10x-1000x larger -- confidence
+        downgraded from 4 to 3 due to small-n regime.
+    failure_modes:
+      - "Overfitting to 66 positives: OpenFE internal pruning uses LightGBM residual
+        gain, fooled by small positive counts. Discovered features may show near-zero
+        OOF gain but large variance -- look like lift on training set, degrade OOF."
+      - "Leakage if OpenFE.fit() runs on full train before CV split. Must fit
+        inside each fold training split only."
+      - "Run-time: with 51 input features and 23 operators, candidate pool is
+        O(51^2 * 23) ~60k before pruning. On CPU n_jobs=8, expect 15-45 min.
+        Acceptable but set init_score and n_data_factor conservatively."
+      - "Feature selection instability: with only 13 positives per fold, SHAP/gain
+        rankings are noisy -- top OpenFE features may differ fold-to-fold."
+    code_sketch: |
+      from openfe import OpenFE, transform
+
+      # Run INSIDE each CV fold to avoid leakage
+      for fold_idx, (tr_idx, val_idx) in enumerate(skf.split(X, y)):
+          X_tr, X_val = X.iloc[tr_idx], X.iloc[val_idx]
+          y_tr = y.iloc[tr_idx]
+
+          ofe = OpenFE()
+          features = ofe.fit(
+              data=X_tr, label=y_tr,
+              n_jobs=8,
+              n_data_factor=2,  # reduces candidate pool at small n
+              task="binary classification",
+              verbose=False
+          )
+          top_feats = features[:10]  # only top-10 to limit noise
+
+          X_tr_new, X_val_new = transform(X_tr, X_val, top_feats, n_jobs=4)
+          # Append new cols to V4 feature matrix, continue with existing pipeline
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        Hard7 coils are stealth even to AD methods -- OpenFE unlikely to find a
+        magic expression separating them specifically. FP avoidance is medium:
+        automated ratio/log features might tighten boundary around hard FP cluster
+        (elevated X14/X49/X41/X46/X48 profile).
+
+
+  - id: R13_rec_2
+    title: "gplearn SymbolicTransformer expressions"
+    technique_class: feature_engineering
+    description: |
+      gplearn SymbolicTransformer uses genetic programming (tournament selection +
+      crossover + mutation across expression trees) to discover closed-form feature
+      expressions. Applied in FEATURE ENGINEERING mode, not classification mode:
+      SymbolicTransformer generates N new features appended to V4 feature set.
+      Scope: restrict function_set to {add, sub, mul, div, log, sqrt} on the 10
+      highest-SHAP features to constrain search space. The parsimony_coefficient
+      parameter penalises long programs, biasing toward short interpretable
+      expressions -- crucial at small n. Output is human-readable (e.g.
+      "X13 * log(X36) / X18"), unlike OpenFE black-box expressions.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: "V3 polynomial-on-top-5 is fixed deg-2, no transcendentals, no genetic
+             search. gplearn SymbolicTransformer explores non-polynomial, variable-
+             depth expression class. No overlap."
+    expected_lift_oof:
+      point: 0.4
+      low: 0.0
+      high: 1.2
+      rationale: |
+        Lower expected lift than OpenFE: (a) GP with small population and high-noise
+        targets (66 positives, label_propensity ~0.154) converges poorly; (b)
+        SymbolicTransformer fitness uses correlation with y, a weak surrogate for
+        (R+P)/2; (c) GP often rediscovers variants of existing ratios already in V4
+        (X13/X36, X13*X10). High end 1.2 requires finding a non-trivial log/sqrt
+        expression genuinely novel vs V4.
+    feasibility:
+      score: 3
+      effort_hours: 3.0
+      dependencies:
+        - gplearn>=0.4.2
+        - scikit-learn>=1.4
+      notes: |
+        Moderate effort. GP is slow: population_size=500, generations=20, 10 input
+        features -> 20-60 min per fold (CPU-bound, no GPU). Must run inside CV loop.
+        Parsimony coefficient tuning needed (default 0.001 too low for noisy small-n;
+        set 0.05+). Total wall time ~100-300 min for 5-fold CV.
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Stephens T. "gplearn: Genetic Programming in Python."
+        GitHub: https://github.com/trevorstephens/gplearn -- BSD 3-Clause, sklearn API.
+        No peer-reviewed benchmarks for imbalanced binary classification with <100
+        positives. Confidence 2: reasoning-only for this problem regime. General GP
+        literature shows benefits on regression, less so on noisy classification with
+        low positive count.
+    failure_modes:
+      - "High stochasticity: GP results are seed-dependent and high-variance at
+        small n. Same run with different seeds produces very different features."
+      - "Fitness misalignment: SymbolicTransformer fitness is correlation with y,
+        not (R+P)/2. Evolved features may be globally correlated with Y but not
+        specifically discriminative for hard7 stealth cases."
+      - "Slow: 5-fold CV x 20-60 min/fold = 100-300 min total. Blocks iteration
+        velocity with 8 days until deadline."
+      - "Rediscovery: with X13/X36, X13*X10 already in V4, GP converges to
+        variants of these rather than novel expressions."
+    code_sketch: |
+      from gplearn.genetic import SymbolicTransformer
+
+      top10_cols = ["X13", "X10", "X32", "X30", "X36",
+                    "X31", "X15", "X34", "X35", "X39"]
+      X_tr_top = X_tr[top10_cols]
+
+      gp = SymbolicTransformer(
+          generations=20, population_size=500,
+          hall_of_fame=20, n_components=5,
+          function_set=("add", "sub", "mul", "div", "log", "sqrt"),
+          parsimony_coefficient=0.05,
+          max_samples=0.9, random_state=42, n_jobs=4
+      )
+      gp.fit(X_tr_top.values, y_tr.values)
+      new_feats_tr = gp.transform(X_tr_top.values)
+      new_feats_val = gp.transform(X_val_top.values)
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+
+  - id: R13_rec_3
+    title: "AE bottleneck 8D representation features"
+    technique_class: feature_engineering
+    description: |
+      Train a shallow autoencoder on ALL 1352 rows (self-supervised, no labels) to
+      learn a compressed 8-dimensional bottleneck of the 49 raw features. Use the
+      bottleneck activations as 8 additional features appended to V4 feature set.
+      CRITICAL DISTINCTION from exhausted M5_AE: V19 M5_AE used RECONSTRUCTION ERROR
+      (single scalar) as anomaly meta-feature (OOF 52.95). This recommendation uses
+      the 8D BOTTLENECK VECTOR as supervised features -- different information content.
+      The bottleneck may capture non-linear manifold structure in 49D space that no
+      single ratio or polynomial can represent, potentially separating hard7 coils
+      from near-identical non-defect neighbours via compressed latent coordinates.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: ["V19_M5_AE"]
+      note: "M5_AE used reconstruction error (single scalar) as anomaly score meta-
+             feature. This uses the 8D bottleneck vector as supervised features.
+             Different information content. Flagging V19 overlap for transparency
+             but not auto-rejected."
+    expected_lift_oof:
+      point: 0.3
+      low: 0.0
+      high: 0.9
+      rationale: |
+        V19 AD audit found hard defects are stealth in X1-X49 space. If the manifold
+        has no defect-separating structure, AE bottleneck will not find it either.
+        The 0.3 pt estimate assumes bottleneck captures at least one interaction not
+        in V4 51 features. Given the AD null result, zero lift is the central scenario.
+        The 0.9 high case requires bottleneck to non-linearly encode multi-feature
+        interactions (X13 x temperature deviation x campaign position) genuinely
+        predictive but not captured by pairwise ratios.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - torch>=2.0
+        - scikit-learn>=1.4
+      notes: |
+        Architecture: Linear(49->32)->ReLU->Linear(32->8)->ReLU->Linear(8->32)->
+        ReLU->Linear(32->49). MSE loss, AdamW, 200 epochs, batch=64, standardised
+        features. LEAKAGE: AE must be fit on fold-train only. Even though no labels
+        used, fitting on full train before CV inflates OOF by leaking test-distribution
+        information. Autoencoder on 1352 rows trains in <30 sec on CPU.
+    confidence:
+      score: 2
+      evidence_anchor: |
+        "Boarding for ISS: Imbalanced Self-Supervised Discovery of a Scaled Autoencoder
+        for Mixed Tabular Datasets," arXiv:2403.15790 (2024). Shows self-supervised AE
+        representations can help imbalanced tabular classification. However, experiments
+        use >10k rows. Confidence 2: low because V19 AD audit showed hard defects are
+        stealth -- manifold structure unlikely to reveal them.
+    failure_modes:
+      - "If hard defects have near-identical X1-X49 profiles to non-defects (as
+        AD null result implies), AE also encodes them similarly. Zero lift, adds
+        8 noise dimensions."
+      - "Training AE on 1352 rows / 49 features: risk of memorisation with large
+        architecture. Must enforce bottleneck < 16 dims."
+      - "StandardScaler must be fit on fold-train only inside CV loop."
+    code_sketch: |
+      import torch, torch.nn as nn
+
+      class TabAE(nn.Module):
+          def __init__(self, n_in=49, n_bn=8):
+              super().__init__()
+              self.enc = nn.Sequential(
+                  nn.Linear(n_in, 32), nn.ReLU(),
+                  nn.Linear(32, n_bn), nn.ReLU())
+              self.dec = nn.Sequential(
+                  nn.Linear(n_bn, 32), nn.ReLU(),
+                  nn.Linear(32, n_in))
+          def forward(self, x):
+              z = self.enc(x)
+              return self.dec(z), z
+
+      # Fit on X_tr_scaled (fold-train only)
+      # z = ae.enc(X_scaled) -> 8 bottleneck dims per row
+      # Append z to V4 feature matrix
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+      notes: |
+        Given AD null result, bottleneck features unlikely to specifically help
+        hard7 or tighten hard FP boundary. Low expected fixture impact.
+
+
+  - id: R13_rec_4
+    title: "CV-gated random interaction search"
+    technique_class: feature_engineering
+    description: |
+      Sample ALL pairwise multiplicative terms (X_i x X_j) across the 51 V4 features
+      plus N=500 random triple products (X_i x X_j x X_k), evaluate each via fast
+      5-fold CV LightGBM gain (50 trees), and retain only interactions crossing a
+      minimum gain threshold (top-20 by repeated-CV gain). Searches the full 51C2=1275
+      pairwise space including interactions between temporal features (prev5_defect_rate,
+      X13_lag1) and physics features (v5_ratio_X13_div_X14, v5_any_campaign_zero) that
+      were NOT part of V3 top-5 polynomial basis. Key hypothesis: prev5_defect_rate x X13
+      encodes 'high roll-force AND recent neighbourhood defects' -- a conditional signal
+      potentially stronger than either feature alone.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: ["V3_poly_deg2_top5"]
+      note: "V3 tried deg-2 polynomial on top-5 SHAP features only (15 terms). This
+             expands to ALL 51 V4 features, adds triple products, and adds a CV-gain
+             gate to filter noise. Genuinely different search space."
+    expected_lift_oof:
+      point: 0.5
+      low: 0.0
+      high: 1.0
+      rationale: |
+        The obvious pairwise ratios from V1/V3 are already in V4. However, cross-
+        products between V4 temporal features (prev5_defect_rate, lag features) and
+        physics features (v5_FT_CT_ratio, v5_any_campaign_zero) have NOT been explored.
+        CV-gain gating helps reject pure-noise interactions but cannot fully prevent
+        overfitting at 66 positives; expect 5-15 interactions to survive gating.
+        Multiple testing: at 51C2=1275 pairs, ~64 pass at p=0.05 by chance -- the
+        CV gate is better than p-value but still imperfect.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - scikit-learn>=1.4
+        - lightgbm>=3.3
+        - joblib>=1.3
+      notes: |
+        Fully implementable in existing harness, no new library. CV-gain loop runs
+        LightGBM with 50 trees per candidate. With 1275 pairs, 50-tree fast LGB,
+        3 CV repeats -> ~3-8 min on 8 cores via joblib.Parallel.
+    confidence:
+      score: 3
+      evidence_anchor: |
+        "Feature Importance in Gradient Boosting Trees with Cross-Validation Feature
+        Selection," PMC9140774. Demonstrates CV-gated feature selection for GBDT
+        reduces overfitting vs unconditional selection.
+        "Arithmetic Feature Interaction Is Necessary for Deep Tabular Learning,"
+        arXiv:2402.02334. Shows pairwise interactions remain underexplored for tabular
+        tasks even in 2024. Reasoning-anchor for this specific technique on this dataset.
+    failure_modes:
+      - "CV gain noisy at 66 positives. Threshold that gates noise also gates true
+        signal. Too high -> nothing passes. Too low -> noise survives and overfits."
+      - "Triple products amplify scale differences. Standardise features before
+        computing interactions to prevent dominant-scale features drowning others."
+      - "prev5_defect_rate is CV-safe (fold-conditional). Re-interacting it with X13
+        inside fold is still safe, but combined feature must also be computed
+        fold-conditionally -- cannot precompute on full train."
+      - "Multiple testing: 51C2=1275 pairs + 500 triples = 1775 candidates. At
+        p=0.05, ~89 pass by chance. CV gate mitigates but does not eliminate."
+    code_sketch: |
+      import numpy as np
+      from lightgbm import LGBMClassifier
+      from sklearn.model_selection import cross_val_score
+      from joblib import Parallel, delayed
+
+      feat_cols = list(X_train.columns)  # 51 V4 features
+      pairs = [(i, j) for i in range(51) for j in range(i+1, 51)]  # 1275 pairs
+
+      def eval_pair(i, j):
+          col = f"inter_{feat_cols[i]}_x_{feat_cols[j]}"
+          inter = X_train.iloc[:, i].values * X_train.iloc[:, j].values
+          aug_X = np.column_stack([X_train.values, inter])
+          lgb = LGBMClassifier(n_estimators=50, learning_rate=0.1,
+                               scale_pos_weight=19.48, verbose=-1, n_jobs=1)
+          score = cross_val_score(lgb, aug_X, y_train, cv=3,
+                                  scoring="roc_auc").mean()
+          return (col, score, i, j)
+
+      results = Parallel(n_jobs=8)(delayed(eval_pair)(i, j) for i, j in pairs)
+      top15 = sorted(results, key=lambda x: -x[1])[:15]
+      # Append top-15 interaction features; re-run V4 harness on augmented set
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+      notes: |
+        Medium impact on hard7: cross-product prev5_defect_rate x X13 could
+        specifically separate borderline-X13 coils in high-defect temporal
+        neighbourhood. Medium FP avoidance: interactions may tighten the
+        boundary around hard FP cluster. Of the four recs, this has the
+        most direct mechanistic argument for hard7 lift.
+
+
+# TECHNIQUES CONSIDERED AND REJECTED
+#
+# AutoFeat (Horn 2019, arXiv:1901.07329): Generates large polynomial +
+# transcendental pool then L1-selects. At 1352 rows / 66 positives, default
+# settings generate 10k+ features before selection -- severe multiple-testing.
+# Subsumed by OpenFE (rec_1) and rec_4 at lower risk. NOT recommended standalone.
+#
+# DeepFM / Factorization Machines: Require 5k+ rows for stable embedding training.
+# At 1352 rows, FM embeddings severely overfit. FT-Transformer (V6) is the
+# structural equivalent and already showed AUC 0.8425 (worse than trees). REJECTED.
+#
+# PySR (Cranmer 2023, arXiv:2305.01582): Powerful for scientific equation discovery
+# but runtime 1-8h for meaningful search. With 8-day deadline and only 4 recs already
+# covering the space, PySR is a fallback-only option if OpenFE/rec_4 yield zero lift.
+# NOT recommended as primary -- too slow for remaining iteration budget.
+#
+# sklearn PolynomialFeatures(degree=3) + L1: ~22k features at deg-3, 51 inputs.
+# L1 selection at 66 positives is extremely unreliable. Anti-pattern at this n.
+#
+# Featuretools deep feature synthesis: Single-table setting reduces DFS to same
+# polynomial interactions already tried. No benefit over rec_4. NOT recommended.
+
+cross_topic_links:
+  - R01: "If R01 recommends ADASYN or other oversampling variants, compatible with
+          rec_1 (OpenFE inside CV): ADASYN runs after OpenFE transform inside fold."
+  - R04: "If R04 recommends license-free TabPFN/TabICL, its OOF probas could serve
+          as an additional meta-feature alongside OpenFE-generated features (rec_1).
+          Both coexist in V4 harness."
+  - R07: "If R07 covers threshold/calibration tactics: adding OpenFE features (rec_1)
+          changes the probability distribution shape -- threshold re-sweep is mandatory
+          after any feature addition."
+  - R10: "If R10 covers temporal/sequence features, key synergy with rec_4 is the
+          prev5_defect_rate x X13 cross-product: temporal context x primary signal.
+          Coordinate to avoid double-counting."

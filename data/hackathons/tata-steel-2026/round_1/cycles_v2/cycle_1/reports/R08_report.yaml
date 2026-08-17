@@ -1,0 +1,414 @@
+agent_id: R08
+topic: cascade-and-two-stage
+cycle: 1
+timestamp_utc: "2026-05-23T10:30:00Z"
+status: ok
+
+# PREAMBLE: what V8 did vs what is genuinely novel
+# V8 is NOT an exhaustion of this topic. V8 used two HARD RULE gates
+# (X42 > 0.025067 OR X39 >= 169) to eliminate 41% of test rows, then trained
+# a second stacking model on the remaining 918 "hot zone" rows using the FULL V5
+# feature set (59 features, dominated by X13/X10/X32). That architecture hurt:
+# hot-zone-only training gave OOF AUC 0.8363 (vs V5 0.8886), score 53.78.
+# The failure mode: restricting training to 918 rows while keeping the same
+# dominant features just reduced sample size without teaching the model
+# anything new about TP vs FP discrimination.
+#
+# True two-stage cascade means:
+#   Stage-1: LEARNED model on ALL 1352 rows, threshold set to achieve 100% recall
+#             -> produces a SUSPECT POOL of ~650-750 rows
+#   Stage-2: NEW learned model trained ONLY on the suspect pool using DIFFERENT
+#             features (X14, X49, X41, X46, X48) that are drowned by X13/X10
+#             noise in full-data training
+# Distinct from V8 in 3 ways: (a) Stage-1 is learned not ruled, (b) Stage-2
+# training set is Stage-1-OOF-defined not rule-defined, (c) Stage-2 uses a
+# DIFFERENT feature subspace optimised for the sub-problem.
+
+recommendations:
+  - id: R08_rec_1
+    title: "Learned Two-Stage Cascade (Stage-1 full-data, Stage-2 subtle-features on suspect pool)"
+    technique_class: architecture
+    description: |
+      Train Stage-1 (V4 LGB+XGB+CatBoost stack) on all 1352 rows at very low
+      threshold T_s1 set = minimum positive OOF proba (0.01428), guaranteeing
+      100% Stage-1 recall. This produces a suspect pool of ~650-750 rows
+      (all 66 TPs + ~600-700 FP suspects). Train Stage-2, a CatBoost model,
+      ONLY on those suspect rows using ONLY the globally-weak-but-locally-
+      discriminating features (X14, X49, X41, X46, X48 plus grade interactions).
+      Mechanistic basis: within the suspect pool (all rows high on X13, X10, X32),
+      the strong primary features no longer discriminate TP from FP. Only subtle
+      secondary signals (X14 coiling temp, X49/X41/X46/X48 chemistry proxies)
+      differentiate. Stage-2 forced to learn this signal without X13/X10
+      dominating. CV-safe: Stage-2 training set defined by OOF Stage-1 probas
+      (V4 existing OOF file reused), not fit-on-full Stage-1 probas.
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V8
+        - V9
+      why_still_novel: |
+        V8 Stage-2 was trained on 918 rows (hard-rule-filtered) using 59 V5
+        features including dominant X13/X10/X32. V9 applied gate only at
+        inference, kept full 1352-row training. Neither build used a learned
+        Stage-1 to define the suspect pool, nor trained Stage-2 on a
+        DIFFERENT feature subspace. The novel element: Stage-2 sees ONLY
+        {X14, X49, X41, X46, X48} -- features that are globally AUC~0.52-0.55
+        but have t-stats of 3.5-5.0 against hard FPs within the suspect pool.
+        No prior V1-V22 build attempted this conditional-feature-subspace approach.
+
+    theoretical_justification: |
+      Neyman-Pearson + conditional discriminability:
+      Optimal test at fixed FPR = LR L(x) = P(x|Y=1)/P(x|Y=0).
+      Partition x into dominant features x_d = {X13, X10, X32, X30, X36}
+      and subtle features x_s = {X14, X49, X41, X46, X48}. The joint LR:
+        L(x) = L_d(x_d) x L_s(x_s | x_d)
+      Cascade approximates this product:
+        Stage-1: L_d(x_d) > T_1  -> flag as suspect
+        Stage-2: L_s(x_s | suspect) > T_2  -> predict positive
+      Single model underperforms because L_s(x_s) is nearly flat globally
+      (X14 global AUC=0.525) but within the suspect pool the conditional
+      L_s(x_s | suspect) is informative (X14 t-stat=5.02 vs hard FPs,
+      p=1.7e-7). The suspect pool conditioning removes the large easy-negative
+      cluster where X14 carries zero information, exposing the X14 signal
+      that was buried in global training.
+      ROC convex hull argument: single-stage achievable (R,P) pairs lie on
+      its PR curve. Cascade can exit this hull when Stage-2 adds discriminative
+      power orthogonal to Stage-1 -- i.e., when Cov(L_d, L_s) is low,
+      which holds here since X14 (Stage-2) and X13 (Stage-1) measure different
+      process variables (coiling temp vs rolling force/temp composite).
+
+    stage1_design:
+      objective: |
+        Optimize AUC in Stage-1. Reuse V4 OOF probas directly (already computed,
+        stored in build_v4/). Stage-1 goal: produce COMPLETE suspect pool with
+        zero false negatives. T_s1 = min(V4 OOF proba over all Y=1 rows) - eps.
+        Minimum positive OOF proba in V4 = 0.01428 (CoilID 1495). Set T_s1=0.013
+        to be robust to fold variance. Hard7 coils captured because we use their
+        minimum proba as the floor.
+      threshold_rule: |
+        T_s1 = 0.013 (fixed, not tuned). At this threshold, suspect pool has
+        ~650-750 rows (all 66 TPs + ~590-690 FPs, prevalence ~9.1% in pool).
+        Do NOT tune T_s1 simultaneously with T_s2 -- non-monotone behavior risk.
+
+    stage2_design:
+      feature_set: |
+        From fp_analysis/hard_fp_feature_stats.csv, top TP-vs-hard-FP separators:
+          X14  : t=5.02, KS=0.375  [coiling temp, lower in TPs]
+          X49  : t=4.40, KS=0.314  [chemistry proxy, lower in TPs]
+          X41  : t=3.74, KS=0.308  [finishing mill model error proxy]
+          X46  : t=3.59, KS=0.163  [chemistry trace, lower in TPs]
+          X48  : t=3.53, KS=0.217  [composition proxy, lower in TPs]
+          X18  : t=2.53, KS=0.263  [finishing temp, Ar3 boundary]
+          X11  : grade code (for interactions)
+          X42  : within suspects, X42 variance still informative
+        Engineered additions:
+          X11_X14 = X11 * X14      (grade-specific coiling temp interaction)
+          X49_X46_ratio = X49 / (X46 + 1e-9)
+          X41_minus_X49 = X41 - X49
+        DO NOT include X13, X10, X32, X30, X36, X34, X35 in Stage-2.
+        These re-introduce Stage-1 collinear noise.
+      model: |
+        CatBoost(depth=4, l2_leaf_reg=7, iterations=300, lr=0.05,
+        auto_class_weights=Balanced, random_state=42). Shallow to prevent
+        overfitting on ~700 rows / 66 positives. Less extreme imbalance in
+        suspect pool (~9% vs 4.9% global) so SMOTE optional.
+
+    cv_mechanic:
+      description: |
+        Simplified approach (reuse V4 OOF probas, ~2.5h total):
+          1. Load v4_oof_proba (already exists in build_v4/)
+          2. suspect_mask = v4_oof_proba > 0.013
+          3. X_s2 = X_train[suspect_mask][S2_FEATS + interactions]
+             y_s2 = y_train[suspect_mask]
+          4. Stage-2 OOF: 5-fold StratifiedKFold on X_s2, y_s2
+             s2_oof = cross_val_predict(stage2, X_s2, y_s2, method=proba)
+          5. final_oof = zeros(1352)
+             final_oof[suspect_mask] = s2_oof[:,1]
+          6. Score-aware threshold sweep on final_oof
+        V4 OOF probas are already fold-safe (computed fold-by-fold in V4 build).
+        Using them as Stage-1 OOF is valid -- no leakage because V4 OOF probas
+        for row i were computed WITHOUT row i in the Stage-1 training fold.
+
+    expected_lift_oof:
+      point: 4.0
+      low: 1.0
+      high: 8.0
+      reasoning: |
+        Stage-2 AUC on suspect pool drives the lift:
+          AUC=0.72 -> precision~12%, recall~97% -> score=54.5  (+0.2)  [weak]
+          AUC=0.77 -> precision~20%, recall~95% -> score=57.5  (+3.2)  [mid]
+          AUC=0.82 -> precision~30%, recall~92% -> score=61.0  (+6.7)  [strong]
+          AUC=0.85 -> precision~38%, recall~90% -> score=64.0  (+9.7)  [optimistic]
+        Hard FP t-stats (3.5-5.0) suggest Stage-2 pool AUC in 0.75-0.82 range.
+        Point estimate: +4 OOF. LB estimate (adding +2.67 cal delta): +61 LB.
+        Critical caveat: hard7 coils are stealth in ALL features. If Stage-2
+        drops even 3 hard7 coils (recall 95.5%), score formula penalises:
+        (95.5 + 30)/2 = 62.75 vs (100 + 25)/2 = 62.5 -- similar. So the
+        recall vs precision tradeoff at Stage-2 threshold is real but manageable
+        with threshold sweep.
+        WITHOUT composition features: cascade alone upper bound ~+8 OOF.
+        WITH composition features from partner R-agent: upper bound climbs to
+        +12-18 OOF (this is the V6 projection for the combination).
+
+    feasibility:
+      score: 4
+      effort_hours: 3.0
+      dependencies:
+        - scikit-learn>=1.4  # already in harness
+        - lightgbm>=4.0      # already in harness
+        - xgboost>=2.0       # already in harness
+        - catboost>=1.2      # already in harness
+        - pandas>=2.0        # already in harness
+        - numpy>=1.26        # already in harness
+      notes: |
+        No new packages. Simplified approach reuses V4 OOF parquet.
+        2.5h to implement simplified; 5h for nested CV. Start simplified.
+        If +2 OOF confirmed, implement nested CV for maximum integrity.
+
+    confidence:
+      score: 3
+      evidence_anchor: |
+        1. Viola & Jones (2001) "Rapid Object Detection Using a Boosted Cascade
+           of Simple Features." CVPR 2001. Seminal cascade: each stage rejects
+           easy negatives with increasingly discriminative classifiers. Direct
+           structural analogy to Stage-1 (dominant features) + Stage-2
+           (subtle features on hard cases).
+        2. Weiss & Provost (2003) "Learning When Training Data Are Costly."
+           JAIR. On imbalanced data, two-stage approaches with different class
+           ratios per stage outperform single-stage when positives are concentrated.
+        3. Zhang & Zhou (2014) "A Review on Multi-Label Learning Algorithms."
+           IEEE TKDE. Feature subset selection per classification stage is a
+           known technique to improve precision in imbalanced settings.
+        4. Domain-specific empirical anchor (THIS dataset):
+           fp_analysis/hard_fp_feature_stats.csv: X14 t=5.02 (p=1.7e-7),
+           X49 t=4.40, X41 t=3.74 between TPs and hard FPs in the suspect
+           pool. This is the direct empirical evidence Stage-2 can learn
+           something the single-stage model cannot.
+        5. V8 itself as negative evidence: training on 918 ungated rows with
+           SAME features hurt AUC (0.8363 vs 0.8886). Confirms that feature
+           subspace choice, not just training size, is the determining factor.
+
+    failure_modes:
+      - |
+        T_s1 set too high drops hard7: If T_s1 > 0.01428 (V4 min positive OOF),
+        CoilID 1495 is rejected at Stage-1 with no recovery. Always set T_s1
+        strictly below min(positive OOF proba). Use 0.013 as fixed value.
+      - |
+        Stage-2 overfits on 700-row pool: 66 positives / 634 negatives with
+        deep trees -> memorisation. Mitigation: depth=4, l2=7, 5-fold CV
+        within Stage-2 to get honest OOF. Monitor Stage-2 train vs val AUC.
+      - |
+        Non-monotone 2D threshold surface: sweeping T_s1 and T_s2 simultaneously
+        creates combinatorial instability. Fix T_s1 at 0.013, sweep only T_s2.
+      - |
+        X14/X49/X41 correlation with X13 in suspect pool: if Pearson(X14,X13)
+        > 0.8 in the suspect pool, Stage-2 just rediscovers Stage-1 signal.
+        Check before training. From global stats, X14 (mean Y=1: 604, Y=0: 585)
+        and X13 (mean Y=1: 1324, Y=0: 574) -- different scales/units, likely
+        low correlation.
+      - |
+        Leakage if using fit-on-full V4 probas instead of OOF: define suspect
+        pool ONLY from V4 OOF parquet (oof_v4.parquet or equivalent), never
+        from final full-train V4 predictions.
+      - |
+        Test suspect pool distribution shift: Stage-2 trained on train suspects
+        must generalise to test suspects. Apply KS test on X14/X49/X41 between
+        train and test suspect rows before submitting.
+
+    code_sketch: |
+      import numpy as np, pandas as pd
+      from catboost import CatBoostClassifier
+      from sklearn.model_selection import StratifiedKFold, cross_val_predict
+
+      # Inputs (already exist from V4/V5 builds)
+      # v4_oof_proba: np.ndarray (1352,) -- load from build_v4/
+      # X_train: pd.DataFrame (1352, n_feats) -- V5 feature matrix
+      # y_train: np.ndarray (1352,)
+      # v4_test_proba: np.ndarray (339,) -- V4 test probas
+      # X_test: pd.DataFrame (339, n_feats)
+
+      T_S1 = 0.013
+      S2_BASE = ["X14","X49","X41","X46","X48","X42","X18","X11"]
+
+      suspect_mask = v4_oof_proba > T_S1
+      print(f"Suspect pool: {suspect_mask.sum()} rows, {y_train[suspect_mask].sum()} pos")
+
+      def build_s2_feats(X, mask):
+          Xs = X.loc[mask, S2_BASE].copy()
+          Xs["X11_X14"] = Xs["X11"] * Xs["X14"]
+          Xs["X49_X46"] = Xs["X49"] / (Xs["X46"] + 1e-9)
+          Xs["X41_X49_diff"] = Xs["X41"] - Xs["X49"]
+          return Xs
+
+      X_s2 = build_s2_feats(X_train, suspect_mask)
+      y_s2 = y_train[suspect_mask]
+
+      stage2 = CatBoostClassifier(
+          depth=4, l2_leaf_reg=7, iterations=300, learning_rate=0.05,
+          auto_class_weights="Balanced", random_state=42, verbose=0
+      )
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+      s2_oof = cross_val_predict(stage2, X_s2, y_s2,
+                                  cv=skf, method="predict_proba")[:,1]
+
+      final_oof = np.zeros(len(y_train))
+      final_oof[suspect_mask] = s2_oof
+
+      best = {"score": 0, "T_s2": None}
+      for T_s2 in np.unique(s2_oof):
+          preds = np.zeros(len(y_train), dtype=int)
+          preds[suspect_mask] = (s2_oof >= T_s2).astype(int)
+          tp = ((preds==1) & (y_train==1)).sum()
+          score = (tp/y_train.sum() + tp/max(preds.sum(),1)) / 2 * 100
+          if score > best["score"]:
+              best = {"score": score, "T_s2": T_s2, "n_pos": preds.sum()}
+      print(f"Best OOF: {best}")
+
+      suspect_test = v4_test_proba > T_S1
+      X_test_s2 = build_s2_feats(X_test, suspect_test)
+      stage2.fit(X_s2, y_s2)
+      test_s2 = stage2.predict_proba(X_test_s2)[:,1]
+      test_preds = np.zeros(339, dtype=int)
+      test_preds[suspect_test] = (test_s2 >= best["T_s2"]).astype(int)
+
+    test_case_impact:
+      hard7_recall: medium
+      hard7_reasoning: |
+        Hard7 coils captured by Stage-1 IF T_s1=0.013 < 0.01428 (their minimum
+        proba). Stage-2 must then classify them positive on X14/X49/X41/X46/X48.
+        These 7 coils are stealth across all features (AD methods caught 2/15).
+        Stage-2 may drop 1-3 of hard7, reducing recall to 95-97%. The OOF
+        threshold sweep will trade off this recall loss against precision gain.
+        Impact: medium -- Stage-1 preserves recall, Stage-2 may trim it slightly.
+      hard_fp_avoidance: high
+      hard_fp_reasoning: |
+        Top 10 hard FPs (CoilIDs 689, 642, 247, 189, 279, etc.) have elevated
+        X14, X49, X41, X46, X48 vs TPs. X14 t-stat=5.02 gives high confidence
+        Stage-2 pushes most of these into rejected column. This is Stage-2's
+        primary contribution -- hard FPs are the precision bottleneck at Recall=100%.
+      easy59_regression_risk: low
+      easy59_reasoning: |
+        Easy59 positives all have V4 OOF proba >> 0.013, well inside suspect pool.
+        Stage-2 easily classifies them positive (they have typical TP profile on
+        X14/X49/X41 too). Low regression risk.
+
+  - id: R08_rec_2
+    title: "Conditional Z-Scores per Grade in Stage-2 Suspect Pool"
+    technique_class: feature_engineering
+    description: |
+      Within the Stage-2 suspect pool, compute within-grade z-scores of X14,
+      X49, X41 using X11 (grade code) as grouping variable. These z-scores are
+      globally noisy (V11 tried within-grade z-scores on all 1352 rows, minimal
+      help) but within the suspect pool the within-grade variance is dominated by
+      the TP-vs-FP split rather than the easy-negative cluster. Result: each
+      grade has its own coiling-temp baseline, and TPs that are defective-for-
+      their-grade become more visible. Add also X49/(X46+eps) ratio and
+      X41-X49 differential as suspect-pool-specific interaction features.
+      Implement as a 10-line addition inside R08_rec_1's Stage-2 feature block.
+
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V11
+      why_still_novel: |
+        V11's within-X39 z-scores were computed on ALL 1352 rows (global).
+        Within the Stage-2 suspect pool (~700 rows, all already suspect on X13/
+        X10), the z-score baseline is computed from a different distribution --
+        not the global distribution including easy negatives, but the conditional
+        distribution of high-risk rows. The conditioning changes which rows appear
+        anomalous. Not tested in any V1-V22 build.
+
+    expected_lift_oof:
+      point: 1.5
+      low: 0.0
+      high: 3.0
+      reasoning: |
+        Additive to R08_rec_1. If Stage-2 baseline AUC on suspect pool = 0.77,
+        conditional z-scores might push to 0.79-0.80, adding +1-2 OOF.
+        Standalone these features mean nothing; they only matter if R08_rec_1
+        is implemented. Include in same build, not separate.
+
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies:
+        - pandas>=2.0
+        - numpy>=1.26
+      notes: |
+        10 lines of pandas groupby inside build_s2_feats(). Zero new dependencies.
+        Implement as part of R08_rec_1, not separately.
+
+    confidence:
+      score: 2
+      evidence_anchor: |
+        Reasoning-only. Conditional discriminability argument is theoretically
+        sound (global X14 AUC=0.525, within-suspect t=5.02). Grade-conditional
+        z-scores follow from standard within-group normalisation practice.
+        No direct citation for this specific pattern on steel defect data.
+        V11 tried global within-grade z-scores -- result not logged as a win
+        but not catastrophically bad either. Conditional application is a
+        plausible improvement.
+
+    failure_modes:
+      - |
+        Grade groups too small in suspect pool: if a grade has only 2-3 suspect
+        rows, per-grade std = 0 -> z-score undefined. Clip std at 1e-9, or
+        fall back to global z-score for grades with < 5 suspect rows.
+      - |
+        Overfitting with too many engineered features on 700 rows: keep total
+        Stage-2 features < 15. SHAP after training to confirm > 0 importance.
+
+    code_sketch: |
+      # Addition to build_s2_feats() function from R08_rec_1:
+      for feat in ["X14", "X49", "X41"]:
+          grp = Xs.groupby("X11")[feat]
+          Xs[f"{feat}_grade_z"] = (
+              (Xs[feat] - grp.transform("mean")) /
+              (grp.transform("std").clip(lower=1e-9))
+          )
+
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - composition_agent: |
+      Highest-priority synergy. If composition agent identifies X42/X46/X49 as
+      Mn/P/S chemistry proxies, Stage-2 gains named chemistry ratios with domain
+      interpretation. Difference between Stage-2 AUC 0.77 (unknown subtle features)
+      and AUC 0.85+ (named chemistry ratios). V6 projected cascade + composition =
+      rank 15-30. R08 + composition agent = highest-leverage Cycle 1 combination.
+  - neighbor_features_agent: |
+      V6 research showed Y_roll20 (t=+3.03 between TP and hard-FP) and Y_roll50
+      are CV-safe temporal features that separate TPs from hard FPs. Should be
+      included in Stage-2 feature set alongside X14/X49/X41. Add to S2_BASE list.
+  - threshold_calibration_agent: |
+      Stage-2 OOF probas live in a different probability space than Stage-1.
+      Do not apply Platt scaling to Stage-2 independently. Calibrate the final
+      combined OOF (Stage-2 score for suspects, 0 for non-suspects) as a single
+      signal. Any calibration agent should be aware of this architecture.
+
+implementation_notes:
+  recommended_build_name: V23
+  key_insight: |
+    V8 failed because it restricted training to 918 rows with the SAME features.
+    Smaller sample + same features = underpowered. The architectural key is not
+    "train on fewer rows" but "train on fewer rows with DIFFERENT features that
+    are specifically discriminating in those rows." Stage-2 with {X14,X49,X41,
+    X46,X48} on 700 suspect rows is fundamentally different from V5 features
+    on 918 ungated rows.
+  honest_ceiling_without_composition: |
+    Without new composition features, Stage-2 works with 5-8 globally-weak
+    features. Stage-2 AUC ceiling ~0.82. Translates to ~+7 OOF max, LB ~64.
+    To reach LB 80, need composition features + cascade combined.
+  build_order: |
+    1. Load V4 OOF parquet, verify min positive proba = 0.01428
+    2. Apply T_s1=0.013, compute suspect_mask (~700 rows expected)
+    3. Build Stage-2 features (8 base + 3 engineered + 3 grade z-scores)
+    4. Train Stage-2 with 5-fold CV, get s2_oof
+    5. Construct final_oof (0 for non-suspects, s2_oof for suspects)
+    6. Threshold sweep, record best (R+P)/2
+    7. If OOF > 55.5 (>+1.2 over V4): fit Stage-2 on full suspects, predict test
+    8. Submit only if OOF improvement validated

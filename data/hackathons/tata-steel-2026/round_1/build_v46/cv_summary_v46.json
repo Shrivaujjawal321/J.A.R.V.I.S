@@ -1,0 +1,80 @@
+{
+  "oof_auc": 0.86268,
+  "oof_auc_ci_lo": 0.81436,
+  "oof_auc_ci_hi": 0.90714,
+  "per_model_oof_auc": {
+    "lgb": 0.86683,
+    "xgb": 0.86274,
+    "cat": 0.85317
+  },
+  "fold_aucs": {
+    "lgb": [
+      0.84287,
+      0.88911,
+      0.78509,
+      0.9117,
+      0.90901
+    ],
+    "xgb": [
+      0.8545,
+      0.90411,
+      0.75516,
+      0.89734,
+      0.90422
+    ],
+    "cat": [
+      0.84705,
+      0.88549,
+      0.78659,
+      0.90961,
+      0.85872
+    ]
+  },
+  "mean_fold_auc": {
+    "lgb": 0.86756,
+    "xgb": 0.86307,
+    "cat": 0.85749
+  },
+  "est_lb": {
+    "K200": 25.42,
+    "K216": 25.41,
+    "best": 26.05,
+    "best_k": 107,
+    "legacy_delta": 88.94
+  },
+  "oof_tp": {
+    "K200": 45,
+    "K216": 47,
+    "total_pos": 66
+  },
+  "spearman_vs_existing": {
+    "v4_meta": 0.7718604000477062,
+    "v40_proba": 0.023407315254227342,
+    "v41_proba": 0.8166930500231496,
+    "v43_rp": 0.8626493352953938
+  },
+  "n_features": {
+    "v4_base": 51,
+    "static_physics": 29,
+    "sims_residuals": 7,
+    "total": 87
+  },
+  "gates": {
+    "oof_auc_gte_093": false,
+    "spearman_v4_lt_095": true,
+    "est_lb_k200_gte_75": false
+  },
+  "v4_reference": {
+    "oof_auc": 0.8837,
+    "lb": 56.98
+  },
+  "peer_reference": {
+    "oof_auc": 0.9534,
+    "lb": 77.67,
+    "k": 216
+  },
+  "v44_banked": {
+    "lb": 72.83,
+    "k": 200
+  }
+}

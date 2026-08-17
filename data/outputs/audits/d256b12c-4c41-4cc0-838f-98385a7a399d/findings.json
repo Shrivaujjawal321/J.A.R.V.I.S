@@ -1,0 +1,114 @@
+[
+  {
+    "id": "de668ae6-0763-430a-8a9c-9de3af37f212",
+    "scanner": "gitleaks",
+    "rule_id": "gitleaks.stripe-access-token",
+    "cwe": "CWE-798",
+    "owasp_category": "SECRETS",
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+    "cvss_score": 9.3,
+    "severity": "critical",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 4,
+    "line_end": null,
+    "endpoint": null,
+    "evidence": "Secret detected by rule 'stripe-access-token': sk_l...EfGh (match: sk_live_51Hb9KdLmNpQrStUvWxYz0123456789AbCdEfGh\")",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "25b0a5d1cd3f739b",
+    "remediation": null,
+    "related_finding_ids": [
+      "017b63b7-be87-4ac4-a1e5-c731b9985cbf",
+      "c23eaaa9-b476-4995-b698-f6c995eac212",
+      "e772f7bd-52dc-4998-bb53-9ddcd78bf9a1"
+    ],
+    "scanners_agreeing": [
+      "gitleaks"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "017b63b7-be87-4ac4-a1e5-c731b9985cbf",
+    "scanner": "gitleaks",
+    "rule_id": "gitleaks.generic-api-key",
+    "cwe": "CWE-798",
+    "owasp_category": "SECRETS",
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+    "cvss_score": 9.3,
+    "severity": "critical",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 3,
+    "line_end": null,
+    "endpoint": null,
+    "evidence": "Secret detected by rule 'generic-api-key': hT8k...0nP2 (match: AWS_SECRET_ACCESS_KEY = \"hT8kLpQ2mNvR7sXwYz4aB6cD9eF1gH3jK5l)",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "8c1481adf865f543",
+    "remediation": null,
+    "related_finding_ids": [
+      "de668ae6-0763-430a-8a9c-9de3af37f212",
+      "c23eaaa9-b476-4995-b698-f6c995eac212",
+      "e772f7bd-52dc-4998-bb53-9ddcd78bf9a1"
+    ],
+    "scanners_agreeing": [
+      "gitleaks"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "c23eaaa9-b476-4995-b698-f6c995eac212",
+    "scanner": "gitleaks",
+    "rule_id": "gitleaks.aws-access-token",
+    "cwe": "CWE-798",
+    "owasp_category": "SECRETS",
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+    "cvss_score": 9.3,
+    "severity": "critical",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 2,
+    "line_end": null,
+    "endpoint": null,
+    "evidence": "Secret detected by rule 'aws-access-token': AKIA...MNXP (match: AKIA4T7HZ2QK9WD3MNXP\")",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "43d369d89fd35029",
+    "remediation": null,
+    "related_finding_ids": [
+      "de668ae6-0763-430a-8a9c-9de3af37f212",
+      "017b63b7-be87-4ac4-a1e5-c731b9985cbf",
+      "e772f7bd-52dc-4998-bb53-9ddcd78bf9a1"
+    ],
+    "scanners_agreeing": [
+      "gitleaks"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "e772f7bd-52dc-4998-bb53-9ddcd78bf9a1",
+    "scanner": "gitleaks",
+    "rule_id": "gitleaks.github-pat",
+    "cwe": "CWE-798",
+    "owasp_category": "SECRETS",
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+    "cvss_score": 9.3,
+    "severity": "critical",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 5,
+    "line_end": null,
+    "endpoint": null,
+    "evidence": "Secret detected by rule 'github-pat': ghp_...Q7r8 (match: ghp_1A2b3C4d5E6f7G8h9I0jK1l2M3n4O5p6Q7r8)",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "d21ded6de2fb4993",
+    "remediation": null,
+    "related_finding_ids": [
+      "de668ae6-0763-430a-8a9c-9de3af37f212",
+      "017b63b7-be87-4ac4-a1e5-c731b9985cbf",
+      "c23eaaa9-b476-4995-b698-f6c995eac212"
+    ],
+    "scanners_agreeing": [
+      "gitleaks"
+    ],
+    "is_actionable": true
+  }
+]

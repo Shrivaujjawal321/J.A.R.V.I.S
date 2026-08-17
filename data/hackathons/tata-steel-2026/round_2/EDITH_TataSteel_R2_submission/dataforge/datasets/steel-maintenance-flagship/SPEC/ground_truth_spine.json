@@ -1,0 +1,4053 @@
+{
+  "dataset_name": "steel-maintenance-flagship",
+  "spine_version": "1.0.0",
+  "generated": "2026-06-09",
+  "site": "TATA_JSR (Jamshedpur reference plant, synthetic)",
+  "standards_backbone": [
+    "ISA-95 (asset/tag hierarchy)",
+    "ISO 14224 (failure taxonomy)",
+    "ISO 10816-3:2009 / ISO 20816-3:2022 (vibration zones)",
+    "ISO 15243:2017 (rolling bearing failure modes)",
+    "ISO 4406:2021 (oil cleanliness; current edition, supersedes the 2017 edition cited in research/domain/04)",
+    "NEMA MG1-2021 / IEC 60034-1 (motors)",
+    "IEEE 43-2013 / 1415-2006 (insulation, MCSA)",
+    "API 670:2014 (machinery protection)",
+    "ISA-18.2-2016 (alarm management / priority tiers)"
+  ],
+  "disclaimer": "SYNTHETIC but physics-grounded. All numeric values are representative industry estimates derived from the cited standards and research briefs (machinery/17-20, domain/04-08). Site-specific baseline calibration is mandatory before any production deployment. No proprietary Tata Steel data is used.",
+  "currency_note": "INR/USD figures use approx 1 USD = INR 83.5. Cost ranges are per-event business-impact estimates from research/machinery/20 (OxMaint, FeroLabs, ifactory, Tata Steel AR 2024-25).",
+  "generation_contract": {
+    "note": "The failure_scenario_catalog is a TEMPLATE set (12 FAILURE archetypes + 36 NORMAL archetypes = 25% catalog-level proportion). This 25% is a scenario-design ratio for coverage, NOT the row-level label distribution. The generator MUST NOT propagate the catalog proportion to rows.",
+    "target_failure_rate": [
+      0.005,
+      0.05
+    ],
+    "target_failure_rate_note": "Final row-level failure rate must land in 0.5-5% (sweet spot per research/domain/08 Dimension 4; the DOMAIN_IMBALANCE_OVERRIDE band 0.5-5% scores 'ok' / 90+). 15-40% trips the 'warning / over-collected' rule; >40% is 'unrealistic / synthetic'.",
+    "expansion_rule": "Each NORMAL scenario expands into a long healthy timeseries (steady-state timesteps). Each FAILURE scenario contributes ONLY the degradation->failure window (a small fraction of its asset's total timeline) plus its preceding healthy run-to-failure (RTF) trajectory. Healthy timesteps vastly outnumber degraded/failure timesteps so the aggregate FAILURE-labelled row fraction lands inside target_failure_rate.",
+    "rtf_requirement": "Each FAILURE scenario must emit a complete healthy->degraded->failure RTF trajectory (per research/domain/08 Dimension 3) so RUL regression is feasible; no truncation of the degradation curve.",
+    "min_failure_events": 100,
+    "min_failure_events_note": "Aggregate FAILURE instances should be >=100 across the dataset (research/domain/08 Dimension 2: <30 critical, 30-100 warning, >100 ok), achieved by repeating each FAILURE archetype across multiple synthetic episodes while keeping the overall row-level rate within target_failure_rate."
+  },
+  "asset_registry": [
+    {
+      "asset_id": "HSM.F3.WR.BRG01",
+      "equipment_class": "rolling_mill_work_roll_bearing",
+      "description": "Hot strip mill finishing stand F3 work-roll chock bearing (oil-film/roller neck bearing)",
+      "process_stage": "hot_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "HOT_ROLLING",
+        "unit": "FINISHING_STAND_3",
+        "equipment": "WORK_ROLL_DE_CHOCK"
+      },
+      "manufacturer": "SKF",
+      "model": "Oil-film bearing + 4-row cylindrical roller neck brg",
+      "rated_speed_rpm": 600,
+      "criticality": 1,
+      "installation_date": "2020-04-12",
+      "last_overhaul_date": "2024-09-03",
+      "sensors": [
+        {
+          "tag": "JSR.HR.STD3.WR.BRG01.VIB.DE.H.RMS",
+          "quantity": "vibration_velocity_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            2.3
+          ],
+          "warning_threshold": 4.5,
+          "alarm_threshold": 7.1,
+          "sampling_rate": "1 Hz trend (25.6 kHz burst)",
+          "standard": "ISO 20816-3:2022 Group 2 zones"
+        },
+        {
+          "tag": "JSR.HR.STD3.WR.BRG01.VIB.DE.ENV.BPFO",
+          "quantity": "envelope_bpfo_amplitude",
+          "unit": "g",
+          "normal_range": [
+            0.0,
+            0.5
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 3.0,
+          "sampling_rate": "0.2 Hz",
+          "standard": "ISO 15243:2017"
+        },
+        {
+          "tag": "JSR.HR.STD3.WR.BRG01.TEMP.DE",
+          "quantity": "bearing_outer_ring_temp",
+          "unit": "degC",
+          "normal_range": [
+            40,
+            70
+          ],
+          "warning_threshold": 85,
+          "alarm_threshold": 100,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 15243:2017 sec7"
+        },
+        {
+          "tag": "JSR.HR.STD3.WR.BRG01.OFB.OUT.TEMP",
+          "quantity": "oil_film_bearing_outlet_temp",
+          "unit": "degC",
+          "normal_range": [
+            50,
+            65
+          ],
+          "warning_threshold": 75,
+          "alarm_threshold": 85,
+          "sampling_rate": "1 Hz",
+          "standard": "SKF OFB guide [unverified]"
+        },
+        {
+          "tag": "JSR.HR.STD3.WR.BRG01.AE.RMS",
+          "quantity": "acoustic_emission_rms",
+          "unit": "dBuV",
+          "normal_range": [
+            -2,
+            2
+          ],
+          "warning_threshold": 6,
+          "alarm_threshold": 12,
+          "sampling_rate": "1 Hz feature",
+          "standard": "ASTM E2374-14"
+        }
+      ],
+      "failure_modes": [
+        "outer_race_fatigue_spall_BPFO",
+        "inner_race_fatigue_spall_BPFI",
+        "lubrication_starvation_overheat",
+        "oil_film_breakdown"
+      ]
+    },
+    {
+      "asset_id": "HSM.F1.GBX01",
+      "equipment_class": "mill_gearbox",
+      "description": "Hot strip mill F1 main-drive reduction gearbox (forced-lube, ISO VG 220)",
+      "process_stage": "hot_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "HOT_ROLLING",
+        "unit": "FINISHING_STAND_1",
+        "equipment": "MAIN_GEARBOX"
+      },
+      "manufacturer": "Flender",
+      "model": "H4SH-mill drive",
+      "rated_power_kW": 6000,
+      "criticality": 1,
+      "installation_date": "2018-06-20",
+      "last_overhaul_date": "2023-11-15",
+      "sensors": [
+        {
+          "tag": "JSR.HR.STD1.GBX01.VIB.GMF.RMS",
+          "quantity": "gmf_band_vibration_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            4.0
+          ],
+          "warning_threshold": 6.0,
+          "alarm_threshold": 10.0,
+          "sampling_rate": "1 Hz trend",
+          "standard": "AGMA 9005-F16 [unverified]"
+        },
+        {
+          "tag": "JSR.HR.STD1.GBX01.OIL.TEMP",
+          "quantity": "oil_sump_temp",
+          "unit": "degC",
+          "normal_range": [
+            45,
+            65
+          ],
+          "warning_threshold": 80,
+          "alarm_threshold": 90,
+          "sampling_rate": "1 Hz",
+          "standard": "Playbook 02"
+        },
+        {
+          "tag": "JSR.HR.STD1.GBX01.OIL.PRES",
+          "quantity": "lube_oil_pressure",
+          "unit": "bar",
+          "normal_range": [
+            2.5,
+            4.0
+          ],
+          "warning_threshold": 2.2,
+          "alarm_threshold": 2.0,
+          "sampling_rate": "1 Hz",
+          "standard": "forced-lube minimum"
+        },
+        {
+          "tag": "JSR.HR.STD1.GBX01.OIL.FE.PPM",
+          "quantity": "ferrous_particle_count",
+          "unit": "ppm",
+          "normal_range": [
+            0,
+            5
+          ],
+          "warning_threshold": 15,
+          "alarm_threshold": 40,
+          "sampling_rate": "0.001 Hz (lab/inline)",
+          "standard": "ASTM D5185 / ISO 4406:2021"
+        },
+        {
+          "tag": "JSR.HR.STD1.GBX01.OIL.VISC",
+          "quantity": "kinematic_viscosity_40C",
+          "unit": "cSt",
+          "normal_range": [
+            198,
+            242
+          ],
+          "warning_threshold": 180,
+          "alarm_threshold": 265,
+          "sampling_rate": "0.001 Hz",
+          "standard": "ISO 3448 VG220 +/-10%"
+        }
+      ],
+      "failure_modes": [
+        "gear_tooth_wear_GMF_sideband",
+        "gear_tooth_fatigue_crack",
+        "gear_scuffing_micropitting",
+        "oil_oxidation_varnish"
+      ]
+    },
+    {
+      "asset_id": "HSM.F1.MTR01",
+      "equipment_class": "large_induction_motor_vfd",
+      "description": "Hot strip mill F1 main drive AC induction motor, VFD-fed (MV)",
+      "process_stage": "hot_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "HOT_ROLLING",
+        "unit": "FINISHING_STAND_1",
+        "equipment": "MAIN_MOTOR"
+      },
+      "manufacturer": "ABB",
+      "model": "AMI 630 MV (VFD ACS6000)",
+      "rated_power_kW": 6000,
+      "rated_speed_rpm": 990,
+      "bearing_model_DE": "SKF 6326",
+      "bearing_model_NDE": "SKF 6226",
+      "insulation_class": "F",
+      "criticality": 1,
+      "installation_date": "2018-06-20",
+      "last_overhaul_date": "2024-02-10",
+      "sensors": [
+        {
+          "tag": "JSR.HR.STD1.MTR01.MCSA.RBAR.SB",
+          "quantity": "mcsa_rotor_bar_sideband",
+          "unit": "dBc",
+          "normal_range": [
+            -70,
+            -50
+          ],
+          "warning_threshold": -45,
+          "alarm_threshold": -35,
+          "sampling_rate": "burst kHz -> 1 Hz feature",
+          "standard": "IEEE 1415-2006"
+        },
+        {
+          "tag": "JSR.HR.STD1.MTR01.WIND.TEMP",
+          "quantity": "stator_winding_temp",
+          "unit": "degC",
+          "normal_range": [
+            80,
+            130
+          ],
+          "warning_threshold": 145,
+          "alarm_threshold": 155,
+          "sampling_rate": "1 Hz",
+          "standard": "IEC 60034-1 Class F"
+        },
+        {
+          "tag": "JSR.HR.STD1.MTR01.VIB.DE.RMS",
+          "quantity": "motor_body_vibration_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            2.3
+          ],
+          "warning_threshold": 4.5,
+          "alarm_threshold": 7.1,
+          "sampling_rate": "1 Hz trend",
+          "standard": "ISO 20816-1:2016 Group 2"
+        },
+        {
+          "tag": "JSR.HR.STD1.MTR01.CURR.IMBAL",
+          "quantity": "phase_current_imbalance",
+          "unit": "%",
+          "normal_range": [
+            0,
+            1
+          ],
+          "warning_threshold": 2,
+          "alarm_threshold": 5,
+          "sampling_rate": "1 Hz",
+          "standard": "NEMA MG1-2021 12.45"
+        },
+        {
+          "tag": "JSR.HR.STD1.MTR01.INS.PI",
+          "quantity": "polarisation_index",
+          "unit": "ratio",
+          "normal_range": [
+            2.0,
+            5.0
+          ],
+          "warning_threshold": 2.0,
+          "alarm_threshold": 1.5,
+          "sampling_rate": "offline (event)",
+          "standard": "IEEE 43-2013",
+          "note": "lower is worse"
+        },
+        {
+          "tag": "JSR.HR.STD1.MTR01.VIB.2XF1",
+          "quantity": "vibration_2x_supply_freq",
+          "unit": "mm/s",
+          "normal_range": [
+            0.0,
+            0.5
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 2.5,
+          "sampling_rate": "1 Hz",
+          "standard": "IEEE 1415-2006 (eccentricity)"
+        }
+      ],
+      "failure_modes": [
+        "broken_rotor_bar",
+        "stator_winding_turn_short",
+        "insulation_degradation_ground_fault",
+        "rotor_eccentricity",
+        "winding_overheat",
+        "motor_bearing_spall_BPFO"
+      ]
+    },
+    {
+      "asset_id": "HSM.DSC.PMP01",
+      "equipment_class": "cooling_descaling_pump",
+      "description": "Hot strip mill high-pressure descaling pump (centrifugal, ~200 bar service)",
+      "process_stage": "hot_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "HOT_ROLLING",
+        "unit": "DESCALER",
+        "equipment": "HP_DESCALE_PUMP_1"
+      },
+      "manufacturer": "KSB",
+      "model": "Multitec HP",
+      "rated_power_kW": 1200,
+      "rated_speed_rpm": 1485,
+      "criticality": 2,
+      "installation_date": "2019-08-30",
+      "last_overhaul_date": "2024-05-18",
+      "sensors": [
+        {
+          "tag": "JSR.HR.DSC.PMP01.PRES.SUC",
+          "quantity": "suction_pressure",
+          "unit": "kPa",
+          "normal_range": [
+            120,
+            250
+          ],
+          "warning_threshold": 90,
+          "alarm_threshold": 70,
+          "sampling_rate": "1 Hz",
+          "standard": "HI 9.6.1-2017 (NPSH)",
+          "note": "lower triggers cavitation"
+        },
+        {
+          "tag": "JSR.HR.DSC.PMP01.PRES.DIS",
+          "quantity": "discharge_pressure",
+          "unit": "bar",
+          "normal_range": [
+            190,
+            210
+          ],
+          "warning_threshold": 175,
+          "alarm_threshold": 165,
+          "sampling_rate": "1 Hz",
+          "standard": "HI 9.6.7-2021"
+        },
+        {
+          "tag": "JSR.HR.DSC.PMP01.AE.RMS",
+          "quantity": "ae_broadband_rms",
+          "unit": "dB",
+          "normal_range": [
+            -2,
+            2
+          ],
+          "warning_threshold": 8,
+          "alarm_threshold": 15,
+          "sampling_rate": "1 Hz feature",
+          "standard": "ASTM E2374-14 (cavitation 100-500 kHz)"
+        },
+        {
+          "tag": "JSR.HR.DSC.PMP01.VIB.CAS.RMS",
+          "quantity": "casing_vibration_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            1.5
+          ],
+          "warning_threshold": 2.5,
+          "alarm_threshold": 5.0,
+          "sampling_rate": "1 Hz trend",
+          "standard": "ISO 10816-7:2009"
+        },
+        {
+          "tag": "JSR.HR.DSC.PMP01.FLOW.DIS",
+          "quantity": "discharge_flow",
+          "unit": "m3/hr",
+          "normal_range": [
+            388,
+            412
+          ],
+          "warning_threshold": 372,
+          "alarm_threshold": 352,
+          "sampling_rate": "1 Hz",
+          "standard": "pump curve +/-3%"
+        },
+        {
+          "tag": "JSR.HR.DSC.PMP01.TEMP.BRG",
+          "quantity": "bearing_temp",
+          "unit": "degC",
+          "normal_range": [
+            40,
+            70
+          ],
+          "warning_threshold": 85,
+          "alarm_threshold": 100,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 15243:2017"
+        }
+      ],
+      "failure_modes": [
+        "cavitation",
+        "impeller_wear_erosion",
+        "mechanical_seal_failure",
+        "pump_bearing_failure"
+      ]
+    },
+    {
+      "asset_id": "BF.BLW.FAN01",
+      "equipment_class": "bf_sinter_fan_blower",
+      "description": "Blast furnace turbo-blower / cold-blast machine (Tier-1 critical)",
+      "process_stage": "iron_making",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "BLAST_FURNACE",
+        "unit": "BLOWER_HOUSE",
+        "equipment": "TURBO_BLOWER_1"
+      },
+      "manufacturer": "Siemens / MAN",
+      "model": "Axial blast machine",
+      "rated_power_kW": 28000,
+      "rated_speed_rpm": 3600,
+      "criticality": 1,
+      "installation_date": "2016-03-01",
+      "last_overhaul_date": "2023-10-12",
+      "sensors": [
+        {
+          "tag": "JSR.BF.BLW.FAN01.VIB.1X",
+          "quantity": "vibration_1x_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            1.0,
+            2.3
+          ],
+          "warning_threshold": 4.5,
+          "alarm_threshold": 7.1,
+          "sampling_rate": "1 Hz trend",
+          "standard": "ISO 10816-3:2009 Group 3"
+        },
+        {
+          "tag": "JSR.BF.BLW.FAN01.SHAFT.DISP",
+          "quantity": "shaft_displacement_pkpk",
+          "unit": "um",
+          "normal_range": [
+            10,
+            50
+          ],
+          "warning_threshold": 80,
+          "alarm_threshold": 127,
+          "sampling_rate": "proximity probe 1 Hz",
+          "standard": "API 670:2014 Table 1"
+        },
+        {
+          "tag": "JSR.BF.BLW.FAN01.TEMP.BRG",
+          "quantity": "bearing_outer_ring_temp",
+          "unit": "degC",
+          "normal_range": [
+            45,
+            65
+          ],
+          "warning_threshold": 80,
+          "alarm_threshold": 95,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 15243:2017 sec8"
+        },
+        {
+          "tag": "JSR.BF.BLW.FAN01.PRES.OSC",
+          "quantity": "discharge_pressure_oscillation",
+          "unit": "%",
+          "normal_range": [
+            0,
+            2
+          ],
+          "warning_threshold": 5,
+          "alarm_threshold": 8,
+          "sampling_rate": "10 Hz",
+          "standard": "API 670 surge [unverified]"
+        },
+        {
+          "tag": "JSR.BF.BLW.FAN01.THRUST.TEMP",
+          "quantity": "thrust_bearing_temp",
+          "unit": "degC",
+          "normal_range": [
+            50,
+            75
+          ],
+          "warning_threshold": 90,
+          "alarm_threshold": 105,
+          "sampling_rate": "1 Hz",
+          "standard": "API 617 class [unverified]"
+        }
+      ],
+      "failure_modes": [
+        "blade_erosion_deposit",
+        "mass_imbalance_deposit_shedding",
+        "compressor_surge",
+        "journal_bearing_failure",
+        "bearing_overheating"
+      ]
+    },
+    {
+      "asset_id": "CCM.SEG.07",
+      "equipment_class": "continuous_caster_segment",
+      "description": "Continuous caster strand-guide segment 7 (withdrawal/bending zone)",
+      "process_stage": "casting",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "CASTER_1",
+        "unit": "STRAND_GUIDE",
+        "equipment": "SEGMENT_07"
+      },
+      "manufacturer": "SMS Concast",
+      "model": "Smart segment",
+      "criticality": 1,
+      "installation_date": "2019-11-22",
+      "last_overhaul_date": "2024-08-01",
+      "sensors": [
+        {
+          "tag": "JSR.CC1.SEG07.FORCE.HYD",
+          "quantity": "segment_clamping_force",
+          "unit": "kN",
+          "normal_range": [
+            200,
+            400
+          ],
+          "warning_threshold": 480,
+          "alarm_threshold": 550,
+          "sampling_rate": "10 Hz",
+          "standard": "Primetals soft-reduction [unverified]"
+        },
+        {
+          "tag": "JSR.CC1.SEG07.ROLL.RPM",
+          "quantity": "roll_rotation_speed",
+          "unit": "rpm",
+          "normal_range": [
+            3,
+            25
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 0.0,
+          "sampling_rate": "encoder 1 Hz",
+          "standard": "seized roll = no pulses",
+          "note": "drop to 0 = seizure"
+        },
+        {
+          "tag": "JSR.CC1.SEG07.BULGE",
+          "quantity": "strand_bulge_deviation",
+          "unit": "mm",
+          "normal_range": [
+            0.0,
+            1.0
+          ],
+          "warning_threshold": 2.0,
+          "alarm_threshold": 4.0,
+          "sampling_rate": "1 Hz",
+          "standard": "Primetals [unverified]"
+        },
+        {
+          "tag": "JSR.CC1.SEG07.SPRAY.FLOW",
+          "quantity": "zone_spray_flow",
+          "unit": "L/min",
+          "normal_range": [
+            180,
+            220
+          ],
+          "warning_threshold": 150,
+          "alarm_threshold": 120,
+          "sampling_rate": "1 Hz",
+          "standard": "secondary cooling zone"
+        },
+        {
+          "tag": "JSR.CC1.SEG07.VIB.ROLL",
+          "quantity": "roll_bearing_vibration",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            2.0
+          ],
+          "warning_threshold": 3.5,
+          "alarm_threshold": 6.0,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 10816-3 [unverified]"
+        }
+      ],
+      "failure_modes": [
+        "roll_seizure",
+        "roll_bearing_failure",
+        "spray_nozzle_blockage",
+        "segment_misalignment_bulging"
+      ]
+    },
+    {
+      "asset_id": "CCM.MOLD.01",
+      "equipment_class": "continuous_caster_mould",
+      "description": "Continuous caster copper mould (Caster 1, slab) with thermocouple array + oscillator",
+      "process_stage": "casting",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "CASTER_1",
+        "unit": "MOLD",
+        "equipment": "MOLD_ASSY"
+      },
+      "manufacturer": "SMS Concast",
+      "model": "Slab mould Cu-Cr-Zr plate",
+      "criticality": 1,
+      "installation_date": "2021-02-14",
+      "last_overhaul_date": "2024-10-20",
+      "sensors": [
+        {
+          "tag": "JSR.CC1.MOLD.TC.DELTA",
+          "quantity": "adjacent_tc_delta",
+          "unit": "degC",
+          "normal_range": [
+            0,
+            20
+          ],
+          "warning_threshold": 25,
+          "alarm_threshold": 50,
+          "sampling_rate": "10-100 Hz (sub-100ms to BPS)",
+          "standard": "EP2465622B1 [unverified]",
+          "note": "V-pattern cold spot = breakout precursor"
+        },
+        {
+          "tag": "JSR.CC1.MOLD.OSC.FRICTION",
+          "quantity": "oscillator_friction_force",
+          "unit": "kN",
+          "normal_range": [
+            2,
+            8
+          ],
+          "warning_threshold": 10,
+          "alarm_threshold": 18,
+          "sampling_rate": "100 Hz",
+          "standard": "SMS Concast [unverified]"
+        },
+        {
+          "tag": "JSR.CC1.MOLD.LEVEL.DEV",
+          "quantity": "mould_level_deviation",
+          "unit": "mm",
+          "normal_range": [
+            -2,
+            2
+          ],
+          "warning_threshold": 5,
+          "alarm_threshold": 12,
+          "sampling_rate": "10 Hz",
+          "standard": "Siemens level control [unverified]"
+        },
+        {
+          "tag": "JSR.CC1.MOLD.HEATFLUX",
+          "quantity": "mean_mould_heat_flux",
+          "unit": "MW/m2",
+          "normal_range": [
+            1.2,
+            2.0
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 0.8,
+          "sampling_rate": "1 Hz computed",
+          "standard": "industry rule [unverified]",
+          "note": "lower is worse"
+        }
+      ],
+      "failure_modes": [
+        "breakout_sticking",
+        "mould_level_instability",
+        "copper_plate_wear",
+        "SEN_erosion"
+      ]
+    },
+    {
+      "asset_id": "HSM.STD.R1",
+      "equipment_class": "hot_strip_mill_stand",
+      "description": "Hot strip mill roughing stand R1 (work rolls, AGC screwdown, roll-force load cells)",
+      "process_stage": "hot_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "HOT_ROLLING",
+        "unit": "ROUGHING_STAND_1",
+        "equipment": "MILL_STAND"
+      },
+      "manufacturer": "Primetals",
+      "model": "4-high reversing stand",
+      "criticality": 1,
+      "installation_date": "2017-09-10",
+      "last_overhaul_date": "2024-01-25",
+      "sensors": [
+        {
+          "tag": "JSR.HR.R1.FORCE",
+          "quantity": "rolling_force_ripple",
+          "unit": "%",
+          "normal_range": [
+            0,
+            2
+          ],
+          "warning_threshold": 4,
+          "alarm_threshold": 8,
+          "sampling_rate": "100 Hz",
+          "standard": "Tata PdM internal [unverified]",
+          "note": "periodic ripple at 1x roll = spall"
+        },
+        {
+          "tag": "JSR.HR.R1.WR.VIB.CHOCK",
+          "quantity": "chock_vibration_chatter",
+          "unit": "mm/s",
+          "normal_range": [
+            0,
+            1.0
+          ],
+          "warning_threshold": 4.0,
+          "alarm_threshold": 10.0,
+          "sampling_rate": "burst",
+          "standard": "ABB CMC [unverified]"
+        },
+        {
+          "tag": "JSR.HR.R1.CROWN.DEV",
+          "quantity": "strip_crown_deviation",
+          "unit": "um",
+          "normal_range": [
+            -10,
+            10
+          ],
+          "warning_threshold": 25,
+          "alarm_threshold": 40,
+          "sampling_rate": "1 Hz",
+          "standard": "[unverified]"
+        },
+        {
+          "tag": "JSR.HR.R1.WR.AE.RMS",
+          "quantity": "roll_journal_ae_rms",
+          "unit": "dB",
+          "normal_range": [
+            -3,
+            3
+          ],
+          "warning_threshold": 8,
+          "alarm_threshold": 15,
+          "sampling_rate": "1 Hz",
+          "standard": "ASTM E2374-14 [unverified]"
+        }
+      ],
+      "failure_modes": [
+        "work_roll_spall_flat",
+        "roll_wear_thermal_camber_loss",
+        "roll_chatter_5th_octave",
+        "roll_surface_fatigue_crack"
+      ]
+    },
+    {
+      "asset_id": "RM.CONV.ORE01",
+      "equipment_class": "raw_material_conveyor",
+      "description": "Raw material yard ore conveyor (long-overland, drive + idlers)",
+      "process_stage": "raw_material_handling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "RAW_MATERIAL",
+        "unit": "ORE_YARD",
+        "equipment": "CONV_ORE_1"
+      },
+      "manufacturer": "TRF / Fenner Dunlop",
+      "model": "1600mm belt EP630",
+      "rated_power_kW": 800,
+      "criticality": 2,
+      "installation_date": "2018-12-05",
+      "last_overhaul_date": "2024-03-30",
+      "sensors": [
+        {
+          "tag": "JSR.RM.CONV1.MTR.CURR",
+          "quantity": "drive_motor_current",
+          "unit": "%FLA",
+          "normal_range": [
+            60,
+            95
+          ],
+          "warning_threshold": 105,
+          "alarm_threshold": 125,
+          "sampling_rate": "1 Hz",
+          "standard": "NEMA MG1 / IEC 60947-4"
+        },
+        {
+          "tag": "JSR.RM.CONV1.IDLER.US",
+          "quantity": "idler_ultrasound_level",
+          "unit": "dBuV",
+          "normal_range": [
+            -20,
+            -8
+          ],
+          "warning_threshold": 8,
+          "alarm_threshold": 15,
+          "sampling_rate": "patrol/0.01 Hz",
+          "standard": "UE Systems [unverified]",
+          "note": "above baseline"
+        },
+        {
+          "tag": "JSR.RM.CONV1.IDLER.TEMP",
+          "quantity": "idler_surface_temp",
+          "unit": "degC",
+          "normal_range": [
+            25,
+            60
+          ],
+          "warning_threshold": 80,
+          "alarm_threshold": 100,
+          "sampling_rate": "IR scan",
+          "standard": "fire-risk threshold"
+        },
+        {
+          "tag": "JSR.RM.CONV1.BELT.EDGE",
+          "quantity": "belt_edge_position",
+          "unit": "mm",
+          "normal_range": [
+            -15,
+            15
+          ],
+          "warning_threshold": 25,
+          "alarm_threshold": 50,
+          "sampling_rate": "1 Hz",
+          "standard": "CEMA sec6 [unverified]"
+        },
+        {
+          "tag": "JSR.RM.CONV1.RIP.LOOP",
+          "quantity": "rip_detector_loop_current",
+          "unit": "mA",
+          "normal_range": [
+            60,
+            80
+          ],
+          "warning_threshold": 48,
+          "alarm_threshold": 0,
+          "sampling_rate": "1 Hz",
+          "standard": "Fenner RipScan [unverified]",
+          "note": "open = tear"
+        }
+      ],
+      "failure_modes": [
+        "idler_bearing_failure",
+        "belt_misalignment",
+        "motor_overload_blocked_chute",
+        "belt_rip_tear"
+      ]
+    },
+    {
+      "asset_id": "RHF.ZONE.SOAK",
+      "equipment_class": "reheating_furnace",
+      "description": "Walking-beam reheating furnace soak zone (slab reheat before HSM)",
+      "process_stage": "reheating",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "REHEAT_FURNACE",
+        "unit": "SOAK_ZONE",
+        "equipment": "ZONE_3"
+      },
+      "manufacturer": "Tenova",
+      "model": "Walking-beam WB",
+      "criticality": 2,
+      "installation_date": "2017-05-15",
+      "last_overhaul_date": "2023-12-08",
+      "sensors": [
+        {
+          "tag": "JSR.RHF.Z3.SHELL.IR",
+          "quantity": "shell_surface_temp_ir",
+          "unit": "degC",
+          "normal_range": [
+            80,
+            120
+          ],
+          "warning_threshold": 180,
+          "alarm_threshold": 250,
+          "sampling_rate": "IR scan",
+          "standard": "refractory practice [unverified]"
+        },
+        {
+          "tag": "JSR.RHF.Z3.FLAME.SIG",
+          "quantity": "flame_scanner_signal",
+          "unit": "%",
+          "normal_range": [
+            90,
+            100
+          ],
+          "warning_threshold": 70,
+          "alarm_threshold": 40,
+          "sampling_rate": "10 Hz",
+          "standard": "EN 746-2:2010 sec5.4",
+          "note": "lower is worse"
+        },
+        {
+          "tag": "JSR.RHF.Z3.FLUE.O2",
+          "quantity": "flue_gas_o2",
+          "unit": "%",
+          "normal_range": [
+            1.5,
+            3.5
+          ],
+          "warning_threshold_low": 1.0,
+          "warning_threshold": 5.0,
+          "alarm_threshold": 6.0,
+          "sampling_rate": "1 Hz",
+          "standard": "EN 746-2 / EIGA"
+        },
+        {
+          "tag": "JSR.RHF.Z3.ZONE.TEMP",
+          "quantity": "zone_temperature",
+          "unit": "degC",
+          "normal_range": [
+            1180,
+            1280
+          ],
+          "warning_threshold": 1300,
+          "alarm_threshold": 1330,
+          "sampling_rate": "1 Hz",
+          "standard": "Type S TC"
+        }
+      ],
+      "failure_modes": [
+        "refractory_hot_spot_burnout",
+        "burner_failure_fuelside",
+        "combustion_imbalance_excess_air"
+      ]
+    },
+    {
+      "asset_id": "EAF.AUX.HYD01",
+      "equipment_class": "eaf_bof_auxiliary",
+      "description": "EAF/steelmaking auxiliary hydraulic power unit (electrode regulation / tilt)",
+      "process_stage": "steelmaking",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "MELT_SHOP",
+        "unit": "EAF_1",
+        "equipment": "HYD_POWER_UNIT"
+      },
+      "manufacturer": "Bosch Rexroth",
+      "model": "HPU 350 bar",
+      "criticality": 1,
+      "installation_date": "2019-04-18",
+      "last_overhaul_date": "2024-06-22",
+      "sensors": [
+        {
+          "tag": "JSR.MS.EAF1.HYD.ISO4406",
+          "quantity": "iso4406_cleanliness",
+          "unit": "code",
+          "normal_range": "<=17/15/12",
+          "warning_threshold": "18/16/13",
+          "alarm_threshold": "19/17/14",
+          "sampling_rate": "inline 0.01 Hz",
+          "standard": "ISO 4406:2021"
+        },
+        {
+          "tag": "JSR.MS.EAF1.HYD.OIL.TEMP",
+          "quantity": "oil_temp",
+          "unit": "degC",
+          "normal_range": [
+            40,
+            50
+          ],
+          "warning_threshold": 60,
+          "alarm_threshold": 70,
+          "sampling_rate": "1 Hz",
+          "standard": "Rexroth sec2 [unverified]"
+        },
+        {
+          "tag": "JSR.MS.EAF1.HYD.FILT.DP",
+          "quantity": "filter_diff_pressure",
+          "unit": "bar",
+          "normal_range": [
+            0.0,
+            1.5
+          ],
+          "warning_threshold": 3.0,
+          "alarm_threshold": 4.5,
+          "sampling_rate": "1 Hz",
+          "standard": "Pall [unverified]"
+        },
+        {
+          "tag": "JSR.MS.EAF1.HYD.WATER.PPM",
+          "quantity": "water_content",
+          "unit": "ppm",
+          "normal_range": [
+            0,
+            100
+          ],
+          "warning_threshold": 200,
+          "alarm_threshold": 500,
+          "sampling_rate": "0.01 Hz",
+          "standard": "ISO 23409 [unverified]"
+        }
+      ],
+      "failure_modes": [
+        "oil_contamination_particulate",
+        "oil_water_contamination",
+        "oil_temp_rise_cooler_fault",
+        "filter_clog"
+      ]
+    },
+    {
+      "asset_id": "BF.CW.PMP02",
+      "equipment_class": "cooling_descaling_pump",
+      "description": "Blast furnace cooling-water circulation pump (large centrifugal)",
+      "process_stage": "iron_making",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "BLAST_FURNACE",
+        "unit": "COOLING_WATER",
+        "equipment": "PUMP_102"
+      },
+      "manufacturer": "KSB",
+      "model": "Omega double-suction",
+      "rated_power_kW": 900,
+      "rated_speed_rpm": 990,
+      "criticality": 1,
+      "installation_date": "2018-07-19",
+      "last_overhaul_date": "2024-04-11",
+      "sensors": [
+        {
+          "tag": "JSR.BF.CW.PMP02.VIB.1X",
+          "quantity": "vibration_1x_radial",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            1.8
+          ],
+          "warning_threshold": 2.8,
+          "alarm_threshold": 5.6,
+          "sampling_rate": "1 Hz trend",
+          "standard": "ISO 10816-7:2009"
+        },
+        {
+          "tag": "JSR.BF.CW.PMP02.HEAD.DEV",
+          "quantity": "differential_head_deviation",
+          "unit": "%",
+          "normal_range": [
+            -3,
+            3
+          ],
+          "warning_threshold": -7,
+          "alarm_threshold": -12,
+          "sampling_rate": "1 Hz",
+          "standard": "HI 9.6.7-2021",
+          "note": "negative = wear"
+        },
+        {
+          "tag": "JSR.BF.CW.PMP02.TEMP.BRG",
+          "quantity": "bearing_temp",
+          "unit": "degC",
+          "normal_range": [
+            40,
+            70
+          ],
+          "warning_threshold": 85,
+          "alarm_threshold": 100,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 15243:2017"
+        },
+        {
+          "tag": "JSR.BF.CW.PMP02.VIB.BB",
+          "quantity": "broadband_vibration_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            0.5,
+            1.5
+          ],
+          "warning_threshold": 2.5,
+          "alarm_threshold": 5.0,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 10816-7:2009 (seal)"
+        }
+      ],
+      "failure_modes": [
+        "impeller_wear_erosion",
+        "pump_bearing_failure",
+        "mechanical_seal_failure",
+        "unbalance"
+      ]
+    },
+    {
+      "asset_id": "SP.SINT.FAN01",
+      "equipment_class": "bf_sinter_fan_blower",
+      "description": "Sinter plant main exhaust fan (high-criticality, dust-laden gas)",
+      "process_stage": "sintering",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "SINTER_PLANT",
+        "unit": "MAIN_FAN",
+        "equipment": "FAN_1"
+      },
+      "manufacturer": "TLT-Turbo",
+      "model": "Radial process fan",
+      "rated_power_kW": 4500,
+      "rated_speed_rpm": 990,
+      "criticality": 1,
+      "installation_date": "2017-11-08",
+      "last_overhaul_date": "2023-09-29",
+      "sensors": [
+        {
+          "tag": "JSR.SP.FAN01.VIB.1X",
+          "quantity": "vibration_1x_rms",
+          "unit": "mm/s",
+          "normal_range": [
+            1.0,
+            2.3
+          ],
+          "warning_threshold": 4.5,
+          "alarm_threshold": 7.1,
+          "sampling_rate": "1 Hz trend",
+          "standard": "ISO 10816-3:2009 Group 3"
+        },
+        {
+          "tag": "JSR.SP.FAN01.TEMP.BRG",
+          "quantity": "bearing_outer_ring_temp",
+          "unit": "degC",
+          "normal_range": [
+            45,
+            65
+          ],
+          "warning_threshold": 80,
+          "alarm_threshold": 95,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 15243:2017 sec8"
+        },
+        {
+          "tag": "JSR.SP.FAN01.VIB.AXIAL",
+          "quantity": "axial_2x_ratio",
+          "unit": "ratio",
+          "normal_range": [
+            0.0,
+            0.3
+          ],
+          "warning_threshold": 0.4,
+          "alarm_threshold": 0.7,
+          "sampling_rate": "1 Hz",
+          "standard": "Mobius [unverified]"
+        },
+        {
+          "tag": "JSR.SP.FAN01.DP.DUCT",
+          "quantity": "inlet_outlet_dp",
+          "unit": "kPa",
+          "normal_range": [
+            8,
+            14
+          ],
+          "warning_threshold": 18,
+          "alarm_threshold": 22,
+          "sampling_rate": "1 Hz",
+          "standard": "performance degradation"
+        }
+      ],
+      "failure_modes": [
+        "blade_erosion_deposit",
+        "mass_imbalance_deposit_shedding",
+        "shaft_bow_misalignment",
+        "bearing_overheating"
+      ]
+    },
+    {
+      "asset_id": "MS.LDC.CRN01",
+      "equipment_class": "ladle_crane",
+      "description": "Melt shop ladle crane hoist (molten-metal handling, safety-critical)",
+      "process_stage": "steelmaking",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "MELT_SHOP",
+        "unit": "LADLE_BAY",
+        "equipment": "CRANE_1_HOIST"
+      },
+      "manufacturer": "Konecranes",
+      "model": "Ladle crane 320t",
+      "rated_load_t": 320,
+      "criticality": 1,
+      "installation_date": "2016-08-20",
+      "last_overhaul_date": "2024-07-05",
+      "sensors": [
+        {
+          "tag": "JSR.MS.CRN01.ROPE.MFL",
+          "quantity": "wire_rope_mfl_signal",
+          "unit": "mV",
+          "normal_range": [
+            0,
+            100
+          ],
+          "warning_threshold": 150,
+          "alarm_threshold": 300,
+          "sampling_rate": "per-feed",
+          "standard": "ISO 4309:2017 (MFL/LMA + visible broken-wire criteria)",
+          "note": "MFL is the LMA proxy. Warning 150 mV ~= 8-12% LMA (advisory). Alarm 300 mV ~= >15-20% LMA / >=12 random broken wires in one lay length (>=4 in one strand) = discard per ISO 4309. Diameter-reduction discard is -7% (warning -3%); LMA-percentage and broken-wire-count are distinct metrics and must not be conflated."
+        },
+        {
+          "tag": "JSR.MS.CRN01.LOAD.SWL",
+          "quantity": "hoist_load_pct_swl",
+          "unit": "%SWL",
+          "normal_range": [
+            0,
+            95
+          ],
+          "warning_threshold": 95,
+          "alarm_threshold": 110,
+          "sampling_rate": "1 Hz",
+          "standard": "FEM 1.001 / BS EN 13135 / ISO 4309:2017 (ladle-crane molten-metal profile)",
+          "note": "Molten-metal ladle crane: alarm at 95% WLL, cut power at 110% (per research/machinery/11). Stricter than general EOT (105/110)."
+        },
+        {
+          "tag": "JSR.MS.CRN01.GBX.VIB.GMF",
+          "quantity": "hoist_gearbox_gmf",
+          "unit": "g",
+          "normal_range": [
+            0,
+            0.5
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 2.5,
+          "sampling_rate": "1 Hz",
+          "standard": "ISO 10816 extrapol [unverified]"
+        },
+        {
+          "tag": "JSR.MS.CRN01.BRAKE.TEMP",
+          "quantity": "brake_drum_temp",
+          "unit": "degC",
+          "normal_range": [
+            25,
+            90
+          ],
+          "warning_threshold": 110,
+          "alarm_threshold": 120,
+          "sampling_rate": "IR",
+          "standard": "[unverified]"
+        }
+      ],
+      "failure_modes": [
+        "wire_rope_fatigue_broken_wire",
+        "hoist_gearbox_gear_wear",
+        "brake_wear_slip"
+      ]
+    },
+    {
+      "asset_id": "CRM.AGC.SV01",
+      "equipment_class": "hydraulics_agc_servo",
+      "description": "Cold rolling mill AGC hydraulic screwdown servo-valve circuit (precision gauge control)",
+      "process_stage": "cold_rolling",
+      "location": {
+        "site": "TATA_JSR",
+        "area": "COLD_ROLLING",
+        "unit": "STAND_2",
+        "equipment": "AGC_SERVO_VALVE"
+      },
+      "manufacturer": "Moog",
+      "model": "D661 servo valve",
+      "criticality": 1,
+      "installation_date": "2020-01-30",
+      "last_overhaul_date": "2024-09-14",
+      "sensors": [
+        {
+          "tag": "JSR.CR.S2.AGC.SV.ISO4406",
+          "quantity": "servo_oil_cleanliness",
+          "unit": "code",
+          "normal_range": "<=15/13/10",
+          "warning_threshold": "16/14/11",
+          "alarm_threshold": "17/15/12",
+          "sampling_rate": "inline",
+          "standard": "ISO 4406:2021 servo"
+        },
+        {
+          "tag": "JSR.CR.S2.AGC.SV.POSERR",
+          "quantity": "servo_position_error",
+          "unit": "%",
+          "normal_range": [
+            0.0,
+            0.5
+          ],
+          "warning_threshold": 1.5,
+          "alarm_threshold": 3.0,
+          "sampling_rate": "100 Hz",
+          "standard": "Moog sec3 [unverified]"
+        },
+        {
+          "tag": "JSR.CR.S2.AGC.SV.NULLLEAK",
+          "quantity": "null_leakage",
+          "unit": "L/min",
+          "normal_range": [
+            0.0,
+            0.5
+          ],
+          "warning_threshold": 1.0,
+          "alarm_threshold": 2.0,
+          "sampling_rate": "test",
+          "standard": "Moog sec3 [unverified]"
+        },
+        {
+          "tag": "JSR.CR.S2.AGC.GAUGE.DEV",
+          "quantity": "strip_gauge_deviation",
+          "unit": "um",
+          "normal_range": [
+            -5,
+            5
+          ],
+          "warning_threshold": 10,
+          "alarm_threshold": 20,
+          "sampling_rate": "1 Hz",
+          "standard": "AGC tolerance [unverified]"
+        }
+      ],
+      "failure_modes": [
+        "servo_valve_silting_spool_wear",
+        "servo_valve_hysteresis_increase",
+        "hydraulic_oil_contamination"
+      ]
+    }
+  ],
+  "failure_scenario_catalog": [
+    {
+      "scenario_id": "SCN-001",
+      "asset_id": "HSM.F3.WR.BRG01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.H.RMS": {
+          "normal_value": 1.6,
+          "value": 1.6,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD3.WR.BRG01.TEMP.DE": {
+          "normal_value": 58,
+          "value": 58,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation at rated load.",
+      "correct_resolution": [
+        "Continue routine monitoring",
+        "Log baseline vibration signature to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-002",
+      "asset_id": "HSM.F1.GBX01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.GBX01.VIB.GMF.RMS": {
+          "normal_value": 2.8,
+          "value": 2.8,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.GBX01.OIL.TEMP": {
+          "normal_value": 56,
+          "value": 56,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.GBX01.OIL.FE.PPM": {
+          "normal_value": 3,
+          "value": 3,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy gearbox, GMF sidebands within baseline, oil clean.",
+      "correct_resolution": [
+        "Monthly ferrographic oil sample",
+        "Trend GMF sideband index"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-003",
+      "asset_id": "HSM.F1.MTR01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.MTR01.WIND.TEMP": {
+          "normal_value": 118,
+          "value": 118,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.MTR01.VIB.DE.RMS": {
+          "normal_value": 1.8,
+          "value": 1.8,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.MTR01.CURR.IMBAL": {
+          "normal_value": 0.6,
+          "value": 0.6,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy motor, balanced phases, winding within Class F.",
+      "correct_resolution": [
+        "Annual PI trend",
+        "Keep VFD grounding/AEGIS rings serviced"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-004",
+      "asset_id": "HSM.DSC.PMP01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.DSC.PMP01.PRES.DIS": {
+          "normal_value": 200,
+          "value": 200,
+          "threshold_crossed": false
+        },
+        "JSR.HR.DSC.PMP01.VIB.CAS.RMS": {
+          "normal_value": 1.0,
+          "value": 1.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy descale pump at design point.",
+      "correct_resolution": [
+        "Monitor flow-vs-head vs design curve"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-005",
+      "asset_id": "BF.BLW.FAN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.BF.BLW.FAN01.VIB.1X": {
+          "normal_value": 1.8,
+          "value": 1.8,
+          "threshold_crossed": false
+        },
+        "JSR.BF.BLW.FAN01.SHAFT.DISP": {
+          "normal_value": 35,
+          "value": 35,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy turbo-blower, shaft within API 670 limits.",
+      "correct_resolution": [
+        "Continuous Bently Nevada monitoring",
+        "Track operating point vs surge line"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-006",
+      "asset_id": "CCM.SEG.07",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CC1.SEG07.ROLL.RPM": {
+          "normal_value": 14,
+          "value": 14,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.SEG07.FORCE.HYD": {
+          "normal_value": 300,
+          "value": 300,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy segment, rolls rotating, force/spray nominal.",
+      "correct_resolution": [
+        "Monitor roll rotation + force per zone"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-007",
+      "asset_id": "CCM.MOLD.01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CC1.MOLD.TC.DELTA": {
+          "normal_value": 12,
+          "value": 12,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.MOLD.LEVEL.DEV": {
+          "normal_value": 1.0,
+          "value": 1.0,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.MOLD.HEATFLUX": {
+          "normal_value": 1.6,
+          "value": 1.6,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy mould, uniform heat flux, stable level.",
+      "correct_resolution": [
+        "BPS active; monitor TC array + oscillator + level"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-008",
+      "asset_id": "HSM.STD.R1",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.R1.FORCE": {
+          "normal_value": 1.2,
+          "value": 1.2,
+          "threshold_crossed": false
+        },
+        "JSR.HR.R1.CROWN.DEV": {
+          "normal_value": 6,
+          "value": 6,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy stand, force ripple low, crown on target.",
+      "correct_resolution": [
+        "Online surface inspection + gauge Fourier monitoring"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-009",
+      "asset_id": "RM.CONV.ORE01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.RM.CONV1.MTR.CURR": {
+          "normal_value": 78,
+          "value": 78,
+          "threshold_crossed": false
+        },
+        "JSR.RM.CONV1.IDLER.TEMP": {
+          "normal_value": 42,
+          "value": 42,
+          "threshold_crossed": false
+        },
+        "JSR.RM.CONV1.BELT.EDGE": {
+          "normal_value": 5,
+          "value": 5,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy conveyor, belt tracking centred.",
+      "correct_resolution": [
+        "IR walk-down on idlers; tracking check"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-010",
+      "asset_id": "RHF.ZONE.SOAK",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.RHF.Z3.ZONE.TEMP": {
+          "normal_value": 1240,
+          "value": 1240,
+          "threshold_crossed": false
+        },
+        "JSR.RHF.Z3.FLUE.O2": {
+          "normal_value": 2.4,
+          "value": 2.4,
+          "threshold_crossed": false
+        },
+        "JSR.RHF.Z3.FLAME.SIG": {
+          "normal_value": 96,
+          "value": 96,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy furnace, combustion balanced.",
+      "correct_resolution": [
+        "Monitor flue O2 + IR shell scan"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-011",
+      "asset_id": "EAF.AUX.HYD01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.MS.EAF1.HYD.OIL.TEMP": {
+          "normal_value": 46,
+          "value": 46,
+          "threshold_crossed": false
+        },
+        "JSR.MS.EAF1.HYD.FILT.DP": {
+          "normal_value": 1.0,
+          "value": 1.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy HPU, oil clean, temp nominal.",
+      "correct_resolution": [
+        "Inline ISO4406 monitoring + DP trend"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-012",
+      "asset_id": "BF.CW.PMP02",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.BF.CW.PMP02.VIB.1X": {
+          "normal_value": 1.4,
+          "value": 1.4,
+          "threshold_crossed": false
+        },
+        "JSR.BF.CW.PMP02.HEAD.DEV": {
+          "normal_value": 0,
+          "value": 0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy cooling-water pump at design head.",
+      "correct_resolution": [
+        "Track head-vs-flow vs design curve"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-013",
+      "asset_id": "SP.SINT.FAN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.SP.FAN01.VIB.1X": {
+          "normal_value": 1.9,
+          "value": 1.9,
+          "threshold_crossed": false
+        },
+        "JSR.SP.FAN01.TEMP.BRG": {
+          "normal_value": 56,
+          "value": 56,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy sinter fan, balanced.",
+      "correct_resolution": [
+        "1x trend + bearing temp monitoring"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-014",
+      "asset_id": "MS.LDC.CRN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.MS.CRN01.ROPE.MFL": {
+          "normal_value": 60,
+          "value": 60,
+          "threshold_crossed": false
+        },
+        "JSR.MS.CRN01.BRAKE.TEMP": {
+          "normal_value": 70,
+          "value": 70,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy ladle crane, rope + brake within limits.",
+      "correct_resolution": [
+        "Periodic MFL + Competent Person inspection",
+        "Brake hold test per schedule"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-015",
+      "asset_id": "CRM.AGC.SV01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CR.S2.AGC.SV.POSERR": {
+          "normal_value": 0.3,
+          "value": 0.3,
+          "threshold_crossed": false
+        },
+        "JSR.CR.S2.AGC.GAUGE.DEV": {
+          "normal_value": 3,
+          "value": 3,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy AGC servo, oil clean, gauge on target.",
+      "correct_resolution": [
+        "Weekly ISO4406 on servo circuit"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-016",
+      "asset_id": "HSM.F3.WR.BRG01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.H.RMS": {
+          "normal_value": 1.4,
+          "value": 1.4,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.ENV.BPFO": {
+          "normal_value": 0.25,
+          "value": 0.25,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-017",
+      "asset_id": "HSM.F1.GBX01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.GBX01.VIB.GMF.RMS": {
+          "normal_value": 2.25,
+          "value": 2.25,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.GBX01.OIL.TEMP": {
+          "normal_value": 55.0,
+          "value": 55.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-018",
+      "asset_id": "HSM.F1.MTR01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.MTR01.MCSA.RBAR.SB": {
+          "normal_value": -60.0,
+          "value": -60.0,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.MTR01.WIND.TEMP": {
+          "normal_value": 105.0,
+          "value": 105.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-019",
+      "asset_id": "HSM.DSC.PMP01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.DSC.PMP01.PRES.SUC": {
+          "normal_value": 185.0,
+          "value": 185.0,
+          "threshold_crossed": false
+        },
+        "JSR.HR.DSC.PMP01.PRES.DIS": {
+          "normal_value": 200.0,
+          "value": 200.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-020",
+      "asset_id": "BF.BLW.FAN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.BF.BLW.FAN01.VIB.1X": {
+          "normal_value": 1.65,
+          "value": 1.65,
+          "threshold_crossed": false
+        },
+        "JSR.BF.BLW.FAN01.SHAFT.DISP": {
+          "normal_value": 30.0,
+          "value": 30.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-021",
+      "asset_id": "CCM.SEG.07",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CC1.SEG07.FORCE.HYD": {
+          "normal_value": 300.0,
+          "value": 300.0,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.SEG07.ROLL.RPM": {
+          "normal_value": 14.0,
+          "value": 14.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-022",
+      "asset_id": "CCM.MOLD.01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CC1.MOLD.TC.DELTA": {
+          "normal_value": 10.0,
+          "value": 10.0,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.MOLD.OSC.FRICTION": {
+          "normal_value": 5.0,
+          "value": 5.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-023",
+      "asset_id": "HSM.STD.R1",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.R1.FORCE": {
+          "normal_value": 1.0,
+          "value": 1.0,
+          "threshold_crossed": false
+        },
+        "JSR.HR.R1.WR.VIB.CHOCK": {
+          "normal_value": 0.5,
+          "value": 0.5,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-024",
+      "asset_id": "RM.CONV.ORE01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.RM.CONV1.MTR.CURR": {
+          "normal_value": 77.5,
+          "value": 77.5,
+          "threshold_crossed": false
+        },
+        "JSR.RM.CONV1.IDLER.US": {
+          "normal_value": -14.0,
+          "value": -14.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-025",
+      "asset_id": "RHF.ZONE.SOAK",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.RHF.Z3.SHELL.IR": {
+          "normal_value": 100.0,
+          "value": 100.0,
+          "threshold_crossed": false
+        },
+        "JSR.RHF.Z3.FLAME.SIG": {
+          "normal_value": 95.0,
+          "value": 95.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-026",
+      "asset_id": "EAF.AUX.HYD01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.MS.EAF1.HYD.ISO4406": {
+          "normal_value": "<=17/15/12",
+          "value": "<=17/15/12",
+          "threshold_crossed": false
+        },
+        "JSR.MS.EAF1.HYD.OIL.TEMP": {
+          "normal_value": 45.0,
+          "value": 45.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-027",
+      "asset_id": "BF.CW.PMP02",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.BF.CW.PMP02.VIB.1X": {
+          "normal_value": 1.15,
+          "value": 1.15,
+          "threshold_crossed": false
+        },
+        "JSR.BF.CW.PMP02.HEAD.DEV": {
+          "normal_value": 0.0,
+          "value": 0.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-028",
+      "asset_id": "SP.SINT.FAN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.SP.FAN01.VIB.1X": {
+          "normal_value": 1.65,
+          "value": 1.65,
+          "threshold_crossed": false
+        },
+        "JSR.SP.FAN01.TEMP.BRG": {
+          "normal_value": 55.0,
+          "value": 55.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-029",
+      "asset_id": "MS.LDC.CRN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.MS.CRN01.ROPE.MFL": {
+          "normal_value": 50.0,
+          "value": 50.0,
+          "threshold_crossed": false
+        },
+        "JSR.MS.CRN01.LOAD.SWL": {
+          "normal_value": 50.0,
+          "value": 50.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-030",
+      "asset_id": "CRM.AGC.SV01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CR.S2.AGC.SV.ISO4406": {
+          "normal_value": "<=15/13/10",
+          "value": "<=15/13/10",
+          "threshold_crossed": false
+        },
+        "JSR.CR.S2.AGC.SV.POSERR": {
+          "normal_value": 0.25,
+          "value": 0.25,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-031",
+      "asset_id": "HSM.F3.WR.BRG01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.H.RMS": {
+          "normal_value": 1.4,
+          "value": 1.4,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.ENV.BPFO": {
+          "normal_value": 0.25,
+          "value": 0.25,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-032",
+      "asset_id": "HSM.F1.GBX01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.GBX01.VIB.GMF.RMS": {
+          "normal_value": 2.25,
+          "value": 2.25,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.GBX01.OIL.TEMP": {
+          "normal_value": 55.0,
+          "value": 55.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-033",
+      "asset_id": "HSM.F1.MTR01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.STD1.MTR01.MCSA.RBAR.SB": {
+          "normal_value": -60.0,
+          "value": -60.0,
+          "threshold_crossed": false
+        },
+        "JSR.HR.STD1.MTR01.WIND.TEMP": {
+          "normal_value": 105.0,
+          "value": 105.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-034",
+      "asset_id": "HSM.DSC.PMP01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.HR.DSC.PMP01.PRES.SUC": {
+          "normal_value": 185.0,
+          "value": 185.0,
+          "threshold_crossed": false
+        },
+        "JSR.HR.DSC.PMP01.PRES.DIS": {
+          "normal_value": 200.0,
+          "value": 200.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-035",
+      "asset_id": "BF.BLW.FAN01",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.BF.BLW.FAN01.VIB.1X": {
+          "normal_value": 1.65,
+          "value": 1.65,
+          "threshold_crossed": false
+        },
+        "JSR.BF.BLW.FAN01.SHAFT.DISP": {
+          "normal_value": 30.0,
+          "value": 30.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-036",
+      "asset_id": "CCM.SEG.07",
+      "label": "NORMAL",
+      "failure_mode": "none",
+      "degradation_timeline": null,
+      "sensor_signature": {
+        "JSR.CC1.SEG07.FORCE.HYD": {
+          "normal_value": 300.0,
+          "value": 300.0,
+          "threshold_crossed": false
+        },
+        "JSR.CC1.SEG07.ROLL.RPM": {
+          "normal_value": 14.0,
+          "value": 14.0,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [],
+      "root_cause": "Healthy steady-state operation; all monitored parameters within normal band.",
+      "correct_resolution": [
+        "Continue routine condition monitoring",
+        "Trend baseline to CMMS"
+      ],
+      "spares_required": [],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 0,
+        "usd": 0
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-037",
+      "asset_id": "HSM.F3.WR.BRG01",
+      "label": "FAILURE",
+      "failure_mode": "outer_race_fatigue_spall_BPFO",
+      "degradation_timeline": {
+        "healthy": "weeks 0-6",
+        "warning": "AE crosses warn (6 dBuV) weeks 6-8 (no vib change yet)",
+        "alarm": "AE reaches ~8 dBuV (warning-exceeded, below AE alarm 12) + envelope BPFO 1.0->3.0g + temp drift, weeks 8-10",
+        "failure": "all-3 sensors alarming, hours"
+      },
+      "sensor_signature": {
+        "JSR.HR.STD3.WR.BRG01.AE.RMS": {
+          "normal_value": 0,
+          "defect_value": 8,
+          "threshold_crossed": true,
+          "stage": 2,
+          "note": "8 dBuV is between AE warn (6) and AE alarm (12) = warning-exceeded / stage-2 onset, not the earliest stage-1 indicator. AE is the leading indicator (crosses warn ~weeks 6-8 before any vibration change)."
+        },
+        "JSR.HR.STD3.WR.BRG01.VIB.DE.ENV.BPFO": {
+          "normal_value": 0.3,
+          "defect_value": 3.2,
+          "threshold_crossed": true,
+          "stage": 3
+        },
+        "JSR.HR.STD3.WR.BRG01.TEMP.DE": {
+          "normal_value": 58,
+          "defect_value": 102,
+          "threshold_crossed": true,
+          "stage": 4
+        }
+      },
+      "fault_codes": [
+        "VIB-BPFO-DANGER",
+        "TEMP-TRIP-100C"
+      ],
+      "root_cause": "Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accelerated by lube contamination.",
+      "correct_resolution": [
+        "LOTO + confirm zero-energy (Playbook 01)",
+        "Controlled stop (Zone D / temp>100C), no emergency trip",
+        "Hydraulic bearing puller; never strike bearing",
+        "Inspect journal vs OEM H7/k6, regrind if worn",
+        "Induction-heat new bearing 80-100C, laser-align <0.05mm",
+        "Replace coupling element + labyrinth seal",
+        "Verify <2.3mm/s, temp <70C at 60min"
+      ],
+      "spares_required": [
+        {
+          "part_id": "BRG-LRG-300",
+          "name": "Large-bore roller bearing >300mm"
+        },
+        {
+          "part_id": "SEAL-LAB-01",
+          "name": "Labyrinth seal set"
+        },
+        {
+          "part_id": "CPL-EL-01",
+          "name": "Coupling element"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 5,
+        "unplanned": 12
+      },
+      "cost_impact": {
+        "inr": 7500000,
+        "usd": 90000,
+        "range_usd": [
+          80000,
+          250000
+        ]
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-038",
+      "asset_id": "HSM.F1.GBX01",
+      "label": "FAILURE",
+      "failure_mode": "gear_tooth_fatigue_crack",
+      "degradation_timeline": {
+        "healthy": "weeks 0-8",
+        "warning": "cepstrum rahmonics rise + GMF sidebands, weeks 8-10",
+        "alarm": "chip detector + spall particles",
+        "failure": "tooth fracture -> shaft risk"
+      },
+      "sensor_signature": {
+        "JSR.HR.STD1.GBX01.VIB.GMF.RMS": {
+          "normal_value": 2.8,
+          "defect_value": 11.0,
+          "threshold_crossed": true
+        },
+        "JSR.HR.STD1.GBX01.OIL.FE.PPM": {
+          "normal_value": 3,
+          "defect_value": 60,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "GMF-DANGER",
+        "CHIP-DETECT-ALARM"
+      ],
+      "root_cause": "Tooth-root fatigue crack from prior high-torque cobble event; chunky spall debris.",
+      "correct_resolution": [
+        "Immediate controlled stop (no deferral)",
+        "Remove gearbox via crane to repair bay",
+        "Replace gear wheel + bearings; set backlash 0.1-0.3mm",
+        "Prussian-blue contact >70% face",
+        "Run-in low load before full"
+      ],
+      "spares_required": [
+        {
+          "part_id": "GEAR-WHL-M20",
+          "name": "Custom large-module gear wheel"
+        },
+        {
+          "part_id": "BRG-GBX-SET",
+          "name": "Gearbox input/output bearing set"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 168
+      },
+      "cost_impact": {
+        "inr": 50100000,
+        "usd": 600000,
+        "range_usd": [
+          500000,
+          3000000
+        ],
+        "note": "Point estimate raised into the cited range. Per research/machinery/20 sec2F, HSM gearbox failure production loss during a 5-21 day swap is $500k-$3M (OxMaint hot strip mill gearbox case); $600k reflects a ~7-day swap of the custom large-module gear wheel (36-week lead spare) plus secondary-damage repair. Prior $300k point estimate was below its own range floor and unsupported."
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-039",
+      "asset_id": "HSM.F1.MTR01",
+      "label": "FAILURE",
+      "failure_mode": "broken_rotor_bar",
+      "degradation_timeline": {
+        "healthy": "weeks 0-3",
+        "warning": "MCSA sideband -50->-45 dBc, weeks 3-4",
+        "alarm": "sideband -35 dBc + 2x slip vib",
+        "failure": "progressive bar cracking, 2-4 weeks"
+      },
+      "sensor_signature": {
+        "JSR.HR.STD1.MTR01.MCSA.RBAR.SB": {
+          "normal_value": -58,
+          "defect_value": -34,
+          "threshold_crossed": true
+        },
+        "JSR.HR.STD1.MTR01.VIB.DE.RMS": {
+          "normal_value": 1.8,
+          "defect_value": 4.8,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "MCSA-RBAR-ALARM"
+      ],
+      "root_cause": "Rotor bar fracture from repeated high-torque starts / thermal cycling; sidebands at (1-2s)f1.",
+      "correct_resolution": [
+        "Confirm via MCSA at steady load (sideband >-35dBc)",
+        "Plan motor swap within 2-4 weeks (insurance spare)",
+        "Send failed motor for rotor bar test + repair",
+        "Verify phase rotation before energising spare"
+      ],
+      "spares_required": [
+        {
+          "part_id": "MTR-MV-6000",
+          "name": "MV insurance spare motor 6000kW"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 10,
+        "unplanned": 0
+      },
+      "cost_impact": {
+        "inr": 8350000,
+        "usd": 100000,
+        "range_usd": [
+          100000,
+          150000
+        ],
+        "note": "Figure is rewind+swap LABOUR + lost-production cost only (planned 10h swap to standby + crane + alignment). The MTR-MV-6000 insurance spare ($450k / INR 37.575M, 40-week lead) is a REUSABLE rotating capital asset, NOT consumed: the failed motor is sent for rotor-bar repair/rewind (RWND-KIT-MV ~$15k) and returned to spare stock, so it is not expensed against this event. No double-counting of the $450k motor capital here."
+      },
+      "safety_class": "P3"
+    },
+    {
+      "scenario_id": "SCN-040",
+      "asset_id": "HSM.DSC.PMP01",
+      "label": "FAILURE",
+      "failure_mode": "mechanical_seal_failure",
+      "degradation_timeline": {
+        "healthy": "weeks 0-4",
+        "warning": "broadband vib 1.5->2.5mm/s + weeping",
+        "alarm": "vib >5mm/s + spraying leak",
+        "failure": "seal blowout"
+      },
+      "sensor_signature": {
+        "JSR.HR.DSC.PMP01.VIB.CAS.RMS": {
+          "normal_value": 1.0,
+          "defect_value": 5.4,
+          "threshold_crossed": true
+        },
+        "JSR.HR.DSC.PMP01.TEMP.BRG": {
+          "normal_value": 58,
+          "defect_value": 90,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "VIB-SEAL-DANGER"
+      ],
+      "root_cause": "Mechanical seal face wear from abrasive scale-laden water; secondary O-ring degradation.",
+      "correct_resolution": [
+        "Switch to standby; isolate + LOTO",
+        "Drain casing, back-pullout seal change",
+        "Inspect shaft sleeve (replace if >0.1mm scoring)",
+        "Install new SiC/SiC seal, faces fingerprint-free",
+        "Shaft runout <0.05mm TIR"
+      ],
+      "spares_required": [
+        {
+          "part_id": "SEAL-MECH-DSC",
+          "name": "Mechanical seal cartridge SiC/SiC"
+        },
+        {
+          "part_id": "SLV-SHAFT-01",
+          "name": "Shaft sleeve"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 3,
+        "unplanned": 8
+      },
+      "cost_impact": {
+        "inr": 1200000,
+        "usd": 14400
+      },
+      "safety_class": "P3"
+    },
+    {
+      "scenario_id": "SCN-041",
+      "asset_id": "BF.BLW.FAN01",
+      "label": "FAILURE",
+      "failure_mode": "compressor_surge",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "ASV cycling, surge margin <8%",
+        "alarm": "discharge oscillation >8% + axial vib burst",
+        "failure": "seconds to destruction if sustained"
+      },
+      "sensor_signature": {
+        "JSR.BF.BLW.FAN01.PRES.OSC": {
+          "normal_value": 1,
+          "defect_value": 9,
+          "threshold_crossed": true
+        },
+        "JSR.BF.BLW.FAN01.SHAFT.DISP": {
+          "normal_value": 35,
+          "defect_value": 95,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "SURGE-ALARM",
+        "ASV-CYCLING"
+      ],
+      "root_cause": "Downstream valve slam / inlet filter fouling pushing operating point left of surge line.",
+      "correct_resolution": [
+        "Verify ASV auto-opened",
+        "If surge persists >2-3 cycles: trip immediately",
+        "Do NOT restart until cause identified",
+        "Borescope IGVs/impellers, ferrography oil",
+        "Calibrate anti-surge line vs OEM data"
+      ],
+      "spares_required": [
+        {
+          "part_id": "ASV-VLV-01",
+          "name": "Anti-surge valve"
+        },
+        {
+          "part_id": "BRG-JRNL-PAD",
+          "name": "Journal bearing pads (OEM)"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 96
+      },
+      "cost_impact": {
+        "inr": 500000000,
+        "usd": 6000000,
+        "range_usd": [
+          4000000,
+          8000000
+        ],
+        "note": "BF blower failure $4-8M+; BF downtime $500k/hr"
+      },
+      "safety_class": "P1"
+    },
+    {
+      "scenario_id": "SCN-042",
+      "asset_id": "CCM.SEG.07",
+      "label": "FAILURE",
+      "failure_mode": "roll_seizure",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "force rising + roll rpm dropping",
+        "alarm": "rpm->0 + force >480kN",
+        "failure": "transverse slab cracks / breakout risk"
+      },
+      "sensor_signature": {
+        "JSR.CC1.SEG07.ROLL.RPM": {
+          "normal_value": 14,
+          "defect_value": 0,
+          "threshold_crossed": true
+        },
+        "JSR.CC1.SEG07.FORCE.HYD": {
+          "normal_value": 300,
+          "defect_value": 540,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "ROLL-SEIZE",
+        "SEG-FORCE-HIGH"
+      ],
+      "root_cause": "Roll bearing seizure from thermal/water-scale ingress; roll stops rotating, drags strand.",
+      "correct_resolution": [
+        "Reduce casting speed if in liquid-core zone",
+        "End heat, cool strand 2-4h before bay entry",
+        "Withdraw segment via handling crane",
+        "Replace seized roll + bearings, clean nozzles",
+        "Set segment gap per slab format, pressure-test"
+      ],
+      "spares_required": [
+        {
+          "part_id": "ROLL-SEG-STD",
+          "name": "Strand guide roll (standard dia)"
+        },
+        {
+          "part_id": "BRG-SEG-01",
+          "name": "Segment roll bearing"
+        },
+        {
+          "part_id": "NOZ-SPRAY-01",
+          "name": "Spray nozzle (consumable)"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 8
+      },
+      "cost_impact": {
+        "inr": 8000000,
+        "usd": 96000,
+        "range_usd": [
+          80000,
+          200000
+        ]
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-043",
+      "asset_id": "CCM.MOLD.01",
+      "label": "FAILURE",
+      "failure_mode": "breakout_sticking",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "TC delta 20->25C + friction spike + level wave (need all 3)",
+        "alarm": "TC delta >50C V-pattern propagating + friction >18kN",
+        "failure": "shell rupture 60-90s after BPS alarm"
+      },
+      "sensor_signature": {
+        "JSR.CC1.MOLD.TC.DELTA": {
+          "normal_value": 12,
+          "defect_value": 55,
+          "threshold_crossed": true
+        },
+        "JSR.CC1.MOLD.OSC.FRICTION": {
+          "normal_value": 5,
+          "defect_value": 19,
+          "threshold_crossed": true
+        },
+        "JSR.CC1.MOLD.LEVEL.DEV": {
+          "normal_value": 1.0,
+          "defect_value": 13,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "BPS-BREAKOUT-P1",
+        "TC-VPATTERN",
+        "OSC-FRICTION-SPIKE"
+      ],
+      "root_cause": "Shell sticking to mould wall (poor lubrication / improper taper / SEN blockage); confirmed by 3-sensor agreement (single sensor >40% FAR).",
+      "correct_resolution": [
+        "BPS alarm: reduce casting speed to minimum 0.5 m/min immediately",
+        "If escalating: full emergency stop (stop withdrawal + close tundish gate)",
+        "Evacuate caster floor (liquid steel fatal)",
+        "Do not operate until steel solidified 4-6h+",
+        "Post-breakout: remove skull, replace damaged segments, 5-whys RCA within 48h"
+      ],
+      "spares_required": [
+        {
+          "part_id": "MOLD-CU-STD",
+          "name": "Mould copper plates (standard format)"
+        },
+        {
+          "part_id": "ROLL-SEG-STD",
+          "name": "Strand guide roll"
+        },
+        {
+          "part_id": "SEN-NOZ-01",
+          "name": "Submerged entry nozzle (consumable)"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 36
+      },
+      "cost_impact": {
+        "inr": 71810000,
+        "usd": 860000,
+        "range_usd": [
+          200000,
+          3000000
+        ],
+        "note": "OxMaint avg $860k/event; FeroLabs $200k-$3M+"
+      },
+      "safety_class": "P1"
+    },
+    {
+      "scenario_id": "SCN-044",
+      "asset_id": "HSM.STD.R1",
+      "label": "FAILURE",
+      "failure_mode": "work_roll_spall_flat",
+      "degradation_timeline": {
+        "healthy": "campaign",
+        "warning": "force ripple +/-4% at 1x roll",
+        "alarm": "ripple +/-8% + periodic strip marks",
+        "failure": "spall fragment risk"
+      },
+      "sensor_signature": {
+        "JSR.HR.R1.FORCE": {
+          "normal_value": 1.2,
+          "defect_value": 8.5,
+          "threshold_crossed": true
+        },
+        "JSR.HR.R1.WR.VIB.CHOCK": {
+          "normal_value": 0.6,
+          "defect_value": 6.0,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "FORCE-RIPPLE-HIGH",
+        "SURFACE-DEFECT-PERIODIC"
+      ],
+      "root_cause": "Subsurface roll defect activated by cobble/thermal shock; spall printing on strip at period = piD.",
+      "correct_resolution": [
+        "Stop rolling on spall-printed product, segregate strip",
+        "Quick-change work rolls (15-45 min)",
+        "Send roll to roll shop: grind 3-5mm below spall",
+        "UT test after grind; condemn if below min dia"
+      ],
+      "spares_required": [
+        {
+          "part_id": "WR-HSS-PREP",
+          "name": "Prepared work roll pair (roll shop)"
+        },
+        {
+          "part_id": "CHOCK-SEAL-01",
+          "name": "Roll chock seals"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0.75,
+        "unplanned": 4
+      },
+      "cost_impact": {
+        "inr": 15400000,
+        "usd": 184000,
+        "range_usd": [
+          11200,
+          184000
+        ],
+        "note": "OxMaint planned $11.2k vs unplanned $184k (16.4x)"
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-045",
+      "asset_id": "RM.CONV.ORE01",
+      "label": "FAILURE",
+      "failure_mode": "idler_bearing_failure",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "ultrasound +8dBuV",
+        "alarm": "+15dBuV + idler temp >80C",
+        "failure": "seizure -> belt fire risk"
+      },
+      "sensor_signature": {
+        "JSR.RM.CONV1.IDLER.US": {
+          "normal_value": -14,
+          "defect_value": 16,
+          "threshold_crossed": true
+        },
+        "JSR.RM.CONV1.IDLER.TEMP": {
+          "normal_value": 42,
+          "defect_value": 100,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "IDLER-US-ALARM",
+        "IDLER-TEMP-FIRE"
+      ],
+      "root_cause": "Dry/failed idler bearing; seized idler under loaded belt is #1 belt-fire initiator.",
+      "correct_resolution": [
+        "Stop belt immediately (fire risk)",
+        "LOTO + belt-tension lock before entry",
+        "Lift belt, replace idler (correct width/trough/rating)",
+        "Confirm free rotation before restart"
+      ],
+      "spares_required": [
+        {
+          "part_id": "IDLER-STD-1600",
+          "name": "Standard carrying idler 1600mm"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0.5,
+        "unplanned": 2
+      },
+      "cost_impact": {
+        "inr": 625000,
+        "usd": 7500,
+        "note": "Direct repair cost of a single seized-idler event caught before fire propagation (idler swap + short belt repair), reconciled at 1 USD = INR 83.5. The 'Bhilai 2019 Rs 1 Cr' framing from research/machinery/20 is dropped because its INR (Rs 1 Cr) and USD ($7,500) do not reconcile at any plausible FX rate (Rs 1 Cr ~= $120k); a full conveyor-fire loss would be ~INR 10,000,000 / ~USD 120,000 and is NOT what this idler-caught-early scenario represents."
+      },
+      "safety_class": "P1"
+    },
+    {
+      "scenario_id": "SCN-046",
+      "asset_id": "RHF.ZONE.SOAK",
+      "label": "FAILURE",
+      "failure_mode": "burner_failure_fuelside",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "flame signal 96->70% flickering",
+        "alarm": "signal <40% auto fuel cutoff",
+        "failure": "flame-out / unburnt fuel"
+      },
+      "sensor_signature": {
+        "JSR.RHF.Z3.FLAME.SIG": {
+          "normal_value": 96,
+          "defect_value": 38,
+          "threshold_crossed": true,
+          "note": "lower is worse"
+        },
+        "JSR.RHF.Z3.FLUE.O2": {
+          "normal_value": 2.4,
+          "defect_value": 5.8,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "FLAME-FAIL-CUTOFF",
+        "FLUE-O2-HIGH"
+      ],
+      "root_cause": "Burner nozzle fouling / gas supply fluctuation causing unstable flame (EN 746-2).",
+      "correct_resolution": [
+        "Automatic fuel cutoff at <40% flame signal",
+        "Purge furnace before re-light (safety)",
+        "Clean/replace burner nozzle + flame scanner",
+        "Re-tune fuel-air ratio"
+      ],
+      "spares_required": [
+        {
+          "part_id": "BURN-NOZ-01",
+          "name": "Burner nozzle assembly"
+        },
+        {
+          "part_id": "FLAME-SCAN-01",
+          "name": "Flame scanner"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 2,
+        "unplanned": 6
+      },
+      "cost_impact": {
+        "inr": 1000000,
+        "usd": 12000
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-047",
+      "asset_id": "MS.LDC.CRN01",
+      "label": "FAILURE",
+      "failure_mode": "wire_rope_fatigue_broken_wire",
+      "degradation_timeline": {
+        "healthy": "months",
+        "warning": "MFL 150mV (~8-12% LMA) / dia -3% / >=6 random broken wires in 1 lay",
+        "alarm": "MFL 300mV (>15-20% LMA) / >=12 random broken wires in 1 lay (or >=4 in one strand) / dia -7%",
+        "failure": "rope failure -> ladle drop"
+      },
+      "sensor_signature": {
+        "JSR.MS.CRN01.ROPE.MFL": {
+          "normal_value": 60,
+          "defect_value": 320,
+          "threshold_crossed": true
+        },
+        "JSR.MS.CRN01.LOAD.SWL": {
+          "normal_value": 85,
+          "value": 85,
+          "threshold_crossed": false
+        }
+      },
+      "fault_codes": [
+        "ROPE-MFL-RETIRE",
+        "ROPE-DISCARD-ISO4309"
+      ],
+      "root_cause": "Wire-rope fatigue / broken wires exceeding ISO 4309 discard criteria: >=12 random broken wires in one lay length (or >=4 in one strand), and/or MRT LMA >15-20%, and/or rope-diameter reduction >-7% nominal.",
+      "correct_resolution": [
+        "Take crane out of service immediately (do not lift)",
+        "If load suspended: lower under control first",
+        "Competent Person inspection + certification",
+        "Replace rope; inspect drum/sheave grooves; fleet angle <4deg",
+        "Wedge-socket dead-end (not clips)"
+      ],
+      "spares_required": [
+        {
+          "part_id": "ROPE-CRN-01",
+          "name": "Wire rope (custom length/spec)"
+        },
+        {
+          "part_id": "SOCK-WEDGE-01",
+          "name": "Wedge socket"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 24
+      },
+      "cost_impact": {
+        "inr": 83000000,
+        "usd": 1000000,
+        "range_usd": [
+          1000000,
+          20000000
+        ],
+        "note": "ladle-drop catastrophic potential (Qinghe 2007 benchmark)"
+      },
+      "safety_class": "P1"
+    },
+    {
+      "scenario_id": "SCN-048",
+      "asset_id": "CRM.AGC.SV01",
+      "label": "FAILURE",
+      "failure_mode": "servo_valve_silting_spool_wear",
+      "degradation_timeline": {
+        "healthy": "stable",
+        "warning": "ISO 16/14/11 + position hunt on small commands",
+        "alarm": "ISO 17/15/12 + pos err >3% gauge excursion",
+        "failure": "AGC loss / strip rejection"
+      },
+      "sensor_signature": {
+        "JSR.CR.S2.AGC.SV.ISO4406": {
+          "normal_value": "15/13/10",
+          "defect_value": "17/15/12",
+          "threshold_crossed": true
+        },
+        "JSR.CR.S2.AGC.SV.POSERR": {
+          "normal_value": 0.3,
+          "defect_value": 3.2,
+          "threshold_crossed": true
+        },
+        "JSR.CR.S2.AGC.GAUGE.DEV": {
+          "normal_value": 3,
+          "defect_value": 22,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "SERVO-HUNT",
+        "GAUGE-EXCURSION",
+        "ISO4406-SERVO-DIRTY"
+      ],
+      "root_cause": "Silt (1-5um particles) plugging servo spool annular gap (1-3um clearance); sluggish small-amplitude response.",
+      "correct_resolution": [
+        "Switch AGC to backup/manual lock",
+        "High-pressure hydraulic LOTO (200-350 bar)",
+        "Remove valve, ultrasonic bench clean (or replace if scored)",
+        "Match null offset on reinstall",
+        "Replace 3um+10um filters; kidney-loop to ISO 15/13/10",
+        "Step-response test vs OEM datasheet"
+      ],
+      "spares_required": [
+        {
+          "part_id": "SERVO-VLV-D661",
+          "name": "Moog D661 servo valve"
+        },
+        {
+          "part_id": "FLT-SERVO-3",
+          "name": "Servo filter element 3um"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 2,
+        "unplanned": 6
+      },
+      "cost_impact": {
+        "inr": 11500000,
+        "usd": 137700,
+        "note": "AGC loss -> 30% scrap increase + cobble; CRM ~Rs21L/cobble-hr"
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-049",
+      "asset_id": "EAF.AUX.HYD01",
+      "label": "FAILURE",
+      "failure_mode": "filter_clog",
+      "degradation_timeline": {
+        "healthy": "filter DP 0.0-1.5 bar",
+        "warning": "DP rising 1.5->3.0 bar (EAF dust ingress)",
+        "alarm": "DP 4.5 bar (element blinding, bypass risk)",
+        "failure": "filter fully blind -> bypass opens, unfiltered oil to servos"
+      },
+      "sensor_signature": {
+        "JSR.MS.EAF1.HYD.FILT.DP": {
+          "normal_value": 1.0,
+          "defect_value": 4.5,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "HYD-FILT-DP-ALARM"
+      ],
+      "root_cause": "Filter element blinding from systematic EAF dust ingress via breather; differential pressure reaches the 4.5 bar bypass threshold.",
+      "correct_resolution": [
+        "Isolate HPU",
+        "Replace FLT-HYD-10 element set",
+        "Clean suction strainer; fit desiccant breather",
+        "Verify DP <1.5 bar on restart; tighten PM cadence to weekly"
+      ],
+      "spares_required": [
+        {
+          "part_id": "FLT-HYD-10",
+          "name": "Hydraulic filter element 10um"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 4,
+        "unplanned": 4
+      },
+      "cost_impact": {
+        "inr": 200000,
+        "usd": 2395
+      },
+      "safety_class": "P4"
+    },
+    {
+      "scenario_id": "SCN-050",
+      "asset_id": "BF.CW.PMP02",
+      "label": "FAILURE",
+      "failure_mode": "pump_bearing_failure",
+      "degradation_timeline": {
+        "healthy": "bearing temp 40-70C, 1x vib <1.8mm/s",
+        "warning": "bearing temp ->85C, broadband vib ->2.5mm/s",
+        "alarm": "bearing temp 100C + 1x vib 5.6mm/s (cage distress)",
+        "failure": "bearing cage fracture / seizure"
+      },
+      "sensor_signature": {
+        "JSR.BF.CW.PMP02.TEMP.BRG": {
+          "normal_value": 55,
+          "defect_value": 100,
+          "threshold_crossed": true
+        },
+        "JSR.BF.CW.PMP02.VIB.1X": {
+          "normal_value": 1.2,
+          "defect_value": 5.6,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "BRG-TEMP-ALARM",
+        "VIB-1X-ALARM"
+      ],
+      "root_cause": "Cooling-water pump bearing degradation (often with secondary seal weep); suction-side water hammer accelerates cage fatigue to fracture.",
+      "correct_resolution": [
+        "Switch to standby CW pump; isolate + LOTO",
+        "Disassemble; replace bearing set + SEAL-MECH-DSC",
+        "Inspect shaft for fretting/scoring",
+        "Fit suction-line surge damper; reassemble + align"
+      ],
+      "spares_required": [
+        {
+          "part_id": "SEAL-MECH-DSC",
+          "name": "Mechanical seal cartridge SiC/SiC"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 4,
+        "unplanned": 8
+      },
+      "cost_impact": {
+        "inr": 2500000,
+        "usd": 29940
+      },
+      "safety_class": "P2"
+    },
+    {
+      "scenario_id": "SCN-051",
+      "asset_id": "SP.SINT.FAN01",
+      "label": "FAILURE",
+      "failure_mode": "mass_imbalance_deposit_shedding",
+      "degradation_timeline": {
+        "healthy": "1x vib 1.0-2.3mm/s, axial 2x ratio <0.3",
+        "warning": "1x vib ->4.5mm/s (asymmetric dust build-up)",
+        "alarm": "1x vib 7.1mm/s + axial 2x ratio 0.4 (shedding event)",
+        "failure": "rotor mass imbalance -> bearing/shaft overload"
+      },
+      "sensor_signature": {
+        "JSR.SP.FAN01.VIB.1X": {
+          "normal_value": 1.8,
+          "defect_value": 7.1,
+          "threshold_crossed": true
+        },
+        "JSR.SP.FAN01.VIB.AXIAL": {
+          "normal_value": 0.2,
+          "defect_value": 0.4,
+          "threshold_crossed": true
+        }
+      },
+      "fault_codes": [
+        "VIB-1X-ALARM",
+        "IMBALANCE-SHED"
+      ],
+      "root_cause": "Asymmetric dust-cake shedding from the sinter-fan rotor causes a step mass imbalance; 1x vibration jumps from baseline to the 7.1 mm/s alarm.",
+      "correct_resolution": [
+        "Emergency stop; access fan housing",
+        "Manually clean rotor deposits",
+        "Dynamic balance online; trim with BAL-WT-01",
+        "Apply erosion-resistant hard-facing if recurring; verify <4.5 mm/s"
+      ],
+      "spares_required": [
+        {
+          "part_id": "BAL-WT-01",
+          "name": "Balancing weights set"
+        }
+      ],
+      "downtime_hours": {
+        "planned": 0,
+        "unplanned": 24
+      },
+      "cost_impact": {
+        "inr": 8000000,
+        "usd": 95808
+      },
+      "safety_class": "P2"
+    }
+  ],
+  "spare_parts_master": [
+    {
+      "part_id": "BRG-LRG-300",
+      "name": "Large-bore roller bearing >300mm",
+      "fits_equipment_class": [
+        "rolling_mill_work_roll_bearing",
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 8,
+      "unit_cost": {
+        "usd": 12000,
+        "inr": 1002000
+      }
+    },
+    {
+      "part_id": "SEAL-LAB-01",
+      "name": "Labyrinth seal set",
+      "fits_equipment_class": [
+        "rolling_mill_work_roll_bearing",
+        "large_induction_motor_vfd"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 2,
+      "unit_cost": {
+        "usd": 600,
+        "inr": 50100
+      }
+    },
+    {
+      "part_id": "CPL-EL-01",
+      "name": "Coupling element (spider/grid)",
+      "fits_equipment_class": [
+        "rolling_mill_work_roll_bearing",
+        "mill_gearbox"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 2,
+      "unit_cost": {
+        "usd": 450,
+        "inr": 37575
+      }
+    },
+    {
+      "part_id": "LUBE-NOZ-01",
+      "name": "Oil-film bearing lube nozzle",
+      "fits_equipment_class": [
+        "rolling_mill_work_roll_bearing"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 1,
+      "unit_cost": {
+        "usd": 120,
+        "inr": 10020
+      }
+    },
+    {
+      "part_id": "FLT-GBX-01",
+      "name": "Gearbox oil filter element",
+      "fits_equipment_class": [
+        "mill_gearbox"
+      ],
+      "stock_qty": 3,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 180,
+        "inr": 15030
+      }
+    },
+    {
+      "part_id": "OIL-VG220",
+      "name": "ISO VG220 EP gear oil (200L drum)",
+      "fits_equipment_class": [
+        "mill_gearbox"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 900,
+        "inr": 75150
+      }
+    },
+    {
+      "part_id": "GEAR-WHL-M20",
+      "name": "Custom large-module gear wheel (>M20)",
+      "fits_equipment_class": [
+        "mill_gearbox"
+      ],
+      "stock_qty": 0,
+      "lead_time_weeks": 36,
+      "unit_cost": {
+        "usd": 120000,
+        "inr": 10020000
+      }
+    },
+    {
+      "part_id": "BRG-GBX-SET",
+      "name": "Gearbox input/output bearing set",
+      "fits_equipment_class": [
+        "mill_gearbox"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 3,
+      "unit_cost": {
+        "usd": 4500,
+        "inr": 375750
+      }
+    },
+    {
+      "part_id": "MTR-MV-6000",
+      "name": "MV insurance spare motor 6000kW",
+      "fits_equipment_class": [
+        "large_induction_motor_vfd"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 40,
+      "unit_cost": {
+        "usd": 450000,
+        "inr": 37575000
+      }
+    },
+    {
+      "part_id": "RWND-KIT-MV",
+      "name": "MV rewind materials (wire/resin/wedge/liner)",
+      "fits_equipment_class": [
+        "large_induction_motor_vfd"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 3,
+      "unit_cost": {
+        "usd": 15000,
+        "inr": 1252500
+      }
+    },
+    {
+      "part_id": "BRG-MTR-SET",
+      "name": "Motor DE+NDE bearing set (SKF 6326/6226)",
+      "fits_equipment_class": [
+        "large_induction_motor_vfd"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 1,
+      "unit_cost": {
+        "usd": 2800,
+        "inr": 233800
+      }
+    },
+    {
+      "part_id": "IMP-DSC-01",
+      "name": "Descale pump impeller",
+      "fits_equipment_class": [
+        "cooling_descaling_pump"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 8,
+      "unit_cost": {
+        "usd": 8000,
+        "inr": 668000
+      }
+    },
+    {
+      "part_id": "SEAL-MECH-DSC",
+      "name": "Mechanical seal cartridge SiC/SiC",
+      "fits_equipment_class": [
+        "cooling_descaling_pump"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 2,
+      "unit_cost": {
+        "usd": 1500,
+        "inr": 125250
+      }
+    },
+    {
+      "part_id": "SLV-SHAFT-01",
+      "name": "Pump shaft sleeve",
+      "fits_equipment_class": [
+        "cooling_descaling_pump"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 3,
+      "unit_cost": {
+        "usd": 700,
+        "inr": 58450
+      }
+    },
+    {
+      "part_id": "IMP-CW-01",
+      "name": "Cooling pump impeller (double-suction)",
+      "fits_equipment_class": [
+        "cooling_descaling_pump"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 6,
+      "unit_cost": {
+        "usd": 6500,
+        "inr": 542750
+      }
+    },
+    {
+      "part_id": "WRING-CW-01",
+      "name": "Wear ring set",
+      "fits_equipment_class": [
+        "cooling_descaling_pump"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 4,
+      "unit_cost": {
+        "usd": 400,
+        "inr": 33400
+      }
+    },
+    {
+      "part_id": "ASV-VLV-01",
+      "name": "Anti-surge valve (Koso/Fisher)",
+      "fits_equipment_class": [
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 0,
+      "lead_time_weeks": 12,
+      "unit_cost": {
+        "usd": 45000,
+        "inr": 3757500
+      }
+    },
+    {
+      "part_id": "BRG-JRNL-PAD",
+      "name": "Journal bearing pads (OEM tilting-pad)",
+      "fits_equipment_class": [
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 12,
+      "unit_cost": {
+        "usd": 25000,
+        "inr": 2087500
+      }
+    },
+    {
+      "part_id": "BRG-THRUST-PAD",
+      "name": "Thrust bearing pads (Babbitt)",
+      "fits_equipment_class": [
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 12,
+      "unit_cost": {
+        "usd": 18000,
+        "inr": 1503000
+      }
+    },
+    {
+      "part_id": "FAN-BLADE-SET",
+      "name": "Fan blade set (axial/radial)",
+      "fits_equipment_class": [
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 0,
+      "lead_time_weeks": 12,
+      "unit_cost": {
+        "usd": 35000,
+        "inr": 2922500
+      }
+    },
+    {
+      "part_id": "BAL-WT-01",
+      "name": "Balancing weights set",
+      "fits_equipment_class": [
+        "bf_sinter_fan_blower"
+      ],
+      "stock_qty": 5,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 50,
+        "inr": 4175
+      }
+    },
+    {
+      "part_id": "ROLL-SEG-STD",
+      "name": "Strand guide roll (standard diameter)",
+      "fits_equipment_class": [
+        "continuous_caster_segment",
+        "continuous_caster_mould"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 12,
+      "unit_cost": {
+        "usd": 9000,
+        "inr": 751500
+      }
+    },
+    {
+      "part_id": "BRG-SEG-01",
+      "name": "Segment roll bearing",
+      "fits_equipment_class": [
+        "continuous_caster_segment"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 8,
+      "unit_cost": {
+        "usd": 1200,
+        "inr": 100200
+      }
+    },
+    {
+      "part_id": "NOZ-SPRAY-01",
+      "name": "Secondary cooling spray nozzle (consumable)",
+      "fits_equipment_class": [
+        "continuous_caster_segment"
+      ],
+      "stock_qty": 50,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 35,
+        "inr": 2922
+      }
+    },
+    {
+      "part_id": "MOLD-CU-STD",
+      "name": "Mould copper plates (standard slab format)",
+      "fits_equipment_class": [
+        "continuous_caster_mould"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 14,
+      "unit_cost": {
+        "usd": 55000,
+        "inr": 4592500
+      }
+    },
+    {
+      "part_id": "SEN-NOZ-01",
+      "name": "Submerged entry nozzle (consumable)",
+      "fits_equipment_class": [
+        "continuous_caster_mould"
+      ],
+      "stock_qty": 8,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 800,
+        "inr": 66800
+      }
+    },
+    {
+      "part_id": "WR-HSS-PREP",
+      "name": "Prepared work roll pair (HSS, roll shop)",
+      "fits_equipment_class": [
+        "hot_strip_mill_stand"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 80000,
+        "inr": 6680000
+      }
+    },
+    {
+      "part_id": "CHOCK-SEAL-01",
+      "name": "Roll chock seals",
+      "fits_equipment_class": [
+        "hot_strip_mill_stand"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 6,
+      "unit_cost": {
+        "usd": 350,
+        "inr": 29225
+      }
+    },
+    {
+      "part_id": "IDLER-STD-1600",
+      "name": "Standard carrying idler 1600mm belt",
+      "fits_equipment_class": [
+        "raw_material_conveyor"
+      ],
+      "stock_qty": 40,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 90,
+        "inr": 7515
+      }
+    },
+    {
+      "part_id": "IDLER-TRAIN-01",
+      "name": "Training/self-aligning idler",
+      "fits_equipment_class": [
+        "raw_material_conveyor"
+      ],
+      "stock_qty": 6,
+      "lead_time_weeks": 4,
+      "unit_cost": {
+        "usd": 320,
+        "inr": 26720
+      }
+    },
+    {
+      "part_id": "BELT-SEC-1600",
+      "name": "Belt section EP630 1600mm (made-to-order)",
+      "fits_equipment_class": [
+        "raw_material_conveyor"
+      ],
+      "stock_qty": 0,
+      "lead_time_weeks": 10,
+      "unit_cost": {
+        "usd": 18000,
+        "inr": 1503000
+      }
+    },
+    {
+      "part_id": "VULC-KIT-01",
+      "name": "Belt vulcanising kit",
+      "fits_equipment_class": [
+        "raw_material_conveyor"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 600,
+        "inr": 50100
+      }
+    },
+    {
+      "part_id": "BURN-NOZ-01",
+      "name": "Burner nozzle assembly",
+      "fits_equipment_class": [
+        "reheating_furnace"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 4,
+      "unit_cost": {
+        "usd": 1500,
+        "inr": 125250
+      }
+    },
+    {
+      "part_id": "FLAME-SCAN-01",
+      "name": "Flame scanner (UV/IR)",
+      "fits_equipment_class": [
+        "reheating_furnace"
+      ],
+      "stock_qty": 2,
+      "lead_time_weeks": 3,
+      "unit_cost": {
+        "usd": 900,
+        "inr": 75150
+      }
+    },
+    {
+      "part_id": "REFRAC-CAST-01",
+      "name": "Refractory castable / gunning mix",
+      "fits_equipment_class": [
+        "reheating_furnace"
+      ],
+      "stock_qty": 10,
+      "lead_time_weeks": 2,
+      "unit_cost": {
+        "usd": 1200,
+        "inr": 100200
+      }
+    },
+    {
+      "part_id": "FLT-HYD-10",
+      "name": "Hydraulic filter element 10um",
+      "fits_equipment_class": [
+        "eaf_bof_auxiliary",
+        "hydraulics_agc_servo"
+      ],
+      "stock_qty": 6,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 120,
+        "inr": 10020
+      }
+    },
+    {
+      "part_id": "KID-LOOP-01",
+      "name": "Kidney-loop filtration unit (portable)",
+      "fits_equipment_class": [
+        "eaf_bof_auxiliary",
+        "hydraulics_agc_servo"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 3,
+      "unit_cost": {
+        "usd": 8500,
+        "inr": 709750
+      }
+    },
+    {
+      "part_id": "COOL-CORE-01",
+      "name": "Hydraulic oil cooler core",
+      "fits_equipment_class": [
+        "eaf_bof_auxiliary"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 6,
+      "unit_cost": {
+        "usd": 3200,
+        "inr": 267200
+      }
+    },
+    {
+      "part_id": "ROPE-CRN-01",
+      "name": "Wire rope (custom length/spec)",
+      "fits_equipment_class": [
+        "ladle_crane"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 6,
+      "unit_cost": {
+        "usd": 9000,
+        "inr": 751500
+      }
+    },
+    {
+      "part_id": "SOCK-WEDGE-01",
+      "name": "Wedge socket (rope termination)",
+      "fits_equipment_class": [
+        "ladle_crane"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 350,
+        "inr": 29225
+      }
+    },
+    {
+      "part_id": "BRAKE-PAD-01",
+      "name": "Crane brake pads (shoe/disc)",
+      "fits_equipment_class": [
+        "ladle_crane"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 4,
+      "unit_cost": {
+        "usd": 450,
+        "inr": 37575
+      }
+    },
+    {
+      "part_id": "BRAKE-THR-01",
+      "name": "Brake thruster (electro-hydraulic)",
+      "fits_equipment_class": [
+        "ladle_crane"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 8,
+      "unit_cost": {
+        "usd": 2200,
+        "inr": 183700
+      }
+    },
+    {
+      "part_id": "SERVO-VLV-D661",
+      "name": "Moog D661 servo valve",
+      "fits_equipment_class": [
+        "hydraulics_agc_servo"
+      ],
+      "stock_qty": 1,
+      "lead_time_weeks": 10,
+      "unit_cost": {
+        "usd": 14000,
+        "inr": 1169000
+      }
+    },
+    {
+      "part_id": "FLT-SERVO-3",
+      "name": "Servo filter element 3um absolute",
+      "fits_equipment_class": [
+        "hydraulics_agc_servo"
+      ],
+      "stock_qty": 4,
+      "lead_time_weeks": 0,
+      "unit_cost": {
+        "usd": 220,
+        "inr": 18370
+      }
+    }
+  ]
+}

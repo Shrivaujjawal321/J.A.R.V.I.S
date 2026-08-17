@@ -1,0 +1,32 @@
+{
+  "app": "04-learnforge",
+  "status": "yellow",
+  "phase": "done",
+  "build_retries": 0,
+  "fixes_applied": [],
+  "pages_tested": [
+    {"route": "/", "console_errors": [], "http_status": 200, "note": "renders OK (HTTP 200)"},
+    {"route": "/login", "console_errors": [], "http_status": 200, "note": "renders OK (HTTP 200)"},
+    {"route": "/courses", "console_errors": [], "http_status": 200, "note": "renders OK (HTTP 200)"},
+    {"route": "/creator", "console_errors": [], "http_status": 200, "note": "redirects 307 -> /login?callbackUrl=%2Fcreator -> 200 (auth-protected)"},
+    {"route": "/creator/courses", "console_errors": [], "http_status": 200, "note": "redirects 307 -> /login (auth-protected)"},
+    {"route": "/creator/courses/new", "console_errors": [], "http_status": 200, "note": "redirects 307 -> /login (auth-protected)"},
+    {"route": "/creator/earnings", "console_errors": [], "http_status": 200, "note": "redirects 307 -> /login (auth-protected)"},
+    {"route": "/my-courses", "console_errors": [], "http_status": 200, "note": "redirects 307 -> /login (auth-protected)"}
+  ],
+  "errors": [
+    {
+      "type": "tooling",
+      "message": "chrome-devtools MCP unavailable: another Chrome instance owns /home/ujjwal/.cache/chrome-devtools-mcp/chrome-profile (likely a sister tester agent). Could not collect browser console errors. Fell back to curl-based HTTP status checks; all 8 routes return 200 (some via auth-redirect to /login)."
+    }
+  ],
+  "duration_seconds": 220,
+  "timestamp": "2026-04-28T00:00:00Z",
+  "notes": [
+    "Build succeeded on first try (Next.js 16.1.6, Turbopack, 24 pages generated). next.config.ts already has typescript.ignoreBuildErrors=true.",
+    "Build emits a deprecation warning: 'middleware' file convention will be replaced by 'proxy' in a future Next.js version (informational, not failing).",
+    "Dev server is reachable on port 3004 (PID 211226 = next-server). My nohup-launched npx wrapper hit EADDRINUSE because the port was already held by a leftover dev server; the leftover instance served all requests successfully.",
+    "DATABASE_URL points to file:../dev.db; the SQLite file is missing/empty. Routes did not exercise database calls during HTTP probing (most redirected to /login first), so no Prisma error surfaced. Auth-required pages would likely fail when actually executing queries — verdict downgraded to yellow.",
+    "No source-code fixes were applied."
+  ]
+}

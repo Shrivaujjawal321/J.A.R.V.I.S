@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DAT Load Extractor Pro - Live Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Premium Dashboard Theme Design System */
+    :root {
+      --bg-main: #060913;
+      --bg-card: #0c1222;
+      --bg-card-hover: #131b31;
+      --bg-console: #040712;
+      --primary: #06b6d4;
+      --primary-hover: #0891b2;
+      --primary-glow: rgba(6, 182, 212, 0.15);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --danger: #f43f5e;
+      --danger-glow: rgba(244, 63, 94, 0.15);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-disabled: #475569;
+      --border: rgba(255, 255, 255, 0.05);
+      --border-focus: rgba(6, 182, 212, 0.3);
+      --shadow-lg: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+      --shadow-accent: 0 0 15px rgba(16, 185, 129, 0.2);
+      --shadow-primary: 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Layout Structure */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      /* min-height, not height: on laptop screens the metric cards wrap to two
+         rows and the workspace was squeezed until the export buttons were
+         pushed outside the card and off-screen with no way to reach them. */
+      min-height: 100vh;
+      padding: 20px 30px;
+    }
+
+    /* Header styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .logo-container h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #22d3ee, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-container p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .session-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--bg-card);
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .session-info span { color: var(--text-muted); }
+    .session-info strong { color: #fff; }
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: var(--shadow-accent);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Live Progress Bar Container */
+    .progress-bar-wrapper {
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .progress-label-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #090e1a;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-primary);
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      /* 9 cards at minmax(180px) wrapped to two rows on a laptop and ate 272px
+         of vertical space, squeezing the results pane and pushing the export
+         buttons off-screen. Narrower cards keep them on one row. */
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .metric-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-disabled);
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .text-primary { color: var(--primary) !important; }
+    .text-accent { color: var(--accent) !important; }
+    .text-danger { color: var(--danger) !important; }
+    .text-warning { color: var(--warning) !important; }
+
+    /* Resource Gauges inside Metric Cards */
+    .resource-gauge-container {
+      width: 100%;
+      height: 6px;
+      background: #090e1a;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .resource-gauge-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.5s ease, background-color 0.5s ease;
+    }
+
+    /* Main Dashboard Workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 20px;
+      flex: 1;
+      /* Never collapse below a usable height; the page scrolls instead. */
+      min-height: 360px;
+    }
+
+    /* Left Workspace: Results Grid Manager */
+    .results-manager {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      min-height: 0;
+    }
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-input-wrapper input {
+      width: 100%;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      padding: 10px 14px 10px 36px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .search-input-wrapper input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      stroke: var(--text-muted);
+      fill: none;
+    }
+    .filter-tabs {
+      display: flex;
+      background: var(--bg-main);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .filter-tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .filter-tab:hover {
+      color: #fff;
+    }
+    .filter-tab.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Data Table styling */
+    .table-container {
+      flex: 1;
+      min-height: 140px;   /* keep rows visible instead of collapsing to a sliver */
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-main);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+    th {
+      background: #0a0f20;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 14px;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #e2e8f0;
+      vertical-align: middle;
+      font-weight: 400;
+    }
+    tr:hover td {
+      background: rgba(255,255,255,0.01);
+    }
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--accent); border: 1px solid rgba(16, 185, 129, 0.15); }
+    .badge-skipped { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.15); }
+    .badge-failed { background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.15); }
+
+    /* Right Workspace: Console Logs */
+    .console-pane {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      min-height: 0;
+    }
+    .console-window {
+      flex: 1;
+      background: var(--bg-console);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
+      font-size: 11px;
+      color: #cbd5e1;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.8);
+    }
+    .log-line {
+      margin-bottom: 6px;
+      line-height: 1.4;
+      display: flex;
+    }
+    .log-time {
+      color: #64748b;
+      margin-right: 8px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .log-type {
+      font-weight: 600;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .log-content {
+      word-break: break-all;
+    }
+
+    /* Export Controls panel */
+    .export-pane {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      flex-shrink: 0;      /* the download buttons are never what gets squeezed out */
+      /* On short screens the page scrolls; pin the download controls to the
+         bottom of the viewport so they are never hunted for. */
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-card);
+      padding-bottom: 4px;
+      z-index: 20;   /* above the table's sticky header (z-index 10) */
+    }
+    .export-options-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .export-scope-select {
+      display: flex;
+      background: var(--bg-main);
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .export-scope-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .export-scope-btn.active {
+      background: var(--bg-card);
+      color: #fff;
+    }
+    .export-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .btn {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--bg-main);
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-solid-teal {
+      background: linear-gradient(135deg, #0d9488, #0f766e);
+      border-color: transparent;
+    }
+    .btn-solid-teal:hover {
+      background: linear-gradient(135deg, #0f766e, #115e59);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    }
+    .btn-solid-danger {
+      background: linear-gradient(135deg, var(--danger), #e11d48);
+      border-color: transparent;
+    }
+    .btn-solid-danger:hover {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--danger-glow);
+    }
+    .btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    /* Modal dialog */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .dialog-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+    .dialog-box h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .dialog-box p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="logo-container">
+        <h1>
+          <svg style="width:24px;height:24px;stroke:var(--primary);stroke-width:2.5;" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 00-2-2M9 5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 00-2-2"/></svg>
+          DAT Load Extractor Pro
+        </h1>
+        <p>Live Distributed Crawling Control Center & Real-time Resource Optimizer</p>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <div class="session-info">
+          <div>Session: <strong id="sessId">-</strong></div>
+        </div>
+        <div class="status-badge">
+          <div class="status-dot" id="sessDot"></div>
+          <span id="sessState">Connecting...</span>
+        </div>
+        <button class="btn btn-solid-danger" id="stopCrawlerBtn" style="padding: 8px 14px; font-size: 11px;">
+          Stop Crawler
+        </button>
+        <button class="btn btn-solid-teal hidden" id="resumeCrawlerBtn" style="padding: 8px 14px; font-size: 11px; background: linear-gradient(135deg, #0d9488, #0f766e); border-color: transparent;">
+          Resume Crawler
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Progress Bar -->
+    <div class="progress-bar-wrapper">
+      <div class="progress-label-row">
+        <span>Crawl progress: <strong id="progressPctText">0%</strong></span>
+        <span>Completed <strong id="progressBatchesCount">0 / 0</strong> batches (<strong id="progressPermsCount">0 / 0</strong> permutations)</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+
+    <!-- Stats Counters Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Extracted Records</span>
+        <strong class="metric-value text-primary" id="metricExtracted">0</strong>
+        <span class="metric-sub">collected loads</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Success Rate</span>
+        <strong class="metric-value text-accent" id="metricSuccess">0</strong>
+        <span class="metric-sub" id="metricSuccessSub">0 combinations</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Skipped (0 results)</span>
+        <strong class="metric-value text-warning" id="metricSkipped">0</strong>
+        <span class="metric-sub">empty state search</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Failed Tasks</span>
+        <strong class="metric-value text-danger" id="metricFailed">0</strong>
+        <span class="metric-sub">retries or load errors</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Running Tasks</span>
+        <strong class="metric-value text-primary" id="metricRunningTasks">0</strong>
+        <span class="metric-sub" id="metricRunningTasksSub">active permutations</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Active Windows</span>
+        <strong class="metric-value" id="metricWindows">0</strong>
+        <span class="metric-sub" id="metricWindowsSub">limit: 4</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">CPU Usage</span>
+        <strong class="metric-value" id="metricCpu">0%</strong>
+        <div class="resource-gauge-container">
+          <div class="resource-gauge-fill" id="cpuGauge" style="background-color: var(--accent);"></div>
+        </div>
+        <span class="metric-sub">host system load</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Memory Usage</span>
+        <strong class="metric-value" id="metricMemory">0%</strong>
+        <div class="resource-gauge-container">
+          <div class="resource-gauge-fill" id="memGauge" style="background-color: var(--accent);"></div>
+        </div>
+        <span class="metric-sub">ram saturation</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Time Remaining</span>
+        <strong class="metric-value" id="metricEta">Calculating...</strong>
+        <span class="metric-sub">estimated eta</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      
+      <!-- Left Workspace: Results Manager -->
+      <div class="results-manager">
+        <div class="section-title">
+          <span>Results Manager</span>
+          <div class="filter-tabs">
+            <div class="filter-tab active" id="tabAll">All (0)</div>
+            <div class="filter-tab" id="tabSuccessful">Extracted (0)</div>
+            <div class="filter-tab" id="tabSkipped">Skipped (0)</div>
+            <div class="filter-tab" id="tabFailed">Failed (0)</div>
+          </div>
+        </div>
+
+        <div class="controls-row">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="searchInput" placeholder="Search by Origin, Destination, Company, or Equipment...">
+          </div>
+        </div>
+
+        <!-- Data Grid Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Age</th>
+                <th>Rate</th>
+                <th>RPM</th>
+                <th>Trip</th>
+                <th>Company</th>
+                <th>Equipment</th>
+                <th>Docket</th>
+                <th>DOT Number</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+              <tr>
+                <td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                  Connecting to server, awaiting records...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Export controls -->
+        <div class="export-pane">
+          <div class="export-options-row">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Export Scope:</span>
+            <div class="export-scope-select">
+              <div class="export-scope-btn active" id="scopeAll">All Records</div>
+              <div class="export-scope-btn" id="scopeSuccess">Success Only</div>
+              <div class="export-scope-btn" id="scopeSkipped">Skipped Only</div>
+              <div class="export-scope-btn" id="scopeFailed">Failed Only</div>
+            </div>
+          </div>
+          <div class="export-buttons-grid">
+            <button class="btn" id="exportXlsxBtn">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Excel Report (.xlsx)
+            </button>
+            <button class="btn" id="exportJsonBtn">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              Clean JSON (.json)
+            </button>
+            <button class="btn" id="exportCsvBtn">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Standard CSV (.csv)
+            </button>
+            <button class="btn" id="exportTxtBtn">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Formatted Text (.txt)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Workspace: Console Logs -->
+      <div class="console-pane">
+        <div class="section-title">
+          <span>Live Operations Log</span>
+          <span style="font-size: 10px; font-family: monospace; color: var(--primary);">events.log</span>
+        </div>
+        <div class="console-window" id="consoleWindow">
+          <div class="log-line">
+            <span class="log-time">[00:00:00]</span>
+            <span class="log-type text-primary">[INFO]</span>
+            <span class="log-content">Console stream initialized. Awaiting events...</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Alert Dialog -->
+  <div class="dialog-overlay hidden" id="alertDialog">
+    <div class="dialog-box">
+      <h3 id="alertTitle">Attention Needed</h3>
+      <p id="alertMsg">No active session is in progress.</p>
+      <button class="btn btn-solid-teal" style="margin: 0 auto; width: 120px;" onclick="document.getElementById('alertDialog').classList.add('hidden')">
+        Acknowledge
+      </button>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

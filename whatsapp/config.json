@@ -1,0 +1,24 @@
+{
+  "owner_label": "Ujjawal",
+  "trigger_regex": "\\bjarv(is|iz|vis|s)?\\b",
+  "signature": "🤖 _Jarvis — Ujjawal ka AI assistant_\n\n",
+  "reply_min_delay_ms": 3000,
+  "reply_max_delay_ms": 8000,
+  "after_n_replies_pause": { "count": 50, "pause_ms": 360000 },
+  "rate": {
+    "per_sender_per_min": 4,
+    "per_sender_per_hour": 30,
+    "per_sender_per_day": 60,
+    "global_per_min": 30,
+    "max_input_chars": 4000
+  },
+  "throttle_message": "🤖 _Jarvis_\n\nThodi der ruk jao please — kaafi messages aa gaye. Kuch der baad firse poochna 🙂",
+  "worker_timeout_ms": 60000,
+  "jarvis_core_url": "http://127.0.0.1:8765",
+  "core_timeout_ms": 175000,
+  "python_bin": ".venv/bin/python",
+  "worker_script": "whatsapp/public_worker.py",
+  "session_ttl_hours": 24,
+  "max_history_turns": 8,
+  "conversation_window_min": 30
+}

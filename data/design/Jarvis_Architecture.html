@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis — Architecture Deep-Dive</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --panel: #ffffff;
+    --panel-2: #eef1f6;
+    --ink: #1a1f28;
+    --muted: #5b6672;
+    --border: #d3dae3;
+    --accent: #1f6feb;
+    --accent-soft: #ddeaff;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --t1: #1a7f37;  --t1-bg: #e6f4ea;
+    --t2: #9a6700;  --t2-bg: #fbf1d6;
+    --t3: #cf222e;  --t3-bg: #ffe9e9;
+    --t4: #6e7781;  --t4-bg: #eceef1;
+    --stage: #1f6feb; --stage-bg: #e7f0ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0f14;
+      --panel: #141922;
+      --panel-2: #1b212c;
+      --ink: #e6edf3;
+      --muted: #97a2b0;
+      --border: #29313d;
+      --accent: #58a6ff;
+      --accent-soft: #16304f;
+      --t1: #56d364; --t1-bg: #10261a;
+      --t2: #e3b341; --t2-bg: #2a2210;
+      --t3: #ff7b72; --t3-bg: #2d1416;
+      --t4: #8b949e; --t4-bg: #1c222b;
+      --stage: #58a6ff; --stage-bg: #12233d;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6f9; --panel: #ffffff; --panel-2: #eef1f6; --ink: #1a1f28;
+    --muted: #5b6672; --border: #d3dae3; --accent: #1f6feb; --accent-soft: #ddeaff;
+    --t1:#1a7f37;--t1-bg:#e6f4ea;--t2:#9a6700;--t2-bg:#fbf1d6;--t3:#cf222e;--t3-bg:#ffe9e9;
+    --t4:#6e7781;--t4-bg:#eceef1;--stage:#1f6feb;--stage-bg:#e7f0ff;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0c0f14;--panel:#141922;--panel-2:#1b212c;--ink:#e6edf3;--muted:#97a2b0;
+    --border:#29313d;--accent:#58a6ff;--accent-soft:#16304f;
+    --t1:#56d364;--t1-bg:#10261a;--t2:#e3b341;--t2-bg:#2a2210;--t3:#ff7b72;--t3-bg:#2d1416;
+    --t4:#8b949e;--t4-bg:#1c222b;--stage:#58a6ff;--stage-bg:#12233d;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.55;
+    padding: 40px 20px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+
+  .themebtn {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    font-family: var(--mono); font-size: 12px; cursor: pointer;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  .themebtn:hover { border-color: var(--accent); color: var(--accent); }
+
+  header.masthead { margin-bottom: 8px; }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent); font-weight: 600;
+  }
+  h1 {
+    font-size: clamp(28px, 5vw, 42px); margin: 6px 0 4px; letter-spacing: -0.5px;
+    text-wrap: balance; font-weight: 800;
+  }
+  .sub { color: var(--muted); font-size: 15px; max-width: 60ch; }
+
+  section { margin-top: 40px; }
+  h2 {
+    font-size: 20px; margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px;
+    border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  }
+  h2 .n {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    background: var(--accent-soft); padding: 2px 8px; border-radius: 6px; font-weight: 700;
+  }
+  .lead { color: var(--muted); font-size: 14.5px; margin: 10px 0 16px; }
+
+  code, .mono { font-family: var(--mono); font-size: 0.88em; }
+  p code, li code, td code {
+    background: var(--panel-2); padding: 1px 5px; border-radius: 4px;
+    border: 1px solid var(--border); font-size: 0.84em; white-space: nowrap;
+  }
+
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .node {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; position: relative;
+  }
+  .node .role {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--accent); font-weight: 700; margin-bottom: 3px;
+  }
+  .node .title { font-weight: 700; font-size: 15px; }
+  .node .desc { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+  .node .fn { font-family: var(--mono); font-size: 12px; color: var(--ink); margin-top: 6px; }
+  .node .fn b { color: var(--accent); font-weight: 600; }
+  .arrow {
+    align-self: center; color: var(--muted); font-size: 20px; line-height: 1;
+    padding: 5px 0;
+  }
+
+  .stage { border-left: 4px solid var(--stage); background: var(--stage-bg); }
+  .stage .n2 {
+    font-family: var(--mono); font-weight: 700; color: var(--stage);
+    font-size: 12px; margin-right: 6px;
+  }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h3 { margin: 0 0 8px; font-size: 15px; }
+  .card ul { margin: 0; padding-left: 18px; }
+  .card li { margin: 4px 0; font-size: 13.5px; }
+
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--panel-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td .file { font-family: var(--mono); color: var(--accent); font-weight: 600; font-size: 12.5px; }
+  td .fns { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+  .tiers { display: flex; flex-direction: column; gap: 10px; }
+  .tier { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); }
+  .tier .badge { font-family: var(--mono); font-weight: 800; font-size: 12px; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+  .tier.t1 { background: var(--t1-bg); } .tier.t1 .badge { color: var(--t1); border: 1px solid var(--t1); }
+  .tier.t2 { background: var(--t2-bg); } .tier.t2 .badge { color: var(--t2); border: 1px solid var(--t2); }
+  .tier.t3 { background: var(--t3-bg); } .tier.t3 .badge { color: var(--t3); border: 1px solid var(--t3); }
+  .tier.t4 { background: var(--t4-bg); } .tier.t4 .badge { color: var(--t4); border: 1px solid var(--t4); }
+  .tier .txt { font-size: 13.5px; }
+  .tier .txt b { font-size: 14px; }
+
+  .states { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12.5px; }
+  .pill { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); font-weight: 600; }
+  .pill.go { border-color: var(--t1); color: var(--t1); }
+  .pill.wait { border-color: var(--t2); color: var(--t2); }
+  .pill.stop { border-color: var(--t3); color: var(--t3); }
+  .states .sep { color: var(--muted); }
+
+  .callout {
+    border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px;
+    padding: 12px 16px; font-size: 13.5px; margin-top: 14px;
+  }
+  .callout b { color: var(--accent); }
+
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stack-item { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .stack-item .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+  .stack-item .v { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
+
+  footer { margin-top: 50px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 16px; font-family: var(--mono); }
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeToggle">◐ theme</button>
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">Interview Study Sheet · Agentic AI</div>
+    <h1>Jarvis — Architecture Deep-Dive</h1>
+    <p class="sub">A personal multi-agent operating system. One orchestrator daemon, ~90 specialist agents, a two-layer memory, and a 4-tier safety model — built on the Claude Agent SDK. Every function name below is real code from <code>jarvis_core/</code>.</p>
+  </header>
+
+  <section>
+    <h2><span class="n">01</span> How a message enters the system</h2>
+    <p class="lead">Boss types on Telegram → the bridge forwards it over HTTP to a long-running local daemon. If the daemon is down, it falls back to spawning the Claude CLI directly.</p>
+    <div class="flow">
+      <div class="node">
+        <div class="role">Interface</div>
+        <div class="title">Telegram bot · @jarvis_Ujjawal_Bot</div>
+        <div class="desc">Runs as a systemd service (<code>jarvis-bridge</code>). Also: voice, cron briefings.</div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node">
+        <div class="role">Bridge</div>
+        <div class="title">bridge/telegram_bridge.py</div>
+        <div class="desc">Async <code>httpx</code> POST to the daemon. Short connect-timeout so a dead daemon fails over fast.</div>
+        <div class="fn"><b>_call_via_daemon()</b> → POST <b>http://127.0.0.1:8765/chat</b></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node stage">
+        <div class="role">Brain</div>
+        <div class="title">jarvis-core daemon (FastAPI + Uvicorn)</div>
+        <div class="desc">Bound to <code>127.0.0.1</code> only — no public port. Holds all state in memory, survives across requests.</div>
+        <div class="fn"><b>@app.post("/chat")</b> → the 4-stage pipeline below</div>
+      </div>
+    </div>
+    <div class="callout"><b>Why a daemon and not just the CLI?</b> A long-running service keeps conversation state, memory, and the goal-scheduler warm in memory — no cold start per message, and background work (autonomous goals) can run between chats.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span> The <code>/chat</code> pipeline — 4 stages</h2>
+    <p class="lead">This is the heart. Inside <code>daemon.py:chat()</code>, every message flows through four layers. Stages 1 &amp; 2 run <b>in parallel</b> (independent), then the worker, then a silent critic.</p>
+    <div class="flow">
+      <div class="node stage">
+        <div class="title"><span class="n2">STAGE 1 + 2 (parallel)</span></div>
+        <div class="desc">Intent classify and memory recall are independent — fired together via <code>asyncio.create_task</code> + <code>asyncio.to_thread</code>.</div>
+      </div>
+      <div class="cols" style="margin-top:12px">
+        <div class="node">
+          <div class="role">Stage 1 · Intent</div>
+          <div class="title">jarvis_core/intent.py</div>
+          <div class="desc">A cheap Haiku call sorts the message into 8 categories + priority + confidence. 3s timeout. Slash-commands become a synthetic <code>task</code>.</div>
+          <div class="fn"><b>IntentClassifier.classify()</b><br>→ <span class="mono">&lt;intent category="task" .../&gt;</span></div>
+        </div>
+        <div class="node">
+          <div class="role">Stage 2 · Recall</div>
+          <div class="title">jarvis_core/recall.py</div>
+          <div class="desc">Semantic search over past memory in ChromaDB. Keeps only hits scoring ≥ 0.55, trims to a 2000-token budget. Skips greetings / short msgs.</div>
+          <div class="fn"><b>Recaller.gather()</b><br>→ <span class="mono">&lt;jarvis_memory_context&gt;…&lt;/&gt;</span></div>
+        </div>
+      </div>
+      <div class="arrow">↓ &nbsp;<span style="font-family:var(--mono);font-size:12px;color:var(--muted)">augmented_prompt = intent + memory + user message</span></div>
+      <div class="node stage">
+        <div class="role">Stage 3 · Worker</div>
+        <div class="title">jarvis_core/orchestrator.py → run_worker()</div>
+        <div class="desc">Spawns a Claude Code session via the Agent SDK, in the Jarvis project dir — so the worker sees all ~90 agents, MCP tools, skills, CLAUDE.md. Streams output, captures <code>session_id</code> (for resume) + cost.</div>
+        <div class="fn"><b>run_worker(prompt, resume_session_id, max_turns…)</b></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node stage">
+        <div class="role">Stage 4 · Critic</div>
+        <div class="title">jarvis_core/critic.py → Critic.evaluate()</div>
+        <div class="desc">A silent Haiku reviewer scores the draft on 4 rubrics — <b>Intent · Memory · Claims · Tone</b>. Verdict <code>revise</code> → exactly one revision pass. Attaches a confidence tag. Never blocks the reply (fails open).</div>
+        <div class="fn"><b>_review()</b> → JSON verdict &nbsp;·&nbsp; <b>_revise()</b> → clean rewrite</div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node">
+        <div class="role">Response</div>
+        <div class="title">ChatResponse → back to Telegram</div>
+        <div class="desc">Carries <code>reply</code>, <code>confidence</code>, <code>memory_hits</code>, <code>revised</code>, <code>intent</code>, <code>priority</code>. The turn is logged for auto-capture.</div>
+      </div>
+    </div>
+    <div class="callout"><b>The one-liner to memorize:</b> "Intent + Recall run in parallel, then the Worker answers with full memory context, then a silent Critic verifies it against four rubrics and can revise once — all inside one FastAPI endpoint."</div>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span> Module map — file → job → key functions</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th><th>Key functions / classes</th></tr></thead>
+        <tbody>
+          <tr><td><span class="file">daemon.py</span></td><td>FastAPI service; wires every endpoint. <code>/chat</code>, <code>/task</code>, <code>/goal</code>, <code>/approval</code>, <code>/digest</code>, <code>/health</code>.</td><td class="fns">chat() · create_task() · create_goal() · decide_approval() · lifespan()</td></tr>
+          <tr><td><span class="file">orchestrator.py</span></td><td>The Agent-SDK dispatcher — turns a prompt into a running Claude worker.</td><td class="fns">run_worker() · run_parallel_workers() · aggregate_results()</td></tr>
+          <tr><td><span class="file">intent.py</span></td><td>Stage-1 classifier — 8 categories + priority.</td><td class="fns">IntentClassifier.classify() · _apply_priority_rules()</td></tr>
+          <tr><td><span class="file">recall.py</span></td><td>Stage-2 semantic memory injection (RAG over history).</td><td class="fns">Recaller.gather() · _trim_to_budget() · _format()</td></tr>
+          <tr><td><span class="file">critic.py</span></td><td>Stage-4 silent reviewer + one revise pass.</td><td class="fns">Critic.evaluate() · _review() · _revise()</td></tr>
+          <tr><td><span class="file">confidence.py</span></td><td>Verified / unverified / low tag helpers.</td><td class="fns">normalise() · annotate() · is_silent()</td></tr>
+          <tr><td><span class="file">decomposer.py</span></td><td>Turns a goal into 1–8 tiered sub-tasks (strict-JSON planner).</td><td class="fns">decompose_goal() · plan_to_sub_tasks() · DecompositionPlan</td></tr>
+          <tr><td><span class="file">scheduler.py</span></td><td>Background loop driving the autonomous-goal lifecycle.</td><td class="fns">GoalScheduler · _tick() · _run_goal_inner() · _execute_sub()</td></tr>
+          <tr><td><span class="file">state.py</span></td><td>In-memory state (lock-guarded) + atomic disk snapshots.</td><td class="fns">JarvisState · sync_to_disk() · load_from_disk() · update_goal()</td></tr>
+          <tr><td><span class="file">models.py</span></td><td>All Pydantic v2 schemas + status enums.</td><td class="fns">ChatRequest/Response · GoalRecord · SubTaskRecord · ApprovalRequest</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span> The orchestrator — one worker vs. a fleet</h2>
+    <p class="lead">Everything that talks to Claude goes through <code>run_worker()</code>. Auth is a Max-subscription OAuth token (<code>CLAUDE_CODE_OAUTH_TOKEN</code>) — no developer API key.</p>
+    <div class="cols">
+      <div class="card">
+        <h3>Single worker — <code>/chat</code></h3>
+        <ul>
+          <li>One Claude session, resumable via <code>session_id</code>.</li>
+          <li>Runs with <code>cwd</code> = Jarvis root, so it inherits all agents + tools.</li>
+          <li>Streaming collected into one text; cost + session captured.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Parallel fan-out — <code>/task</code></h3>
+        <ul>
+          <li><code>run_parallel_workers()</code> spawns N workers with <code>asyncio.gather</code>.</li>
+          <li>Each worker = its own independent context window.</li>
+          <li>Wall-clock = the slowest worker, not the sum.</li>
+          <li><code>aggregate_results()</code> synthesizes all outputs into one.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout"><b>This is the "Manager–Worker" pattern.</b> The daemon is the manager; each <code>run_worker</code> call is a specialist doing focused work. Parallel-by-default is a stated design principle.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span> The memory layer — two layers</h2>
+    <p class="lead">The part that makes Jarvis feel like it "knows me." Structured facts + a searchable history.</p>
+    <div class="cols">
+      <div class="card">
+        <h3>Layer 1 · Structured files</h3>
+        <ul>
+          <li><code>data/memory/</code> — facts, preferences, projects, people, habits.</li>
+          <li>Human-readable Markdown with <code>type:</code> / <code>zone:</code> frontmatter.</li>
+          <li>Loaded at session start; edited by the <b>memory-agent</b>.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Layer 2 · Vector DB (episodic)</h3>
+        <ul>
+          <li><b>ChromaDB</b> + sentence-transformers embeddings.</li>
+          <li>Every past conversation chunked &amp; embedded.</li>
+          <li><code>EpisodicMemory.recall()</code> = semantic search.</li>
+          <li>Auto-capture cron ingests new facts every 30 min.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow" style="margin-top:14px">
+      <div class="node">
+        <div class="role">Recall flow (before every reply)</div>
+        <div class="fn" style="margin-top:2px">user msg → <b>Recaller.gather()</b> → ChromaDB top-k → filter score ≥ 0.55 → trim to 2000 tokens → <span class="mono">&lt;jarvis_memory_context&gt;</span> injected into the worker prompt</div>
+      </div>
+    </div>
+    <div class="callout"><b>In one word:</b> this is <b>RAG over my own history</b> — retrieval-augmented generation, where the knowledge base is everything Jarvis has ever learned about me.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">06</span> Autonomous goals — the overnight brain</h2>
+    <p class="lead">Boss hands Jarvis a goal (<code>/goal_add</code>); it plans, executes safe parts itself, and parks risky parts for morning approval. A background <code>GoalScheduler</code> polls every 60s.</p>
+    <div class="states" style="margin:6px 0 16px">
+      <span class="pill">QUEUED</span><span class="sep">→</span>
+      <span class="pill">PLANNING</span><span class="sep">→</span>
+      <span class="pill go">RUNNING</span><span class="sep">→</span>
+      <span class="pill wait">AWAITING_APPROVAL</span><span class="sep">→</span>
+      <span class="pill go">COMPLETED</span>
+      <span class="sep">&nbsp;|&nbsp;</span><span class="pill stop">FAILED / CANCELLED</span>
+    </div>
+    <div class="flow">
+      <div class="node">
+        <div class="role">1 · Plan</div>
+        <div class="title">decomposer.py → decompose_goal()</div>
+        <div class="desc">One Haiku call returns strict JSON (validated by Pydantic <code>DecompositionPlan</code>): 1–8 sub-tasks, each tagged Tier 1/2/3. Single-level only — no recursive sub-goals. Malformed/unsafe → <code>REFUSED:</code>.</div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node">
+        <div class="role">2 · Execute</div>
+        <div class="title">scheduler.py → _run_goal_inner()</div>
+        <div class="desc">Tier 1 &amp; 2 sub-tasks run concurrently (<code>asyncio.gather</code>). Tier 3 sub-tasks create an <code>ApprovalRequest</code> and the goal parks at AWAITING_APPROVAL. <b>Tier-3 never auto-runs overnight.</b></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node">
+        <div class="role">3 · Guardrails</div>
+        <div class="title">Budget + duration caps</div>
+        <div class="desc">Cost &gt; <code>max_budget_usd</code> ($5 default) → FAILED. Elapsed &gt; <code>max_duration_seconds</code> (2h default) → FAILED. On restart, orphaned RUNNING goals re-queue cleanly.</div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node">
+        <div class="role">4 · Approve &amp; finish</div>
+        <div class="title">resume_goal_after_approval()</div>
+        <div class="desc">Boss replies <code>/goal_approve</code> → the Tier-3 sub-task executes now; once all Tier-3s resolved, <code>_synthesize_final()</code> stitches outputs and the goal → COMPLETED. Morning digest summarizes it all.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">07</span> The 4-tier safety model</h2>
+    <p class="lead">Every action Jarvis can take is classified. The decomposer assigns the tier; the scheduler enforces it. This is the human-in-the-loop guarantee.</p>
+    <div class="tiers">
+      <div class="tier t1"><span class="badge">TIER 1</span><span class="txt"><b>Auto, silent.</b> Reads, research, drafts, screenshots, summaries — no side effects. Just runs.</span></div>
+      <div class="tier t2"><span class="badge">TIER 2</span><span class="txt"><b>Auto + audit log.</b> Local writes: files in the Jarvis repo, memory, calendar events, Notion pages, browser form <i>fill</i> (not submit). Logged to <code>data/audits/</code>.</span></div>
+      <div class="tier t3"><span class="badge">TIER 3</span><span class="txt"><b>Confirm required — always.</b> Irreversible external actions: send email, submit a form, publish, delete, git push, payment. Gated on Boss's explicit approval even in full-auto mode.</span></div>
+      <div class="tier t4"><span class="badge">TIER 4</span><span class="txt"><b>Permanently refused.</b> Destructive system ops, phishing, auth bypass, ToS violations. No mode override — the planner returns <code>REFUSED:</code>.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">08</span> Tech stack (for the rapid-fire round)</h2>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="k">Service</div><div class="v">FastAPI + Uvicorn</div></div>
+      <div class="stack-item"><div class="k">LLM runtime</div><div class="v">Claude Agent SDK</div></div>
+      <div class="stack-item"><div class="k">Auth</div><div class="v">Max-sub OAuth token</div></div>
+      <div class="stack-item"><div class="k">Concurrency</div><div class="v">asyncio (gather)</div></div>
+      <div class="stack-item"><div class="k">Vector DB</div><div class="v">ChromaDB</div></div>
+      <div class="stack-item"><div class="k">Embeddings</div><div class="v">sentence-transformers</div></div>
+      <div class="stack-item"><div class="k">Validation</div><div class="v">Pydantic v2</div></div>
+      <div class="stack-item"><div class="k">Persistence</div><div class="v">Atomic JSON snapshot</div></div>
+      <div class="stack-item"><div class="k">Interface</div><div class="v">Telegram (httpx)</div></div>
+      <div class="stack-item"><div class="k">Ops</div><div class="v">systemd timers + cron</div></div>
+      <div class="stack-item"><div class="k">Classifier / Critic</div><div class="v">Haiku 4.5</div></div>
+      <div class="stack-item"><div class="k">Integrations</div><div class="v">Composio MCP (Google, Notion)</div></div>
+    </div>
+  </section>
+
+  <footer>
+    jarvis-core v0.2.0 · single orchestrator · ~90 specialist agents · 2-layer memory · 4-tier safety<br>
+    Source of truth: jarvis_core/*.py — every function named here is real code.
+  </footer>
+</div>
+<script>
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    var root = document.documentElement;
+    btn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme');
+      if (!cur) {
+        // no explicit theme yet — flip opposite of the OS preference
+        cur = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>

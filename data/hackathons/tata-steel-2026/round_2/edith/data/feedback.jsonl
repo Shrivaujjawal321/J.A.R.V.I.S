@@ -1,0 +1,11 @@
+{"ts": "2026-06-10T15:02:51.866598", "asset_id": "HSM.F3.WR.BRG01", "query": null, "helpful": true, "correction": null, "section": null}
+{"ts": "2026-06-10T16:09:53.088027", "asset_id": "HSM.F3.WR.BRG01", "query": null, "helpful": true, "correction": null, "section": "verdict"}
+{"ts": "2026-06-11T12:29:03.951162", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": null}
+{"ts": "2026-06-11T12:33:38.853454", "asset_id": "HSM.F1.GBX01", "query": "audit", "helpful": true, "correction": null, "section": null}
+{"ts": "2026-06-11T13:12:12.617963", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": "diagnosis"}
+{"ts": "2026-06-11T13:12:12.647754", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": false, "correction": "The fault is actually bearing wear not gear mesh", "section": "rca"}
+{"ts": "2026-06-11T13:18:08.914967", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": null}
+{"ts": "2026-06-11T14:36:56.711766", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": "verdict"}
+{"ts": "2026-06-11T14:43:25.742021", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": "verdict"}
+{"ts": "2026-06-11T14:54:02.131132", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": "verdict"}
+{"ts": "2026-06-11T15:06:55.905082", "asset_id": "HSM.F1.GBX01", "query": null, "helpful": true, "correction": null, "section": "verdict"}

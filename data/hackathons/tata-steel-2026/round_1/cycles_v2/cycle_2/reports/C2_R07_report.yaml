@@ -1,0 +1,493 @@
+agent_id: C2_R07
+topic: semi-sup-anomaly-hard-fp-10
+cycle: 2
+timestamp_utc: "2026-05-23T17:00:00Z"
+status: ok
+
+# ===== CONTEXT LOADED =====
+# Hard-FP-10 CoilIDs (Y=0, highest V4 OOF proba):
+#   689 (0.778), 642 (0.698), 247 (0.627), 189 (0.624), 279 (0.616)
+#   757 (0.580), 188 (0.577), 651 (0.544), 467 (0.534), 690 (0.532)
+# Hard-7 CoilIDs (Y=1, lowest V4 OOF proba):
+#   1495 (0.01429), 913 (0.01487), 1499 (0.01707), 473 (0.01757),
+#   624 (0.01921), 1436 (0.02036), 72 (0.02694)
+# Cycle 1 structural finding: ALL 4 builds fail Set B (Hard-FP-10 avoidance).
+# Hard-FP-10 feature signature (from hard_fp_feature_stats.csv, t-test ranked):
+#   vs True Positives: X14 +15.2degC (619 vs 604), X49 +62.7%,
+#   X41 +28.3%, X46 +44.9%, X48 +118.2% -- OPPOSITE direction to normal class.
+#   Hard-FP-10 are MORE extreme on these axes than true positives.
+
+drill_analysis:
+
+  q1_deep_sad_hypersphere_intuition:
+    question: "What would Deep SAD learn that makes Hard-FP-10 score LOWER
+      (less anomalous) than Hard-7?"
+    answer: |
+      Deep SAD objective: pull labeled Y=1 anomalies AWAY from hypersphere
+      center, pull unlabeled Y=0 toward center. Center c is fixed at epoch-1
+      mean of encoder outputs on training data.
+
+      The problem for Hard-FP-10 avoidance:
+      Hard-7 coils have NEAR-NORMAL sensor profiles (that is WHY they are
+      hard -- they barely look like defects). Hard-FP-10 coils have elevated
+      X14/X49/X41/X46/X48 vs both normals and true positives. They are MORE
+      extreme in the raw feature space.
+
+      If Deep SAD places the hypersphere center near the bulk of Y=0 normals
+      (where unlabeled training examples cluster), Hard-FP-10's elevated
+      temperature/process values would put them FARTHER from center --
+      meaning Deep SAD scores them as MORE anomalous, not less.
+      The 66 labeled anomalies (Y=1) are pulled away from center, and
+      Hard-7 (near-normal profiles) may end up CLOSER to center than
+      Hard-FP-10 (elevated profiles). This is the WRONG direction.
+
+      The one scenario where Deep SAD could help:
+      If the MLP encoder learns a latent space where the 66 true positives
+      form a cluster at a DIFFERENT location than Hard-FP-10 (e.g., true
+      positives cluster on extreme X13/X32 while Hard-FP-10 cluster on
+      extreme X14/X49), the hypersphere distance in latent space could
+      separate them. This requires the encoder to learn non-trivial
+      feature interactions with only 1352 training rows.
+
+      Probability of success for Deep SAD: LOW-to-MEDIUM.
+      The structural bias of the hypersphere likely scores Hard-FP-10
+      as MORE anomalous than Hard-7, not less.
+
+  q2_devnet_vs_deep_sad_score_function:
+    question: "How does DevNet score function differ from Deep SAD hypersphere
+      distance, and which is better for Hard-FP-10 avoidance?"
+    answer: |
+      Deep SAD score = ||phi(x) - c||^2
+        Euclidean distance from fixed hypersphere center in latent space.
+        Unlabeled normals pulled toward c; labeled anomalies pushed away.
+        Hard-FP-10 (elevated feature values) may be farther from c
+        than Hard-7 (near-normal values) -- scoring Hard-FP-10 as MORE
+        anomalous. Wrong direction.
+
+      DevNet score = dev(x), scalar output from MLP
+        Loss: for Y=1, push dev(x) >> z (z ~ N(0,1) reference Gaussian).
+              for Y=0 (unlabeled/normal), pull dev(x) toward 0.
+        Key structural advantage: Hard-FP-10 are labeled Y=0 in TRAINING
+        folds. DevNet's loss explicitly pushes their scores toward 0.
+        Hard-7 are labeled Y=1; DevNet's loss pushes their scores HIGH.
+        In VALIDATION fold, Hard-FP-10 were trained as normal examples
+        -- the learned decision function has been optimized to score
+        rows like Hard-FP-10 (Y=0) LOW and rows like Hard-7 (Y=1) HIGH.
+        This is exactly the separation needed for Hard-FP-10 avoidance.
+
+      CRITICAL INSIGHT: DevNet has a STRUCTURAL ADVANTAGE over Deep SAD
+      for this specific problem because its contrastive loss uses labels.
+      Hard-FP-10 are Y=0 training examples -- DevNet is explicitly trained
+      to score them near 0. Whether this generalizes to the validation fold
+      depends on learned geometry, but the loss function is aligned with
+      the goal.
+
+      DevNet is the PREFERRED method over Deep SAD for Hard-FP-10 avoidance.
+      PReNet (pairwise) is preferred over both because it learns relational
+      geometry rather than absolute scores, making it more robust to the
+      stealth-defect profile.
+
+  q3_prenet_pairwise_pool_size:
+    question: "PReNet with ~53 positives per fold -- is the pairwise pool enough?"
+    answer: |
+      CORRECTION to C1 R07 brief: The brief stated 169 anomaly-anomaly pairs.
+      This appears to be C(13,2) = 78, perhaps using validation fold count.
+      Correct calculation for TRAINING fold (5-fold, 66 total positives):
+        Training fold positives: 66 * 4/5 = ~53
+        Anom-Anom pairs: C(53,2) = 53*52/2 = 1,378 pairs per fold
+        Anom-Unlabeled: 53 * ~1021 = ~54,113 pairs per fold
+        Unlabeled-Unlabeled: C(1021,2) ~ 521,010 pairs per fold
+
+      1,378 anom-anom pairs is SUFFICIENT. PReNet's original paper experiments
+      used datasets with 30-100 labeled anomalies successfully. At 53/fold
+      we are in the well-supported regime.
+
+      Real concern: NOT sample size, but DIVERSITY.
+      If the 53 anomalies per fold all have similar sensor profiles (stealth
+      defects look alike), many anom-anom pairs have near-identical feature
+      vectors. The pairwise relation network may learn trivially high
+      similarity for anom-anom pairs without discriminating against
+      anom-unlabeled pairs. This is a failure mode for stealth/clustered
+      anomaly profiles -- exactly our case.
+
+      Conclusion: PReNet is viable on sample-size grounds (1378 pairs,
+      not 169). Diversity concern is real but empirical -- run the
+      rec_4 diagnostic first to verify separability.
+
+  q4_or_fusion_reverse_rule_game:
+    question: "Game out the reverse-rule veto: DevNet says NOT anomaly AND
+      V4 says IS anomaly -- flip to negative. Quantify."
+    answer: |
+      Standard OR-rule (C1 rec_5): predict positive if V4 OR detector flags.
+        Effect: more recalls (good), more FPs (bad). Net ambiguous.
+
+      Reverse (AND-rule): predict positive only if V4 AND detector both flag.
+        Effect: fewer FPs (some removed), fewer TPs (some lost). Net ambiguous.
+
+      Hybrid Veto (targeted): if DevNet_score < veto_threshold AND
+        V4_proba in [0.50, 0.90], force prediction to 0.
+        Design rationale: Hard-FP-10 have V4 proba 0.532-0.778.
+        Hard-7 have V4 proba 0.014-0.027.
+        Setting veto_max_proba = 0.90 protects Hard-7 (all well below 0.90).
+        DevNet low-score threshold at P20 of DevNet scores on Y=0 train rows.
+
+      Mathematical ceiling from removing all 10 Hard-FP-10 with zero TP loss:
+        Current: 66 TPs, ~700 FPs, Precision = 66/766 = 8.62%, Score = 54.31
+        Removing 10 FPs: 66 TPs, 690 FPs, Precision = 66/756 = 8.73%
+        New score: (100.0 + 8.73) / 2 = 54.37
+        GAIN: +0.06 OOF points.
+
+      BINDING CONSTRAINT: +0.06 is below the bootstrap CI noise floor
+      (CI width ~1.0). Removing Hard-FP-10 SPECIFICALLY is not a score lever.
+      Hard-FP-10 are 10 of ~700 FPs. Even perfect removal is statistically
+      invisible.
+
+      What Hard-FP-10 avoidance ACTUALLY means:
+      The Set B gate tests whether the method has LEARNED something new
+      about the decision boundary. If DevNet/PReNet correctly identifies
+      3+ of the 10 hardest FPs as normal, it likely also provides
+      complementary signal for the other ~690 FPs -- the meta-learner
+      can use the 52nd feature to globally reduce FPs, yielding a real
+      score gain from precision improvement across ALL FPs, not just 10.
+
+      Verdict: Do NOT implement veto rule as primary strategy.
+      Pursue DevNet/PReNet as 52nd feature for global FP reduction.
+      The veto rule max gain is +0.06 -- not worth the complexity and
+      the risk of accidentally dropping a TP.
+
+  q5_deepod_install_cpu_cost:
+    question: "deepod install and run cost on CPU laptop."
+    answer: |
+      Installation:
+        pip install deepod
+        Installs PyTorch CPU wheel (~700MB download total).
+        Time: 3-15 minutes depending on connection.
+        No CUDA needed. Force device='cpu' in constructor.
+
+      Runtime on this dataset (1352 rows, 51 features, 5-fold CV):
+        DevNet 5-fold: ~60-120 seconds CPU
+        PReNet 5-fold: ~120-300 seconds CPU (pairwise sampling overhead)
+        Deep SAD 5-fold: ~60-120 seconds CPU
+        All three total: ~5-10 minutes CPU.
+        Perfectly feasible on a laptop. No GPU required.
+
+      Key constructor flag: device='cpu'
+        DevNet(epochs=50, batch_size=64, lr=1e-3, rep_dim=32,
+               hidden_dims='100,50', device='cpu', random_state=42)
+
+  q6_best_cycle2_build_strategy:
+    question: "52nd feature in V4 base vs Stage-2 abstain signal in cascade?"
+    answer: |
+      52nd FEATURE in V4 base is higher leverage. Reasons:
+      1. Hard-FP-10 all have V4 proba 0.532-0.778, so they all reach Stage-2
+         in the cascade anyway. A Stage-2 abstain signal gives binary info
+         (abstain/don't abstain). A continuous 52nd feature gives the
+         meta-learner a graded signal to weight.
+      2. A continuous feature lets LGB/XGB/CatBoost learn a non-linear
+         interaction between V4's original features AND the anomaly score.
+         This may capture X14/X49/X41 combinations that tree models see
+         differently when a dedicated anomaly signal is present.
+      3. PReNet is the primary over DevNet for the 52nd feature role, for
+         the reasons in q2: more robust to distributional assumptions,
+         better generalization via pairwise learning.
+
+      BUT: run rec_4 diagnostic FIRST (30 min). If Hard-FP-10 and Hard-7
+      are not separable in DevNet/PReNet score space (both score similarly),
+      this entire track should be dropped and budget moved to N02
+      counterfactual feature engineering.
+
+recommendations:
+
+  - id: C2_R07_rec_1
+    title: "Run separability diagnostic before any semi-sup build"
+    technique_class: tactics
+    description: |
+      Fit DevNet and PReNet on full training data (diagnostic mode, not CV-safe)
+      and extract scores for Hard-FP-10 (CoilIDs 689, 642, 247, 189, 279,
+      757, 188, 651, 467, 690) and Hard-7 (CoilIDs 1495, 913, 1499, 473,
+      624, 1436, 72). Compare medians: if Hard-7 median score > Hard-FP-10
+      median score for EITHER method, proceed to CV builds. If BOTH methods
+      show Hard-FP-10 scoring HIGHER than Hard-7 (more anomalous), semi-sup
+      AD is structurally unable to help and the track should be dropped.
+      This diagnostic prevents wasting 4+ hours on a failing direction.
+      Implements evals-before-build discipline. Takes 30 minutes.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.0
+      low: 0.0
+      high: 0.0
+      reasoning: "Diagnostic only. Enables or cancels subsequent builds."
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies:
+        - "deepod>=0.3.0"
+        - "torch>=2.0.0 CPU"
+    confidence:
+      score: 5
+      evidence_anchor: |
+        Reasoning-only. Diagnostic cannot fail -- any result is informative.
+        Gate pattern is standard ML engineering (probe before commit).
+    failure_modes:
+      - "Diagnostic uses full training data (leakage by design). Do NOT use these diagnostic scores as model features."
+    code_sketch: |
+      from deepod.models.tabular import DevNet, PReNet
+      import numpy as np, pandas as pd
+
+      hard_fp_ids = [689,642,247,189,279,757,188,651,467,690]
+      hard7_ids = [1495,913,1499,473,624,1436,72]
+      fp_mask = df_train['CoilID'].isin(hard_fp_ids).values
+      h7_mask = df_train['CoilID'].isin(hard7_ids).values
+
+      for ModelClass, name in [(DevNet,'DevNet'),(PReNet,'PReNet')]:
+          clf = ModelClass(epochs=50, device='cpu', random_state=42)
+          clf.fit(X_train, y=y_train)
+          s = clf.decision_function(X_train)
+          fp_med = np.median(s[fp_mask])
+          h7_med = np.median(s[h7_mask])
+          sep = 'YES - proceed to CV' if h7_med > fp_med else 'NO - drop track'
+          print(f"{name}: Hard-FP-10 median={fp_med:.4f}, "
+                f"Hard-7 median={h7_med:.4f} | Separable: {sep}")
+    test_case_impact:
+      hard7_recall: none
+      hard_fp_avoidance: high
+      easy59_regression_risk: none
+
+  - id: C2_R07_rec_2
+    title: "PReNet OOF score as 52nd feature (primary)"
+    technique_class: feature_engineering
+    description: |
+      PReNet (Pang KDD 2023) learns anomaly scores via pairwise relation
+      prediction across three pair types: (anomaly,anomaly), (anomaly,unlabeled),
+      (unlabeled,unlabeled). For this dataset: 53 positives per training fold
+      yield C(53,2)=1378 anom-anom pairs, well above the 30-100 used in the
+      original paper's experiments (correcting C1 brief error of 169 pairs).
+      PReNet outperforms DevNet on 12 real-world tabular datasets in the
+      KDD 2023 paper and is the recommended primary candidate. Its pairwise
+      design learns relational geometry between anomaly clusters and normal
+      regions rather than single-instance scoring, making it more robust to
+      the stealth-defect profile. OOF scores (fitted inside each CV fold)
+      are added as the 52nd column in the augmented feature matrix passed
+      to the LGB/XGB/CatBoost meta-learner. Gate: standalone OOF AUC >= 0.75
+      before adding to stack (if below 0.75, the score adds noise not signal).
+      PREREQUISITE: rec_1 diagnostic must show separability (Hard-7 median
+      score > Hard-FP-10 median score) before running full CV build.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+      note: "All 6 Cycle-1C AD methods were UNSUPERVISED (no label access).
+        PReNet is semi-supervised (uses Y=1 labels explicitly). Different class."
+    expected_lift_oof:
+      point: 1.0
+      low: -0.2
+      high: 2.5
+      reasoning: |
+        Pang et al. KDD 2023: PReNet significantly outperforms DevNet and 9
+        other methods on 12 tabular datasets. ADBench NeurIPS 2022 shows
+        semi-supervised methods (PReNet included) average 0.862 AUC vs
+        0.811 for best unsupervised baseline at 1%+ label ratio (our ratio
+        4.88%). Point estimate 1.0 is conservative given stealth-defect
+        finding. Low bound -0.2 accounts for score decorrelation failure.
+        High bound 2.5 if PReNet captures a genuinely orthogonal signal
+        that reduces the ~700 FP count meaningfully.
+    feasibility:
+      score: 4
+      effort_hours: 2.5
+      dependencies:
+        - "deepod>=0.3.0"
+        - "torch>=2.0.0 (CPU, ~700MB install)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Pang et al. "Weakly Supervised Anomaly Detection." KDD 2023.
+        ACM DL doi:10.1145/3580305.3599302. arXiv:1910.13601.
+        GitHub: github.com/mala-lab/PReNet.
+        ADBench NeurIPS 2022 (arXiv:2206.09426): semi-supervised methods
+        evaluation on 57 datasets; PReNet listed as top performer.
+        Confidence=3: stealth-defect finding is strong contrary evidence;
+        rec_1 diagnostic is mandatory gate before committing to full build.
+    failure_modes:
+      - "53 positives/fold all have similar stealth profiles. Anom-anom pairs are near-identical vectors. Pairwise loss converges without discriminative geometry."
+      - "CPU runtime: 120-300s per run. Acceptable but slower than DevNet."
+      - "Score correlated with DevNet if both driven by same top features (X13/X10/X32). Check correlation before adding both."
+      - "deepod PReNet API: clf.fit(X_tr, y=y_tr) where y is raw 0/1 int array. Verify API matches deepod version installed."
+    code_sketch: |
+      from deepod.models.tabular import PReNet
+      import numpy as np
+      from sklearn.model_selection import StratifiedKFold
+      from sklearn.metrics import roc_auc_score
+
+      prenet_oof = np.zeros(len(X_train))
+      skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          X_tr, X_val = X_train[tr_idx], X_train[val_idx]
+          y_tr = y_train[tr_idx].astype(int)
+          clf = PReNet(epochs=50, batch_size=64, lr=1e-3,
+                       hidden_dims='100,50', rep_dim=32,
+                       device='cpu', random_state=42 + fold)
+          clf.fit(X_tr, y=y_tr)
+          prenet_oof[val_idx] = clf.decision_function(X_val)
+
+      auc = roc_auc_score(y_train, prenet_oof)
+      print(f"PReNet standalone OOF AUC: {auc:.4f}")
+      # Gate: if auc >= 0.75 --> add as 52nd feature
+      if auc >= 0.75:
+          X_train_aug = np.column_stack([X_train, prenet_oof])
+          # Continue with V4 stacking harness on X_train_aug
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: C2_R07_rec_3
+    title: "DevNet OOF score as 52nd feat (fallback/complement to PReNet)"
+    technique_class: feature_engineering
+    description: |
+      DevNet (Pang KDD 2019) trains an MLP to produce deviation scores:
+      labeled Y=1 anomalies pushed high (far above N(0,1) reference),
+      labeled Y=0 normals pulled toward 0. Structural advantage for
+      Hard-FP-10: these rows are labeled Y=0 in training folds, so
+      DevNet's loss function explicitly trains to score them LOW. When
+      they appear in validation folds, the trained network has learned
+      that profiles like Hard-FP-10 should score near 0. Whether this
+      generalizes depends on feature-space geometry. Run as complement
+      to PReNet: if Pearson correlation between DevNet_oof and PReNet_oof
+      scores is below 0.85, add both as 52nd and 53rd features for the
+      meta-learner. If correlation >= 0.85, keep only the higher-AUC one.
+      DevNet runs faster than PReNet (60-120s vs 120-300s CPU).
+      Same AUC gate applies: skip if standalone OOF AUC < 0.75.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: -0.2
+      high: 2.0
+      reasoning: |
+        DevNet: Pang et al. KDD 2019 (arXiv:1911.08623): 3-29% AUC-ROC
+        improvement over unsupervised baselines on tabular benchmarks.
+        ADBench NeurIPS 2022 confirms semi-supervised advantage at 1%+ label
+        ratio. Slightly lower ceiling than PReNet based on KDD 2023 comparison.
+        Conservative estimate; actual gain conditional on rec_1 diagnostic.
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies:
+        - "deepod>=0.3.0 (same install as rec_2)"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Pang et al. "Deep Anomaly Detection with Deviation Networks." KDD 2019.
+        arXiv:1911.08623. doi:10.1145/3292500.3330871.
+        ADBench NeurIPS 2022 (arXiv:2206.09426): 57 datasets, 7 semi-sup
+        methods. DevNet outperforms all unsupervised baselines at 1%+ ratio.
+    failure_modes:
+      - "DevNet OOF score correlated with tree-stack proba (both use X13/X10/X32 signal). Correlation check with PReNet is mandatory before adding as separate feature."
+      - "Hard-FP-10 may still score HIGH in validation folds if their feature profile is similar to Y=1 profiles in the latent MLP space, despite being Y=0 in training."
+      - "MLP convergence with 13 val positives per fold: OOF scores have high fold-to-fold variance. Use fixed random_state=42+fold for reproducibility."
+    code_sketch: |
+      from deepod.models.tabular import DevNet
+      import numpy as np
+      from scipy.stats import pearsonr
+
+      devnet_oof = np.zeros(len(X_train))
+      for fold, (tr_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
+          X_tr, X_val = X_train[tr_idx], X_train[val_idx]
+          semi_y = y_train[tr_idx].astype(int)
+          clf = DevNet(epochs=50, batch_size=64, lr=1e-3,
+                       rep_dim=32, hidden_dims='100,50',
+                       device='cpu', random_state=42 + fold)
+          clf.fit(X_tr, y=semi_y)
+          devnet_oof[val_idx] = clf.decision_function(X_val)
+
+      devnet_auc = roc_auc_score(y_train, devnet_oof)
+      print(f"DevNet standalone OOF AUC: {devnet_auc:.4f}")
+
+      if devnet_auc >= 0.75 and prenet_auc >= 0.75:
+          r, _ = pearsonr(devnet_oof, prenet_oof)
+          print(f"DevNet-PReNet Pearson r: {r:.3f}")
+          if r < 0.85:
+              X_aug = np.column_stack([X_train, prenet_oof, devnet_oof])
+          else:
+              best_oof = prenet_oof if prenet_auc >= devnet_auc else devnet_oof
+              X_aug = np.column_stack([X_train, best_oof])
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+# ===== MATHEMATICAL REALITY CHECK ON HARD-FP-10 =====
+
+hard_fp10_score_impact_quantification:
+  total_fp_count_at_v4_threshold: "~700 back-calculated: Precision=8.62%, 66 TPs -> 66/(66+FPs)=0.0862 -> FPs~700"
+  hard_fp10_share_of_total_fps: "10/700 = 1.4%"
+  max_score_gain_from_removing_all_10_zero_tp_loss:
+    calculation: "new_precision = 66/(66+690) = 66/756 = 0.08730; new_score = (1.0 + 0.0873)/2*100 = 54.37"
+    gain: "+0.06 OOF points"
+    vs_ci_noise_floor: "CI width ~1.0 -- gain is invisible in bootstrap CI"
+  binding_conclusion: |
+    Hard-FP-10 removal alone is NOT a score lever. It is a SIGNAL QUALITY
+    indicator. The value of semi-supervised AD is in the 52nd feature
+    providing signal that helps reduce the ~690 OTHER FPs via the
+    meta-learner, not from targeted removal of these 10 rows.
+    Set B gate (>=3 avoided) tests whether the method learned complementary
+    geometry, not whether it directly scores enough to improve OOF.
+
+# ===== PRIORITY ORDER FOR CYCLE 2 SEMI-SUP TRACK =====
+
+build_priority:
+  step_1:
+    action: "rec_1 diagnostic (30 min)"
+    gate: "Hard-7 median > Hard-FP-10 median for EITHER DevNet/PReNet"
+    on_fail: "Drop semi-sup AD track entirely. Redirect to N02 counterfactual FE."
+  step_2:
+    action: "rec_2 PReNet full CV (90-150 min)"
+    gate: "Standalone OOF AUC >= 0.75"
+    on_fail: "Try rec_3 DevNet instead"
+  step_3:
+    action: "rec_3 DevNet full CV + correlation check (60-120 min)"
+    gate: "DevNet AUC >= 0.75 AND Pearson r < 0.85 vs PReNet"
+    on_fail: "Keep only PReNet (or DevNet if PReNet failed)"
+  step_4:
+    action: "Retrain V4 stacking harness with 52nd/53rd features"
+    target: "OOF score >= 54.31 (V4 baseline), Hard-FP-10 >= 3/10 avoided"
+
+# ===== ERROR CORRECTIONS FROM C1 R07 =====
+
+c1_corrections:
+  prenet_pair_count_error:
+    c1_stated: "~169 anomaly-anomaly pairs per fold"
+    corrected: "C(53,2) = 1,378 anom-anom pairs per TRAINING fold"
+    note: "169 appears to be C(13,2) using validation positives. Training fold has 53 positives, not 13."
+    impact: "GOOD NEWS -- PReNet is better supported than C1 suggested. Sample size is not the concern; anomaly diversity is."
+  c1_hard_fp_avoidance_rating:
+    c1_all_recs_rated: "low"
+    c2_revision: "Upgraded to medium for PReNet and DevNet based on:
+      (a) DevNet structural advantage -- Y=0 labels explicitly push Hard-FP-10 scores toward 0 during training,
+      (b) 1378 pairs adequate for PReNet.
+      Mathematical analysis shows even perfect Hard-FP-10 removal yields +0.06 OOF, so medium reflects
+      complementary-signal potential, not direct score gain."
+
+# ===== CROSS-TOPIC LINKS =====
+
+cross_topic_links:
+  - C2_N02: "If rec_1 diagnostic shows no separability for both DevNet and PReNet,
+      this confirms semi-sup AD is exhausted for this problem.
+      Budget should move fully to N02 counterfactual FE (DiCE-based feature
+      engineering targeting Hard-FP-10's X14/X49/X41 signature)."
+  - C2_R10: "Mondrian conformal abstain rule also targets Hard-FP-10.
+      Compare conformal abstain set with DevNet/PReNet low-score set.
+      If both methods flag the same rows as uncertain/non-anomalous,
+      a joint veto signal is more reliable. Coordinate: share Hard-FP-10
+      score lists with R10 agent after rec_1 diagnostic runs."
+  - C2_R08: "Stage-1 replacement (N03). If new Stage-1 with AUC > 0.90 is built,
+      re-evaluate PReNet/DevNet as 52nd feature on the NEW feature space --
+      not just V4's 51 features. A stronger Stage-1 may already resolve
+      Hard-FP-10 structurally."
+  - C2_R04: "TabICLv2 latent representations as PReNet input alternative.
+      If TabICLv2 produces an embedding where Hard-FP-10 is more separated
+      from true positives, PReNet score on that embedding will be more
+      discriminative than on raw X1-X49."

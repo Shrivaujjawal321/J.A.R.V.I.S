@@ -1,0 +1,16 @@
+{
+  "chosen_threshold": 0.00011308650017471277,
+  "chosen_recall": 1.0,
+  "chosen_precision": 0.05357142857142857,
+  "criteria_met": false,
+  "rationale": "Criteria NOT met. Best precision=0.0536 at recall>=1.00. Criteria needs R=1.0 AND P>=0.90.",
+  "T_a_prec90": null,
+  "T_b_recall1": {
+    "threshold": 0.00011308650017471277,
+    "precision": 0.05357142857142857
+  },
+  "oof_auc": 0.850275696309911,
+  "submission_threshold": 0.001,
+  "submission_pos_count": 134,
+  "submission_pos_rate_pct": 39.528023598820056
+}

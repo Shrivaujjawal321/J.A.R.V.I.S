@@ -1,0 +1,12 @@
+[Unit]
+Description=Jarvis job-outreach engine — daily at 09:00 IST
+
+[Timer]
+# 09:00 IST = 03:30 UTC
+OnCalendar=*-*-* 03:30:00 UTC
+Persistent=true
+RandomizedDelaySec=900
+Unit=jarvis-jobhunt.service
+
+[Install]
+WantedBy=timers.target

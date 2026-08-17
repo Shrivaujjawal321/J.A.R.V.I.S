@@ -1,0 +1,14 @@
+{
+  "chosen_threshold_v5": 0.026905398332823217,
+  "oof_score_v5": 53.70058610799352,
+  "recall_at_T": 0.9848484848484849,
+  "precision_at_T": 0.08916323731138547,
+  "n_pos_oof": 729,
+  "n_pos_test": 144,
+  "meta_oof_auc": 0.8886139780385504,
+  "t_balanced": 0.1888695497371159,
+  "n_pos_test_balanced": 32,
+  "lgb_mean_auc": 0.8853258435830149,
+  "xgb_mean_auc": 0.8385567347923697,
+  "cat_mean_auc": 0.8889699869701679
+}

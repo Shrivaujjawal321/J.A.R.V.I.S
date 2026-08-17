@@ -1,0 +1,175 @@
+Toggle Sidebar
+AI Hackathon | Round 2 - Agentic AI Challenge
+Hackathon
+Hosted By - Tata Steel
+HACKATHON
+Jun 5 – Jun 15, 2026
+12:30 PM – 6:29 PM· Asia/Kolkata
+Online
+Team size: 1
+109 registrations
+Overview
+Themes
+About Company
+Rules
+Teams
+Discussion
+Overview
+
+About Round 2: Agentic AI Challenge
+
+Congratulations on being shortlisted for Round 2 of the Tata Steel AI Hackathon 2026.
+
+Having successfully navigated the first stage of the competition, participants will now advance to the Agentic AI Challenge, a hands-on assessment designed to evaluate their ability to build intelligent, autonomous AI systems capable of reasoning, planning, decision-making, and task execution.
+
+In this round, participants will work on a real-world problem statement and leverage Agentic AI concepts to design innovative solutions that can operate with minimal human intervention while delivering measurable outcomes. The challenge will assess participants on technical proficiency, problem-solving ability, system design, creativity, and the practical application of emerging AI technologies.
+
+The Agentic AI Challenge reflects the next frontier of Artificial Intelligence, where AI systems move beyond simple automation to become intelligent agents capable of understanding objectives, making decisions, and adapting to dynamic environments.
+
+ 
+
+ 
+
+What We Are Looking For
+
+Participants will be evaluated on:
+
+Problem understanding and solution approach
+Effective use of Agentic AI frameworks and concepts
+Technical implementation and innovation
+Scalability and real-world applicability
+Quality of presentation and communication
+Business impact and feasibility
+
+ 
+
+ 
+
+Why This Round Matters
+
+This stage provides participants with an opportunity to showcase their expertise in one of the fastest-growing areas of AI while solving challenges inspired by real-world industrial scenarios. Top performers will continue their journey toward the final stages of the hackathon and gain visibility among Tata Steel's technology and business leaders.
+
+We look forward to seeing your creativity, technical excellence, and innovative thinking as you build the next generation of intelligent AI agents.
+
+ 
+
+Themes
+Problem Statement: Maintenance Wizard for Industrial Equipment
+
+Develop an intelligent AI-powered maintenance decision-support system for industrial equipment in steel manufacturing environments. The solution should help maintenance engineers diagnose equipment issues, identify root causes, predict failures, assess risks, prioritize maintenance actions, and generate actionable recommendations using data from equipment logs, sensor alerts, manuals, SOPs, and historical maintenance records.
+
+The system should support natural language interactions, provide explainable insights, enable proactive maintenance planning, and continuously improve through feedback and historical learning. Teams are encouraged to leverage LLMs/SLMs, predictive analytics, anomaly detection, and knowledge retrieval techniques to build a practical and scalable solution for industrial operations.
+
+Download here to view the full Problem Statement.
+
+About Company
+
+One of the most diversified integrated steel producers with a capacity of 35 million tonnes per annum across India, the Netherlands, the UK, and Thailand, Tata Steel is shaping a better tomorrow through innovation, sustainability, and an enduring commitment to excellence. The Company’s Jamshedpur, Kalinganagar and IJmuiden plants have been recognised among the World Economic Forum Advanced 4th Industrial Revolution (4IR) Global Lighthouses. With over 76,000 employees across the globe, Tata Steel is a Great Place to Work®-certified organisation. The Company recorded a consolidated turnover of approximately US$26 billion in the financial year ending March 31, 2025.
+
+ 
+
+ 
+
+Welcome to the Future of Steel: Tata Steel AI Hackathon
+
+At Tata Steel, innovation isn't just a goal—it's the very foundation of our legacy and the blueprint for our future. As pioneers in the steel and mining sector, we are proud to be at the forefront of leveraging Artificial Intelligence to redefine manufacturing, drive efficiency, and foster sustainable growth.
+
+ 
+
+ 
+
+Leading the Charge in AI Transformation
+
+Tata Steel’s Artificial Intelligence (AI) team represents a sustained, enterprise‑scale commitment to building quantifiable, business‑driven AI capabilities across the steel value chain. With over eight years of continuous evolution, the team has built one of the most mature, outcome-focused industrial AI ecosystems, combining deep domain expertise with modern AI capabilities.
+
+At the core of Tata Steel’s AI approach is a bimodal AI strategy, purposefully designed to ensure both precision at the process level and scalability across business functions:
+
+Narrow AI: Highly specialised, domain‑infused models, tailored for complex industrial use cases such as metallurgy, defect analysis, and predictive maintenance.
+Agentic AI: Cognitive automation capabilities enabling conversational interfaces, intelligent reporting, decision support, and enterprise-wide workflow augmentation.
+
+The Tata Steel AI landscape today comprises 800+ AI models and agents, that have been developed and refined over nearly a decade. This ecosystem is sustained through a continuous capability‑building loop that allows AI solutions to move reliably from experimentation to enterprise production.
+
+The next chapter of our AI journey is about moving from intelligence to decision autonomy. We are building decision‑capable systems that embed AI deeply into business and operations - reshaping how decisions are made, scaled, and trusted. This is an opportunity to co‑create AI solutions at an industrial scale and redefine how human - AI collaboration drives the future of manufacturing.
+
+ 
+
+ 
+
+ 
+
+ 
+Rules
+
+This is an individual participation hackathon, you have participate individually.
+
+The hackathon will start at Jun 05, 2026 06:00 PM IST (Asia/Kolkata) and end at Jun 15, 2026 11:59 PM IST (Asia/Kolkata), you work on your hack during the allotted time only.
+
+It's an online hackathon, you can participate from anywhere.
+
+There are 1 themes of the hackathon, you must submit a hack that is in one of these themes.
+
+Once the hackathon starts, you will get an option to submit your hack, you can submit as many times as you want, the last hack will be considered as the final submission.
+
+You are expected to come up with new and innovative ideas, any idea that has been copied from somewhere will be disqualified.
+
+Your hack must be developed entirely during the Hackathon duration. You may use open source libraries and other freely available systems / services such as Google Maps, Facebook Connect, Twitter feeds etc.
+
+The intellectual property of your code belongs only to your team.
+
+By participating in the hackathon, you agree to the terms and conditions of HackerEarth.
+
+Teams (109)
+Ashutosh kumar
+SOLO
+Ashutosh kumar
+DIVYANSHU PRATAP SINGH
+SOLO
+DIVYANSHU PRATAP SINGH
+shubhangini
+SOLO
+shubhangini
+lipakshi gijwani
+SOLO
+lipakshi gijwani
+Debrup Sengupta
+SOLO
+Debrup Sengupta
+Shashikant More
+SOLO
+Shashikant More
+Ranjith
+SOLO
+Ranjith
+Omkar Shinde
+SOLO
+O
+Omkar Shinde
+Manish Kumar
+SOLO
+Manish Kumar
+Akash Singh
+SOLO
+Akash Singh
+View More (99 more teams)
+Discussion (2)
+Newest First
+Post Comment
+B
+bhavesh.solanki.official6
+4h ago
+
+Hello everyone, is there any dataset (containing logs and all) provided for this problem, because most of the solutions and ideas will come from analyzing data. Or do we have to generate synthetic data?
+
+1
+A
+ayushsonone72
+12h ago
+
+hey everyone
+
+0
+Hackathon is live
+Start submission
+Need help?
+
+Please contact the test administrator. HackerEarth Support at support@hackerearth.com

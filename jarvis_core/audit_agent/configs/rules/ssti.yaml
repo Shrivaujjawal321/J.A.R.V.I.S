@@ -1,0 +1,79 @@
+# Server-Side Template Injection (CWE-1336, CWE-94)
+#
+# render_template_string / Template(...).render with user input → SSTI → RCE
+# (Jinja2 {{7*7}} → os.popen). High-impact, frequently paid. Generic packs catch
+# the obvious render_template_string but miss the build-then-render shape.
+#
+# DEFENSIVE: flag user input reaching a template-from-string sink so the auditor
+# renders a STATIC template with the user value passed as a context VARIABLE.
+rules:
+  # ── Python Flask/Jinja2 ───────────────────────────────────────────────────
+  - id: jarvis-ssti-python-render-string-tainted
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: >
+      Possible server-side template injection: user input flows into
+      render_template_string / a string-built Jinja2 Template, allowing template
+      expression execution ({{ }}) → RCE. Render a static template file and pass the
+      user value as a context variable; never build template text from input.
+    metadata:
+      cwe: "CWE-1336"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/1336.html
+        - https://owasp.org/www-community/attacks/Server_Side_Template_Injection
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: request.$ANY
+              - pattern: $REQ.args.get(...)
+              - pattern: $REQ.form.get(...)
+              - pattern: $REQ.values.get(...)
+              - pattern: $REQ.json[...]
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: flask.render_template_string($T, ...)
+              - pattern: render_template_string($T, ...)
+              - pattern: jinja2.Template($T)
+              - pattern: jinja2.Template($T).render(...)
+              - pattern: Template($T).render(...)
+              - pattern: $ENV.from_string($T)
+
+  # ── Node template engines from string ─────────────────────────────────────
+  - id: jarvis-ssti-node-template-tainted
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible server-side template injection: request input flows into a template
+      compiled from a string (handlebars/ejs/pug/lodash.template/eta), allowing
+      template-directive execution. Compile static templates and pass user data as
+      context only.
+    metadata:
+      cwe: "CWE-1336"
+      owasp: "A05:2025-Injection"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/1336.html
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query.$F
+              - pattern: req.query
+              - pattern: req.body.$F
+              - pattern: req.params.$F
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: handlebars.compile($T)
+              - pattern: Handlebars.compile($T)
+              - pattern: ejs.render($T, ...)
+              - pattern: pug.compile($T, ...)
+              - pattern: pug.render($T, ...)
+              - pattern: _.template($T)
+              - pattern: eta.render($T, ...)

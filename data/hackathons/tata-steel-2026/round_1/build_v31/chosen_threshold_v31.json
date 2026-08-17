@@ -1,0 +1,41 @@
+{
+  "chosen_threshold": 0.2526155837548296,
+  "strategy": "maximize_(recall+precision)/2_exact_unique_thresholds",
+  "oof_score": 53.25765054294176,
+  "predicted_lb_score": 55.9277,
+  "oof_recall": 1.0,
+  "oof_precision": 0.06515301085883514,
+  "oof_n_positives": 1013,
+  "oof_total": 1352,
+  "test_n_pos": 246,
+  "meta_oof_auc": 0.8688557424949338,
+  "meta_method": "raw_lr",
+  "lgb_oof_auc": 0.8676539893491682,
+  "xgb_oof_auc": 0.8617748244497855,
+  "cat_oof_auc": 0.8657335406946605,
+  "catboost_best_params": {
+    "depth": 7,
+    "learning_rate": 0.05,
+    "l2_leaf_reg": 7,
+    "iterations": 1000,
+    "early_stopping_rounds": 100
+  },
+  "v4_reference": {
+    "chosen_threshold": 0.014283071897747676,
+    "oof_score": 54.31,
+    "test_n_pos": 154,
+    "meta_oof_auc": 0.8837,
+    "lgb_oof_auc": 0.8615,
+    "xgb_oof_auc": 0.8668,
+    "cat_oof_auc": 0.8756
+  },
+  "distribution_preservation": {
+    "gate1_T_in_range": false,
+    "gate2_n_pos_in_range": false,
+    "gate3_oof_above_baseline": false,
+    "overall_pass": false
+  },
+  "n_features": 52,
+  "new_feature": "X13_div_thermal",
+  "new_feature_formula": "X13 / (X18 - X14 + 1e-6)"
+}

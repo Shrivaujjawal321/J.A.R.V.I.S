@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Attendance & Salary Dashboard — Jarvis</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#141b2e; --card2:#1b2540; --line:#28324f;
+    --txt:#e8edf7; --mut:#93a0c0; --acc:#5b8cff; --acc2:#7c5cff;
+    --good:#34d399; --warn:#fbbf24; --bad:#f87171; --chip:#0d1426;
+    --shadow:0 12px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#1c2647 0,transparent 60%),
+               radial-gradient(900px 500px at -10% 110%,#241b45 0,transparent 55%),var(--bg);
+    color:var(--txt);min-height:100vh;padding:20px 12px 70px}
+  .wrap{max-width:1180px;margin:0 auto}
+  header{text-align:center;margin-bottom:18px}
+  header h1{font-size:1.7rem;font-weight:800;letter-spacing:-.5px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{color:var(--mut);font-size:.86rem;margin-top:4px}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+  .tab{background:var(--chip);border:1px solid var(--line);color:var(--mut);
+    padding:10px 18px;border-radius:11px;cursor:pointer;font-weight:600;font-size:.9rem;transition:.15s}
+  .tab:hover{color:var(--txt)}
+  .tab.active{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
+
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);
+    border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card h2{font-size:1.02rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .card h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--acc)}
+  .view{display:none}.view.active{display:block}
+
+  label{display:block;font-size:.76rem;color:var(--mut);margin:0 0 6px;font-weight:600}
+  input,select{width:100%;background:var(--chip);border:1px solid var(--line);color:var(--txt);
+    padding:11px 12px;border-radius:10px;font-size:.95rem;outline:none;transition:.15s}
+  input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(91,140,255,.18)}
+  input[type=time]{font-variant-numeric:tabular-nums}
+  .formrow{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end}
+  @media(max-width:720px){.formrow{grid-template-columns:1fr 1fr}}
+
+  .btn{border:none;cursor:pointer;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;
+    padding:11px 16px;border-radius:10px;font-size:.9rem;font-weight:700;transition:.15s;white-space:nowrap}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--mut);font-weight:600}
+  .btn.sm{padding:8px 12px;font-size:.82rem}
+
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{padding:10px 9px;text-align:right;border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--mut);font-size:.72rem;text-transform:uppercase;letter-spacing:.4px}
+  tbody tr:hover{background:rgba(91,140,255,.06)}
+  tfoot td{font-weight:800;border-top:2px solid var(--acc);border-bottom:none;font-size:.98rem;padding-top:13px}
+  .empty{text-align:center;color:var(--mut);padding:24px;font-size:.9rem}
+  .del{cursor:pointer;color:var(--bad);background:none;border:none;font-size:1.05rem;padding:0 5px}
+  .edit{cursor:pointer;color:var(--acc);background:none;border:none;font-size:.98rem;padding:0 5px}
+
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700}
+  .pill.ot{background:rgba(52,211,153,.14);color:var(--good)}
+  .pill.flag{background:rgba(251,191,36,.14);color:var(--warn)}
+  .pill.absent{background:rgba(248,113,113,.12);color:var(--bad)}
+  .pill.zero{background:#0d1426;color:var(--mut)}
+  button.pill{cursor:pointer;border:1px solid transparent;font-family:inherit;transition:.12s}
+  button.pill:hover{filter:brightness(1.18);transform:translateY(-1px)}
+  button.pill.absent{border-color:rgba(248,113,113,.4)}
+
+  .cell-time{width:108px;padding:7px 8px;font-size:.84rem}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .topbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+  .topbar > div{flex:0 0 auto}
+  .hint{font-size:.76rem;color:var(--mut);margin-top:10px;line-height:1.6}
+  .hint code{color:var(--acc)}
+  .stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .stat{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:12px 16px;flex:1;min-width:120px}
+  .stat .n{font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  @media print{
+    body{background:#fff;color:#000;padding:0}
+    .card{box-shadow:none;border:1px solid #ccc;background:#fff;color:#000}
+    .no-print{display:none!important}
+    header h1,.amt{color:#111;-webkit-text-fill-color:#111}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🗂️ Attendance & Salary Dashboard</h1>
+    <p>Register ka online version — employee add karo, in/out time daalo, OT + salary apne aap.</p>
+  </header>
+
+  <div class="tabs no-print">
+    <div class="tab active" data-view="daily">📅 Daily Attendance</div>
+    <div class="tab" data-view="employees">👥 Employees</div>
+    <div class="tab" data-view="monthly">💰 Monthly Salary</div>
+    <div class="tab" data-view="settings">⚙️ Settings</div>
+  </div>
+
+  <!-- ================= DAILY ================= -->
+  <div class="view active" id="view-daily">
+    <div class="card">
+      <h2><span class="dot"></span> Daily Attendance</h2>
+      <div class="topbar">
+        <div>
+          <label>Date</label>
+          <input type="date" id="dailyDate" />
+        </div>
+        <div style="align-self:end">
+          <button class="btn ghost sm" id="todayBtn">Aaj</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Naam</th><th>In</th><th>Out</th><th>Worked</th><th>OT (din)</th><th>OT (month)</th><th>Status</th></tr>
+        </thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+      <div class="hint">
+        ⏱️ <b>OT auto</b> = (Out − In) − lunch − duty hours. Night shift ke liye Out &lt; In ho to agle din maana jaata hai (cross-midnight).<br/>
+        ⚠️ <b>Out time khaali</b> = sirf base duty count hogi (OT = 0) + flag. <b>OT ke liye Out time zaroori.</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= EMPLOYEES ================= -->
+  <div class="view" id="view-employees">
+    <div class="card no-print">
+      <h2><span class="dot"></span> Employee Add / Edit</h2>
+      <div class="formrow">
+        <div><label>Naam</label><input id="empName" type="text" placeholder="e.g. Akaash" /></div>
+        <div><label>Monthly Salary (₹)</label><input id="empSalary" type="number" placeholder="14500" min="0" /></div>
+        <div><label>Daily Duty (hr)</label><input id="empDuty" type="number" value="8" min="1" max="24" /></div>
+        <div><button class="btn" id="empAddBtn">➕ Add</button></div>
+      </div>
+      <input type="hidden" id="empEditId" />
+    </div>
+    <div class="card">
+      <h2><span class="dot"></span> Employee List</h2>
+      <table>
+        <thead><tr><th>Naam</th><th>Salary</th><th>Duty (hr)</th><th class="no-print">Action</th></tr></thead>
+        <tbody id="empBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= MONTHLY ================= -->
+  <div class="view" id="view-monthly">
+    <div class="card">
+      <h2><span class="dot"></span> Monthly Salary Sheet</h2>
+      <div class="topbar">
+        <div><label>Month</label><input type="month" id="monthPick" /></div>
+      </div>
+      <div class="stat-row" id="monthStats"></div>
+      <table>
+        <thead>
+          <tr><th>Naam</th><th>Din Present</th><th>OT (hr)</th><th>Hourly</th><th>Base</th><th>OT Pay</th><th>Total Salary</th></tr>
+        </thead>
+        <tbody id="monthBody"></tbody>
+        <tfoot id="monthFoot" style="display:none">
+          <tr><td>GRAND TOTAL</td><td id="gDays"></td><td id="gOt"></td><td></td><td id="gBase"></td><td id="gOtpay"></td><td id="gTotal"></td></tr>
+        </tfoot>
+      </table>
+      <div class="toolbar no-print">
+        <button class="btn" onclick="window.print()">🖨️ Print / PDF</button>
+        <button class="btn ghost" id="csvBtn">⬇️ Export CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS ================= -->
+  <div class="view" id="view-settings">
+    <div class="card">
+      <h2><span class="dot"></span> Settings</h2>
+      <div class="formrow" style="grid-template-columns:1fr 1fr">
+        <div>
+          <label>Lunch/Break ghante (OT se kaate jaayenge)</label>
+          <input id="setBreak" type="number" value="0" min="0" max="8" step="0.5" />
+        </div>
+        <div>
+          <label>Max shift cap (ghante) — fraud guard</label>
+          <input id="setCap" type="number" value="16" min="8" max="24" />
+        </div>
+      </div>
+      <button class="btn" id="saveSettings" style="margin-top:14px">💾 Save Settings</button>
+      <div class="hint">
+        <b>Lunch:</b> 0 = poore ghante OT mein gine. 1 = roz 1 ghanta lunch kaat ke OT.<br/>
+        <b>Max cap:</b> Koi din itne ghante se zyada nahi ginega (galti/fraud se bacha). Zyada hua to ⚠️ flag, capped.
+      </div>
+    </div>
+    <div class="card no-print">
+      <h2><span class="dot"></span> Data</h2>
+      <div class="toolbar">
+        <button class="btn ghost" id="backupBtn">⬇️ Backup (JSON)</button>
+        <button class="btn ghost" id="restoreBtn">⬆️ Restore</button>
+        <input type="file" id="restoreFile" accept="application/json" style="display:none" />
+        <button class="btn ghost" id="wipeBtn">🗑️ Sab Data Clear</button>
+      </div>
+      <div class="hint">Data is browser mein save rehta hai (localStorage). Backup se file download karo — doosre device pe ya safety ke liye.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const INR=n=>'₹'+(Math.round(n*100)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const INR0=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const r2=n=>Math.round(n*100)/100;
+
+// ---------- state ----------
+const DB={
+  load(){try{return JSON.parse(localStorage.getItem('attDB'))||null}catch(e){return null}},
+  save(){localStorage.setItem('attDB',JSON.stringify(state))}
+};
+let state = DB.load() || { employees:[], attendance:{}, settings:{breakHours:0, capHours:16}, seq:1 };
+if(!state.settings) state.settings={breakHours:0,capHours:16};
+if(state.settings.capHours==null) state.settings.capHours=16;
+function persist(){DB.save()}
+
+// ---------- date helpers ----------
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function todayIso(){return isoDate(new Date())}
+function curMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function toMin(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m}
+
+// ---------- core calc ----------
+function workedHours(rec){
+  // returns {worked, ot, status} for one day record {in,out}
+  const bk=+state.settings.breakHours||0;
+  if(!rec || !rec.in) return {worked:0, ot:0, status:'absent'};
+  if(!rec.out) return {worked:null, ot:0, status:'flag-noout'};
+  let mi=toMin(rec.in), mo=toMin(rec.out);
+  let dur=(mo-mi)/60;
+  if(dur<0) dur+=24; // overnight / night shift
+  let cap=+state.settings.capHours||16;
+  let capped=false;
+  if(dur>cap){dur=cap;capped=true;}
+  return {worked:dur, raw:dur, ot:0, status: capped?'capped':'ok', _dur:dur, _bk:bk};
+}
+function dayOT(rec, duty){
+  if(rec && rec.present && !rec.in) return {ot:0, worked:null, status:'present-manual'};
+  const w=workedHours(rec);
+  if(w.status==='absent') return {ot:0, worked:0, status:'absent'};
+  if(w.status==='flag-noout') return {ot:0, worked:null, status:'flag-noout'};
+  const bk=+state.settings.breakHours||0;
+  const netWorked=Math.max(0, w.worked - bk);
+  const ot=Math.max(0, netWorked - (duty||8));
+  return {ot:r2(ot), worked:r2(w.worked), net:r2(netWorked), status:w.status};
+}
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  $('view-'+t.dataset.view).classList.add('active');
+  if(t.dataset.view==='daily') renderDaily();
+  if(t.dataset.view==='employees') renderEmp();
+  if(t.dataset.view==='monthly') renderMonth();
+}));
+
+// ---------- EMPLOYEES ----------
+function renderEmp(){
+  const tb=$('empBody');
+  if(!state.employees.length){tb.innerHTML='<tr><td colspan="4" class="empty">Koi employee nahi. Upar add karo.</td></tr>';return;}
+  tb.innerHTML=state.employees.map(e=>`<tr>
+    <td>${e.name}</td><td>${INR0(e.salary)}</td><td>${e.duty}h</td>
+    <td class="no-print"><button class="edit" onclick="editEmp(${e.id})">✎</button>
+      <button class="del" onclick="delEmp(${e.id})">✕</button></td></tr>`).join('');
+}
+$('empAddBtn').addEventListener('click',()=>{
+  const name=$('empName').value.trim();
+  const salary=+$('empSalary').value, duty=+$('empDuty').value||8;
+  if(!name||salary<=0){alert('Naam aur salary sahi se bharo.');return;}
+  const editId=$('empEditId').value;
+  if(editId){
+    const e=state.employees.find(x=>x.id==editId);
+    e.name=name;e.salary=salary;e.duty=duty;
+    $('empEditId').value='';$('empAddBtn').textContent='➕ Add';
+  }else{
+    state.employees.push({id:state.seq++,name,salary,duty});
+  }
+  persist();renderEmp();
+  $('empName').value='';$('empSalary').value='';$('empDuty').value='8';$('empName').focus();
+});
+function editEmp(id){
+  const e=state.employees.find(x=>x.id==id);if(!e)return;
+  $('empName').value=e.name;$('empSalary').value=e.salary;$('empDuty').value=e.duty;
+  $('empEditId').value=e.id;$('empAddBtn').textContent='💾 Update';
+  document.querySelector('[data-view=employees]').click();
+}
+function delEmp(id){
+  const e=state.employees.find(x=>x.id==id);
+  if(!confirm((e?e.name:'')+' ko delete karein? (uska attendance bhi hat jayega)'))return;
+  state.employees=state.employees.filter(x=>x.id!=id);
+  delete state.attendance[id];
+  persist();renderEmp();
+}
+
+// ---------- DAILY ----------
+function renderDaily(){
+  const date=$('dailyDate').value||todayIso();
+  $('dailyDate').value=date;
+  const tb=$('dailyBody');
+  if(!state.employees.length){tb.innerHTML='<tr><td colspan="7" class="empty">Pehle Employees tab mein employee add karo.</td></tr>';return;}
+  const ym=date.slice(0,7);
+  tb.innerHTML=state.employees.map(e=>{
+    const rec=(state.attendance[e.id]||{})[date]||{};
+    const d=dayOT(rec,e.duty);
+    const monthOt=monthOTfor(e.id,e.duty,ym);
+    let worked = d.worked==null?'—':(d.worked+'h');
+    let otCell, statusCell;
+    if(d.status==='absent'){otCell='<span class="pill zero">0</span>';statusCell=`<button class="pill absent" onclick="markPresent(${e.id})" title="Click karke Present mark karo">Absent ➜ tap</button>`;}
+    else if(d.status==='present-manual'){otCell='<span class="pill zero">0</span>';statusCell=`<button class="pill ot" onclick="markAbsent(${e.id})" title="Click karke waapas Absent">✓ Present</button>`;}
+    else if(d.status==='flag-noout'){otCell='<span class="pill zero">0</span>';statusCell='<span class="pill flag">⚠️ No checkout</span>';}
+    else if(d.status==='capped'){otCell=`<span class="pill ot">${d.ot}</span>`;statusCell='<span class="pill flag">⚠️ Capped</span>';}
+    else {otCell=d.ot>0?`<span class="pill ot">${d.ot}</span>`:'<span class="pill zero">0</span>';statusCell='<span class="pill ot">Present</span>';}
+    return `<tr>
+      <td>${e.name}</td>
+      <td><input class="cell-time" type="time" value="${rec.in||''}" onchange="setTime(${e.id},'in',this.value)"></td>
+      <td><input class="cell-time" type="time" value="${rec.out||''}" onchange="setTime(${e.id},'out',this.value)"></td>
+      <td>${worked}</td><td>${otCell}</td>
+      <td><span class="pill ${monthOt>0?'ot':'zero'}" style="font-weight:800">${monthOt}</span></td>
+      <td>${statusCell}</td></tr>`;
+  }).join('');
+}
+function monthOTfor(empId,duty,ym){
+  const att=state.attendance[empId]||{};
+  let tot=0;
+  for(const date in att){ if(!date.startsWith(ym))continue; tot+=dayOT(att[date],duty).ot; }
+  return r2(tot);
+}
+function setTime(empId,field,val){
+  const date=$('dailyDate').value;
+  if(!state.attendance[empId])state.attendance[empId]={};
+  if(!state.attendance[empId][date])state.attendance[empId][date]={};
+  state.attendance[empId][date][field]=val;
+  if(!val) delete state.attendance[empId][date][field];
+  persist();renderDaily();
+}
+function markPresent(empId){
+  const date=$('dailyDate').value;
+  if(!state.attendance[empId])state.attendance[empId]={};
+  if(!state.attendance[empId][date])state.attendance[empId][date]={};
+  state.attendance[empId][date].present=true;
+  persist();renderDaily();
+}
+function markAbsent(empId){
+  const date=$('dailyDate').value;
+  const rec=(state.attendance[empId]||{})[date];
+  if(rec){delete rec.present; if(!rec.in && !rec.out) delete state.attendance[empId][date];}
+  persist();renderDaily();
+}
+$('dailyDate').addEventListener('change',renderDaily);
+$('todayBtn').addEventListener('click',()=>{$('dailyDate').value=todayIso();renderDaily();});
+
+// ---------- MONTHLY ----------
+function monthlyFor(emp, ym){
+  const att=state.attendance[emp.id]||{};
+  let days=0, totOt=0, flags=0;
+  Object.keys(att).forEach(date=>{
+    if(!date.startsWith(ym))return;
+    const rec=att[date];
+    if(!rec.in && !rec.present)return;
+    days++;
+    const d=dayOT(rec,emp.duty);
+    if(d.status==='flag-noout'||d.status==='capped')flags++;
+    totOt+=d.ot;
+  });
+  totOt=r2(totOt);
+  if(days===0) return {days:0,ot:0,hourly:0,base:0,otpay:0,total:0,flags:0};
+  const perday=emp.salary/days;
+  const hourly=perday/emp.duty;
+  const otpay=totOt*hourly;
+  return {days,ot:totOt,hourly:r2(hourly),base:emp.salary,otpay:r2(otpay),total:r2(emp.salary+otpay),flags};
+}
+function renderMonth(){
+  const ym=$('monthPick').value||curMonth();$('monthPick').value=ym;
+  const tb=$('monthBody'),tf=$('monthFoot');
+  if(!state.employees.length){tb.innerHTML='<tr><td colspan="7" class="empty">Koi employee nahi.</td></tr>';tf.style.display='none';$('monthStats').innerHTML='';return;}
+  let gD=0,gO=0,gB=0,gOP=0,gT=0,gFlag=0,active=0;
+  tb.innerHTML=state.employees.map(e=>{
+    const m=monthlyFor(e,ym);
+    if(m.days>0)active++;
+    gD+=m.days;gO+=m.ot;gB+=m.base;gOP+=m.otpay;gT+=m.total;gFlag+=m.flags;
+    const flagBadge=m.flags?` <span class="pill flag">⚠️${m.flags}</span>`:'';
+    return `<tr>
+      <td>${e.name}${flagBadge}</td>
+      <td>${m.days}</td><td>${m.ot}</td><td>${m.days?INR(m.hourly):'—'}</td>
+      <td>${INR0(m.base)}</td><td>${INR0(m.otpay)}</td><td><b>${INR0(m.total)}</b></td></tr>`;
+  }).join('');
+  $('gDays').textContent=gD;$('gOt').textContent=r2(gO);
+  $('gBase').textContent=INR0(gB);$('gOtpay').textContent=INR0(gOP);$('gTotal').textContent=INR0(gT);
+  tf.style.display='';
+  $('monthStats').innerHTML=`
+    <div class="stat"><div class="n">${active}</div><div class="l">Active Employees</div></div>
+    <div class="stat"><div class="n">${r2(gO)}</div><div class="l">Total OT Hours</div></div>
+    <div class="stat"><div class="n">${INR0(gT)}</div><div class="l">Total Payout</div></div>
+    <div class="stat"><div class="n" style="color:${gFlag?'var(--warn)':'var(--good)'}">${gFlag}</div><div class="l">Flags (review)</div></div>`;
+}
+$('monthPick').addEventListener('change',renderMonth);
+$('csvBtn').addEventListener('click',()=>{
+  const ym=$('monthPick').value||curMonth();
+  if(!state.employees.length){alert('Koi employee nahi.');return;}
+  let rows=[['Naam','Din Present','OT Hours','Hourly','Base','OT Pay','Total Salary','Flags']];
+  state.employees.forEach(e=>{const m=monthlyFor(e,ym);
+    rows.push([e.name,m.days,m.ot,m.hourly,m.base,m.otpay,m.total,m.flags]);});
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='salary-'+ym+'.csv';a.click();
+});
+
+// ---------- SETTINGS ----------
+$('setBreak').value=state.settings.breakHours;
+$('setCap').value=state.settings.capHours;
+$('saveSettings').addEventListener('click',()=>{
+  state.settings.breakHours=+$('setBreak').value||0;
+  state.settings.capHours=+$('setCap').value||16;
+  persist();alert('Settings saved.');renderDaily();
+});
+$('backupBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
+  a.download='attendance-backup-'+todayIso()+'.json';a.click();
+});
+$('restoreBtn').addEventListener('click',()=>$('restoreFile').click());
+$('restoreFile').addEventListener('change',ev=>{
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{
+    const d=JSON.parse(rd.result);
+    if(!d.employees)throw 0;
+    state=d;if(!state.settings)state.settings={breakHours:0,capHours:16};
+    persist();alert('Restore ho gaya.');renderEmp();renderDaily();renderMonth();
+  }catch(e){alert('File galat hai.')}};rd.readAsText(f);
+});
+$('wipeBtn').addEventListener('click',()=>{
+  if(confirm('SAB data delete? Pehle backup le lo.')){
+    state={employees:[],attendance:{},settings:{breakHours:0,capHours:16},seq:1};
+    persist();renderEmp();renderDaily();renderMonth();
+  }
+});
+
+// ---------- init ----------
+$('dailyDate').value=todayIso();
+$('monthPick').value=curMonth();
+renderDaily();
+</script>
+</body>
+</html>

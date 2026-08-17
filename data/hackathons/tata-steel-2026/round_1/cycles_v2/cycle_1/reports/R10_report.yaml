@@ -1,0 +1,354 @@
+agent_id: R10
+topic: bayesian-and-uncertainty
+cycle: 1
+timestamp_utc: 2026-05-23T15:25:30Z
+status: ok
+
+# Strategic framing
+# -----------------
+# V1-V22 produced ONLY point estimates of P(Y=1|x). The only uncertainty quantity
+# computed anywhere in the lineage is a BOOTSTRAP CI on the OOF *aggregate*
+# (R+P)/2 score - never per-row variance / per-row prediction sets.
+#
+# For a 66-positive imbalanced binary task scored on (R+P)/2:
+#   - hard7 = Y=1 rows whose proba (0.0143-0.0270) BARELY clears the V4 threshold
+#     0.01428. They are by definition LOW-CONFIDENCE positives. A per-row
+#     uncertainty signal that says "these are highly uncertain, treat them as
+#     'must-not-flip-to-zero'" maps to abstain-to-positive (safe-side-positive)
+#     and preserves recall.
+#   - hard_fp10 = Y=0 rows with V4 proba 0.62-0.78. The open question (no
+#     research artefact V1-V22 ever computed this) is: are these CONFIDENT FPs
+#     (narrow per-row interval, model genuinely believes Y=1) or UNCERTAIN FPs
+#     (wide interval, model is bluffing)? If the latter, an
+#     uncertainty-conditioned threshold demotes them and lifts precision while
+#     leaving hard7 alone.
+#
+# Highest-priority sub-recommendation per the brief: conformal prediction +
+# abstain rule. Secondary recommendations bring epistemic-uncertainty signal
+# into the stack as meta-features.
+
+recommendations:
+  - id: R10_rec_1
+    title: Mondrian split-conformal + uncertainty-gated decision
+    technique_class: calibration
+    description: |
+      Wrap the V4/V5 meta-stack with Mondrian (class-conditional) split-conformal
+      prediction via the MAPIE library. Produces a per-row prediction SET
+      ({0}, {1}, or {0,1}) with finite-sample, distribution-free class-conditional
+      coverage guarantees (Vovk; Angelopoulos & Bates 2023). The decision rule
+      becomes 2D, sweeping JOINTLY over (proba_threshold T_p, uncertainty score
+      tau) on OOF: confident-{1} rows -> predict 1; confident-{0} rows -> predict 0;
+      ambiguous {0,1} rows -> predict by a SECOND threshold that maximises
+      (R+P)/2. This directly attacks hard_fp10 (those with WIDE conformal intervals
+      get demoted to 0 -> P up) while protecting hard7 (low-proba positives with
+      ambiguous sets get treated as safe-positive -> R preserved). Mondrian
+      (class-conditional) is critical because marginal conformal under 5%
+      prevalence under-covers the minority class.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.0
+      low: 0.3
+      high: 2.5
+    feasibility:
+      score: 4
+      effort_hours: 5
+      dependencies:
+        - mapie>=0.8
+        - scikit-learn>=1.4
+        - numpy
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Angelopoulos & Bates, "A Gentle Introduction to Conformal Prediction
+        and Distribution-Free Uncertainty Quantification" (arXiv:2107.07511,
+        Foundations and Trends in ML 2023). Vovk, Gammerman, Shafer,
+        "Algorithmic Learning in a Random World" (Springer 2005, 2nd ed 2022).
+        Mondrian conformal: Vovk et al "Mondrian Confidence Machine" (2003).
+        MAPIE library docs (Taquet et al, JOSS 2023). MAPIE has a sklearn-
+        compatible MapieClassifier API that drops onto the V4 meta-learner with
+        a calibration split (or cross-conformal across the existing 5 folds).
+    failure_modes:
+      - Calibration set is small (~270 rows = 5-fold holdout) so prediction
+        sets can be coarse; cross-conformal across the V4 5-fold harness
+        partially mitigates.
+      - If essentially all hard_fp10 rows are CONFIDENT-{1} sets (narrow
+        intervals), there is no demote signal and the lift collapses toward 0.
+      - 2D threshold sweep adds overfit risk on OOF; mitigate by reporting
+        bootstrap CI on the 2D-optimum like V4 already does for 1D.
+      - Mondrian class-conditional with 66 positives means the positive
+        non-conformity score quantile estimate is noisy (q at level alpha=0.1
+        is essentially the 7th-highest of 66 scores).
+    code_sketch: |
+      from mapie.classification import MapieClassifier
+      import numpy as np
+      mapie = MapieClassifier(
+          estimator=v4_meta_learner,
+          method="aps",           # adaptive prediction sets (Romano et al 2020)
+          cv="prefit",            # we already have OOF probas from V4 folds
+      )
+      mapie.fit(X_calib, y_calib)
+      y_pred, y_sets = mapie.predict(X_oof, alpha=[0.05, 0.10, 0.20])
+      # Per-row uncertainty = prediction-set size at fixed alpha
+      unc = y_sets[:,:,1].sum(axis=1)  # alpha=0.10
+      best_score = 0
+      for T_p in np.unique(v4_oof_proba):
+          for tau in [1, 2]:
+              pred = np.where(
+                  unc < tau,
+                  (v4_oof_proba >= T_p).astype(int),
+                  1,   # ambiguous -> safe-positive (recall preserved)
+              )
+              s = score_rp2(y_oof, pred)
+              best_score = max(best_score, s)
+      # Variant: ambiguous -> 0 (precision-first); pick whichever wins OOF
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: R10_rec_2
+    title: MC-Dropout on V6 FT-Transformer -> variance meta-feature
+    technique_class: architecture
+    description: |
+      The V6 FT-Transformer (d_token=96, 3 Pre-LN blocks, dropout already in
+      MultiHeadAttention + FFN) is a Bayesian-by-default architecture under
+      Gal and Ghahramani (2016) - keeping dropout ACTIVE at inference and running
+      N=50 forward passes yields an approximate posterior. Mean = point estimate
+      (we already use this in the 90/10 V6+V5 blend that gave +0.41 OOF). The
+      NEW signal is the per-row variance, added as a NEW meta-learner feature
+      alongside [lgb_oof, xgb_oof, cat_oof, ft_mean]. This is a true epistemic
+      uncertainty input - the meta-learner can learn "high-FT-variance + high-
+      tree-proba = down-weight" (hard_fp10 demote) and "low-FT-variance +
+      low-tree-proba = up-weight" (hard7 protect). Critically: V6 only ever
+      produced single-shot inference; multi-sample MC-Dropout was NEVER tried
+      and the variance was NEVER surfaced.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.5
+      low: 0.1
+      high: 1.2
+    feasibility:
+      score: 4
+      effort_hours: 3
+      dependencies:
+        - torch>=2.0
+        - existing V6 FT-Transformer checkpoint
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Gal and Ghahramani, "Dropout as a Bayesian Approximation: Representing
+        Model Uncertainty in Deep Learning" (ICML 2016, arXiv:1506.02142).
+        Original FT-Transformer paper (Gorishniy et al, NeurIPS 2021) already
+        has dropout in MHA + FFN, so MC-Dropout is literally a model.train()
+        before model(x) at inference time with torch.no_grad().
+    failure_modes:
+      - V6 was WEAKER than the tree stack (OOF AUC 0.842 vs 0.889) on n=1352.
+        If the variance signal is dominated by undertrained-on-tiny-data noise
+        rather than meaningful epistemic uncertainty, the new meta-feature is
+        garbage.
+      - Adding a noisy meta-feature can hurt LR meta-learner stability; use
+        L2-regularised LR or drop the feature if cross-validated meta AUC
+        regresses.
+      - 50 forward passes x 5 folds x 1352 rows = 338k inferences. Fine
+        computationally but easy to bug (dropout left off, samples not
+        i.i.d. across stoch passes, etc).
+    code_sketch: |
+      def mc_dropout_predict(model, x, n_samples=50):
+          model.train()  # CRITICAL: keep dropout on
+          with torch.no_grad():
+              preds = torch.stack([model(x) for _ in range(n_samples)])
+          mean = preds.mean(dim=0)
+          var  = preds.var(dim=0)
+          return mean.cpu().numpy(), var.cpu().numpy()
+      # Per fold, produce oof_ft_mean and oof_ft_var
+      meta_X = np.column_stack([
+          lgb_oof, xgb_oof, cat_oof, ft_mean_oof, ft_var_oof
+      ])
+      meta = LogisticRegression(C=1.0).fit(meta_X, y_train)
+      # Then existing Platt + score-aware threshold sweep
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R10_rec_3
+    title: Deep Ensemble seeded FT-Transformer + variance feature
+    technique_class: architecture
+    description: |
+      Train K=5 FT-Transformers with different seeds (init + data shuffle), keep
+      ALL their OOF preds, take the mean as the FT meta-feature AND the across-
+      seed variance as a SEPARATE meta-feature. Lakshminarayanan et al (2017)
+      show seeded deep ensembles produce a strictly higher-quality epistemic
+      posterior than MC-Dropout (and on tabular Gorishniy 2023 reproduces this
+      for FT-Transformer specifically). V12 did multi-seed bagging on CatBoost
+      only (and merely averaged) - it never extracted the per-row variance, and
+      it was NEVER applied to FT-Transformer where the variance signal is
+      strongest. Combining with R10_rec_1 (conformal) and R10_rec_2 (MC-Dropout)
+      gives the meta-learner three complementary epistemic-uncertainty inputs.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V12  # multi-seed bagging on CatBoost; no variance extraction, no FT
+    expected_lift_oof:
+      point: 0.5
+      low: 0.1
+      high: 1.0
+    feasibility:
+      score: 3
+      effort_hours: 8
+      dependencies:
+        - torch>=2.0
+        - rtdl_revisiting_models or local V6 FT-Transformer code
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Lakshminarayanan, Pritzel, Blundell, "Simple and Scalable Predictive
+        Uncertainty Estimation using Deep Ensembles" (NeurIPS 2017,
+        arXiv:1612.01474). Gorishniy et al "Revisiting Deep Learning Models
+        for Tabular Data" (NeurIPS 2021, arXiv:2106.11189) confirms
+        FT-Transformer benefits more from ensembling than ResNet on tabular.
+    failure_modes:
+      - 5x FT-Transformer training time. Acceptable for 1352 rows but make
+        sure not to leak across seeds (each seed gets the SAME 5-fold split,
+        just different model init).
+      - Disagreement variance across only 5 seeds is noisy. K=10 would be
+        better but cost doubles.
+      - If individual FT-Transformers under-train (V6 early-stopped epoch
+        17-42), the disagreement is dominated by early-stop randomness rather
+        than meaningful epistemic uncertainty.
+    code_sketch: |
+      ft_preds = []
+      for seed in [1, 2, 3, 4, 5]:
+          torch.manual_seed(seed); np.random.seed(seed)
+          model = train_ft_transformer(X_train_fold, y_train_fold, seed=seed)
+          ft_preds.append(model.predict_proba(X_val_fold))
+      ft_arr = np.stack(ft_preds)                # (K, n_val)
+      ft_mean_oof[val_idx] = ft_arr.mean(axis=0)
+      ft_var_oof[val_idx]  = ft_arr.var(axis=0)
+      # Same as rec_2 downstream: add to meta_X
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: medium
+      easy59_regression_risk: low
+
+  - id: R10_rec_4
+    title: Uncertainty-aware abstain-to-zero precision rescue
+    technique_class: threshold
+    description: |
+      Pure post-processing technique on the existing V4 OOF probability vector.
+      The V4 chosen threshold T=0.01428 gives R=100%, P=8.62% on OOF (~700 FPs
+      vs 66 TPs). Combine V4 proba with a per-row uncertainty score U (either
+      conformal set size from rec_1, MC-Dropout std from rec_2, or ensemble
+      var from rec_3) into a tunable rule:
+        if U > tau_U and V4_proba in (T, T_high): predict 0   (abstain-to-zero)
+        else: predict (V4_proba >= T)
+      The abstain band [T, T_high) targets the BORDERLINE-positive zone
+      (V4_proba just above threshold) where the model is least confident.
+      Cross-validate (tau_U, T_high) jointly on OOF to maximise (R+P)/2.
+      Critically the rule is structured so it CANNOT touch confident positives
+      (proba >> T_high) and CANNOT touch confident negatives (proba < T) - so
+      easy59 is protected. hard7 are in [T, T+0.015] and may get touched, so
+      pick rule polarity (abstain-to-zero vs abstain-to-one) by sweeping both
+      options on OOF and bootstrapping. This is the lowest-effort way to
+      CONVERT uncertainty signal into score points.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.6
+      low: 0.0
+      high: 1.8
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - numpy
+        - outputs of rec_1/2/3 (at least one required)
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Selective classification / abstain-and-defer: Chow "On Optimum
+        Recognition Error and Reject Tradeoff" (IEEE Trans IT 1970), Geifman
+        and El-Yaniv "Selective Classification for Deep Neural Networks"
+        (NeurIPS 2017, arXiv:1705.08500). Note: in the Tata Steel submission
+        format there is NO literal "abstain" label - so "abstain" here means
+        "force to majority/minority class" depending on which polarity wins
+        on OOF. This is exactly equivalent to a 2D uncertainty-aware decision
+        rule, which is the right framing for a binary leaderboard.
+    failure_modes:
+      - If uncertainty is dominated by the same signal as proba (high-proba
+        rows are also high-uncertainty), the abstain rule degenerates into
+        a second proba threshold and adds nothing.
+      - Bootstrap CI on the 2D rule will be wider than V4's 1D CI; honest
+        reporting required.
+      - hard7 are exactly in the borderline band; if rule polarity is
+        abstain-to-zero, one or more hard7 rows would flip and R drops below
+        100%. Pre-register the polarity choice and report fixture coverage
+        explicitly.
+    code_sketch: |
+      best = {"score": v4_oof_score}
+      for T_high in np.linspace(T, 0.05, 30):
+          for tau_U in np.linspace(0, U.max(), 30):
+              for polarity in ("abstain_to_zero", "abstain_to_one"):
+                  band = (v4_oof_proba >= T) & (v4_oof_proba < T_high)
+                  uncert = U > tau_U
+                  if polarity == "abstain_to_zero":
+                      pred = np.where(band & uncert, 0,
+                                      (v4_oof_proba >= T).astype(int))
+                  else:
+                      pred = np.where(band & uncert, 1,
+                                      (v4_oof_proba >= T).astype(int))
+                  s = score_rp2(y_oof, pred)
+                  if s > best["score"]:
+                      best = dict(score=s, T_high=T_high, tau_U=tau_U,
+                                  polarity=polarity)
+      # Lock the best rule, apply to test
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+# Topics NOT recommended (and why)
+# --------------------------------
+# - SNGP (Liu et al NeurIPS 2020): requires custom GP-output-layer architecture
+#   rewrite of FT-Transformer + spectral normalisation of intermediate
+#   activations. 12-15h engineering effort, brittle on n=1352, and the
+#   uncertainty signal it produces is largely redundant with MC-Dropout
+#   (rec_2) and Deep Ensembles (rec_3). Not worth the time-budget given
+#   8 days remaining.
+# - "Bayesian XGBoost" via Pyro / NGBoost / pgbm-bayes: NGBoost (Duan et al
+#   2019) provides natural-gradient probabilistic regression but its binary-
+#   classification posterior is essentially a calibrated Platt-style logistic,
+#   so the per-row variance is already captured by V4's existing Platt
+#   calibration. Net new signal expected ~0. Not recommended.
+# - Bayesian Neural Networks via mean-field VI (Pyro/PyMC): with n=1352 and
+#   49 features, MFVI on a transformer is heavily under-determined; the
+#   posterior collapses to the prior in many dimensions. High effort, low
+#   expected lift.
+
+cross_topic_links:
+  - R-calibration: |
+      Conformal prediction in rec_1 IS a calibration technique (provides
+      distribution-free coverage). If a calibration-topic R-agent recommends
+      Venn-Abers or beta calibration, the conformal sets are computed AFTER
+      that calibration on calibrated probas; the two stack cleanly.
+  - R-threshold: |
+      Rec_4 (uncertainty-aware abstain rule) is a strict 2D-generalisation
+      of the V4 1D threshold sweep. A threshold-topic R-agent's
+      score-aware-threshold work should be integrated as the inner-loop
+      1D sweep inside rec_4's 2D sweep.
+  - R-stacking-meta: |
+      Rec_2 and rec_3 add per-row variance features to the meta-learner
+      input. A meta-learner R-agent recommending L2-regularised LR or a
+      shallow tree meta should account for these new noisy meta-features
+      (regularisation strength may need re-tuning).
+  - R-ft-transformer: |
+      Rec_2 (MC-Dropout) and rec_3 (deep ensemble) both build directly on
+      the V6 FT-Transformer artefact. If an FT-Transformer-topic R-agent
+      recommends architecture changes (deeper, wider, different tokeniser),
+      apply those changes BEFORE running MC-Dropout / deep ensemble so the
+      uncertainty estimate reflects the best base model.

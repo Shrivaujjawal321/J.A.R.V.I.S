@@ -1,0 +1,81 @@
+{
+  "sec": {
+    "source": "sec",
+    "status": "ok",
+    "data": {
+      "signal": "bullish",
+      "confidence": 0.87,
+      "summary": "CEO Jensen Huang purchased 50K shares Form 4 filing 2026-04-15 — non-routine, no prior buys in 12 months",
+      "evidence": "Form 4 direct acquisition at $892/share. No prior Form 4 purchases in 12 months. Not a 10b5-1 plan. Opportunistic classification per Cohen-Malloy-Pomorski criteria.",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=NVDA&type=4"
+    },
+    "latency_ms": 340,
+    "cached": false
+  },
+  "yahoo": {
+    "source": "yahoo",
+    "status": "ok",
+    "data": {
+      "signal": "bullish",
+      "confidence": 0.81,
+      "summary": "Revenue beat Q1 2026 consensus by 12%; data center segment up 220% YoY; EPS beat $0.08",
+      "evidence": "Q1 rev $44.1B vs $39.3B consensus. EPS $0.96 vs $0.88 est. Short interest 1.2%. P/E 42x forward.",
+      "url": "https://finance.yahoo.com/quote/NVDA"
+    },
+    "latency_ms": 890,
+    "cached": false
+  },
+  "reddit": {
+    "source": "reddit",
+    "status": "ok",
+    "data": {
+      "signal": "bearish",
+      "confidence": 0.38,
+      "summary": "WSB sentiment shifted negative: 73% bearish mentions in 48h — priced to perfection narrative dominant",
+      "evidence": "r/wallstreetbets top posts 48h: 73% bearish mentions, avg upvote ratio 0.82. Top comment: 'NVDA priced for everything to go right.'",
+      "url": "https://reddit.com/r/wallstreetbets"
+    },
+    "latency_ms": 3200,
+    "cached": false
+  },
+  "linkedin": {
+    "source": "linkedin",
+    "status": "timeout",
+    "data": null,
+    "error_msg": "Timed out after 18s — BrightData LinkedIn scraper did not respond",
+    "latency_ms": 18000,
+    "cached": false
+  },
+  "glassdoor": {
+    "source": "glassdoor",
+    "status": "rate_limited",
+    "data": null,
+    "error_msg": "HTTP 429 from BrightData Scraping Browser — retry after 60s",
+    "latency_ms": 1200,
+    "cached": false
+  },
+  "news": {
+    "source": "news",
+    "status": "error",
+    "data": null,
+    "error_msg": "BrightData SERP quota exceeded for today",
+    "latency_ms": 650,
+    "cached": false
+  },
+  "gdelt": {
+    "source": "gdelt",
+    "status": "timeout",
+    "data": null,
+    "error_msg": "GDELT API timed out after 18s",
+    "latency_ms": 18000,
+    "cached": false
+  },
+  "satellite": {
+    "source": "satellite",
+    "status": "error",
+    "data": null,
+    "error_msg": "NASA FIRMS API returned 503 — service temporarily unavailable",
+    "latency_ms": 2100,
+    "cached": false
+  }
+}

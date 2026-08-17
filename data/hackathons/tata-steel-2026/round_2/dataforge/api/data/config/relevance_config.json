@@ -1,0 +1,35 @@
+{
+  "relevance_gate_threshold": 68.0,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "embedding_fallback": "kb_only",
+  "weights_hybrid": {
+    "kb_match": 0.65,
+    "embed_sim": 0.35
+  },
+  "weights_kb_only_scale": 85.0,
+  "kb_match_weights": {
+    "tier_a": 0.35,
+    "tier_b": 0.25,
+    "tier_c": 0.15,
+    "coherence": 0.15,
+    "structural": 0.10
+  },
+  "overall_score_weights_timeseries": {
+    "relevance": 0.30,
+    "quality": 0.35,
+    "domain_pdm": 0.20,
+    "feature_richness": 0.10,
+    "ps_alignment": 0.05
+  },
+  "overall_score_weights_tabular": {
+    "relevance": 0.30,
+    "quality": 0.45,
+    "domain_pdm": 0.00,
+    "feature_richness": 0.15,
+    "ps_alignment": 0.10
+  },
+  "corroboration_gaming_threshold": 0.30,
+  "coherence_low_threshold": 0.40,
+  "min_sensor_types_for_full_diversity": 4,
+  "min_numeric_cols_for_structural": 5
+}

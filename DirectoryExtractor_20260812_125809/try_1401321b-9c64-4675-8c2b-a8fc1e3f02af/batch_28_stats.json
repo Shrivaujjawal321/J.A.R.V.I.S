@@ -1,0 +1,110 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "New Hampshire",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  }
+]

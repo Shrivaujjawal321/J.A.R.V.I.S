@@ -1,0 +1,98 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 467,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 439,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 123,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 63,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 46,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 204,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 10,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 173,
+    "status": "completed"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "skipped_zero_results"
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Rhode Island",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 3,
+    "status": "completed"
+  }
+]

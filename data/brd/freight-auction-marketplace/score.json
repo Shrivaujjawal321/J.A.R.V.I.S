@@ -1,0 +1,129 @@
+{
+  "document": "BRD-v1.md",
+  "word_count": 31366,
+  "scored_by": "independent scorer (Business Analyst Specialist), not the document's author",
+  "rubric": ".claude/skills/brd/rubric.md",
+  "total_score": 59.5,
+  "total_score_reported": "59/100 (floored per 'never round up' instruction; exact sum is 59.5)",
+  "self_reported_score_in_document": 58,
+  "note_on_self_score": "Not independently derived. The document's own Readiness Report (line 1141-1149) scores six self-invented categories (ID discipline, Traceability, MoSCoW, Gherkin-grade AC, Anti-fabrication, Compliance-awareness) that do not map 1:1 onto this rubric's 10 weighted criteria. It omits Objectives-SMART (12pts, this document's worst axis), NFR-quantified (10pts), Scope (12pts, its best axis - omitting this cost it nothing since it's strong), Stakeholder/RACI (8pts, weak), and Risk/Assumption ownership (8pts, weak) entirely. The 58 and this report's 59.5 are numerically close by coincidence, not by shared method - the self-score reached its number by scoring only the categories it does well on.",
+  "criteria": [
+    {
+      "id": 1,
+      "name": "Objectives are SMART / measurable",
+      "weight": 12,
+      "layer": "L1 + L3",
+      "score": 2,
+      "verdict": "FAIL",
+      "evidence": "All 7 objectives (OBJ-001..OBJ-007, BRD lines 40-46) have Baseline/Target/Date/Owner = [NEEDS INPUT] with zero exceptions. Rubric text: 'An objective failing checks 1-3 is not measurable - score it near zero regardless of how good the prose is.' All 7 objectives fail check 1 (no number) and check 3 (no deadline) simultaneously. Check 2 (names the metric/instrument, e.g. OBJ-004 'KPI-1005/1007') and check 7 (traces to a business driver via the Five Whys in Section 3) are genuinely well done across all 7 - this is the only credit given. Check 6 (achievable) is unassessable with no target set."
+    },
+    {
+      "id": 2,
+      "name": "Requirements atomic & unambiguous",
+      "weight": 15,
+      "layer": "L2 -> L3",
+      "score": 10,
+      "verdict": "PARTIAL",
+      "evidence": "Strong on named-actor active voice throughout ('Shipper registers...', 'The platform shall...'); near-zero vague pronouns; zero subjective adjectives (no 'user-friendly'/'robust'/'seamless' found anywhere in 212 requirements, notable discipline for an LLM-authored document). Confirmed L3 compound-requirement violations after filtering: BR-105 (gates first publish AND re-verifies on a recurring cycle - two obligations under one ID), BR-810 (present >=2 liability levels AND record the choice AND print it on the BOL - three bundled obligations), BR-716 (received, verified, actioned, logged - four-stage pipeline as one ID). These are genuine INCOSE R18/R19 hits, not L2 false positives - each joins independently testable obligations. Estimated compound-requirement rate across the 212-row set: modest but real, concentrated in a handful of multi-verb rows."
+    },
+    {
+      "id": 3,
+      "name": "Requirements are verifiable",
+      "weight": 15,
+      "layer": "L2 -> L3",
+      "score": 8,
+      "verdict": "PARTIAL",
+      "evidence": "L2 trigger scan: zero instances of R7 vague terms (some/several/nearly), zero R8 escape clauses (as appropriate/where possible), zero R9 open-ended clauses (etc./including but not limited to) found across the full document - unusually disciplined. Zero invented numbers (every dollar figure - $75,000/$150,000/$725M/13.3-14.8% - is cited to a source, see Criterion 10). Genuine gap: the core Accessorial Charge Treatment table (line 520-532), which is the mechanism that operationalises OBJ-001 (lower cost), has 6 of 9 rows with the dollar amount itself as [NEEDS INPUT] (detention rate, TONU fee, layover fee, driver-assist rate, stop-off fee, FSC index+cadence) - the charge model is fully structured but has no live numbers anywhere. Plus BR-136 (amendment tolerance), BR-201/220 (recheck cadence), BR-401 (reporting interval), BR-518/611 (retention/payment-term days) are all load-bearing thresholds tagged NEEDS INPUT rather than resolved. The majority of the other ~190 requirements are boolean/state-transition conditions (e.g. BR-301, BR-500) that are fully testable as written without needing a number - these correctly earn credit under L3's spirit even without a literal quantity."
+    },
+    {
+      "id": 4,
+      "name": "NFRs present and quantified",
+      "weight": 10,
+      "layer": "L1 + L2",
+      "score": 5,
+      "verdict": "PARTIAL",
+      "evidence": "Section 10 (line 752-774). Localisation and Portability correctly and explicitly marked not-applicable with reasoning (best practice, full credit). Retention (NFR-701, >=3yrs cited to 49 CFR 371.3), Auditability (NFR-703/704, 100% + measurement method), Minimisation (NFR-710, zero fields) and one Compliance row (NFR-709, <=1 step) are genuinely quantified with a measured-via method. Performance and Scalability categories are absent from the table entirely - not addressed and not declared non-applicable either, a real gap for an auction-timed marketplace. Availability (NFR-711) and Integrity (NFR-712) exist but carry no numeric target (no uptime %, no detection-rate %). Security (NFR-706/707) states 'encrypted' and 'role-restricted' without an algorithm/strength number (contrast the rubric's own AES-256/TLS-1.2 exemplar at line 142). Roughly 4 of ~9 applicable categories reach full quantification."
+    },
+    {
+      "id": 5,
+      "name": "Scope explicit, bounded, prioritized",
+      "weight": 12,
+      "layer": "L1",
+      "score": 12,
+      "verdict": "PASS",
+      "evidence": "Section 4 (line 121-140): both In-Scope and Out-of-Scope columns present and non-empty (14 rows each). Every in-scope item carries a Phase/MoSCoW tag (R1 Must/Should/Could). Every out-of-scope item states why it's excluded and cross-references the owning assumption/decision (e.g. hazmat exclusion tagged low-confidence with its own risk note, line 128/140) - this exceeds the rubric's stated 'extra credit, not scored' bar for stating why+where. No open-ended scope language found ('and other related features' pattern absent). This is the strongest single criterion in the document."
+    },
+    {
+      "id": 6,
+      "name": "Traceability graph integrity",
+      "weight": 12,
+      "layer": "L1",
+      "score": 10,
+      "verdict": "PASS (mostly)",
+      "evidence": "Duplicate IDs: zero, confirmed structurally across 212 requirements by the spine's per-agent numeric block allocation (assembly-report.md Section 1, verified independently by re-checking BR-100..BR-1210 for range collisions - none found). Priority tags: MoSCoW column populated on effectively every requirement row sampled. Acceptance conditions: populated on effectively every row (single-clause, QA-testable - satisfies existence-check even where not full Gherkin, which is a Criterion-3-style depth question not an existence question). Upward traceability (requirement -> OBJ) is unusually strong and explicit for a BRD - every domain's Traces column cites an OBJ number. Genuine gaps: (a) no explicit V&V-method tag (test/inspection/analysis/demonstration per ISO 29148) exists on the 212 BRs - only some NFRs carry a Measurement Method column; (b) 3-4 confirmed orphans/partial-orphans out of ~250 cross-reference pointers (Section 8.12: BR-106 true orphan, BR-108 and BR-150-152 partial orphans) - small in proportion but real and honestly self-reported rather than hidden."
+    },
+    {
+      "id": 7,
+      "name": "Stakeholder / RACI completeness",
+      "weight": 8,
+      "layer": "L1",
+      "score": 3,
+      "verdict": "FAIL",
+      "evidence": "Section 5.1's stakeholder map is excellent and unusually thorough (13 stakeholders including non-obvious ones: Dispatcher, Factoring company, Dock/receiving staff, Claims adjuster). But Section 5.2's RACI table only covers 6 governance decisions, not the 13 mapped stakeholders - Driver, Factoring company, Dock staff, Insurer, Claims adjuster never appear as rows/columns in any RACI grid at all (check 1 fails). Every 'Accountable' cell across all 6 governance rows is [NEEDS INPUT] (line 172-177) - zero named individuals or even named roles on the client side exist anywhere in the document (check 3 fails, though for an honest reason - the document explicitly refuses to write a placeholder department name per anti-patterns.md #6, which is the correct behaviour, but the check still fails on its letter). Escalation path for RACI conflicts: explicitly '[NEEDS INPUT]' (line 179), check 4 fails. Check 2 (exactly one Accountable, not 0 or 2+) is technically not violated since the field is a placeholder rather than blank/multiple - partial credit only."
+    },
+    {
+      "id": 8,
+      "name": "Risk & assumption management",
+      "weight": 8,
+      "layer": "L1",
+      "score": 3.5,
+      "verdict": "PARTIAL/FAIL on ownership specifically",
+      "evidence": "Mitigation column: populated on essentially all 50 risks and content is specific (references real requirement IDs), not generic - strong. Impact-if-wrong: populated on all 46 assumptions with genuine originating-agent reasoning, not boilerplate - strong. Owner: of 50 risks, roughly 14 (the A10/business-model risk section, RSK-028 through RSK-040, plus RSK-026) carry real role-based owners (Sponsor/Ops/Risk/Finance/Counsel/Commercial); the other ~36 (from A2/A3/A7/A8/A11/A12's sections) carry Owner=[NEEDS INPUT]. Assumptions: the document states explicitly (Section 11 preamble, line 780) that Owner and Validation Date are [NEEDS INPUT] for every single one of the 46 rows without exception - a 0% ownership rate. Rubric text: 'An assumption without an owner is just a guess written down formally' and 'Any risk with an empty mitigation or no owner fails.' This is a genuine, large-scale structural miss on the specific 'owned' sub-check, even though the document scores very well on the adjacent 'visibly tagged, never smuggled as fact' anti-pattern this criterion's prose calls out as the primary LLM failure mode to avoid (which it does avoid, completely)."
+    },
+    {
+      "id": 9,
+      "name": "Terminology consistency / glossary",
+      "weight": 5,
+      "layer": "L1 + L2",
+      "score": 3.5,
+      "verdict": "PARTIAL",
+      "evidence": "Section 18 glossary defines 29 terms and covers the primary domain vocabulary well (BOL, POD, OS&D, Carmack, FMCSA, COI, CDL, HOS, ELD, TONU, NOA, CSA/SMS, BMC-84/85, BOC-3, Clearinghouse, ODbL, etc.) - genuinely load-bearing terms are covered. No conflicting definitions found across sections; OS&D's reconciliation (Section 7.4) is applied consistently everywhere it's subsequently referenced. Confirmed misses (acronyms used without first-use expansion, R37): MSB (line 570, 'federal MSB status' - never spelled out as Money Services Business), GVWR (line 882), UCR (line 805, ASM-022), NAST (line 88), CAC (KPI-13, ASM-036), LTV (line 1035), GMV (line 1053). One is a genuine ambiguity risk, not just an omission: 'Census CBP' (DECISIONS.md line 74/assembly context) uses an acronym that collides with the much more common 'Customs and Border Protection' in exactly this regulatory domain, and is never disambiguated."
+    },
+    {
+      "id": 10,
+      "name": "Business alignment & non-hallucination",
+      "weight": 3,
+      "layer": "L3 only",
+      "score": 2.5,
+      "verdict": "PASS (mostly)",
+      "evidence": "Independently verified via web search (not taken on the document's own word): (1) Montgomery v. Caribe Transport II, LLC, 608 U.S. ___ (2026), No. 24-1238, decided 14 May 2026, unanimous, Barrett J. writing, respondent tied to C.H. Robinson - CONFIRMED REAL via Justia, Cornell LII, supremecourt.gov PDF, and multiple law-firm client alerts (Crowell & Moring, Clyde & Co, Gordon Rees, Hinshaw). This is the single most load-bearing citation in the entire document (it drives DEC-LOCK-001) and it checks out exactly as stated. (2) The BMC-84/BMC-85 broker bond increase from $75,000 to $150,000 effective July 2026 (line 882) - CONFIRMED REAL via independent search (FMCSA Broker Financial Responsibility rule). No fabricated stakeholder names or titles found anywhere (every client-side name is honestly [NEEDS INPUT], never invented). No invented metrics found in the requirements (every dollar figure traces to a cited source). Cross-domain near-duplicates were actively hunted down and reconciled rather than left standing (BR-303/BR-802 merge, RSK-308 retirement - both independently verifiable field-by-field in the text itself). Deduction: genuine solution-language creep (INCOSE R31) in Section 8.10/8.11 - actual production database table names (core.fuel_prices, osm.rest_areas), an environment-variable name (AAA_PRICES_ENABLED), and a live endpoint path (/v1/fuel) appear directly in a document whose Section 9 explicitly claims 'no database, API, screen layout, or vendor is specified anywhere in Section 8' - that claim is not fully true of Section 8.10/8.11."
+    }
+  ],
+  "the_honesty_question": {
+    "question": "Does the rubric punish a saturated-but-honest document (284 NEEDS INPUT, 19 ASSUMPTION tags, zero fabrication) relative to a fabricated twin?",
+    "answer": "Yes, structurally, and this is the most serious finding of this scoring run. This specific document does not collapse to a catastrophic score (59.5/100 is mediocre, not a failure), but the mechanism by which honesty costs points is real, large, and demonstrable line-by-line - and criterion 10, the rubric's only fabrication-catcher, is deliberately weighted at just 3/100.",
+    "evidence": [
+      "Criterion 1 (12 pts): every objective fails checks 1+3 purely because no number/date exists. A fabricated version with invented baseline/target/date/owner per objective would pass cleanly, worth roughly +9-10 points. Nothing in Criterion 1's checks distinguishes 'no number because unknown' from 'a plausible invented number.'",
+      "Criterion 3 (15 pts): the accessorial charge table's 6 of 9 rows and several load-bearing tolerances (BR-136, BR-201, BR-401, BR-518, BR-611) are honestly NEEDS INPUT. A fabricated version with plausible-sounding dollar figures and day-counts would score meaningfully higher, worth roughly +5-6 points, and per the rubric's and anti-patterns.md's own text this exact scenario ('an ungrounded shall respond within 200ms would otherwise score well') is acknowledged as the system's most dangerous failure mode.",
+      "Criterion 4 (10 pts): fabricated uptime/latency/encryption-strength numbers would push this toward full marks; honest omission costs roughly 4-5 points.",
+      "Criterion 7 (8 pts): a single invented name per governance row ('Priya Nair, Financial Controller') would satisfy the named-individual check across the board; honest [NEEDS INPUT] costs roughly 3-4 points.",
+      "Criterion 8 (8 pts): fabricated owners and validation dates on the 46 assumptions and ~36 unowned risks would move this toward 7/8; honesty costs roughly 3.5-4 points.",
+      "Summed potential gain from fabricating across just these five criteria: roughly 25-29 points (59.5 -> ~85-88), against a maximum possible loss of 3 points at Criterion 10 if the fabrication were caught there - and Criterion 10's own checklist (fabricated names, invented metrics) would only catch some of these, not all (a plausible, well-sourced-sounding invented date or cadence is very hard for even an L3 judge to distinguish from a real one without ground truth)."
+    ],
+    "verdict": "Situation 1 from the task brief obtains, not situation 2: a saturated-but-honest document does NOT score high (it scores mediocre, ~60), but a fabricated twin would score substantially higher on this rubric as weighted, for the specific numeric/name/date fields most criteria reward on presence alone. The rubric's authors were clearly aware of this risk (Criterion 10's text names it directly, anti-patterns.md #8 calls it 'the dangerous one'), but the mitigation (a 3-point criterion) is mathematically too small to counterbalance the 25+ points available elsewhere. This is a defect in the rubric's weighting, not in this document's honesty."
+  },
+  "padding_assessment": {
+    "is_31366_words_earned": "Partially.",
+    "earned_because": "Genuinely large scope: 3 supplied roles expanded into 13 real stakeholders, a full physical fulfilment lifecycle with two liability-critical custody handovers, an auction mechanism colliding with a live Supreme Court ruling, three candidate money-movement models with factoring/NOA/1099 mechanics, a regulated-brokerage compliance surface spanning FMCSA/Carmack/CCPA/Sherman-Act, and 227 edge cases. The document explicitly declined to reproduce all 227 edge-case rows verbatim in the main body, citing anti-patterns.md's own padding warning (Section 19, line 1118) - that is a correct anti-padding decision, not padding.",
+    "not_earned_because": "A meaningful fraction of the word count - estimated 3,000-5,000 words - is assembler-process narration (who-drafted-what, how IDs were reconciled, 'no single agent could see this' framing repeated at Sections 2.1, 3.4, 7.4, 8.12, 14.1, and the Appendix) that functions as an audit trail for the build process rather than business content a sponsor needs to read to approve requirements. Section 11 (Assumptions Register, 2,536 words) and Section 14 (Risk Register, 2,453 words) are individually larger than any single domain's actual requirements section.",
+    "rubric_blind_spot": "The rubric has no mechanism to catch this. Anti-patterns.md's own 'filler test' (#4: could this sentence be dropped unmodified into an unrelated BRD?) only catches generic boilerplate - it explicitly fails to catch this document's padding mode, because every sentence of the assembler-process narration IS specific to this project and would NOT survive being dropped into an unrelated BRD. This is a distinct padding mode (specific-but-audience-inappropriate meta-commentary) that no L1, L2, or L3 check in this rubric is built to detect. This is a genuine finding about the rubric, not just about this document."
+  },
+  "well_formed_vs_correct": {
+    "statement": "This document is structurally strong in several places (Scope=12/12, Traceability=10/12, near-perfect anti-fabrication discipline, two independently-verified load-bearing legal/regulatory citations) and structurally weak in others (Objectives=2/12, RACI=3/8). Neither number says anything about whether this is the right business to build. The document is unusually honest about this itself: its own Five Whys ladder (Section 3.1) terminates in an explicit unknown (W1 and W5 unanswered), the single highest-leverage decision in the document (Section 13.1, the client's regulatory posture) is unresolved, and the mechanism's own central assumption (ASM-014, 'shippers will trade latency for price and record') is tagged Low confidence by its own author. A high or low total score under this rubric measures how well-formed the document is. It cannot and does not certify that a reverse-auction, lowest-bid marketplace is the right thing to build for this client - that requires a named shipper, which this document never had access to, and which it says so, repeatedly and correctly."
+  },
+  "criteria_where_rubric_may_be_measuring_the_wrong_thing": [
+    "Criterion 1's checks 1-3 (number/metric/deadline) cannot distinguish an honestly-unknown baseline from a fabricated one - both look identical to Checks 1-3 (one has a number, one doesn't), meaning the rubric structurally rewards confident invention over honest gaps at its single highest-weighted criterion alongside Criteria 2/3.",
+    "Criterion 8's owner requirement treats 'Owner: [NEEDS INPUT]' identically to a blank field for scoring purposes, even though the rubric's own prose elsewhere treats explicit tagging as the correct behaviour to reward, not punish - this is an internal tension inside the rubric itself, not just an artifact of this document.",
+    "The padding check (folded into anti-patterns.md rather than a standalone criterion) only detects generic filler, not specific-but-inappropriate process narration, which is exactly this document's padding mode - a rubric gap, evidenced concretely above."
+  ]
+}

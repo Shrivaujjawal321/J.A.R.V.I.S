@@ -1,0 +1,107 @@
+{
+  "top_20_features": [
+    {
+      "rank": 1,
+      "feature": "X14",
+      "mean_abs_shap": 0.4802971849796341
+    },
+    {
+      "rank": 2,
+      "feature": "X13_over_X36",
+      "mean_abs_shap": 0.34471833267612406
+    },
+    {
+      "rank": 3,
+      "feature": "X16",
+      "mean_abs_shap": 0.32083818364283573
+    },
+    {
+      "rank": 4,
+      "feature": "sims_abs_mean",
+      "mean_abs_shap": 0.31898829926942424
+    },
+    {
+      "rank": 5,
+      "feature": "X23",
+      "mean_abs_shap": 0.3170781319576575
+    },
+    {
+      "rank": 6,
+      "feature": "X18",
+      "mean_abs_shap": 0.30045655353799827
+    },
+    {
+      "rank": 7,
+      "feature": "X36",
+      "mean_abs_shap": 0.292834449754332
+    },
+    {
+      "rank": 8,
+      "feature": "X27",
+      "mean_abs_shap": 0.27924113182554994
+    },
+    {
+      "rank": 9,
+      "feature": "poly_X36_X13_minus_X36",
+      "mean_abs_shap": 0.27664466998433923
+    },
+    {
+      "rank": 10,
+      "feature": "poly_X13_over_X36_X16",
+      "mean_abs_shap": 0.2574974965883722
+    },
+    {
+      "rank": 11,
+      "feature": "iso_score",
+      "mean_abs_shap": 0.24874130190889593
+    },
+    {
+      "rank": 12,
+      "feature": "X21",
+      "mean_abs_shap": 0.23514367492220903
+    },
+    {
+      "rank": 13,
+      "feature": "X49",
+      "mean_abs_shap": 0.2250274583040665
+    },
+    {
+      "rank": 14,
+      "feature": "X36_lag1",
+      "mean_abs_shap": 0.20496591412326995
+    },
+    {
+      "rank": 15,
+      "feature": "c3_over_c2_mean",
+      "mean_abs_shap": 0.20201659482057874
+    },
+    {
+      "rank": 16,
+      "feature": "logZ_min",
+      "mean_abs_shap": 0.195645417160473
+    },
+    {
+      "rank": 17,
+      "feature": "cool_rate_1",
+      "mean_abs_shap": 0.1893278966644839
+    },
+    {
+      "rank": 18,
+      "feature": "cool_rate_5",
+      "mean_abs_shap": 0.1831369482865911
+    },
+    {
+      "rank": 19,
+      "feature": "poly_X14^2",
+      "mean_abs_shap": 0.18185325701707297
+    },
+    {
+      "rank": 20,
+      "feature": "X7",
+      "mean_abs_shap": 0.17079693563080367
+    }
+  ],
+  "sims_in_top10": true,
+  "zener_in_top10": false,
+  "available": true
+}

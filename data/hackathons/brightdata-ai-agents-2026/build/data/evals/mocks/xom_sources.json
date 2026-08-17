@@ -1,0 +1,91 @@
+{
+  "sec": {
+    "source": "sec",
+    "status": "ok",
+    "data": {
+      "signal": "bullish",
+      "confidence": 0.72,
+      "summary": "Q4 10-K guidance implies continued full-throughput operations at Baytown and Beaumont refineries through Q2 2026",
+      "evidence": "10-K filing 2026-02-28: management guided for 4.5M barrels/day capacity utilization through Q2 2026. No Form 4 insider trades in past 30 days.",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=XOM&type=10-K"
+    },
+    "latency_ms": 420,
+    "cached": false
+  },
+  "yahoo": {
+    "source": "yahoo",
+    "status": "ok",
+    "data": {
+      "signal": "neutral",
+      "confidence": 0.65,
+      "summary": "Q4 EPS in-line with consensus, dividend yield 3.4%, institutional ownership stable at 61.2%",
+      "evidence": "Q4 EPS $2.14 vs $2.12 est. Div yield 3.4%. Institutional ownership 61.2% unchanged QoQ. Short interest 0.7%.",
+      "url": "https://finance.yahoo.com/quote/XOM"
+    },
+    "latency_ms": 760,
+    "cached": false
+  },
+  "satellite": {
+    "source": "satellite",
+    "status": "ok",
+    "data": {
+      "signal": "bearish",
+      "confidence": 0.61,
+      "summary": "NASA FIRMS thermal anomaly count at Baytown refinery down 31% vs 6-month baseline — operational slowdown not reflected in guidance",
+      "evidence": "FIRMS API 14-day avg thermal anomaly count at 29.3°N 95.0°W = 18 vs 26.1 baseline (−31%). Measurement date: 2026-05-20. Methodology: Berkeley Haas satellite parking/thermal proxy.",
+      "url": "https://firms.modaps.eosdis.nasa.gov"
+    },
+    "latency_ms": 2800,
+    "cached": false
+  },
+  "news": {
+    "source": "news",
+    "status": "ok",
+    "data": {
+      "signal": "neutral",
+      "confidence": 0.58,
+      "summary": "Reuters: Gulf Coast refinery maintenance season normal; crude spreads tightening slightly; no major XOM-specific news",
+      "evidence": "Reuters 2026-05-21: Gulf Coast refiners in planned maintenance cycle. WTI-Brent spread $1.80. No XOM-specific M&A or regulatory filings detected.",
+      "url": "https://www.reuters.com/business/energy"
+    },
+    "latency_ms": 1900,
+    "cached": false
+  },
+  "gdelt": {
+    "source": "gdelt",
+    "status": "ok",
+    "data": {
+      "signal": "neutral",
+      "confidence": 0.50,
+      "summary": "GDELT 7-day tone for XOM neutral (goldstein=+1.2), 134 articles, no conflict coding detected",
+      "evidence": "7-day GDELT: avg tone -0.3, goldstein scale +1.2, 134 articles. Cooperation coding 71%, conflict 8%. No breaking news signal.",
+      "url": "https://api.gdeltproject.org"
+    },
+    "latency_ms": 3400,
+    "cached": false
+  },
+  "reddit": {
+    "source": "reddit",
+    "status": "error",
+    "data": null,
+    "error_msg": "BrightData Scraping Browser CSS selector timeout — Reddit anti-bot detection triggered",
+    "latency_ms": 18000,
+    "cached": false
+  },
+  "linkedin": {
+    "source": "linkedin",
+    "status": "timeout",
+    "data": null,
+    "error_msg": "Timed out after 18s",
+    "latency_ms": 18000,
+    "cached": false
+  },
+  "glassdoor": {
+    "source": "glassdoor",
+    "status": "rate_limited",
+    "data": null,
+    "error_msg": "HTTP 429 from BrightData — XOM Glassdoor scrape rate limited",
+    "latency_ms": 950,
+    "cached": false
+  }
+}

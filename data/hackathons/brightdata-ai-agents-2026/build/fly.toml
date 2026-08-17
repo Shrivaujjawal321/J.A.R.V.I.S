@@ -1,0 +1,84 @@
+# =============================================================================
+# fly.toml — AltBrief API (Fly.io)
+#
+# CRITICAL DEMO SETTINGS:
+#   auto_stop_machines = false   — machine NEVER sleeps; no cold start during pitch
+#   min_machines_running = 1     — always at least 1 machine up
+#   h2_backend = true            — HTTP/2 required for SSE (avoids HTTP/1.1 6-conn cap)
+#   force_https = true           — TLS negotiates HTTP/2 automatically
+#
+# Region: iad (Ashburn, VA) — closest to BrightData US datacenter + US judges
+# Change to "bom" for India-region testing; judges will hit "iad"
+# =============================================================================
+
+app = "altbrief-api"
+primary_region = "iad"
+
+[build]
+  # Uses the Dockerfile in this directory
+  dockerfile = "Dockerfile"
+
+[env]
+  # Non-secret runtime defaults baked in at deploy time.
+  # All actual secrets set via: fly secrets set KEY=value
+  PORT = "8000"
+  LOG_JSON = "1"
+  LOG_LEVEL = "INFO"
+  PYTHONUNBUFFERED = "1"
+  # Fly region tag useful in structured logs
+  FLY_REGION = "iad"
+
+# ----------------------------------------------------------------------------
+# HTTP Service config
+# ----------------------------------------------------------------------------
+[http_service]
+  internal_port = 8000
+  force_https = true           # TLS on → browser negotiates HTTP/2
+  auto_stop_machines = false   # NON-NEGOTIABLE: cold start = dead demo
+  min_machines_running = 1     # Always warm
+
+  # Connection limits — single shared-cpu-2x with 1GB can hold ~50 connections
+  # (each SSE stream holds one connection for ~45s)
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 50
+    soft_limit = 40
+
+  # HTTP/2 backend — critical for SSE (multiplexes many streams over one TLS conn)
+  [http_service.http_options]
+    h2_backend = true
+
+  # Health check — Fly.io uses this to route traffic only to healthy machines.
+  # Must return 200 within 1s. /health endpoint implemented in backend/main.py
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    protocol = "http"
+    timeout = "5s"
+
+# ----------------------------------------------------------------------------
+# VM sizing — shared-cpu-2x + 1GB
+# Rationale:
+#   - 8 parallel async tasks + Claude Sonnet call fits in 1GB comfortably
+#   - npx @brightdata/mcp subprocess peaks at ~150MB extra
+#   - shared-cpu-2x handles the asyncio event loop without starving uvicorn
+# Upgrade to performance-2x if p95 latency > 60s on load
+# ----------------------------------------------------------------------------
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 2
+
+# ----------------------------------------------------------------------------
+# Persistent volume (optional — for .cache/ and data/ to survive deploys)
+# Uncomment if you want pre-warmed cache to persist across deploys.
+# Cost: ~$0.15/GB/month. 1GB is plenty for 3 demo tickers.
+#
+# IMPORTANT: If you enable this, mount at /app/.cache + /app/data
+# and ensure the altbrief user owns the mount point.
+# ----------------------------------------------------------------------------
+# [mounts]
+#   source = "altbrief_cache"
+#   destination = "/app/.cache"

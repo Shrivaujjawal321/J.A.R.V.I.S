@@ -1,0 +1,109 @@
+{
+  "top_20": [
+    {
+      "rank": 1,
+      "feature": "X14",
+      "mean_abs_shap": 0.4728653072392183
+    },
+    {
+      "rank": 2,
+      "feature": "poly_X13_over_X36_X16",
+      "mean_abs_shap": 0.37176955867551476
+    },
+    {
+      "rank": 3,
+      "feature": "X23",
+      "mean_abs_shap": 0.33609803744645206
+    },
+    {
+      "rank": 4,
+      "feature": "sims_abs_mean",
+      "mean_abs_shap": 0.32824322487681107
+    },
+    {
+      "rank": 5,
+      "feature": "X18",
+      "mean_abs_shap": 0.3124285215220008
+    },
+    {
+      "rank": 6,
+      "feature": "X27",
+      "mean_abs_shap": 0.3043167376913062
+    },
+    {
+      "rank": 7,
+      "feature": "X13_over_X36",
+      "mean_abs_shap": 0.2723028749055723
+    },
+    {
+      "rank": 8,
+      "feature": "iso_score",
+      "mean_abs_shap": 0.26133804023664103
+    },
+    {
+      "rank": 9,
+      "feature": "X16",
+      "mean_abs_shap": 0.2455007713564089
+    },
+    {
+      "rank": 10,
+      "feature": "X36_lag1",
+      "mean_abs_shap": 0.2398783781787072
+    },
+    {
+      "rank": 11,
+      "feature": "X21",
+      "mean_abs_shap": 0.23646600866742234
+    },
+    {
+      "rank": 12,
+      "feature": "poly_X36_X13_minus_X36",
+      "mean_abs_shap": 0.22873206533226115
+    },
+    {
+      "rank": 13,
+      "feature": "X49",
+      "mean_abs_shap": 0.20876893904763175
+    },
+    {
+      "rank": 14,
+      "feature": "logZ_3",
+      "mean_abs_shap": 0.2052015981958684
+    },
+    {
+      "rank": 15,
+      "feature": "cool_rate_5",
+      "mean_abs_shap": 0.18272224409671006
+    },
+    {
+      "rank": 16,
+      "feature": "poly_X14^2",
+      "mean_abs_shap": 0.17735303188284382
+    },
+    {
+      "rank": 17,
+      "feature": "cool_rate_3",
+      "mean_abs_shap": 0.17253766325780434
+    },
+    {
+      "rank": 18,
+      "feature": "logZ_2",
+      "mean_abs_shap": 0.17100972288118613
+    },
+    {
+      "rank": 19,
+      "feature": "X13_minus_X36",
+      "mean_abs_shap": 0.16911229913301093
+    },
+    {
+      "rank": 20,
+      "feature": "temp_mono_breaks",
+      "mean_abs_shap": 0.16789419114547746
+    }
+  ],
+  "sims_in_top10": true,
+  "zener_in_top10": false,
+  "ft_in_top10": false,
+  "physics_in_top5": 1,
+  "available": true
+}

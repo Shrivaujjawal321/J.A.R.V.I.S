@@ -1,0 +1,944 @@
+<meta charset="utf-8">
+<title>Freight Marketplace — Design Map</title>
+<style>
+/* ───────────────────────────────────────────────────────────────────────
+   Tokens — lifted verbatim from prototype.html so this map and the built
+   prototype are the same product. Dark is primary (design-spine §7.3).
+   Status hues are the IBM colour-blind-safe set; status is always
+   colour + icon + text, never colour alone.
+   ─────────────────────────────────────────────────────────────────────── */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --bg-canvas: #0a0c10;
+  --bg-surface: #12151b;
+  --bg-surface-2: #181c24;
+  --bg-surface-3: #1f242e;
+  --grid-dot: #1b2029;
+  --border-subtle: #232833;
+  --border-default: #323a48;
+  --border-strong: #4a5264;
+  --text-primary: #f2f4f7;
+  --text-secondary: #aab2c0;
+  --text-tertiary: #7c8494;
+  --accent: #8fb2ff;
+  --accent-strong: #b3ccff;
+  --accent-ink: #0a0c10;
+  --focus-ring: #8fb2ff;
+  --s-blue: #648fff;
+  --s-violet: #785ef0;
+  --s-magenta: #dc267f;
+  --s-orange: #fe6100;
+  --s-amber: #ffb000;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 10px 30px rgba(0,0,0,.55);
+
+  --rail: 250px;
+  --insp: 400px;
+  --card-w: 244px;
+  --card-h: 138px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg-canvas: #f6f7f9;
+    --bg-surface: #ffffff;
+    --bg-surface-2: #eef0f4;
+    --bg-surface-3: #e3e6ec;
+    --grid-dot: #dfe3ea;
+    --border-subtle: #e3e6ec;
+    --border-default: #cdd2dc;
+    --border-strong: #a7aebb;
+    --text-primary: #12151b;
+    --text-secondary: #454c59;
+    --text-tertiary: #5b6270;
+    --accent: #2c4fc4;
+    --accent-strong: #1f3ea3;
+    --accent-ink: #ffffff;
+    --focus-ring: #2c4fc4;
+    --s-blue: #2c4fc4;
+    --s-violet: #6338c2;
+    --s-magenta: #a3105f;
+    --s-orange: #a34500;
+    --s-amber: #7a5600;
+    --shadow-1: 0 1px 2px rgba(20,22,30,.08);
+    --shadow-2: 0 10px 30px rgba(20,22,30,.16);
+  }
+}
+:root[data-theme="light"] {
+  --bg-canvas: #f6f7f9; --bg-surface: #ffffff; --bg-surface-2: #eef0f4; --bg-surface-3: #e3e6ec;
+  --grid-dot: #dfe3ea; --border-subtle: #e3e6ec; --border-default: #cdd2dc; --border-strong: #a7aebb;
+  --text-primary: #12151b; --text-secondary: #454c59; --text-tertiary: #5b6270;
+  --accent: #2c4fc4; --accent-strong: #1f3ea3; --accent-ink: #ffffff; --focus-ring: #2c4fc4;
+  --s-blue: #2c4fc4; --s-violet: #6338c2; --s-magenta: #a3105f; --s-orange: #a34500; --s-amber: #7a5600;
+  --shadow-1: 0 1px 2px rgba(20,22,30,.08); --shadow-2: 0 10px 30px rgba(20,22,30,.16);
+}
+:root[data-theme="dark"] {
+  --bg-canvas: #0a0c10; --bg-surface: #12151b; --bg-surface-2: #181c24; --bg-surface-3: #1f242e;
+  --grid-dot: #1b2029; --border-subtle: #232833; --border-default: #323a48; --border-strong: #4a5264;
+  --text-primary: #f2f4f7; --text-secondary: #aab2c0; --text-tertiary: #7c8494;
+  --accent: #8fb2ff; --accent-strong: #b3ccff; --accent-ink: #0a0c10; --focus-ring: #8fb2ff;
+  --s-blue: #648fff; --s-violet: #785ef0; --s-magenta: #dc267f; --s-orange: #fe6100; --s-amber: #ffb000;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4); --shadow-2: 0 10px 30px rgba(0,0,0,.55);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+/* ── App shell ─────────────────────────────────────────────────────── */
+.app { display: grid; grid-template-columns: var(--rail) 1fr; grid-template-rows: 52px 1fr; height: 100dvh; }
+.app.has-insp { grid-template-columns: var(--rail) 1fr var(--insp); }
+
+.bar {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 14px;
+  padding: 0 14px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+  z-index: 5; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin;
+}
+.bar > * { flex: none; }
+.bar h1 {
+  font-size: 13px; font-weight: 700; letter-spacing: .02em; margin: 0;
+  display: flex; align-items: baseline; gap: 8px; white-space: nowrap;
+}
+.bar h1 span { font-weight: 500; color: var(--text-tertiary); letter-spacing: .06em; text-transform: uppercase; font-size: 10px; }
+.spacer { flex: 1; }
+.count { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); white-space: nowrap; }
+.count b { color: var(--text-secondary); font-weight: 600; }
+
+.srch { position: relative; }
+.srch input {
+  width: 230px; padding: 6px 10px 6px 28px; font: inherit; font-size: 12px;
+  background: var(--bg-surface-2); color: var(--text-primary);
+  border: 1px solid var(--border-default); border-radius: 6px;
+}
+.srch input::placeholder { color: var(--text-tertiary); }
+.srch svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
+
+.chips { display: flex; gap: 4px; }
+.chip {
+  font-size: 11px; padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--border-default); color: var(--text-secondary);
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--bg-surface-3); color: var(--text-primary); border-color: var(--border-strong); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.f-built .dot { background: var(--s-blue); }
+.chip.f-new .dot { background: var(--s-violet); }
+.chip.f-fork .dot { background: var(--s-orange); }
+.chip.f-fail .dot { background: var(--s-magenta); }
+.chip.f-input .dot { background: var(--s-amber); }
+
+.zoom { display: flex; align-items: center; gap: 2px; }
+.zoom button {
+  width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border-default);
+  display: grid; place-items: center; font-size: 13px; color: var(--text-secondary);
+}
+.zoom button:hover { background: var(--bg-surface-3); color: var(--text-primary); }
+.zoom .lvl { font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); width: 42px; text-align: center; }
+
+/* ── Left rail ─────────────────────────────────────────────────────── */
+.rail { background: var(--bg-surface); border-right: 1px solid var(--border-subtle); overflow-y: auto; padding: 10px 0 28px; }
+.rail h2 {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--text-tertiary);
+  margin: 14px 14px 6px; font-weight: 600;
+}
+.rail-item {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  padding: 7px 14px; font-size: 12.5px; color: var(--text-secondary); border-left: 2px solid transparent;
+}
+.rail-item:hover { background: var(--bg-surface-2); color: var(--text-primary); }
+.rail-item.on { color: var(--text-primary); background: var(--bg-surface-2); border-left-color: var(--accent); }
+.rail-item .pg { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); width: 30px; flex: none; }
+.rail-item .n { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); }
+.rail-note { margin: 10px 14px 0; font-size: 11px; color: var(--text-tertiary); line-height: 1.5; }
+.rail-note code { font-size: 10.5px; }
+
+/* ── Canvas ────────────────────────────────────────────────────────── */
+.stage {
+  position: relative; overflow: hidden; cursor: grab;
+  background-color: var(--bg-canvas);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.stage.drag { cursor: grabbing; }
+.world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.edges { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+
+/* lane */
+.lane { position: absolute; border-radius: 16px; border: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-surface) 55%, transparent); }
+.lane-hd { position: absolute; display: flex; flex-direction: column; gap: 4px; }
+.lane-hd .pill {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; align-self: flex-start;
+  color: var(--accent-ink);
+}
+.lane-hd .ttl { font-size: 19px; font-weight: 750; letter-spacing: -.015em; text-wrap: balance; }
+.lane-hd .sub { font-size: 11.5px; color: var(--text-tertiary); font-family: var(--font-mono); }
+
+/* cluster */
+.cl { position: absolute; border-radius: 12px; border: 1px dashed var(--border-default); }
+.cl-ttl {
+  position: absolute; font-size: 12px; font-weight: 650; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.cl-ttl .ix { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); }
+
+/* card */
+.card {
+  position: absolute; width: var(--card-w); height: var(--card-h);
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: 10px; padding: 9px 10px; text-align: left; overflow: hidden;
+  box-shadow: var(--shadow-1); display: flex; flex-direction: column; gap: 5px;
+  transition: border-color .12s, transform .12s, box-shadow .12s;
+}
+.card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow-2); }
+.card.dim { opacity: .18; }
+.card.hit { border-color: var(--s-amber); box-shadow: 0 0 0 2px color-mix(in srgb, var(--s-amber) 40%, transparent); }
+.card .top { display: flex; align-items: center; gap: 6px; }
+.card .sid {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-ink);
+  background: var(--accent); padding: 1px 6px; border-radius: 4px; flex: none;
+}
+.card .frame { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .does { font-size: 12px; color: var(--text-primary); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.card .sys { font-size: 11px; color: var(--text-tertiary); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.card .tags { margin-top: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+.tag {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 1.5px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 3px;
+  border: 1px solid currentColor;
+}
+.tag.built { color: var(--s-blue); }
+.tag.new { color: var(--s-violet); }
+.tag.fail { color: var(--s-magenta); }
+.tag.input { color: var(--s-amber); }
+.tag.prose { color: var(--text-tertiary); }
+
+/* fork card */
+.card.fork { border-color: color-mix(in srgb, var(--s-orange) 55%, var(--border-default)); background: color-mix(in srgb, var(--s-orange) 7%, var(--bg-surface)); }
+.card.fork .sid { background: var(--s-orange); color: #fff; }
+.card.fork .rows { font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.card.fork .rows span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* note card */
+.card.note { height: auto; min-height: 62px; background: var(--bg-surface-2); border-style: dotted; }
+.card.note .does { -webkit-line-clamp: 4; font-size: 11.5px; color: var(--text-secondary); }
+
+/* baton rail */
+.baton { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+.baton .hd { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 700; }
+.baton .row { display: flex; gap: 8px; align-items: stretch; }
+.bchip {
+  width: 232px; text-align: left; padding: 8px 10px; border-radius: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-top: 3px solid var(--who, var(--border-strong));
+  display: flex; flex-direction: column; gap: 3px;
+}
+.bchip:hover { border-color: var(--border-strong); }
+.bchip .st { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-primary); }
+.bchip .wh { font-size: 10.5px; color: var(--who, var(--text-secondary)); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.bchip .se { font-size: 10.5px; color: var(--text-tertiary); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* index blocks (frames / gaps / decisions) */
+.blk { position: absolute; }
+.blk-hd { font-size: 19px; font-weight: 750; letter-spacing: -.015em; margin-bottom: 4px; }
+.blk-sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 14px; }
+.fgrid { display: grid; grid-template-columns: repeat(4, 250px); gap: 10px; }
+.fcard {
+  background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 9px;
+  padding: 9px 10px; text-align: left; display: flex; flex-direction: column; gap: 3px;
+  border-left: 3px solid var(--st, var(--border-strong));
+}
+.fcard:hover { border-color: var(--border-strong); }
+.fcard .id { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); }
+.fcard .nm { font-size: 12.5px; font-weight: 650; }
+.fcard .st { font-size: 10.5px; color: var(--text-secondary); }
+.ggrid { display: grid; grid-template-columns: repeat(3, 340px); gap: 12px; }
+.gcard {
+  background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 10px;
+  padding: 11px 12px; text-align: left; display: flex; flex-direction: column; gap: 6px;
+  border-top: 3px solid var(--s-magenta);
+}
+.gcard.closed { border-top-color: var(--s-blue); }
+.gcard.conflict { border-top-color: var(--s-amber); }
+.gcard .rank { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); }
+.gcard .ttl { font-size: 12.5px; font-weight: 650; line-height: 1.35; }
+.gcard .cons { font-size: 11px; color: var(--text-tertiary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Inspector ─────────────────────────────────────────────────────── */
+.insp {
+  background: var(--bg-surface); border-left: 1px solid var(--border-subtle);
+  overflow-y: auto; display: none; flex-direction: column;
+}
+.app.has-insp .insp { display: flex; }
+.insp-hd { padding: 14px 16px 12px; border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; background: var(--bg-surface); z-index: 2; }
+.insp-hd .row1 { display: flex; align-items: center; gap: 8px; }
+.insp-hd .sid { font-family: var(--font-mono); font-size: 12px; font-weight: 700; background: var(--accent); color: var(--accent-ink); padding: 2px 7px; border-radius: 4px; }
+.insp-hd .close { margin-left: auto; color: var(--text-tertiary); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+.insp-hd .close:hover { background: var(--bg-surface-3); color: var(--text-primary); }
+.insp-hd .frame { margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); word-break: break-word; }
+.insp-hd .where { margin-top: 6px; font-size: 11px; color: var(--text-tertiary); }
+.fields { padding: 4px 16px 40px; display: flex; flex-direction: column; }
+.fld { padding: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+.fld:last-child { border-bottom: none; }
+.fld .k {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .09em; font-weight: 700;
+  color: var(--text-tertiary); display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+}
+.fld .v { font-size: 12.5px; color: var(--text-primary); line-height: 1.5; word-break: break-word; }
+.fld.is-fail .k { color: var(--s-magenta); }
+.fld .v code { background: var(--bg-surface-3); padding: .5px 4px; border-radius: 3px; font-size: 11.5px; }
+.itbl { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.itbl th, .itbl td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+.itbl th { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-tertiary); }
+.itbl-wrap { overflow-x: auto; }
+
+.hint {
+  position: absolute; left: 14px; bottom: 12px; display: flex; gap: 12px; align-items: center;
+  font-size: 11px; color: var(--text-tertiary); background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
+  border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; pointer-events: none;
+}
+.hint kbd {
+  font-family: var(--font-mono); font-size: 10px; border: 1px solid var(--border-default);
+  border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; color: var(--text-secondary);
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (max-width: 900px) {
+  .app, .app.has-insp { grid-template-columns: 1fr; grid-template-rows: 52px 1fr; }
+  .rail { display: none; }
+  .app.has-insp .insp { position: fixed; inset: 52px 0 0 auto; width: min(94vw, 400px); z-index: 20; }
+  .srch input { width: 130px; }
+  .count { display: none; }
+  .bar h1 span { display: none; }
+}
+</style>
+
+<div class="app" id="app">
+  <div class="bar">
+    <h1>Freight Reverse-Auction Marketplace <span>design map</span></h1>
+    <div class="srch">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search steps, screens, IDs…" aria-label="Search steps, screens and IDs">
+    </div>
+    <div class="chips" id="filters">
+      <button class="chip f-built" data-f="built" aria-pressed="false"><i class="dot"></i>Built</button>
+      <button class="chip f-new" data-f="new" aria-pressed="false"><i class="dot"></i>New frame</button>
+      <button class="chip f-fork" data-f="fork" aria-pressed="false"><i class="dot"></i>Branch</button>
+      <button class="chip f-input" data-f="input" aria-pressed="false"><i class="dot"></i>Needs input</button>
+      <button class="chip f-fail" data-f="fail" aria-pressed="true"><i class="dot"></i>Failure paths</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="count" id="counts"></div>
+    <div class="zoom">
+      <button id="zout" aria-label="Zoom out">−</button>
+      <span class="lvl" id="lvl">100%</span>
+      <button id="zin" aria-label="Zoom in">+</button>
+      <button id="zfit" aria-label="Fit to screen" title="Fit">⤢</button>
+      <button id="theme" aria-label="Toggle light and dark theme" title="Theme">◑</button>
+    </div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Figma page tree"></nav>
+
+  <div class="stage" id="stage" tabindex="0" aria-label="Design map canvas — drag to pan, ctrl or cmd plus scroll to zoom">
+    <div class="world" id="world">
+      <svg class="edges" id="edges" aria-hidden="true"></svg>
+    </div>
+    <div class="hint">
+      <span><kbd>drag</kbd> pan</span><span><kbd>⌘</kbd>+<kbd>scroll</kbd> zoom</span>
+      <span><kbd>/</kbd> search</span><span><kbd>0</kbd> fit</span><span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+
+  <aside class="insp" id="insp" aria-live="polite"></aside>
+</div>
+
+<script>
+const DATA = {"flows":[{"code":"D2","file":"D2-flow-shipper.md","page":"10","persona":"Shipper","short":"Shpr","sections":[{"title":"1. Onboarding and first load (F1 \u00a75.2/5.3)","steps":[{"id":"S1","frame":"`[NEW] Org Setup \u00b7 Details`","sees":"Org-type (SHIPPER), legal name, EIN, admin credentials","does":"Submits","system":"`ENT-300 Organization(SHIPPER)` + `ENT-301 User` as `SHIPPER_ORG_ADMIN` (FR-100)","next":"S2","fails":"`ERR-500/501` field errors; dedupe check `[NEEDS INPUT]`","uid":"D2:D2-S1:S1","src":"D2-flow-shipper.md"},{"id":"S2","frame":"`[NEW] Org Setup \u00b7 Verification pending`","sees":"\"Verifying\" \u2014 IAL1 + domain-verified email (FR-104)","does":"Waits; can already log in","system":"`PENDING_VERIFICATION`; login allowed, publish is not (FR-103)","next":"S3 on pass","fails":"Fail \u2192 `[NEW] Verification failed`, reason shown, resubmit","uid":"D2:D2-S1:S2","src":"D2-flow-shipper.md"},{"id":"S3","frame":"`[NEW] Org Setup \u00b7 Payment standing`","sees":"Standing/credit check status (BR-104/105)","does":"Submits reference `[NEEDS INPUT: check standard]`","system":"Dated standing record on a re-check cycle","next":"S4","fails":"Below threshold \u2192 org exists but publish-blocked, reason shown (BR-107)","uid":"D2:D2-S1:S3","src":"D2-flow-shipper.md"},{"id":"S4","frame":"`[NEW] Org Setup \u00b7 Invite team`","sees":"Invite by email/phone, role picker (ROLE-201/202/203/204)","does":"Sends invite(s), or skips (owner-op, FR-102)","system":"Single-use, expiring, role-tagged invite (FR-106)","next":"SCR-900","fails":"Bounce/expiry \u2192 resend on same frame","uid":"D2:D2-S1:S4","src":"D2-flow-shipper.md"},{"id":"S5","frame":"SCR-900 \u00b7 Loads dashboard \u00b7 Empty `[BUILT]`","sees":"\"No loads yet \u2014 publish one\"","does":"Clicks Post a load","system":"\u2014","next":"SCR-901 Step 1","fails":"n/a \u2014 valid first-run state","uid":"D2:D2-S1:S5","src":"D2-flow-shipper.md"},{"id":"S6","frame":"SCR-900 \u00b7 Loads dashboard \u00b7 Default `[BUILT]`","sees":"Exceptions ranked above on-track loads","does":"Browses, opens a load","system":"Reads `own_org`/`own_site` scope (PERM-206)","next":"Relevant screen per row status","fails":"`ERR-531` on stale/out-of-scope link \u2014 not-found, never forbidden","uid":"D2:D2-S1:S6","src":"D2-flow-shipper.md"}],"branches":[],"notes":["**Permission.** `SHIPPER_LOAD_POSTER` (ROLE-201) sees/publishes `own_site` only; only `SHIPPER_ORG_ADMIN` (ROLE-200) sees org-wide and cancels post-award (PERM-201\u2013204)."],"key":"D2-S1"},{"title":"2. Post a load \u2014 the declaration (BR-110\u2013127, SCR-901 `[BUILT]`)","steps":[{"id":"S7","frame":"SCR-901 \u00b7 Step 1 Lane & schedule `[BUILT]`","sees":"Addresses, appointment windows, tight-window hint","does":"Fills, clicks Next","system":"Autosaves (BR-103/125)","next":"Step 2","fails":"`ERR-500` named field; `ERR-504` if drop precedes pickup","uid":"D2:D2-S2:S7","src":"D2-flow-shipper.md"},{"id":"S8","frame":"SCR-901 \u00b7 Step 2 Equipment & cargo `[BUILT]`","sees":"**Trailer type** (closed set incl. tanker, BR-111) \u2014 the shipper's only hard equipment choice; **Tractor requirement** is a soft preference only, since tractor and trailer are matched independently at bid time (`ENT-303`/`ENT-304`, no FK)","does":"Picks trailer; reefer shows temp range; enters commodity/weight/dims; toggles hazmat + declared value","system":"Validates `ERR-505` conflicts (e.g. temp range on dry van)","next":"Step 3","fails":"`ERR-503` out-of-range weight; `ERR-505` equipment conflict","uid":"D2:D2-S2:S8","src":"D2-flow-shipper.md"},{"id":"S9","frame":"SCR-901 \u00b7 Step 3 Auction settings `[BUILT]`","sees":"Duration, optional ceiling, anti-snipe/early-close toggles","does":"Sets parameters","system":"Ceiling math validated","next":"Step 4","fails":"`ERR-523` ceiling \u22640 or \u2264 min decrement","uid":"D2:D2-S2:S9","src":"D2-flow-shipper.md"},{"id":"S10","frame":"SCR-901 \u00b7 Step 4 Review & publish `[BUILT]`","sees":"Full summary; commitment banner: bids priced against this declaration, dock discrepancy carries consequences (BR-121)","does":"Acknowledges, clicks Publish","system":"`ERR-507` completeness check, then `PUBLISHED`; declaration snapshot retained immutably (BR-122)","next":"SCR-900 new row; `AUCTION_OPEN` per duration","fails":"`ERR-507` names the missing field, doesn't silently reject","uid":"D2:D2-S2:S10","src":"D2-flow-shipper.md"},{"id":"S11","frame":"SCR-901 \u00b7 Partial (autosaved draft) `[BUILT]`","sees":"\"Draft autosaved 12s ago\"","does":"Leaves, returns","system":"Draft persists per user","next":"Resumes at last step","fails":"Desk offline-draft persistence `[NEEDS INPUT]`","uid":"D2:D2-S2:S11","src":"D2-flow-shipper.md"},{"id":"S12","frame":"SCR-900 \u00b7 Draft row `[BUILT]`","sees":"0 bids, \"Continue draft\"","does":"Clicks through","system":"\u2014","next":"SCR-901, resumes","fails":"n/a","uid":"D2:D2-S2:S12","src":"D2-flow-shipper.md"}],"branches":[{"title":"","header":["Field","Risk","Warning (built)"],"rows":[["Gross weight","#1 re-trade cause \u2014 carrier re-weighs, mismatch, re-prices/refuses (BR-120)","Inline on the field"],["Hazmat flag","Narrows pool; flagging after bids exist forces re-listing","Inline on checkbox"],["Dock access / load type","Wrong dock type at arrival misses the appointment","Inline hint"]]}],"notes":["**Permission.** `SHIPPER_LOAD_POSTER` publishes `own_site` (PERM-201); `SHIPPER_ORG_ADMIN` publishes org-wide (PERM-202). A viewer (ROLE-202) reaching SCR-901 sees Permission-denied, not a blank form."],"key":"D2-S2"},{"title":"3. Auction open \u2192 watching bids (BR-301\u2013318, SCR-902 `[BUILT]`)","steps":[{"id":"S13","frame":"SCR-902 \u00b7 Live `[BUILT]`","sees":"Best eligible bid (`aria-live=\"polite\"`), countdown, \"14 eligible \u00b7 6 excluded\" strip","does":"Expands exclusion reasons","system":"Lists reasons \u2014 insurance lapse, org suspension, no reefer trailer, related-party (BR-316)","next":"Stays live, updates","fails":"Feed stalls \u2192 **Stale**, timestamped","uid":"D2:D2-S3:S13","src":"D2-flow-shipper.md"},{"id":"S14","frame":"SCR-902 \u00b7 Bid feed row `is-new` `[BUILT]`","sees":"New bid: price, timestamp, authority type (motor carrier vs broker, BR-313)","does":"Watches","system":"Broker bids carry a visible flag icon","next":"\u2014","fails":"Undisclosed broker bid never reaches feed \u2014 `ERR-519` upstream","uid":"D2:D2-S3:S14","src":"D2-flow-shipper.md"},{"id":"S15","frame":"SCR-902 \u00b7 Extended `[BUILT]`","sees":"\"Extended +5min \u2014 not a reset, earlier bids stand\"","does":"Watches","system":"`AUCTION_OPEN \u2192 AUCTION_EXTENDED`","next":"Live","fails":"n/a","uid":"D2:D2-S3:S15","src":"D2-flow-shipper.md"},{"id":"S16","frame":"SCR-902 \u00b7 Thin market `[BUILT]`","sees":"\"Only 1 bidder at close\" \u2014 labelled, not competitive","does":"Watches","system":"EC-908 labelling; DEC-310 mechanism open, **not decided here**","next":"Close per DEC-310","fails":"\u2014","uid":"D2:D2-S3:S16","src":"D2-flow-shipper.md"},{"id":"S17","frame":"SCR-902 \u00b7 Closing \u2014 verifying `[BUILT]`","sees":"\"Verifying eligibility \u2014 not yet awarded\"","does":"Watches","system":"`AWARD_PENDING` re-runs winner's gate (BR-302, EC-902)","next":"S18 pass","fails":"Fail \u2192 `AWARD_VOIDED_INELIGIBLE`, `ERR-514`, cascades DEC-309","uid":"D2:D2-S3:S17","src":"D2-flow-shipper.md"},{"id":"S18","frame":"SCR-902 \u00b7 Failed (3 reasons) `[BUILT]`","sees":"\"No bids\" / \"No eligible carrier\" / \"All bids above your limit\"","does":"Amends & republishes, or escalates","system":"`AUCTION_FAILED_NO_BIDS`/`_NO_ELIGIBLE_CARRIER`/`_ALL_ABOVE_LIMIT`","next":"Shipper decides next","fails":"\u2014 this *is* the failure frame","uid":"D2:D2-S3:S18","src":"D2-flow-shipper.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Carrier passes gate","Ranked, priced in feed","\u2014"],["Carrier fails gate","Never ranked (BR-301)","Named in exclusion list (selection record)"],["Winner fails re-verify at close","`AWARD_VOIDED_INELIGIBLE`","`ERR-514`, cascades DEC-309 or re-auctions"]]},{"title":"","header":["Condition","Shipper sees","Consequence"],"rows":[["New low bid arrives","Hero amount updates, feed flashes","Prior bidder's status changes on *their* screen, not shown here (BR-314)"],["Bid withdrawn pre-close","Bid count decrements","Recorded against bidder (BR-308), not named to shipper"],["Auction closes","Best bid freezes into `AWARD_PENDING`","S17"]]}],"notes":["**Branch \u2014 eligibility.**","**Branch \u2014 bid accepted / outbid** (shipper-visible only):"],"key":"D2-S3"},{"title":"4. Award \u2014 the unresolved fork (BR-155, DEC-307, EC-325 \u2014 same question, build-blocking)","steps":[{"id":"S19","frame":"SCR-903 \u00b7 Verifying","sees":"\"Re-verifying,\" mirrors S17 (EC-902)","does":"Waits","system":"Gate re-run on winner","next":"S20a/b","fails":"`AWARD_VOIDED_INELIGIBLE` \u2192 S18-style failure","uid":"D2:D2-S4:S19","src":"D2-flow-shipper.md"},{"id":"S20a","frame":"SCR-903 \u00b7 Awarded (informational)","sees":"Winning carrier, price, authority type","does":"Views selection-record excerpt (BR-303)","system":"`AWARDED` \u2192 carrier's own accept/decline/lapse","next":"S21","fails":"\u2014","uid":"D2:D2-S4:S20a","src":"D2-flow-shipper.md"},{"id":"S20b","frame":"SCR-903 \u00b7 Award pending shipper review `[NEW, contingent]`","sees":"Winning bid + reason-code picker tied to on-file carrier data (BR-156, never free text)","does":"Accepts, or declines with required reason code","system":"Accept \u2192 as A; Decline \u2192 logged, actor + reason (BR-306), cascades DEC-309","next":"S21 or cascade","fails":"Decline without valid code \u2192 blocked at form","uid":"D2:D2-S4:S20b","src":"D2-flow-shipper.md"},{"id":"S21","frame":"SCR-903 \u00b7 Award accepted","sees":"Rate confirmation generated (BR-600)","does":"Views","system":"`AWARD_ACCEPTED`, binding rate confirmation","next":"SCR-904 pickup scheduling","fails":"\u2014","uid":"D2:D2-S4:S21","src":"D2-flow-shipper.md"},{"id":"S22","frame":"SCR-903 \u00b7 Award declined / lapsed","sees":"\"Carrier declined\" / \"window expired\"","does":"Waits, or notified of cascade (EC-909 \u2014 Boss's call whether winner is told)","system":"`AWARD_DECLINED`/`AWARD_LAPSED` \u2192 DEC-309 cascade or re-auction","next":"S13 (re-auction) or S20a (cascade winner)","fails":"Pool exhausted \u2192 routes to S18","uid":"D2:D2-S4:S22","src":"D2-flow-shipper.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Carrier accepts in window","`AWARD_ACCEPTED`","Binding rate confirmation, pickup opens"],["Carrier declines","`AWARD_DECLINED`","DEC-309 cascade or re-auction \u2014 mechanism open"],["Window lapses","`AWARD_LAPSED`","Same DEC-309 fork"],["(B only) Shipper declines lowest qualified bid","Logged, reason-coded","Same DEC-309 fork \u2014 not a new one"]]}],"notes":["**Branch \u2014 award accepted / declined / lapsed.**","**CHALLENGE:** SCR-903 differs materially between branches \u2014 B needs a reason-code picker and review gate A never renders. Cannot be \"built either way later\" without rework; DEC-307/BR-155/EC-325 should lock before SCR-903 leaves spec."],"key":"D2-S4"},{"title":"5. Amendment while bids are live (BR-135/136)","steps":[{"id":"S23","frame":"SCR-901 \u00b7 Amend attempt (post-first-bid)","sees":"Material fields (weight beyond tolerance, equipment, commodity, hazmat, either address) read-only","does":"Attempts to edit","system":"Blocked at the field","next":"S24","fails":"`ERR-513 LOAD_AMENDMENT_BLOCKED_LIVE_AUCTION`","uid":"D2:D2-S5:S23","src":"D2-flow-shipper.md"},{"id":"S24","frame":"SCR-901 \u00b7 Withdraw & republish (modal)","sees":"\"Material change withdraws this auction; all current bids are lost.\"","does":"Confirms, or cancels","system":"Withdraws auction, voids bids; opens SCR-901 pre-filled for fresh publish","next":"S7 (new cycle)","fails":"Cancel \u2192 returns to SCR-902 unchanged","uid":"D2:D2-S5:S24","src":"D2-flow-shipper.md"},{"id":"S25","frame":"SCR-901 \u00b7 Amend (pre-bid)","sees":"Direct field edit, no warning","does":"Edits freely","system":"Allowed pre-first-bid (BR-135)","next":"Re-publish","fails":"Same `ERR-500`-class validation as S7","uid":"D2:D2-S5:S25","src":"D2-flow-shipper.md"}],"branches":[],"notes":["**withdraw-and-republish**, never a live edit."],"key":"D2-S5"},{"title":"6. Cancellation at each stage (BR-140\u2013145, TONU)","steps":[{"id":"S26","frame":"SCR-900/902 \u00b7 Cancel (pre-award)","sees":"\"Cancel this load\"","does":"Confirms","system":"Removed from auction, no standing record (BR-140)","next":"SCR-900, row removed","fails":"\u2014","uid":"D2:D2-S6:S26","src":"D2-flow-shipper.md"},{"id":"S27","frame":"SCR-904 \u00b7 Cancel modal \u00b7 post-award pre-dispatch","sees":"\"Awarded, not yet dispatched \u2014 standing event, no fee.\"","does":"Confirms","system":"Standing event logged, no TONU (BR-141)","next":"SCR-900","fails":"\u2014","uid":"D2:D2-S6:S27","src":"D2-flow-shipper.md"},{"id":"S28","frame":"SCR-904 \u00b7 Cancel modal \u00b7 post-dispatch pre-pickup","sees":"\"Truck already moving \u2014 this creates a TONU claim.\"","does":"Confirms","system":"TONU claim created, evidenced by dispatch fact (BR-142, standard `[NEEDS INPUT]`)","next":"SCR-907 Claim Intake","fails":"Mandatory warning, not skippable","uid":"D2:D2-S6:S28","src":"D2-flow-shipper.md"},{"id":"S29","frame":"SCR-904 \u00b7 Cancel modal \u00b7 mid-transit `[per CHALLENGE]`","sees":"\"In transit \u2014 charged cancellation, linehaul-to-point + return costs.\"","does":"Confirms","system":"`IN_TRANSIT \u2192 CANCELLED_BY_SHIPPER(charged) \u2192 RETURN_TO_ORIGIN`","next":"SCR-904 RTO tracking","fails":"\u2014","uid":"D2:D2-S6:S29","src":"D2-flow-shipper.md"},{"id":"S30","frame":"SCR-904 \u00b7 Cancel unavailable \u00b7 post-delivery","sees":"\"Delivered \u2014 raise a claim or dispute instead.\"","does":"Redirected","system":"`ERR-516`","next":"SCR-906/SCR-907","fails":"n/a \u2014 correct terminal state","uid":"D2:D2-S6:S30","src":"D2-flow-shipper.md"},{"id":"S31","frame":"SCR-904 \u00b7 `SHIPPER_NOT_READY`","sees":"Distinct from carrier no-show, flagged shipper-caused","does":"Acknowledges","system":"TONU + detention claim against shipper (BR-143)","next":"SCR-907","fails":"\u2014","uid":"D2:D2-S6:S31","src":"D2-flow-shipper.md"}],"branches":[],"notes":["**CHALLENGE:** BR-144 says cancellation is \"unavailable once `PICKED_UP`,\" but the FRD's own \u00a73.3 adjacency lists `IN_TRANSIT \u2192 CANCELLED_BY_SHIPPER(charged)`, and `EC-509` reads *\"shipper cancels post-pickup, pre-delivery: allowed, with a financial consequence \u2014 contrast `ERR-516`,\"* which only fires at/after `POD_CAPTURED`. Two source docs disagree on the cutoff. This flow follows the FRD reading (cancel allowed through `IN_TRANSIT`, blocked from `POD_CAPTURED` on) \u2014 a real conflict to reconcile before build, not a design choice.","**Permission.** Pre-award cancel: `SHIPPER_LOAD_POSTER` (own authored loads) or `SHIPPER_ORG_ADMIN` org-wide (PERM-203/204). Post-award: `SHIPPER_ORG_ADMIN` only."],"key":"D2-S6"},{"title":"7. Tracking to delivery (BR-401/403)","steps":[{"id":"S32","frame":"SCR-904 \u00b7 Default `[BUILT]`","sees":"Custody timeline; position at **corridor/ETA band** only (PERM-212) \u2014 never exact coordinates, that's the carrier's own view","does":"Watches, messages ops","system":"Renders custody events as they land","next":"\u2014","fails":"\u2014","uid":"D2:D2-S7:S32","src":"D2-flow-shipper.md"},{"id":"S33","frame":"SCR-904 \u00b7 Stale","sees":"\"No status update \u2014 4h12m,\" flagged not hidden (BR-401)","does":"Messages carrier/ops","system":"Missed-interval detection \u2014 the honest common case for small carriers","next":"SCR-905/930 escalation","fails":"\u2014","uid":"D2:D2-S7:S33","src":"D2-flow-shipper.md"},{"id":"S34","frame":"SCR-904 \u00b7 Transit exception","sees":"Categorised sub-type, never a generic \"delay\" (BR-405)","does":"Views, messages ops","system":"Logged as accessorial-dispute evidence","next":"\u2014","fails":"\u2014","uid":"D2:D2-S7:S34","src":"D2-flow-shipper.md"}],"branches":[],"notes":["**Truck-is-dark honesty.** SCR-904 never fabricates a position or a false-confident ETA when the feed is absent \u2014 it shows **Stale**, timestamped. Honest default for the small-carrier segment."],"key":"D2-S7"},{"title":"8. Delivery outcome and invoice consequence (\u00a77.4 state table, BR-501\u2013514)","steps":[{"id":"S35","frame":"SCR-904 \u00b7 Delivered clear","sees":"\"No exceptions\"","does":"Views","system":"`DELIVERED \u2192 POD_CAPTURED`, lines undisputed (BR-601)","next":"SCR-906 clean invoice","fails":"\u2014","uid":"D2:D2-S8:S35","src":"D2-flow-shipper.md"},{"id":"S36","frame":"SCR-904 \u00b7 Delivered with exception","sees":"Type/quantity/whose-count \u2014 a **notation on `DELIVERED`**, not a separate state (\u00a77.4)","does":"Views, may escalate","system":"Line moves to `HELD` (BR-603)","next":"SCR-906 mixed lines","fails":"\u2014","uid":"D2:D2-S8:S36","src":"D2-flow-shipper.md"},{"id":"S37","frame":"SCR-904 \u00b7 Partial delivery","sees":"Genuine custody fork \u2014 some freight delivered, remainder routed","does":"Views split status","system":"Delivered portion invoices; remainder tracked, possible claim","next":"SCR-906 + SCR-907","fails":"\u2014","uid":"D2:D2-S8:S37","src":"D2-flow-shipper.md"},{"id":"S38","frame":"SCR-904 \u00b7 Delivery refused","sees":"Full refusal recorded","does":"Initiates claim if warranted","system":"\u2192 `RETURN_TO_ORIGIN`, no clean POD","next":"SCR-907, RTO charges","fails":"\u2014","uid":"D2:D2-S8:S38","src":"D2-flow-shipper.md"},{"id":"S39","frame":"SCR-904 \u00b7 No receiver","sees":"Arrival timestamp only, no POD, carrier retains custody (BR-509)","does":"Arranges redelivery","system":"Detention may accrue","next":"Redelivery / SCR-907","fails":"\u2014","uid":"D2:D2-S8:S39","src":"D2-flow-shipper.md"}],"branches":[{"title":"","header":["Outcome","Invoice effect"],"rows":[["Clean","All lines settle undisputed"],["Exception (notation)","Affected line `HELD`; rest settle (BR-603)"],["Partial","Split \u2014 delivered lines settle, remainder pends claim/RTO"],["Refused","RTO charges added; original linehaul disputed"],["No receiver","No invoice trigger yet \u2014 redelivery or RTO next"]]}],"notes":["**Branch \u2014 delivery outcome \u2192 invoice.**"],"key":"D2-S8"},{"title":"9. Invoice review and dispute (BR-600\u2013604)","steps":[{"id":"S40","frame":"SCR-906 \u00b7 Default (clean)","sees":"Lines reconciled to rate confirmation + accessorials (BR-601)","does":"Approves","system":"`INVOICE_ISSUED \u2192 INVOICE_FINALISED`","next":"SETTLED","fails":"\u2014","uid":"D2:D2-S9:S40","src":"D2-flow-shipper.md"},{"id":"S41","frame":"SCR-906 \u00b7 Partial (mixed held/clear)","sees":"Held and clear lines rendered distinctly, never blended","does":"Approves clean lines; disputes the held one","system":"Partial settlement \u2014 clean lines pay, held stays open (BR-603)","next":"SETTLED (clean) / S42 (held)","fails":"\u2014","uid":"D2:D2-S9:S41","src":"D2-flow-shipper.md"},{"id":"S42","frame":"SCR-906 \u00b7 Dispute a line","sees":"Structured form, references line + evidence","does":"Submits","system":"Opens `ExceptionCase(DISPUTE_MONEY)`; provisional invoice stands","next":"SCR-905 tracks open exception","fails":"\u2014","uid":"D2:D2-S9:S42","src":"D2-flow-shipper.md"},{"id":"S43","frame":"SCR-906 \u00b7 Resolved \u2014 credit note","sees":"Credit note references disputed line + claim ID, never a silent net (BR-604)","does":"Views resolution","system":"`ExceptionCase \u2192 RESOLVED`","next":"SETTLED","fails":"Unresolved past window \u2192 escalation, cadence `[NEEDS INPUT]`","uid":"D2:D2-S9:S43","src":"D2-flow-shipper.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["All lines evidenced","`SETTLED`","Standard terms apply (BR-611, days `[NEEDS INPUT]`)"],["Line(s) disputed","`HELD`; rest settle independently (BR-603)","`ExceptionCase(DISPUTE_MONEY)` per line"],["Resolved shipper-favor","Credit note, references claim ID","Line re-enters settlement"],["Resolved carrier-favor","Written disallowance (claims-desk side)","Line settles at original amount"]]}],"notes":["**Branch \u2014 invoice clean / disputed.**"],"key":"D2-S9"},{"title":"Summary","steps":[],"branches":[],"notes":["**Counts.** 43 steps (S1\u2013S43), 9 flows, 20 frames (4 `[BUILT]`: SCR-900/901/902/904; 2 `[NEW]`: Org Setup + sub-states), 6 branch tables (eligibility, bid outcome, award outcome, cancellation-by-stage, delivery outcome, invoice clean/disputed) per spine \u00a75.","**Built vs. specified.** Loads dashboard, Post a Load, Auction Watch, Shipment Tracker are real and verified, including non-default states. Award Monitor, Exception Inbox, Invoice Approval, Claim Intake, Standing History are spec-only.","**Three questions only Boss can answer.** 1. May the shipper decline the lowest qualified bidder (BR-155/DEC-307/EC-325)? Branches A/B in \u00a74 build different SCR-903 screens \u2014 asked three times in source docs, answered zero. 2. Does a cascade winner get told they were second choice (EC-909)? Privacy vs. transparency. 3. What is the dispatch-proof standard (BR-142) that flips a cancel from free to a TONU claim? One `[NEEDS INPUT]` decides whether S27 or S28 fires for the same clock-time cancel.","**CHALLENGE filed.** \u00a76 \u2014 BR-144 conflicts with the FRD's own `IN_TRANSIT \u2192 CANCELLED_BY_SHIPPER(charged)` adjacency and `EC-509`'s post-pickup-pre-delivery allowance. Followed the FRD reading; needs reconciliation before S29 is built either way.","**Most likely abandonment point.** Not the declaration form (scaffolded, autosaved) or auction watch (passive). It's **S18 \u2014 \"all bids above your limit\"** on SCR-902: shipper set a ceiling in good faith, market cleared above it, only paths forward are republish-and-wait or escalate \u2014 both slower than the original need, and the only failure state here with no structured next-best-action attached."],"key":"D2-S10"}]},{"code":"D3","file":"D3-flow-carrier.md","page":"11","persona":"Carrier / Dispatcher","short":"Disp","sections":[{"title":"0. Two carriers, one product","steps":[],"branches":[],"notes":["**`OWNER_OPERATOR` (ROLE-216)** = union of `CARRIER_OWNER` \u222a `CARRIER_DRIVER` \u2014 one login is company, equipment owner and driver at once. **`CARRIER_DISPATCHER` (ROLE-211)** runs a roster it doesn't drive. Same screens serve both; divergence is **who fills the tuple** at S26 and never \"who may accept an award\" (owner-operator is a union, not blocked by any maker-checker rule \u2014 \u00a74.5)."],"key":"D3-S1"},{"title":"1. Onboarding & vetting (`FRD` \u00a75.2, \u00a715)","steps":[{"id":"S1","frame":"`[NEW]` Carrier \u00b7 Sign-up \u00b7 Default. *F9 has no carrier onboarding screen, only SCR-940 (ops queue).*","sees":"Org-type + owner-operator toggle (skips forced second user, FR-102)","does":"Enters MC/USDOT","system":"Org created `PENDING_VERIFICATION`","next":"S2","fails":"Duplicate MC \u2192 account-exists error","uid":"D3:D3-S2:S1","src":"D3-flow-carrier.md"},{"id":"S2","frame":"`[NEW]` \u00b7 IAL2 proofing","sees":"Doc + liveness (FR-101)","does":"Uploads ID","system":"Identity check queued","next":"S3","fails":"Unreadable \u2192 inline retake","uid":"D3:D3-S2:S2","src":"D3-flow-carrier.md"},{"id":"S3","frame":"`[NEW]` \u00b7 Document upload","sees":"Checklist: authority cert, COI (BR-204), safety consent, W-9, first driver's CDL","does":"Uploads each; saves partial","system":"`CredentialDocument` rows, source=self-reported","next":"S4","fails":"Missing doc \u2192 `ERR-500`, field named","uid":"D3:D3-S2:S3","src":"D3-flow-carrier.md"},{"id":"S4","frame":"`[NEW]` Vetting Status \u00b7 Pending. *No carrier-facing counterpart to SCR-940 exists.*","sees":"\"Under review,\" which checks auto-cleared vs. await reviewer (Partial data)","does":"Browses read-only; cannot open SCR-911","system":"Ops reviews via SCR-940","next":"Branch 1.1","fails":"Upstream feed unreachable \u2192 stale flag, never auto-fails (\u00a715.3)","uid":"D3:D3-S2:S4","src":"D3-flow-carrier.md"},{"id":"S5","frame":"`[NEW]` \u00b7 Rejected","sees":"Named reason per element (FR-1302)","does":"Re-uploads failing doc only","system":"Addendum record","next":"S4","fails":"\u2014","uid":"D3:D3-S2:S5","src":"D3-flow-carrier.md"},{"id":"S6","frame":"`[NEW]` \u00b7 Approved","sees":"\"Eligible to bid\"","does":"Continues","system":"Org enters eligible pool (per-load computed, not a flag)","next":"S10","fails":"\u2014","uid":"D3:D3-S2:S6","src":"D3-flow-carrier.md"},{"id":"S7","frame":"SCR-915 Roster \u00b7 Empty (owner-operator pre-filled self+one truck)","sees":"Prompt to add tractor/trailer/driver","does":"Adds records","system":"Verifier+time-attributed (FR-735)","next":"S8","fails":"Trailer type outside taxonomy \u2192 flagged, not blocked","uid":"D3:D3-S2:S7","src":"D3-flow-carrier.md"},{"id":"S8","frame":"SCR-915 \u00b7 Default","sees":"Expiry countdown per doc (BR-220)","does":"\u2014","system":"\u2014","next":"S10","fails":"Already-expired credential \u2192 asset shows `Error`, excluded pre-bid","uid":"D3:D3-S2:S8","src":"D3-flow-carrier.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Approved (PERM-240)","S6","Enters pool; eligibility still per-load, not wholesale"],["Rejected","S5","Reasons + re-submit loop"],["Pending, automation clear","S4","No shortcut \u2014 human approval required (BR-908)"],["Overridden despite FAIL","S6, flagged","Named-person override (PERM-260); addendum not edit; itself evidence later (FR-1352) \u2014 carrier sees only \"approved\""],["Org suspended post-approval","`[SCR-910] \u00b7 Permission denied` (built)","New bids/awards blocked; in-flight untouched (BR-230)"]]}],"notes":["**Branch 1.1 \u2014 vetting outcome**"],"key":"D3-S2"},{"title":"2. Load board \u2014 eligibility is per-tuple, not per-carrier","steps":[{"id":"S10","frame":"`[SCR-910] \u00b7 Default` (built)","sees":"Only loads with \u22651 eligible tuple \u2014 filtered server-side, never client-hidden (non-eligible = not-found, PERM-230)","does":"Filters, saves view","system":"Re-evaluated per current asset/driver availability","next":"S10","fails":"\u2014","uid":"D3:D3-S3:S10","src":"D3-flow-carrier.md"},{"id":"S11","frame":"`[SCR-910] \u00b7 Loading`","sees":"Row skeletons","does":"\u2014","system":"\u2014","next":"S10","fails":"Timeout \u2192 Error, retry","uid":"D3:D3-S3:S11","src":"D3-flow-carrier.md"},{"id":"S12","frame":"`[SCR-910] \u00b7 Empty`","sees":"Reason named (\"reefer at capacity through Wed\"), never a bare grid","does":"Adjusts availability or waits","system":"\u2014","next":"S10 on match","fails":"\u2014","uid":"D3:D3-S3:S12","src":"D3-flow-carrier.md"},{"id":"S13","frame":"`[SCR-910] \u00b7 Permission denied` (built)","sees":"Named reason (COI lapse), one-click remediation","does":"Uploads renewal","system":"Single-doc re-review","next":"S6-equiv","fails":"\u2014","uid":"D3:D3-S3:S13","src":"D3-flow-carrier.md"},{"id":"S14","frame":"`[SCR-910] \u00b7 Stale data`","sees":"\"Showing cached board, reconnecting\"","does":"Retries","system":"Re-syncs","next":"S10","fails":"Persistent offline \u2192 badge, cached list, no phantom bid affordance","uid":"D3:D3-S3:S14","src":"D3-flow-carrier.md"}],"branches":[],"notes":["**Non-obvious:** a listed load is not a bid-time guarantee \u2014 FR-600 re-checks per bid. A truck visible now can lose eligibility to a double-booking the instant before submit. Must read as normal (BR-200), named plainly in S17, not a bug."],"key":"D3-S3"},{"title":"3. Placing a bid \u2014 built, state machine verified","steps":[{"id":"S15","frame":"`\u00b7 idle` (built)","sees":"Price field, countdown, eligible-count, note that rival amounts are hidden","does":"Enters price, submits","system":"`Idempotency-Key` attached","next":"S16","fails":"Malformed \u2192 inline `ERR-501`","uid":"D3:D3-S4:S15","src":"D3-flow-carrier.md"},{"id":"S16","frame":"`\u00b7 submitting` (built)","sees":"Spinner, button disabled, no double-submit","does":"\u2014","system":"`eligibility()` re-checked live","next":"S17/S18","fails":"Network drop \u2192 retried same key, never a silent duplicate","uid":"D3:D3-S4:S16","src":"D3-flow-carrier.md"},{"id":"S17","frame":"`\u00b7 rejected [NEW state]`","sees":"Explicit reason + failing tuple element, never bare \"failed\"","does":"Fixes element or picks another truck","system":"Logged as attempt only, never a bid row","next":"S15","fails":"\u2014","uid":"D3:D3-S4:S17","src":"D3-flow-carrier.md"},{"id":"S18","frame":"`\u00b7 submitted` (built)","sees":"\"Bid received \u2014 $X, locked until close\" \u2014 explicit, never silent","does":"Watches or leaves","system":"\u2014","next":"S18/S19","fails":"\u2014","uid":"D3:D3-S4:S18","src":"D3-flow-carrier.md"},{"id":"S19","frame":"`\u00b7 outbid` (built)","sees":"\"You've been outbid,\" prior amount shown, new field pre-focused","does":"Re-bids or lets stand","system":"New bid supersedes for ranking; both retained","next":"S16","fails":"Below `min_decrement` (`DEC-311`) \u2192 `ERR-512`, field-level","uid":"D3:D3-S4:S19","src":"D3-flow-carrier.md"},{"id":"S20","frame":"`\u00b7 withdrawn`","sees":"\"Withdrawn \u2014 recorded against your history\"","does":"\u2014","system":"Policy-gated (`[NEEDS INPUT]`)","next":"S15","fails":"Post-close withdrawal \u2192 decline-equivalent, penalty implication shown","uid":"D3:D3-S4:S20","src":"D3-flow-carrier.md"}],"branches":[{"title":"","header":["Outcome","Frame","Consequence"],"rows":[["Accepted, standing","S18","Locked, superseded only by a lower valid bid"],["Outbid","S19","Forces explicit re-bid decision, never auto-rebids"],["Rejected \u2014 ineligible","S17","Never ranked; attempt only"],["Withdrawn pre-close","S20","Against bidder's own standing, not visible to rivals"],["Closed, not selected","Post-close card: \"not selected,\" no clearing price (\u00a74.4 mask)","No action"]]}],"notes":["**Anti-pattern check:** the built states already avoid it \u2014 every price change re-renders the panel's headline confirmed number. A toast fading without changing that number is the rejected pattern; do not regress when wiring real data.","**Branch 3.1 \u2014 bid outcomes**"],"key":"D3-S4"},{"title":"4. The rival-visibility fork \u2014 build-blocking, not decided here","steps":[],"branches":[{"title":"","header":["Option","Adds","UI consequence","Risk"],"rows":[["**(a) None** (built default)","Nothing beyond own bid + countdown + count","Cleanest, least informative","Weak signal for re-bid decisions"],["**(b) Rank-only**","\"#2 of 5 eligible\" badge","No amount ever rendered","At small decrements, rank alone leaks approximate price (EC-908)"],["**(c) Leading-price band**","Rounded range","Must never render exact figure","Named leak vector as decrements shrink (F2 finding)"]]}],"notes":["**CHALLENGE:** shipping past (a) without `DEC-302`/`303` locked risks a `BR-717` violation in production, not a UI bug \u2014 same challenge F9 \u00a72.2 already filed. D3 confirms the built default is safe; (b)/(c) are component-ready, not wired."],"key":"D3-S5"},{"title":"5. Winning \u2014 award accept, decline, lapse","steps":[{"id":"S21","frame":"`[NEW]` Award Notification & Accept \u00b7 Default. *F9's carrier section has no accept-award screen; SCR-903 is shipper-side only.* Full-screen interrupt, never a dismissible toast (mirrors SCR-920).","sees":"Rate (linehaul+FSC+accessorials, BR-600), pickup window, countdown to lapse (`[NEEDS INPUT]` window)","does":"Accept / Decline","system":"Accept \u2192 `AWARDED \u2192 AWARD_ACCEPTED`; rate confirmation ack required","next":"S22/S23","fails":"Idempotency-Key required; double-tap accept is a no-op","uid":"D3:D3-S6:S21","src":"D3-flow-carrier.md"},{"id":"S22","frame":"`\u00b7 Accepted`","sees":"Confirmation, \"assign driver & truck next\"","does":"Proceeds","system":"Asset-lock candidate begins (finalises S27)","next":"S27","fails":"\u2014","uid":"D3:D3-S6:S22","src":"D3-flow-carrier.md"},{"id":"S23","frame":"`\u00b7 Declined`","sees":"Confirmation, no invented penalty framing","does":"\u2014","system":"`AWARD_DECLINED` \u2192 cascade/re-auction (`DEC-309`)","next":"exits","fails":"\u2014","uid":"D3:D3-S6:S23","src":"D3-flow-carrier.md"},{"id":"S24","frame":"`\u00b7 Lapsed`","sees":"\"Expired \u2014 no response in time\"","does":"\u2014","system":"`AWARD_LAPSED` automatic","next":"exits","fails":"**The failure F10 names costliest** \u2014 see 5.1","uid":"D3:D3-S6:S24","src":"D3-flow-carrier.md"},{"id":"S25","frame":"`[SCR-916]` Settlement \u00b7 Default","sees":"Rate confirmation on file","does":"\u2014","system":"\u2014","next":"S27","fails":"\u2014","uid":"D3:D3-S6:S25","src":"D3-flow-carrier.md"}],"branches":[{"title":"","header":["Outcome","Trigger","Consequence"],"rows":[["Accepted","Explicit tap in window","\u2192 S27 assignment"],["Declined","Explicit tap","Cascade/re-auction per `DEC-309`; no re-offer absent that decision"],["Lapsed","No response before window closes","Same fork; T0 voice/ops-page escalation exists specifically so S21 is never missed"]]}],"notes":["**Branch 5.1 \u2014 award outcome**"],"key":"D3-S6"},{"title":"6. Assigning driver and truck \u2014 owner-operator vs dispatcher diverge","steps":[{"id":"S26","frame":"`[SCR-912] \u00b7 Default` \u2014 **owner-op**: pre-filled self+sole truck, one confirm","sees":"Pre-bound tuple","does":"Confirms","system":"`EquipmentPairing` bound; eligibility re-run","next":"S28","fails":"\u2014","uid":"D3:D3-S7:S26","src":"D3-flow-carrier.md"},{"id":"S26d","frame":"`[SCR-912] \u00b7 Default` \u2014 **dispatcher**: driver/tractor/trailer pickers, `AVAILABLE`-only per window","sees":"Roster filtered by time-window (FR-720)","does":"Selects each independently","system":"Same binding call","next":"S28","fails":"Committed-elsewhere pick \u2192 `ERR-537`, shown disabled with reason pre-selection","uid":"D3:D3-S7:S26d","src":"D3-flow-carrier.md"},{"id":"S27","frame":"`\u00b7 Contested` (EC-913)","sees":"\"Truck B unavailable \u2014 bound to LD-48xxx\"","does":"Picks another asset","system":"Optimistic lock; losing dispatcher sees this live","next":"S26d","fails":"\u2014","uid":"D3:D3-S7:S27","src":"D3-flow-carrier.md"},{"id":"S28","frame":"`\u00b7 HOS check`","sees":"\"Checking\u2026\" then FEASIBLE/INFEASIBLE, never silent","does":"\u2014","system":"Attested hours vs. estimated transit (FR-750/751)","next":"S29/S30","fails":"Signal source down \u2192 \"not evaluated,\" never false-safe green (EC-912)","uid":"D3:D3-S7:S28","src":"D3-flow-carrier.md"},{"id":"S29","frame":"`\u00b7 Valid`","sees":"Bound tuple, dispatch-ready","does":"Confirms","system":"`Assignment` finalised; asset lock applied","next":"S32","fails":"\u2014","uid":"D3:D3-S7:S29","src":"D3-flow-carrier.md"},{"id":"S30","frame":"`\u00b7 Error \u2014 HOS infeasible`","sees":"Named reason","does":"Reassigns, or overrides if `DEC-701`=warn-only","system":"Hard-block vs. warn is `[NEEDS INPUT]`","next":"S26d/S29","fails":"\u2014","uid":"D3:D3-S7:S30","src":"D3-flow-carrier.md"},{"id":"S31","frame":"`\u00b7 Error \u2014 document lapsed`","sees":"Named credential + blocked asset","does":"Renews or picks another asset","system":"That asset only excluded; award unaffected unless BR-218/219 timing","next":"S26d","fails":"\u2014","uid":"D3:D3-S7:S31","src":"D3-flow-carrier.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Valid, HOS feasible","S29","Dispatch-ready"],["HOS infeasible","S30","Block or warn per `DEC-701`, never silent"],["Document lapsed on selected asset","S31","Asset excluded; award untouched unless lapse timing hits BR-218/219"],["Two dispatchers race one asset","S27","Loser sees explicit contested state, no silent overwrite"]]}],"notes":["**Branch 6.1 \u2014 assignment outcome**"],"key":"D3-S7"},{"title":"7. Dispatch & en-route management","steps":[{"id":"S32","frame":"`[SCR-913] \u00b7 Default`","sees":"Every truck in flight, exceptions ranked above on-track","does":"Drills into a trip","system":"\u2014","next":"S33","fails":"\u2014","uid":"D3:D3-S8:S32","src":"D3-flow-carrier.md"},{"id":"S33","frame":"`\u00b7 trip detail`, pre-pickup","sees":"Bound tuple vs. expected","does":"Substitutes driver/truck before pickup","system":"Re-checks eligibility on new tuple (FR-713)","next":"S26d","fails":"New tuple fails gate \u2192 substitution blocked, original stands","uid":"D3:D3-S8:S33","src":"D3-flow-carrier.md"},{"id":"S34","frame":"`\u00b7 trip detail`, post-pickup","sees":"Same UI, flagged \"requires a custody event\"","does":"Substitutes","system":"Logged requester+reason; award record unchanged","next":"S32","fails":"Undisclosed swap \u2192 fraud queue (EC-709: trailer-VIN mismatch is a named gap)","uid":"D3:D3-S8:S34","src":"D3-flow-carrier.md"},{"id":"S35","frame":"`[SCR-914] \u00b7 Report breakdown`","sees":"Category picker (BR-405), evidence, relief request","does":"Submits","system":"`TRANSIT_EXCEPTION` case \u2192 SCR-930 (ops, built)","next":"S32, flagged","fails":"Owner-operator, no org substitute (EC-705): \"no internal relay available\" shown explicitly, not hidden as generic error","uid":"D3:D3-S8:S35","src":"D3-flow-carrier.md"},{"id":"S36","frame":"Pickup arrival check (driver-side, SCR-922/923, out of D3 ownership)","sees":"\u2014","does":"Arriving driver+tractor+trailer checked against bound tuple (BR-221/227)","system":"Match proceeds; mismatch holds+flags","next":"S37/fraud","fails":"**Arriving tuple \u2260 bound tuple is the double-brokering signal (BR-221/224/806)** \u2014 the one check dispatcher cannot self-clear; routes to ops","uid":"D3:D3-S8:S36","src":"D3-flow-carrier.md"},{"id":"S37","frame":"`[SCR-913] \u00b7 in transit`","sees":"Exact position (own fleet, PERM-261), ETA, milestones","does":"Messages driver","system":"\u2014","next":"delivery flow","fails":"Stale >2h \u2192 flagged banner, never hidden (BR-401)","uid":"D3:D3-S8:S37","src":"D3-flow-carrier.md"}],"branches":[],"notes":[],"key":"D3-S8"},{"title":"8. Getting paid","steps":[{"id":"S38","frame":"`\u00b7 Default`","sees":"Rate confirmation + accessorials + FSC, reconciled total (BR-601)","does":"Reviews","system":"Invoice composed against rate confirmation","next":"S39","fails":"Bid *is* the rate-confirmation base by construction (BR-307) \u2014 no mismatch state possible","uid":"D3:D3-S9:S38","src":"D3-flow-carrier.md"},{"id":"S39","frame":"`\u00b7 Partial data`","sees":"Some lines `HELD` (OS&D/dispute), rest paying standard cycle (BR-603)","does":"Contacts ops on held line","system":"Clean lines settle independently","next":"S40","fails":"\u2014","uid":"D3:D3-S9:S39","src":"D3-flow-carrier.md"},{"id":"S40","frame":"`\u00b7 factored`","sees":"Remit-to shows factor's instructions, never carrier's own bank details, once NOA on file (BR-606/608)","does":"Reviews, cannot override without sign-off","system":"100% payable routes to factor of record","next":"S41","fails":"Forged/expired NOA \u2192 `ERR-557`, flagged to fraud, held not misrouted","uid":"D3:D3-S9:S40","src":"D3-flow-carrier.md"},{"id":"S41","frame":"`\u00b7 quick-pay offer`","sees":"Elective, disabled while any line `HELD` (BR-609/610)","does":"Elects or declines","system":"Funded from platform capital/financing partner","next":"S42","fails":"\u2014","uid":"D3:D3-S9:S41","src":"D3-flow-carrier.md"},{"id":"S42","frame":"`\u00b7 Settled`","sees":"Payout confirmed, 1099-NEC accrual updated","does":"\u2014","system":"Load \u2192 `COMPLETED`","next":"exits","fails":"Undisclosed factoring found mid-dispute \u2192 `ERR-560`, held, never double-paid","uid":"D3:D3-S9:S42","src":"D3-flow-carrier.md"}],"branches":[],"notes":["**Counts.** 42 numbered steps (S1-S42, S26/S26d owner-operator/dispatcher split) across 9 sub-flows \u00b7 frames: 3 built (`SCR-910`, `SCR-911`, `SCR-930` referenced) + 13 spec-only F9 screens (`SCR-912`-`916` + states) + 9 `[NEW]` (sign-up \u00d73, vetting status \u00d73, award accept/decline/lapse \u00d73) \u00b7 5 branch tables (\u00a71.1, \u00a73.1, \u00a75.1, \u00a76.1, plus the eligibility-reasons pattern repeated inline at S17/S26d/S30/S31 rather than tabled twice)."],"key":"D3-S9"}]},{"code":"D4","file":"D4-flow-driver.md","page":"12","persona":"Driver (mobile)","short":"Drv","sections":[{"title":"Preamble","steps":[],"branches":[],"notes":["**New screens, justified:** - `[NEW] SCR-927` Driver \u00b7 Invite Accept & Device Bind \u2014 F1 \u00a75.3/\u00a79 requires this handshake; F9 has no screen for it. - `[NEW] SCR-928` Driver \u00b7 Sync Held for Review \u2014 FR-901/`ERR-550`\u2013`553` route offline conflicts to a human queue; needs its own honest frame, distinct from ordinary pending-sync. - `[NEW] SCR-929` Driver \u00b7 Session Ended \u2014 FR-128/FR-150/FR-152 revoke a device or session; driver needs to see *why*, not a blank login screen."],"key":"D4-S1"},{"title":"1. Device onboarding","steps":[{"id":"S1","frame":"`[NEW SCR-927] Invite Accept \u00b7 Default`","sees":"Carrier org name, dispatcher name, role, one \"Accept\" button","does":"Taps accept","system":"Validates single-use, expiring, phone-bound invite token (FR-106)","next":"S2","fails":"Token expired/used \u2192 `Error`: \"This invite has expired \u2014 ask your dispatcher to resend\"","uid":"D4:D4-S2:S1","src":"D4-flow-driver.md"},{"id":"S2","frame":"`[NEW SCR-927] \u00b7 OTP verify`","sees":"SMS code field, large numeric keypad","does":"Enters 6-digit code","system":"Verifies phone (FR-108); rate-limits retries","next":"S3","fails":"Mismatch \u2192 inline retry; exhausted \u2192 \"Ask your dispatcher to resend the invite\"","uid":"D4:D4-S2:S2","src":"D4-flow-driver.md"},{"id":"S3","frame":"`[NEW SCR-927] \u00b7 PIN/biometric setup`","sees":"Set local unlock","does":"Sets PIN or enrolls biometric","system":"Local-unlock layer atop server session (FR-112), never a substitute for it","next":"S4","fails":"Biometric unavailable \u2192 PIN-only fallback, no dead end","uid":"D4:D4-S2:S3","src":"D4-flow-driver.md"},{"id":"S4","frame":"`[NEW SCR-927] \u00b7 Device bind`","sees":"\"This phone is now your Jarvis Freight device\"","does":"Confirms","system":"Refresh token bound to device/install id (FR-123); old device (if any) unaffected unless explicitly deregistered","next":"S5","fails":"\u2014","uid":"D4:D4-S2:S4","src":"D4-flow-driver.md"},{"id":"S5","frame":"`[NEW SCR-927] \u00b7 Language`","sees":"EN/ES toggle, persists","does":"Picks language","system":"Stored on driver record (BR-914)","next":"S6","fails":"\u2014","uid":"D4:D4-S2:S5","src":"D4-flow-driver.md"},{"id":"S6","frame":"`[SCR-920] Today \u00b7 Empty` or `Default`","sees":"No assignment yet, or today's load","does":"Waits, or acts on S7+","system":"\u2014","next":"\u00a72","fails":"\u2014","uid":"D4:D4-S2:S6","src":"D4-flow-driver.md"}],"branches":[],"notes":["**Lost phone mid-trip:** admin deregisters the device (FR-128) \u2192 refresh token invalidated server-side \u2192 next app open shows `[NEW SCR-929] Session Ended` (\"Your access was ended by Ironhide Trucking \u2014 call dispatch\"), never a bare login screen implying the driver did something wrong. Admin re-invites on a replacement device \u2192 S1\u2013S6 again; FR-153 requires the admin to bind the replacement session to the **in-flight load** before any further driver-scoped action \u2014 the trip/custody record itself persisted untouched (FR-152).","**Driver leaves carrier mid-trip:** identical `SESSION_REVOKED` \u2192 `SCR-929`. **The FRD names an honest gap here (EC-107): revoking the session does nothing to the loaded truck still parked somewhere.** Flagged in the closing questions.","**Not invented:** EC-103 (shared family device, no \"switch driver\" flow) is explicitly unspecified in F1 \u2014 surfaced here, not guessed."],"key":"D4-S2"},{"title":"2. Today's assignment \u2014 `[SCR-920] \u00b7 Default` (built)","steps":[],"branches":[],"notes":["**HOS is deliberately not a live countdown.** `DEC-700` is unresolved (Option A/B/C, \u00a79.6 FRD). This design assumes Option B's shape only as a *badge*, never a ticking clock: `FEASIBLE` / `INFEASIBLE` / `Hours: not evaluated` (EC-912's honest default). A raw hours-remaining display would itself be Option C \u2014 the system-of-record posture already rejected by the minimisation constraint. If Boss locks Option A, the badge is deleted, not hidden.","**The dark-driver case is designed by omission, on purpose.** Nothing on `SCR-920` nags the driver to \"check in.\" `NO_UPDATE_RECEIVED` (BR-401) is ops's and the shipper's problem to chase (F9 \u00a74's notification table), not friction pushed back onto a driver who may have no signal at all."],"key":"D4-S3"},{"title":"3. Heading to pickup","steps":[{"id":"S7","frame":"`[SCR-920] Today \u00b7 Default`","sees":"\"Start navigation\" CTA","does":"Taps","system":"Hands off to external nav app","next":"`[SCR-921]`","fails":"No nav app installed \u2192 inline \"Open in browser maps\" fallback","uid":"D4:D4-S4:S7","src":"D4-flow-driver.md"},{"id":"S8","frame":"`[SCR-921] Navigation Handoff`","sees":"One-tap confirmation only; app owns no in-app map","does":"Confirms","system":"Deep-links out","next":"External app","fails":"Deep-link fails \u2192 returns to `SCR-920` with address copy-to-clipboard","uid":"D4:D4-S4:S8","src":"D4-flow-driver.md"},{"id":"S9","frame":"`[SCR-922] Arrival Capture \u00b7 Default`","sees":"Geofence-assisted \"You've arrived\" prompt, or manual \"I'm here\"","does":"Confirms arrival; enters/scans tractor plate + trailer VIN if not auto-paired","system":"Geofence entry (FR-819 debounced) + FR-140 timestamp; compares tuple to bound Assignment","next":"Branch \u2014 \u00a75.1","fails":"No geofence on file \u2192 manual-only arrival, flagged `Partial data`","uid":"D4:D4-S4:S9","src":"D4-flow-driver.md"},{"id":"S10","frame":"Branch outcome","sees":"\u2014","does":"\u2014","system":"\u2014","next":"Match \u2192 `SCR-923`; Mismatch \u2192 `SCR-922 \u00b7 Held`","fails":"See \u00a75.1","uid":"D4:D4-S4:S10","src":"D4-flow-driver.md"}],"branches":[],"notes":[],"key":"D4-S4"},{"title":"4. The pickup handover \u2014 highest-risk event in the system","steps":[{"id":"S11","frame":"`[SCR-923] Document Capture \u00b7 Structured count`","sees":"Declared vs. actual: piece/pallet count, weight if declared, condition, seal number","does":"Confirms or edits against declared","system":"Builds pickup record per BR-400","next":"S12","fails":"Count doesn't match declaration \u2192 `Discrepancy hold`, see \u00a75.2","uid":"D4:D4-S5:S11","src":"D4-flow-driver.md"},{"id":"S12","frame":"`[SCR-923] \u00b7 Photo`","sees":"Camera CTA, BOL + seal + condition","does":"Takes \u22651 photo","system":"Unreadable image flagged before accept, not silently stored (BR-400/408, `ERR-506`)","next":"S13","fails":"No camera permission \u2192 text-only notation fallback (EC-910), never blocks","uid":"D4:D4-S5:S12","src":"D4-flow-driver.md"},{"id":"S13","frame":"`[SCR-923] \u00b7 Dual acknowledgement`","sees":"Same signature-pad component as POD (reused, not reinvented)","does":"Driver + shipper rep each sign, printed name + role","system":"BR-400 requires **both** acknowledgements + timestamp before `PICKED_UP` is reachable","next":"S14","fails":"Shipper rep unavailable/refuses \u2192 cannot proceed to `PICKED_UP`; routes to \u00a75.2's not-ready/refused branch","uid":"D4:D4-S5:S13","src":"D4-flow-driver.md"},{"id":"S14","frame":"`[SCR-923] \u00b7 Submitted`","sees":"\"Pickup recorded\" confirmation","does":"\u2014","system":"Load state \u2192 `PICKED_UP`; F8 milestone `loaded` (claimed)","next":"`[SCR-920] In transit`","fails":"Offline \u2192 queued locally, `Pending sync` (see \u00a78)","uid":"D4:D4-S5:S14","src":"D4-flow-driver.md"}],"branches":[],"notes":[],"key":"D4-S5"},{"title":"5. Branch tables","steps":[],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Driver session + entered tractor/trailer match bound Assignment tuple","`SCR-922 \u00b7 Arrival confirmed`","FR-140 timestamp+geofence logged; \u2192 `SCR-923`"],["Disclosed, pre-approved relay/drop-and-hook substitution","`SCR-922 \u00b7 Arrival confirmed`","Re-verified tuple, no case opened (FR-713)"],["Mismatch \u2014 wrong driver, wrong tractor, wrong trailer, undisclosed swap","`SCR-922 \u00b7 Held pending verification`","FR-139 suspends further session-scoped actions on this load; `ExceptionCase(FRAUD_REVIEW)` opens (BR-806); driver sees \"Dispatch is verifying this pickup \u2014 call them\" and a Call button, **never** a raw `ARRIVAL_MISMATCH` code"]]},{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Ready, count/condition matches, correct equipment","`SCR-923` proceeds \u2192 `PICKED_UP`","Milestone `loaded` claimed"],["Freight not ready","`SCR-922 \u00b7 Not ready` (reason: not-ready / dock closed)","`SHIPPER_NOT_READY`; TONU flag \u2192 \u00a78.6 accessorial"],["Freight differs from declaration","`SCR-923 \u00b7 Discrepancy hold`","BR-406 hold; resolution outcome (substitution confirmed vs. held) recorded before loading continues"],["Wrong equipment (trailer type mismatch)","`SCR-922 \u00b7 Refused`","`PICKUP_REFUSED`, `EQUIPMENT_TYPE_MISMATCH`"],["Unsafe load","`SCR-922 \u00b7 Refused` (reason: unsafe)","`PICKUP_REFUSED`, reason `UNSAFE_LOAD`, same-shift ops review"],["Seal missing where required","`SCR-923 \u00b7 Condition note`","Logged, not blocking, re-verified at drop (BR-408) unless hazmat mandates it (BR-719)"],["Detention accruing","`SCR-920` banner + `SCR-923` timer","`detention_candidate_minutes` computed (FR-821); informational only, never blocks the driver"],["Lumper fee at pickup","`SCR-923 \u00b7 Lumper flag` (receipt photo)","**`CHALLENGE`:** BR-516 scopes lumper capture to *delivery* only; the same event happens at pickup docks. Recommend the identical flag+receipt affordance at both ends."]]},{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Delivered clean","`SCR-924` Step 3\u21926\u21927 (Clean path)","`DELIVERED \u2192 POD_CAPTURED`; invoice opens clean"],["Delivered with exception (OS&D)","`SCR-924` Step 3\u21923b\u21924(photo mandatory)\u21925\u21926\u21927","OS&D notation (BR-503); invoice line held pending \u00a78.9"],["Full refusal","`SCR-922/924 \u00b7 Refused` **[specified, not yet built]**","`DELIVERY_REFUSED`, required reason code, `RETURN_TO_ORIGIN` custody event; no invoice line (BR-506)"],["Nobody present / hours closed","`SCR-922 \u00b7 No receiver` **[spec only]**","`DELIVERY_ATTEMPTED_NO_RECEIVER`; arrival timestamp only, no POD, forced-choice screen never reached (BR-509)"]]},{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Queue applies cleanly, causal order matches canonical state","Silent \u2014 \"Delivered \u2014 recorded\"","EC-510, indistinguishable from a live submit"],["Load state advanced while dark (reassigned/cancelled/already-captured elsewhere)","`[NEW SCR-928] Held for review`","`ERR-550`\u2192`524`; routed to human queue, **never** last-write-wins"],["Queue exceeds retention before reconnect","`[NEW SCR-928] \u00b7 Expired`","`ERR-551`; ops-assisted recovery only"],["Device clock skew flags a money-bearing timestamp untrusted","`[NEW SCR-928] \u00b7 Timestamp held`","`ERR-552`; same human-queue path"]]}],"notes":[],"key":"D4-S6"},{"title":"6. In transit","steps":[{"id":"S15","frame":"`[SCR-920] In transit \u00b7 Default`","sees":"ETA, next stop, exception banner if any, Report-a-problem always visible","does":"Mostly nothing \u2014 position is passive (FR-800), not a manual check-in chore","system":"Pings feed milestones/ETA (F8); `NO_UPDATE_RECEIVED` if dark, driver never nagged","next":"S16/S17","fails":"\u2014","uid":"D4:D4-S7:S15","src":"D4-flow-driver.md"},{"id":"S16","frame":"`[SCR-925] Report a Problem \u00b7 Category`","sees":"Breakdown / weather-closure / reefer-alarm / accident / theft / OOS-order / other","does":"Picks category, attaches photo or voice note","system":"`TRANSIT_EXCEPTION` sub-type opens (BR-405); high-priority sync queue if offline","next":"`[SCR-920]` w/ open-exception card","fails":"Offline \u2192 queues, `Pending sync` badge, never silently dropped","uid":"D4:D4-S7:S16","src":"D4-flow-driver.md"},{"id":"S17","frame":"`[SCR-920] \u00b7 Interrupt` (system-pushed)","sees":"Full-screen, non-dismissible \u2014 e.g. telematics-detected reefer alarm","does":"Acknowledges / calls dispatch","system":"Full-screen interrupt per F9 \u00a74 rule \u2014 never a toast for anything blocking","next":"Back to Today or `SCR-925` for detail","fails":"\u2014","uid":"D4:D4-S7:S17","src":"D4-flow-driver.md"},{"id":"S18","frame":"Driver truly dark (no signal, no update)","sees":"Last-known cached state stays visible, age-labelled","does":"Nothing \u2014 by design","system":"`NO_UPDATE_RECEIVED` flag visible to ops/shipper only","next":"resumes at reconnect","fails":"\u2014","uid":"D4:D4-S7:S18","src":"D4-flow-driver.md"}],"branches":[],"notes":[],"key":"D4-S7"},{"title":"7. Delivery and POD \u2014 `[SCR-924]` (built)","steps":[{"id":"P1","frame":"[SCR-924] POD \u00b7 Arrival","sees":"Arrival at drop confirmed","does":"Confirms arrival","system":"Count/condition folded into this screen","next":"P2","fails":"Offline \u2192 captured locally, Pending sync","uid":"D4:D4-S8:P1","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P2","frame":"[SCR-924] POD \u00b7 Forced choice","sees":"\"Delivered clean\" vs \"Report exception\" \u2014 no pre-selection, role=\"group\"","does":"Must pick one \u2014 Continue stays disabled until then","system":"BR-501/502/505/512 satisfied by construction \u2014 no combined \"confirm delivery\" button","next":"P3 clean \u00b7 P3b exception","fails":"No default means no accidental clean-close","uid":"D4:D4-S8:P2","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P3b","frame":"[SCR-924] POD \u00b7 Exception detail","sees":"Type / qty / whose-count \u2014 structured, notes supplement only","does":"Records the exception","system":"OS&D notation (BR-503); invoice line held","next":"P4","fails":"Same tap-count to signature as the clean path \u2014 exception is not punished with friction","uid":"D4:D4-S8:P3b","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P4","frame":"[SCR-924] POD \u00b7 Photo","sees":"Camera \u2014 optional on clean, mandatory on exception","does":"Captures photo","system":"Unreadable image flagged before accept (ERR-506)","next":"P5","fails":"No camera permission \u2192 text-only notation fallback (EC-910)","uid":"D4:D4-S8:P4","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P5","frame":"[SCR-924] POD \u00b7 Signature","sees":"Consignee signs on the DRIVER's device \u2014 printed name + role, no account","does":"Consignee signs","system":"Canvas aria-label'd; signature never blocked by connectivity (EC-901, FR-124)","next":"P6","fails":"Consignee absent \u2192 DELIVERY_ATTEMPTED_NO_RECEIVER","uid":"D4:D4-S8:P5","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P6","frame":"[SCR-924] POD \u00b7 Read-only confirm","sees":"Everything captured, read-only","does":"Reviews, submits","system":"DELIVERED \u2192 POD_CAPTURED; record fixed once captured (BR-512)","next":"P7","fails":"Later addition must be a separately timestamped addendum","uid":"D4:D4-S8:P6","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true},{"id":"P7","frame":"[SCR-924] POD \u00b7 Pending sync","sees":"sync-pill--pending \u2014 \"captured locally, will upload the moment you're back online\"","does":"Nothing","system":"Invoice opens clean, or line held pending claim","next":"Carrier \u00a78 / Shipper \u00a79","fails":"Sync conflict \u2192 [NEW SCR-928] human reconciliation queue","uid":"D4:D4-S8:P7","src":"D4-flow-driver.md \u00a77 (prose \u2192 transcribed)","prose":true}],"branches":[],"notes":["**not punished with extra friction**, matching the brief.","**Concealed-damage addendum (BR-504):** reachable later from load history, always linked to the original POD, never overwriting it \u2014 **[specified, not yet built]**, its own frame, same signature component, one field: \"What was found, when.\""],"key":"D4-S8"},{"title":"Summary","steps":[],"branches":[],"notes":["**6-line summary.** Mapped the driver's full journey from SMS invite through device bind, arrival identity match, pickup's dual-signature handover, in-transit passivity-by-design, to the built forced-choice POD and its pending-sync/conflict handling. `SCR-920` and `SCR-924` confirmed built and correct against BR-501/502/505/512. Added three new screens (`SCR-927`\u2013`929`) F9 never specified for invite/device-bind, sync-conflict, and session-ended. Deliberately did **not** design a live HOS countdown \u2014 `DEC-700` is unresolved and a countdown would itself be the rejected Option C. Named one BRD gap (lumper capture scoped delivery-only) and one operational gap (revocation doesn't move a loaded truck).","**Counts:** ~28 steps (S1\u2013S18 plus onboarding S1\u2013S6 and pickup S11\u2013S14) \u00b7 10 frames referenced (7 existing `SCR-` IDs, 3 new) \u00b7 4 branch tables (\u00a75.1\u20135.4, 20 rows total).","**Built vs. specified:** `SCR-920` (Today) and `SCR-924` (POD capture, full 7-step sequence) are built and verified in `prototype.html`. `SCR-921/922/923/925/926` and all three `[NEW]` screens are specified only.","**Three sharpest questions only Boss can answer:** 1. `DEC-700` \u2014 HOS Option A (nothing shown) or Option B (bounded feasibility badge)? Assumed B's shape here but builds nothing live without the lock. 2. Session revocation when a driver leaves mid-trip kills the *app*, not the *truck* \u2014 freight is still physically on a road. Is there an operational handoff process, or does this stay a gap? 3. Lumper-fee capture is written into the BRD as delivery-side only (BR-516) \u2014 should pickup-side fees get the identical affordance, or is that intentionally out of scope?","**`CHALLENGE`:** see \u00a75.2 \u2014 BR-516 scopes lumper-fee capture to the delivery side only; recommend the identical flag+receipt affordance at pickup too, not left uncaptured there.","**The single moment where a bad UI decision costs the most real money:** the forced-choice screen in `SCR-924`. A clear-signed POD materially weakens a later cargo claim (BR-505) \u2014 any UI that makes \"clean\" the path of least resistance (a default, a faster tap-count, a friendlier colour) quietly biases drivers toward under-reporting real damage, and every under-reported load is a claim someone cannot win later. The built version already gets this right \u2014 no default, equal visual weight, equal tap-count \u2014 and that correctness must survive any future redesign untouched."],"key":"D4-S9"}]},{"code":"D5","file":"D5-flow-ops-admin.md","page":"13-14","persona":"Platform Ops / Admin","short":"Ops","sections":[{"title":"Preamble","steps":[],"branches":[{"title":"","header":["SCR","Screen","Status"],"rows":[["SCR-930","Exception Work Queue","**Built** \u2014 Default(open)/Empty/Contested, `prototype.html`"],["SCR-931","Exception Detail & Resolution","Spec only"],["[NEW] SCR-934","Configuration Console","Not in F9 \u2014 FR-1142/1145 need a governed-settings surface"],["[NEW] SCR-935","Impersonation Console","Not in F9 \u2014 F9 only names a banner (\u00a711.5), no screen"],["SCR-940","Carrier Vetting Queue","Spec only"],["SCR-941","Fraud Case Review","Spec only"],["SCR-942","Selection Record / Audit Viewer","Spec only"],["SCR-943","Enforcement Action","Spec only"]]}],"notes":["**Queue composition, once.** SCR-930 unions two sources, never conflated visually: **Load-state exceptions** (`CARRIER_NO_SHOW`, `TRANSIT_EXCEPTION`, `DELIVERY_REFUSED`, `PICKUP_REFUSED`, `SHIPPER_NOT_READY` \u2014 single-valued, \u00a73.3) and **`ExceptionCase` records** (`FRAUD_REVIEW`, `CARGO_INTEGRITY`, `CARGO_CLAIM`, `DISPUTE_FREIGHT`/`MONEY`, `CARRIER_ENFORCEMENT_COLLISION` \u2014 many-per-load, `ENT-324`). A row's case-type badge is absent for the former, present for the latter."],"key":"D5-S1"},{"title":"1. Exception Work Queue (SCR-930)","steps":[{"id":"S1","frame":"`[SCR-930]\u00b7Default`","sees":"Swimlanes by domain (FR-1102); money-at-risk / freight-in-motion / time-criticality as three separate signals, never one score (FR-1103); action attached per row","does":"Scans, opens \"Urgent\" cross-domain view (FR-1104)","system":"Queries `ExceptionCase.status=OPEN\\|IN_REVIEW` \u222a open Load-state exceptions","next":"S2 or SCR-931","fails":"No `PERM-236` \u2192 `Permission denied`; no rows \u2192 `Empty` (built)","uid":"D5:D5-S2:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"same","sees":"Unclaimed row, Claim button","does":"Clicks Claim","system":"`PERM-236`, `granted_case` binds this case only","next":"Row \u2192 \"Claimed by you\"","fails":"Race with another claimant \u2192 S3 (EC-1100)","uid":"D5:D5-S2:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`[SCR-930]\u00b7Contested` (built)","sees":"\"Claimed by X,\" action disabled","does":"Reads only \u2014 platform-wide read stays (FR-1108)","system":"No write path for this actor","next":"stays S1","fails":"Contest state is itself terminal for the loser","uid":"D5:D5-S2:S3","src":"D5-flow-ops-admin.md"},{"id":"S4","frame":"`[SCR-931]\u00b7Default`","sees":"Full context, prior actions, handoff note","does":"Escalates (reason required, FR-1107) or works case","system":"`case.status\u2192IN_REVIEW`; escalation \u2192 `PLATFORM_SENIOR_REVIEWER`","next":"S5","fails":"Missing reason \u2192 inline error","uid":"D5:D5-S2:S4","src":"D5-flow-ops-admin.md"},{"id":"S5","frame":"`[SCR-931]\u00b7Resolved`","sees":"Resolution type/actor/reason, linked downstream action (FR-1110)","does":"Confirms","system":"`status\u2192RESOLVED\\|CLOSED_UNRESOLVED`, addendum-only","next":"S1, row removed","fails":"Already resolved by another actor \u2192 `ERR-529`/`567`","uid":"D5:D5-S2:S5","src":"D5-flow-ops-admin.md"}],"branches":[{"title":"","header":["Condition","Destination","Consequence"],"rows":[["Unclaimed, claim succeeds","S4, `IN_REVIEW`","Off others' unclaimed filter, still platform-visible"],["Claimed near-simultaneously by two","Contested","First commit wins; loser sees who, can't duplicate"],["Fraud case = double-brokering/identity-theft, freight-in-motion","Auto-escalate, senior tier","No human gate \u2014 FR-1107"],["Claim nears 30/120/60-day mark","Auto-escalate","`[NEEDS INPUT]` window; statutory floor never configurable down"],["Manual escalation","Reason required","Logged, senior tier notified"]]}],"notes":["**Shift handoff:** no staffing model exists (`DEP-900`) \u2014 FR-1108 keeps every open case, claimed or not, platform-wide visible; the handoff note is the only mechanism, not a roster. `FR-1106` auto- return threshold `[NEEDS INPUT]` \u2014 an abandoned claim ages visibly (EC-1101), never silently reassigns.","**Branch \u2014 claim/contest/escalate**"],"key":"D5-S2"},{"title":"2. Working three case kinds (SCR-931)","steps":[],"branches":[{"title":"","header":["Kind","State","Actions available","Never available","Traces"],"rows":[["Carrier no-show at dock","`\u00b7No-show`","Contact carrier, reassign via cascade/re-auction (FR-1124 \u2014 ops picks *path*, never hand-picks a winner outside ranked pool), log ground","Force-award off-pool","BR-301/304, `DEC-309`"],["Insurance lapse mid-trip","`\u00b7Vetting-lapse-in-flight`","Flag tuple, pin freight-in-motion (FR-1103/1115), require ID/doc re-check at drop, monitor","**Auto-abort the physical trip** \u2014 settled, BR-218/219, FR-1310","FR-1115"],["Delivery refused, freight on truck","`\u00b7Delivery-refused`","Log reason, route `RETURN_TO_ORIGIN`, open `DISPUTE_FREIGHT` if contested, coordinate RTO","Mark `DELIVERED` by ops fiat","\u00a73.3, BR-813"]]}],"notes":["**CHALLENGE:** `ENT-324.case_type`'s six values have no slot for two items F11's own prose opens: FR-1115's `vetting-lapse-in-flight` tag, and \u00a77.8/EC-1205/1211's offline-sync reconciliation item (\u00a73 below). Both \"open a case, route to \u00a713\" in text but can't persist as typed `ExceptionCase` today. Recommend adding `VETTING_LAPSE`/`DATA_RECONCILIATION` before build proceeds past mock data."],"key":"D5-S3"},{"title":"3. Offline-POD sync conflict (SCR-931, new state)","steps":[{"id":"S1","frame":"`[SCR-931]\u00b7Sync conflict`","sees":"Competing captures side by side: device-local time, server-received time, each event's assumed precondition state vs. current canonical state","does":"Opens item (auto-routed, never a generic exception)","system":"`ERR-550`/`553` surfaces raw events, neither applied","next":"S2","fails":"\u2014","uid":"D5:D5-S4:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"same","sees":"Evidence per candidate (photo/signature/exception note), clock-skew flag if `ERR-552` present","does":"Compares, picks authoritative capture **or** requests both preserved sequentially (addendum, never overwrite \u2014 FR-1129/BR-512)","system":"Nothing auto-resolves","next":"S3","fails":"Evidence gap (e.g. missing photo) \u2192 flagged, choice not forced","uid":"D5:D5-S4:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`\u00b7Sync conflict\u00b7Resolved`","sees":"Chosen event applied; superseded event retained, linked","does":"Confirms with named reason (mirrors FR-1123)","system":"Canonical write proceeds; addendum shows both attempts","next":"Load resumes lifecycle","fails":"State advanced again meanwhile \u2192 re-enters S1, not auto-retried","uid":"D5:D5-S4:S3","src":"D5-flow-ops-admin.md"}],"branches":[],"notes":[],"key":"D5-S4"},{"title":"4. Support impersonation ([NEW] SCR-935)","steps":[{"id":"S1","frame":"`[SCR-935]\u00b7Initiate`","sees":"Target user, scope (whole-account read vs. one named load), reason field","does":"Fills fields, fresh MFA (FR-148)","system":"Validates scope vs `granted_case`; consent per FR-1133 (`[NEEDS INPUT]` implicit-ToS vs. explicit)","next":"S2","fails":"Target under own open fraud case \u2192 blocked (EC-1104)","uid":"D5:D5-S5:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"`\u00b7Active session` + persistent banner on every touched screen","sees":"\"Viewing as {user}, ticket {id}, expires {t},\" read-only content","does":"Browses read-only","system":"Every render tags `actor_user_id`\u2260`real_actor_user_id`, audited (FR-149)","next":"S3 or auto-expire","fails":"Screen involves an identity-bound action (accept award, sign POD, change payee/banking) \u2192 controls hard-disabled (FR-1135)","uid":"D5:D5-S5:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`\u00b7Write-as confirm`","sees":"\"Acting on behalf of user X, ticket Y\" modal","does":"Confirms mutating action","system":"Separate audit entry; identity-bound actions still excluded unconditionally","next":"Action executes, logged","fails":"Cancel/mismatch \u2192 no-op","uid":"D5:D5-S5:S3","src":"D5-flow-ops-admin.md"},{"id":"S4","frame":"`\u00b7Expired`","sees":"\"Session ended,\" no replay of live content (EC-1116)","does":"Requests new session if needed","system":"Server-side time-box, `[NEEDS INPUT]` duration","next":"S1","fails":"\u2014","uid":"D5:D5-S5:S4","src":"D5-flow-ops-admin.md"}],"branches":[{"title":"","header":["Scope","Read","Write"],"rows":[["Whole-account","\u2713","Only via S3, never identity-bound actions"],["One named load","\u2713, scoped","Same S3 gate, narrower `granted_case`"]]}],"notes":[],"key":"D5-S5"},{"title":"5. Configuration ([NEW] SCR-934)","steps":[{"id":"S1","frame":"`[SCR-934]\u00b7List`","sees":"All 11 parameters + gate-policy tier, each with version/author/date","does":"Selects a parameter","system":"Read scoped `PLATFORM_CONFIG_ADMIN`/`PERM-264` only","next":"S2","fails":"Wrong role \u2192 denied \u2014 `PLATFORM_CARRIER_VETTING` explicitly excluded from gate edits (FR-1145)","uid":"D5:D5-S6:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"`\u00b7Edit`","sees":"New value, effective-date, mandatory reason","does":"Submits","system":"New versioned row, attributed, dated (FR-1144); never overwrites prior","next":"S3","fails":"Missing reason \u2192 blocked","uid":"D5:D5-S6:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`\u00b7Applied`","sees":"\"Applies to auctions not yet published\" (or immediate if a runtime-behaviour parameter)","does":"\u2014","system":"`AUCTION_OPEN` instances untouched (FR-1143); award record stores governing version (FR-650)","next":"S1","fails":"Mid-`AUCTION_OPEN` edit for a value-locking parameter \u2192 queues for future auctions only (EC-1105), not rejected","uid":"D5:D5-S6:S3","src":"D5-flow-ops-admin.md"}],"branches":[],"notes":[],"key":"D5-S6"},{"title":"6. Carrier vetting queue (SCR-940)","steps":[{"id":"S1","frame":"`[SCR-940]\u00b7Default`","sees":"Candidates (new + re-verifying, tagged distinct \u2014 FR-1114), freight-in-motion pinned (FR-1115)","does":"Opens candidate","system":"Scoped `PLATFORM_CARRIER_VETTING`, `platform_wide`","next":"S2","fails":"Empty \u2192 `Empty`","uid":"D5:D5-S7:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"`\u00b7Evidence`","sees":"Per-tuple evidence + last-verified time for all six elements; COI shown insurer-confirmed vs. carrier-uploaded, **never equivalent** (FR-1111); specific equipment/driver record, never carrier rollup (FR-1116)","does":"Decides APPROVE/REJECT/HOLD-FOR-INFO/CONDITIONAL, reason always required","system":"Writes decision; non-bidding until explicit APPROVE (BR-908)","next":"S3","fails":"No reason \u2192 blocked","uid":"D5:D5-S7:S2","src":"D5-flow-ops-admin.md"},{"id":"S3a","frame":"`\u00b7Approve`","sees":"Confirm","does":"Approves","system":"`PERM-240`, approver\u2260editor (maker-checker)","next":"Resolved","fails":"Self-approve \u2192 denied","uid":"D5:D5-S7:S3a","src":"D5-flow-ops-admin.md"},{"id":"S3b","frame":"`\u00b7Override(FAIL\u2192approve)`","sees":"Automated-FAIL banner, mandatory per-element justification, \"needs second approver\"","does":"Submits","system":"`PERM-260` writes addendum type `OVERRIDDEN`, every failed element cited individually (FR-1351) \u2014 never blanket","next":"S4","fails":"Missing per-element justification \u2192 blocked (FR-1352)","uid":"D5:D5-S7:S3b","src":"D5-flow-ops-admin.md"},{"id":"S4","frame":"`\u00b7Second approve`","sees":"Full override context, first reviewer named","does":"Distinct `PLATFORM_SENIOR_REVIEWER` approves/rejects","system":"Bid-eligibility flips only on second approve","next":"Resolved","fails":"No second approver on shift \u2192 **stalls, no safe default** (EC-1106)","uid":"D5:D5-S7:S4","src":"D5-flow-ops-admin.md"}],"branches":[{"title":"","header":["Outcome","Destination","Consequence"],"rows":[["APPROVE (gate passed)","Bid-eligible immediately","Single approver, maker\u2260checker"],["REJECT (even if all checks passed)","Non-bidding","Reviewer discretion permitted, BR-908"],["Override FAIL\u2192APPROVE","Held pending second approver","Never single-actor; addendum evidence trail"],["HOLD-FOR-INFO","Re-queued","No bidding meanwhile"]]}],"notes":["**Branch \u2014 vetting decision**"],"key":"D5-S7"},{"title":"7. Fraud review (SCR-941)","steps":[{"id":"S1","frame":"`[SCR-941]\u00b7Default`","sees":"Case from arrival mismatch (driver/tractor/MC\u2260awarded tuple, BR-221/224 \u2014 flagship signal) or anomaly/contact/remit-change (FR-1117), triggering signal typed","does":"Opens case","system":"Scoped `PLATFORM_FRAUD_REVIEWER`","next":"S2","fails":"\u2014","uid":"D5:D5-S8:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"`\u00b7Evidence`","sees":"Signal+evidence, award/selection record, vetting history, **cross-load pattern view**, comms log (FR-1118)","does":"Investigates","system":"Read-only aggregation","next":"S3","fails":"Cross-case pattern can't auto-classify \u2014 flagged for human (EC-1115)","uid":"D5:D5-S8:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`\u00b7Classify`","sees":"Four outcomes: double-brokering / identity-theft / disclosed-and-revetted (closes, no case) / indeterminate-escalate","does":"Selects","system":"`fraud.classified`; disclosed-and-revetted closes but review stays on record (EC-1107)","next":"S4 or resolved","fails":"\u2014","uid":"D5:D5-S8:S3","src":"D5-flow-ops-admin.md"},{"id":"S4","frame":"`\u00b7Containment (freight in motion)`","sees":"**No cancel affordance \u2014 absent.** Available: withhold payment/settlement, flag `custody-under-investigation`, require ID re-check at drop, generate LE/insurer referral (FR-1120)","does":"Applies containment","system":"Suspension halts new bids/awards, doesn't strand the load (BR-818/FR-1121)","next":"Monitors to resolution","fails":"Plainly stated: **cannot recall a truck in transit** \u2014 a real ceiling","uid":"D5:D5-S8:S4","src":"D5-flow-ops-admin.md"}],"branches":[{"title":"","header":["Path","Protects","Costs"],"rows":[["Disclose pre-resolution","Fair notice, due process, may surface a legitimate explanation early","Tips off real fraud mid-investigation, risks evidence/asset flight"],["Withhold pending resolution","Containment integrity, referral packet's evidentiary value","Flagged carrier can't respond; due-process exposure if wrong"]]},{"title":"","header":["Outcome","Destination","Consequence"],"rows":[["Cleared (disclosed-and-revetted)","Closes","Review stays on record"],["Contained, freight in motion","Stays open, monitored","No cancel path exists structurally"],["Escalated","Senior tier","Litigation hold if theft/injury/fatality/open claim (BR-819) \u2014 never deletable after"]]}],"notes":["**Disclosure question \u2014 mapped both ways, not picked (`[NEEDS INPUT]`, FR-1120):**","**Branch \u2014 fraud outcome**"],"key":"D5-S8"},{"title":"8. Overrides","steps":[],"branches":[{"title":"","header":["Override","Where","Gate"],"rows":[["Force stuck transition","SCR-931","Named actor, reason, before/after, audited (FR-1123); blocked/warned if an open fraud case exists (EC-1114)"],["Re-award after decline/lapse/void","SCR-931","Same gate + ranked pool; ops picks cascade-vs-re-auction, never a specific carrier (FR-1124)"],["Waive charge / claim payout","SCR-931 / collections","Requester\u2260approver, second approver above `[NEEDS INPUT]` threshold"],["Reinstate suspended carrier","SCR-943","Second approver\u2260suspender (FR-1127); blocked while a fraud case is open (EC-1102)"],["**Force-award to gate-failed carrier**","**Nowhere \u2014 no affordance exists, any tier**","FR-1128: refused outright \u2014 the action is absent, not disabled"]]},{"title":"","header":["Type","Destination","Consequence"],"rows":[["Overridable","Executes, named actor+reason, audited","Reversible only by a new logged event, never edited history"],["Never overridable","No control renders","Gate bypass, POD/selection-record edits, re-ordering a closed auction, self-approval \u2014 structurally absent"]]}],"notes":["**Branch \u2014 permitted/refused**"],"key":"D5-S9"},{"title":"9. Audit review (SCR-942)","steps":[{"id":"S1","frame":"`[SCR-942]\u00b7Search`","sees":"Search by load/carrier/date; entitled-party framing (49 CFR 371)","does":"Searches","system":"`PLATFORM_AUDITOR` (`platform_wide`, read-only, PERM-250/251) or ops via `granted_case`","next":"S2","fails":"No match \u2192 `Empty`","uid":"D5:D5-S10:S1","src":"D5-flow-ops-admin.md"},{"id":"S2","frame":"`\u00b7Record`","sees":"Full 371.3 six-element package + selection record + custody events, from stored snapshot alone (FR-1200, no live re-query)","does":"Views, exports","system":"Read path independent of transactional write path (NFR-1229)","next":"S3","fails":"Export target unreachable \u2192 retry, never a partial silent file","uid":"D5:D5-S10:S2","src":"D5-flow-ops-admin.md"},{"id":"S3","frame":"`\u00b7Exported`","sees":"Confirmation, `trace_id`","does":"\u2014","system":"Cross-org audit access itself audited, bounded to ops (NFR-1230)","next":"\u2014","fails":"\u2014","uid":"D5:D5-S10:S3","src":"D5-flow-ops-admin.md"}],"branches":[],"notes":["**Counts:** 9 flows (30 steps across 9 tables) \u00b7 8 frames (6 F9 + 2 `[NEW]`) \u00b7 8 branch tables \u00b7 1 `CHALLENGE`. All screens are permission-aware (\u00a74); ops access is bound to `granted_case` \u2014 the case being worked, not the whole platform \u2014 everywhere except `PLATFORM_AUDITOR`/`PLATFORM_ADMIN` (`platform_wide` by design, both structurally read-only or identity-only).","**Built vs. spec:** SCR-930 alone is built (Default-open, Empty, static Contested). SCR-931, SCR-934[NEW], SCR-935[NEW], SCR-940, SCR-941, SCR-942, SCR-943 are specified, not built.","**Three questions only Boss can answer:** 1. Fraud disclosure (\u00a77, FR-1120) \u2014 does the suspect carrier see the flag before resolution? Containment and fair notice pull opposite ways; no default exists. 2. `EC-1106` \u2014 second approver required but none on shift: spec says \"stalls, no safe default.\" Is that acceptable at launch, or does Boss want a named fallback escalation despite the weaker segregation-of-duty? 3. This doc's `CHALLENGE` \u2014 extend `ENT-324.case_type` now, or leave `VETTING_LAPSE`/sync-conflict items un-typed and queue-unioned without a formal case record?","**Screen whose absence hurts day one most:** SCR-931. SCR-930 lists work, but claim/escalate/resolve and the \u00a73 sync adjudication have nowhere to execute \u2014 a queue showing what's broken with no tool to fix it, on freight moving 24/7 with no staffing model defined yet."],"key":"D5-S10"}]}],"frames":[{"scr":"900","screen":"Load Dashboard","persona":"Shipper / 10","status":"**Built**","source":"F9, `D2`"},{"scr":"901","screen":"Post a Load","persona":"Shipper / 10","status":"**Built**","source":"F9, `D2`"},{"scr":"902","screen":"Auction Watch","persona":"Shipper / 10","status":"**Built**","source":"F9, `D2`"},{"scr":"903","screen":"Award & Accept-Flow Monitor","persona":"Shipper / 10","status":"Spec only \u2014 blocked on DEC-307 (\u00a74)","source":"F9, `D2`"},{"scr":"904","screen":"Shipment Tracker","persona":"Shipper / 10","status":"**Built** (`shipment-detail`)","source":"F9, `D2`"},{"scr":"905","screen":"Exception Inbox","persona":"Shipper / 10","status":"Spec only","source":"F9, `D2`"},{"scr":"906","screen":"Invoice Approval","persona":"Shipper / 10","status":"Spec only","source":"F9, `D2`"},{"scr":"907","screen":"Claim Intake","persona":"Shipper / 10","status":"Spec only","source":"F9, `D2`"},{"scr":"908","screen":"Standing & Cancellation History","persona":"Shipper / 10","status":"Spec only \u2014 unfulfillable, orphan `BR-106`","source":"F9, `D2`, `D6`"},{"scr":"**[NEW] 909**","screen":"Org Setup & Verification","persona":"Shipper / 10","status":"Spec only","source":"`D2` \u00a71, assembler ID"},{"scr":"910","screen":"Load Board","persona":"Carrier / 11","status":"**Built**","source":"F9, `D3`"},{"scr":"911","screen":"Bid & Comparison","persona":"Carrier / 11","status":"**Built up to rival-visibility fork**","source":"F9, `D3` \u2014 blocked, DEC-302/303 (\u00a74)"},{"scr":"912","screen":"Fleet Assignment","persona":"Carrier / 11","status":"Spec only","source":"F9, `D3`"},{"scr":"913","screen":"Active Loads","persona":"Carrier / 11","status":"Spec only","source":"F9, `D3`"},{"scr":"914","screen":"Breakdown / Exception Report","persona":"Carrier / 11","status":"Spec only","source":"F9, `D3`"},{"scr":"915","screen":"Driver & Equipment Roster","persona":"Carrier / 11","status":"Spec only","source":"F9, `D3`"},{"scr":"916","screen":"Settlement Status","persona":"Carrier / 11","status":"Spec only","source":"F9, `D3`"},{"scr":"**[NEW] 917**","screen":"Carrier Sign-up & Vetting Intake","persona":"Carrier / 11","status":"Spec only","source":"`D3` \u00a71, assembler ID"},{"scr":"**[NEW] 918**","screen":"Vetting Status","persona":"Carrier / 11","status":"Spec only","source":"`D3` \u00a71, assembler ID"},{"scr":"**[NEW] 919**","screen":"Award Notification & Accept","persona":"Carrier / 11","status":"Spec only \u2014 **closes D6's gap 7**","source":"`D3` \u00a75, assembler ID"},{"scr":"920","screen":"Today (home)","persona":"Driver / 12","status":"**Built**","source":"F9, `D4`"},{"scr":"921","screen":"Navigation Handoff","persona":"Driver / 12","status":"Spec only \u2014 thinnest F9 spec","source":"F9, `D4`"},{"scr":"922","screen":"Arrival / Departure Capture","persona":"Driver / 12","status":"Spec only","source":"F9, `D4`"},{"scr":"923","screen":"Document Capture","persona":"Driver / 12","status":"Spec only","source":"F9, `D4`"},{"scr":"924","screen":"POD Capture","persona":"Driver / 12","status":"**Built** (full 7-step)","source":"F9, `D4`"},{"scr":"925","screen":"Report a Problem","persona":"Driver / 12","status":"Spec only","source":"F9, `D4`"},{"scr":"926","screen":"Language & Support","persona":"Driver / 12","status":"Spec only \u2014 thin","source":"F9, `D4`"},{"scr":"927","screen":"Invite Accept & Device Bind","persona":"Driver / 12","status":"Spec only","source":"`[NEW]`, `D4`"},{"scr":"928","screen":"Sync Held for Review","persona":"Driver / 12","status":"Spec only","source":"`[NEW]`, `D4`"},{"scr":"929","screen":"Session Ended","persona":"Driver / 12","status":"Spec only","source":"`[NEW]`, `D4`"},{"scr":"930","screen":"Exception Work Queue","persona":"Ops / 13","status":"**Built** (Default/Empty/Contested)","source":"F9, `D5`"},{"scr":"931","screen":"Exception Detail & Resolution","persona":"Ops / 13","status":"Spec only","source":"F9, `D5`"},{"scr":"932","screen":"Claims Desk","persona":"Ops / 13","status":"**No design coverage at all**","source":"F9 \u2014 see `DESIGN-GAPS.md` row 2"},{"scr":"933","screen":"Silence / No-Response Monitor","persona":"Ops / 13","status":"**No design coverage at all**","source":"F9 \u2014 see `DESIGN-GAPS.md` row 2"},{"scr":"934","screen":"Configuration Console","persona":"Ops / 13","status":"Spec only","source":"`[NEW]`, `D5`"},{"scr":"935","screen":"Impersonation Console","persona":"Ops / 13","status":"Spec only","source":"`[NEW]`, `D5`"},{"scr":"940","screen":"Carrier Vetting Queue","persona":"Admin/Fraud / 14","status":"Spec only \u2014 unreachable in built shell","source":"F9, `D5`"},{"scr":"941","screen":"Fraud Case Review","persona":"Admin/Fraud / 14","status":"Spec only \u2014 unreachable in built shell","source":"F9, `D5`"},{"scr":"942","screen":"Selection Record / Audit Viewer","persona":"Admin/Fraud / 14","status":"Spec only \u2014 unreachable in built shell","source":"F9, `D5`"},{"scr":"943","screen":"Enforcement Action","persona":"Admin/Fraud / 14","status":"Spec only \u2014 unreachable in built shell","source":"F9, `D5`"},{"scr":"**[NEW] 950**","screen":"Consignee Delivery Link","persona":"**No page owns this**","status":"Recommended, not yet specified as frames","source":"`D6` \u00a73"}],"gaps":[{"n":"1","gap":"`AWARD_LAPSED` / `AWARD_VOIDED_INELIGIBLE` has no ops resolution home","missing":"These two award outcomes are not among `ENT-324.case_type`'s six values, so `SCR-930`'s Exception Work Queue never ingests them (H2/H6 in the cross-flow map). Ops is paged (`EVT-1008`/`1009`) but has no screen, queue row, or case record to work against.","found":"`D6` (H2, H6, \u00a76 item 3); cross-referenced against `D5`'s independent `CHALLENGE` that `ENT-324` structurally excludes it","consequence":"**F10 names a missed `award.confirmed` the single most expensive failure mode in the whole system \u2014 an uncollected load.** The operational recovery for that exact failure currently has no tool. This is not a missing nice-to-have; it is the costliest gap in the product with the least coverage.","closing":"Extend `ENT-324.case_type` (ties directly to row 6) **and** add a resolution frame/state \u2014 either a new `SCR-931` case kind alongside no-show / vetting-lapse / delivery-refused, or a dedicated queue lane on `SCR-930`. Needs a product decision on which."},{"n":"2","gap":"`SCR-932` (Claims Desk) and `SCR-933` (Silence/No-Response Monitor) have zero design coverage","missing":"Both are F9-specified Ops screens (\u00a71.4) that `D6`'s own frame index (\u00a75) attributes to \"13 / D5\" \u2014 but `D5`'s delivered file never mentions either `SCR-` ID once. No anatomy, no states, no step table, no branch table exists for either screen anywhere in D1-D6.","found":"**Assembler** (cross-check between D6's frame index and D5's actual content \u2014 neither D5 nor D6 flagged the omission itself)","consequence":"Claims Desk governs the Carmack **30/120/60-day statutory clock** (`BR-807`/`808`) \u2014 a real legal deadline with financial consequence if missed. Silence/No-Response Monitor is the operational catch for `BR-401`/`409`'s missed-status-interval detection \u2014 the mechanism `D2`'s own shipper flow (`SCR-904` Stale state) depends on ops actually working. Two screens carrying legal-clock and detection responsibility are going to engineering with **no design review at all** \u2014 exactly the class of miss this whole audit exists to catch.","closing":"A follow-up design pass \u2014 re-scope `D5` or dispatch a focused agent \u2014 specifically for `SCR-932` and `SCR-933` before either reaches build."},{"n":"3","gap":"The Consignee has no `SCR-` ID anywhere in F9's 31-screen inventory","missing":"The party whose signature triggers `POD_CAPTURED \u2192 INVOICE_ISSUED` and effectively closes the shipment has no reviewed screen. Their entire surface is defined only at the API/entity layer: physical signature captured on the *driver's* device (`SCR-924`), a tokenised read link (`API-112`), and a tokenised action link (`API-113`) \u2014 none of it has been through a UX pass for expiry, wrong-load, already-used, or forwarded-to-the-wrong-person states.","found":"`D6` (\u00a73, \u00a76 item 1)","consequence":"The highest-stakes actor outside the four core personas is being built straight from an API contract. Failure modes are real and already named in the FRD (opened after expiry \u2192 generic 401, no consignee-specific error code; forwarded to the wrong person \u2192 accepted risk, not a bug; used twice \u2192 rejected correctly) but none has been through a screen-state design pass \u2014 they will be built ad hoc by whoever implements the API contract literally.","closing":"`D6`'s recommended `[NEW] SCR-950` (Default/Expired/Used/Wrong-load) \u2014 **but see the structural note below: no page in the spine's page tree currently owns a Consignee flow at all.** That is a level-up gap from the screen gap itself."},{"n":"4","gap":"`PARTIAL_DELIVERY` has no line-level split-POD UI","missing":"`BR-507` requires line-level split capture when some freight delivers and the remainder is routed elsewhere. `SCR-924`'s actual F9 spec (\u00a73) describes only the binary \"Delivered CLEAR\" vs. \"Delivered WITH EXCEPTION\" forced choice \u2014 no split-line frame exists. `D2`'s shipper-side flow (S37) describes the *outcome* of a partial delivery after the fact but that is not a capture UI.","found":"`D6` (\u00a76, lifecycle-state audit), cross-referenced against `BR-507` directly","consequence":"`SCR-924` is the screen that legally fixes the delivery record (`BR-512` \u2014 fixed once captured, any later addition is a separately timestamped addendum). A genuine, common custody outcome has no matching capture path on that screen as specified \u2014 a driver facing a real partial delivery has no honest way to record it in the current design, only a binary choice that doesn't fit the situation.","closing":"A new `SCR-924` sub-state/frame for line-level split capture (per-line clear/exception/quantity), matched to `BR-507`, preserving the existing \"no default, equal tap-count\" discipline `D4` calls the product's single most consequential correctness property."},{"n":"5","gap":"**SOURCE CONFLICT** \u2014 `BR-144` contradicts the FRD's own state model on post-pickup cancellation","missing":"`BR-144` (BRD) says cancellation is unavailable once `PICKED_UP`. The FRD's own \u00a73.3 state adjacency permits `IN_TRANSIT \u2192 CANCELLED_BY_SHIPPER(charged)`, and `EC-509` explicitly reads *\"shipper cancels post-pickup, pre-delivery: allowed, with a financial consequence\"* \u2014 contrasted against `ERR-516`, which only fires at/after `POD_CAPTURED`. Two source documents disagree on where the cutoff actually is.","found":"`D2` (\u00a76, filed as `CHALLENGE`, explicitly **not** decided by the design agent)","consequence":"Whichever reading ships, the other governing document is directly contradicted. A shipper could be told cancellation is categorically impossible mid-transit by one spec path, and be charged a mid-transit cancellation fee for the identical action under another. If this reaches production un-reconciled, it is a real billing/legal exposure, not a UI inconsistency. **This is a business decision, not a design call** \u2014 `D2` correctly followed the FRD reading for its own flow (S29) and flagged rather than resolved it.","closing":"Boss (or whoever owns BRD/FRD reconciliation) picks the actual cutoff and the losing document gets corrected. Design cannot resolve a contradiction between its two source-of-truth documents."},{"n":"6","gap":"`ENT-324.case_type` has no slot for `VETTING_LAPSE` or `DATA_RECONCILIATION`","missing":"`FR-1115`'s vetting-lapse-in-flight tag and \u00a77.8/`EC-1205`/`1211`'s offline-POD-sync-reconciliation item both instruct \"open a case, route to ops\" in FRD prose, but `ENT-324`'s six case-type values (`FRAUD_REVIEW`, `CARGO_INTEGRITY`, `CARGO_CLAIM`, `DISPUTE_FREIGHT`, `DISPUTE_MONEY`, `CARRIER_ENFORCEMENT_COLLISION` \u2014 verified directly against `FRD-v1.md` line 234) do not include either.","found":"`D5` (`CHALLENGE`, \u00a72) \u2014 **accepted by the manager**","consequence":"`SCR-931`'s own \"Vetting-lapse-in-flight\" state (\u00a72) and \"Sync conflict\" state (\u00a73) are designed against a data-model enum value that does not exist. Two real ops workflows \u2014 an insurance lapse discovered while freight is physically in motion, and a POD sync conflict that decides who gets paid \u2014 have UI designed for them but no way to persist as a typed case today.","closing":"Add `VETTING_LAPSE` and `DATA_RECONCILIATION` to `ENT-324.case_type` before `SCR-931` leaves spec. Small schema change, blocking dependency for a screen already designed around it."},{"n":"7","gap":"Carrier award accept/decline (`PERM-217`) had no screen claiming it \u2014 **RECONCILED**","missing":"`D6` filed a `CHALLENGE` against `D3`/F9: `SCR-911`'s \"outcome\" state is documented as read-only narrative, but the accept/decline action has to live somewhere and no F9 screen claims it. Independently, in the same design pass, `D3` had already added three `[NEW]` frames for exactly this (\u00a75 \u2014 Award Notification & Accept, assembled as `SCR-919`).","found":"`D6` (challenge) + `D3` (independent fix, same round)","consequence":"If left unreconciled, this would have shipped as a real screen gap on the single action F10 names as gating the system's costliest failure mode (row 1). **It does not ship unreconciled** \u2014 D3's answer satisfies D6's own second recommended option (\"or specify a `[NEW]` screen\"). The only residual risk is implementation duplicating the control across `SCR-911`'s outcome state *and* `SCR-919`.","closing":"Confirm with `frontend-engineer-agent`: `SCR-911`'s outcome state stays read-only narrative; the accept/decline control lives solely on `SCR-919`. No further design work needed \u2014 this is now a wiring instruction, not an open gap."},{"n":"8","gap":"Admin/Fraud (`SCR-940`-`943`) has no entry point in the built persona switcher","missing":"`prototype.html`'s shell implements four persona buttons \u2014 Shipper, Carrier, Ops, Driver. Admin/Fraud is a fifth flow page (spine page 14) with zero of its four screens reachable from the running build, regardless of how complete their specs are.","found":"`D6` (\u00a74, \u00a76 item 6)","consequence":"The entire vetting/fraud/audit/enforcement surface \u2014 the layer carrying maker-checker overrides and the `Montgomery`-driven immutable selection record that `DEC-LOCK-001` made load-bearing for the whole product \u2014 is unreachable today. This is a wiring gap, not a spec gap, but it fully blocks verification of anything D5 designs for pages 14.","closing":"A fifth persona-switch entry (or a role-gated sub-nav under an existing persona). `frontend-engineer-agent` task, not a design task \u2014 flagged here so it isn't lost between design and build."},{"n":"9","gap":"No Cancel Load confirmation frame exists at any stage","missing":"`PERM-203`/`204` define who may cancel and when; no `SCR-` renders the cancel action or its confirmation state. `D2` \u00a76 wrote step-level cancel-modal *copy* for four distinct stages (pre-award / post-award pre-dispatch / post-dispatch pre-pickup / mid-transit) but none of it is a reviewed frame with its own states.","found":"`D6` (\u00a76 item 4)","consequence":"Cancellation is one of the highest-liability action families in the product \u2014 it produces TONU claims, RTO charges, and (per row 5) sits directly on top of an unresolved source conflict. It currently exists only as prose inside a flow table, not as a component-level frame anyone can implement consistently across the four stages.","closing":"Promote `D2` \u00a76's four cancel-modal variants to a named frame set (attach to `SCR-904`/`900`), each carrying its own state per spine \u00a73. Cannot fully close until row 5 (the BR-144/FRD conflict) is also resolved, since the mid-transit variant's copy depends on the answer."},{"n":"10","gap":"`RETURN_TO_ORIGIN` has no tracking screen for any persona","missing":"RTO exists as a `Custody Event` type (`ENT-315`) but no `SCR-` shows RTO progress. Three separate flows route freight there \u2014 `D2` S29/S38 (shipper cancellation, delivery refusal), `D4` \u00a75.3 (driver, full refusal), `D5` \u00a72 (ops, delivery-refused case kind) \u2014 and all three reference \"RTO tracking\" as a destination that does not structurally exist as a frame.","found":"`D6` (\u00a76 item, lifecycle-state audit)","consequence":"Freight physically moving back to origin, accruing real detention/RTO charges, has no dedicated view for shipper, carrier, or ops to watch it happen \u2014 three independently-designed flows all point at the same missing screen.","closing":"A shared RTO progress frame, most naturally a `SCR-904`/`913` sub-state, that all three personas' existing flow references can point to consistently instead of a named-but-nonexistent destination."},{"n":"11","gap":"`CANCELLED_BY_SHIPPER` has no confirmation frame as its own named state","missing":"Overlaps row 9's remedy but named specifically by `D6`'s lifecycle-state audit as a state with no screen rendering it distinctly.","found":"`D6` (\u00a76, lifecycle-state audit)","consequence":"Same consequence family as row 9 \u2014 a permitted, BR-cited action with no reviewed confirmation UI. Listed separately because it is one of the six explicitly-audited lifecycle states, not because the remedy differs.","closing":"Same remedy as row 9 \u2014 the mid-transit cancel-modal variant *is* this state's confirmation frame once built."},{"n":"12","gap":"`CARRIER_NO_SHOW` has no dedicated named state at the ops/shipper-facing layer","missing":"Folds into a generic exception banner rather than a distinct, colour+icon+text-labelled state per `D1`'s status discipline. `D5`'s Exception Detail (`SCR-931`) does give it a named \"No-show\" case kind (\u00a72), but that is the ops working-surface, not a shipper- or dashboard-facing named state.","found":"`D6` (\u00a76, lifecycle-state audit)","consequence":"Weakens the \"status is always colour + icon + text, never one generic look\" rule `D1` sets as non-negotiable \u2014 three named, BR-cited failure states (this row + 13 + 14) currently share one undifferentiated banner treatment on `SCR-900`/`904`/`930`.","closing":"Confirm `SCR-931`'s \"No-show\" state (already designed) is sufficient at the ops layer; add an equivalent named state to shipper- and queue-facing screens rather than a shared generic banner."},{"n":"13","gap":"`SHIPPER_NOT_READY` has no dedicated named state at the ops/carrier-facing layer","missing":"Same pattern as row 12 \u2014 `D4` \u00a75.2 gives it a driver-side branch (\"Not ready,\" `SHIPPER_NOT_READY` \u2192 TONU flag) but no distinct named state exists on the screens ops or the carrier actually work from.","found":"`D6` (\u00a76, lifecycle-state audit)","consequence":"Same consequence family as row 12 \u2014 this state carries a real financial consequence (TONU/detention against the shipper, `BR-143`) and currently reads as generic on the screens where a dispatcher or ops reviewer would need to distinguish it at a glance.","closing":"Same remedy pattern as row 12."},{"n":"14","gap":"`PICKUP_REFUSED` has no dedicated named state at the ops/shipper-facing layer","missing":"Same pattern again \u2014 `D4` \u00a75.2 names it clearly at the driver layer (`SCR-922 \u00b7 Refused`, reason `EQUIPMENT_TYPE_MISMATCH`/`UNSAFE_LOAD`) but it has no equivalent named state upstream.","found":"`D6` (\u00a76, lifecycle-state audit)","consequence":"Same consequence family as rows 12-13.","closing":"Same remedy pattern as row 12."},{"n":"15","gap":"Lumper-fee capture is delivery-side only; no pickup-side capture affordance","missing":"`BR-516` scopes the lumper-fee flag+receipt-photo affordance to delivery (`SCR-924`) only. The identical accessorial event happens at pickup docks, and `SCR-923` (pickup Document Capture) has no equivalent field.","found":"`D4` (`CHALLENGE`, \u00a75.2) \u2014 **accepted**","consequence":"Legitimate pickup-side lumper fees go uncaptured at the point of occurrence, creating an under-collection or after-the-fact dispute risk at settlement (`SCR-916`) with no photo evidence trail to support the claim.","closing":"Add the identical flag+receipt-photo affordance to `SCR-923` that already exists on `SCR-924`, scoped by `BR-516`'s pattern."},{"n":"16","gap":"`SCR-908` (Standing & Cancellation History) is structurally unfulfillable","missing":"Depends on an upstream feed (`BR-106`) that is an orphan requirement \u2014 it doesn't exist elsewhere in the BRD/FRD. Already correctly identified and handled: the screen renders \"not yet available,\" never fabricates a value (`EC-907`, resolved as a rendering rule).","found":"F9 itself (`EC-907`) \u2014 reconfirmed by `D2` and `D6`","consequence":"Low near-term risk precisely because the honest-rendering rule is already locked. The screen simply ships permanently empty (a correct, labelled empty state) until `BR-106` is ever built upstream.","closing":"No design action needed. A product/data decision on whether `BR-106`'s upstream feed is ever built \u2014 outside this register's scope."},{"n":"17","gap":"`ExceptionCase.RESOLVED` confirmation trigger for `CARGO_INTEGRITY`/`FRAUD_REVIEW`/`CARRIER_ENFORCEMENT_COLLISION` is unconfirmed against F9's original text","missing":"`EVT-1049` is new at the assembly layer; `SCR-931`'s generic \"Resolve\" action (S5) is the *presumed* trigger for closing these three case kinds, but this was never checked against F9's original prose. `D5` \u00a72 already shows three genuinely different action sets per case kind (no-show / vetting-lapse / delivery-refused) \u2014 the same rigor has not yet been applied to the resolve/close action specifically.","found":"`D6` (\u00a76, coverage audit)","consequence":"Low probability but real: if fraud-case resolution needs senior-tier sign-off (as `D5` \u00a77's own containment/classify flow implies) while a single generic \"Resolve\" button exists on `SCR-931`, a fraud closure could be under-gated relative to what `D5`'s own fraud-review flow requires.","closing":"Confirm `SCR-931`'s Resolve action forks by `case_type` with the same distinctness `D5` \u00a72 already applies to the three other case kinds, specifically checking the fraud-closure gate against `D5` \u00a77's classify/contain flow."},{"n":"18","gap":"`banner--attention` CSS modifier was used in markup but never defined \u2014 **CLOSED**","missing":"The auction-extended banner (`awExtendedBanner`) stacked `.banner--attention` with `.banner--stale`; because `--attention` had no CSS definition, it silently fell through to `--stale`'s styling. Separately, the thin-market banner had no styling at all.","found":"`D1` (`CHALLENGE`)","consequence":"**Fixed by the manager in `prototype.html`.** Recorded here so it is not rediscovered \u2014 the auction-extended banner had been silently inheriting stale styling, and the thin-market banner had no styling at all, before the fix.","closing":"Closed. No further action."},{"n":"19","gap":"`[hidden]` attribute was losing to component `display` rules \u2014 **CLOSED**","missing":"Component rules that set an explicit `display` value beat the UA stylesheet's `[hidden]{display:none}`, so stale banners and empty states stayed visibly rendered across every preview state in `prototype.html`.","found":"Manager (assembler), during this assembly pass","consequence":"**Fixed** \u2014 a global `[hidden]{display:none !important}` rule corrected 14 affected elements. Recorded here so it is not rediscovered.","closing":"Closed. No further action."}],"decisions":[{"title":"DEC-302/303 \u2014 Rival-bid visibility on `SCR-911`","body":"Three agents converged independently on this being unresolved and consequential: F6 found \"sealed +\nstanding-best-flag\" a false middle ground; **F2 proved it leaks rival prices by construction** \u2014\nrepeated decrements binary-search the true price even with amounts hidden; F9 shipped `SCR-911` on the\nconservative default specifically to avoid a `BR-717` violation in production.\n| Option | Adds | Consequence |\n|---|---|---|\n| (a) None \u2014 **built default** | Own bid + countdown + eligible-count only | Cleanest, least informative; weak re-bid signal |\n| (b) Rank-only | \"#2 of 5 eligible\" badge, no amount | At small decrements, rank alone leaks approximate price (`EC-908`) |\n| (c) Leading-price band | Rounded range, never exact | Named leak vector as decrements shrink (F2's finding) |\n**Consequence of not deciding:** `SCR-911` is feature-complete as a swappable component on all three\nshapes but cannot ship past (a) until `DEC-302`/`303` locks \u2014 shipping past it without a decision risks\na `BR-717` violation in production, not a UI bug."},{"title":"DEC-307 / `BR-155` / `EC-325` \u2014 May the shipper decline the lowest qualified bidder?","body":"Asked independently in three separate documents and answered in none of them.\n| Branch | `SCR-903` shape | Consequence |\n|---|---|---|\n| A \u2014 No decline right (`BR-304`, mechanical) | Pure accept/monitor screen | Simpler; matches \"price decides, no human discretion\" (`DEC-LOCK-001`) |\n| B \u2014 Decline right, structured reason required | Adds a reason-code picker tied to on-file carrier data, feeding the immutable selection record (`ENT-312`) | Materially different screen \u2014 not a variant of A, cannot be \"built either way later\" without rework |\n**Consequence of not deciding:** `D2` flags this as the flow's single most-abandonment-prone failure\nstate has no bearing here, but `SCR-903` itself cannot leave spec \u2014 the two branches are structurally\ndifferent screens, and D2's own `CHALLENGE` says so explicitly."},{"title":"DEC-700 \u2014 HOS: planning signal vs. system of record","body":"| Option | Shape | Consequence |\n|---|---|---|\n| A | No hours UI anywhere | Simplest; no feasibility signal to driver or dispatcher |\n| B \u2014 assumed by `D4`/`D3` for spec purposes only | Bounded `FEASIBLE`/`INFEASIBLE` badge, never a ticking clock (`EC-912`'s \"not evaluated\" honest default) | `SCR-920`/`SCR-915`/`SCR-912` designed against this shape; **not wired**, nothing renders without the lock |\n| C | Full RODS dashboard | **Reverses an already-locked data-minimisation constraint** (\u00a714/F12) \u2014 F7 and the assembler both recommend against this |\n**Consequence of not deciding:** `SCR-920` and `SCR-915` cannot finalize; if Boss locks Option A, the\nbadge design in `D4`/`D3` is deleted, not hidden \u2014 it was never meant to survive that outcome.\n---"}],"lifecycle":[{"states":"`DRAFT`\u2192`PUBLISHED`","who":"Shpr (`SHIPPER_LOAD_POSTER`)","sees":"`[SCR-901]` multi-step form, autosaved draft","notified":"\u2014 (`EVT-1000`, T3, Shpr IA only)"},{"states":"`AUCTION_OPEN`\u2192`EXTENDED`\u2192`CLOSED`","who":"Shpr watches; eligible Disp bid","sees":"`[SCR-902]` live bids (Shpr) / `[SCR-911]` bid loop (Disp)","notified":"Ineligible carriers: nothing \u2014 `PERM-230` denies to not-found"},{"states":"`AUCTION_FAILED_*`","who":"Shpr","sees":"`[SCR-902]` failed, named reason","notified":"Disp: `EVT-1004` DG only"},{"states":"`AWARD_PENDING`\u2192`AWARDED`","who":"System re-verifies; Disp accepts/declines (`PERM-217`)","sees":"Shpr: `[SCR-903]` \"verifying\" (`EC-902`) \u2192 outcome. Disp: no dedicated screen \u2014 see \u00a76","notified":"Ops: `EVT-1005` DG"},{"states":"`AWARD_ACCEPTED`","who":"Disp (`+ACCEPT_AWARD`)","sees":"Fleet binding at `[SCR-912]`","notified":"Shpr `EVT-1010` IA,EM"},{"states":"`AWARD_DECLINED`/`LAPSED`/`VOIDED_INELIGIBLE`","who":"Nobody \u2014 this is where the baton drops","sees":"Shpr `[SCR-903]` sees decline/lapse","notified":"Ops `EVT-1008`/`1009` \u2014 **no queue owns it, \u00a76**"},{"states":"`PICKUP_SCHEDULED`\u2192`AT_PICKUP`","who":"Drv","sees":"`[SCR-922]` arrival/departure","notified":"Shpr `[SCR-904]`, Disp `[SCR-913]`"},{"states":"`CARRIER_NO_SHOW`/`SHIPPER_NOT_READY`/`PICKUP_REFUSED`","who":"Ops if unresolved","sees":"No dedicated SCR-, folds into exception banners","notified":"Both sides `EVT-1014/1015/1016`"},{"states":"`PICKED_UP`\u2192`IN_TRANSIT`","who":"Drv","sees":"`[SCR-920]` one primary action","notified":"Shpr `[SCR-904]`, Disp `[SCR-913]`"},{"states":"`TRANSIT_EXCEPTION`","who":"Drv or Disp reports; Ops resolves","sees":"`[SCR-925]`/`[SCR-914]` \u2192 `[SCR-930]`/`[SCR-931]`","notified":"Shpr `EVT-1021` IA,EM"},{"states":"`AT_DROP`\u2192`DELIVERED`/`DELIVERY_ATTEMPTED_NO_RECEIVER`","who":"Drv captures; **consignee signs on the driver's device**","sees":"`[SCR-924]` forced choice","notified":"Cnsg: OOB link only, never in-app"},{"states":"`PARTIAL_DELIVERY`","who":"Drv","sees":"No line-level UI named \u2014 \u00a76","notified":"\u2014"},{"states":"`DELIVERY_REFUSED`\u2192`RETURN_TO_ORIGIN`","who":"Drv/Ops","sees":"RTO has no SCR- at all \u2014 \u00a76","notified":"Shpr `EVT-1026` T0"},{"states":"`POD_CAPTURED`\u2192`INVOICE_ISSUED`\u2192`SETTLED`","who":"Shpr approves/disputes; Disp views","sees":"`[SCR-906]`, `[SCR-916]`","notified":"Ops `EVT-1041` line-held \u2192 **DG only**, not real-time"},{"states":"`ExceptionCase` any type, `OPEN`\u2192`RESOLVED`","who":"Ops (`PLATFORM_EXCEPTION_DESK`)","sees":"`[SCR-930]`\u2192`[SCR-931]`","notified":"Shpr/Disp per \u00a712.1's matrix"}]};
+
+/* ── Persona identity: one hue per lane, drawn from the token set ──── */
+const LANE = {
+  D2: { hue: 'var(--s-blue)',    label: 'Page 10',    short: 'Shpr' },
+  D3: { hue: 'var(--s-violet)',  label: 'Page 11',    short: 'Disp' },
+  D4: { hue: 'var(--s-orange)',  label: 'Page 12',    short: 'Drv'  },
+  D5: { hue: 'var(--s-amber)',   label: 'Page 13-14', short: 'Ops'  },
+};
+const WHO_HUE = [
+  [/Shpr|Shipper/i, 'var(--s-blue)'],
+  [/Disp|Carrier/i, 'var(--s-violet)'],
+  [/Drv|Driver/i,   'var(--s-orange)'],
+  [/Ops|System|Admin/i, 'var(--s-amber)'],
+  [/Cnsg|Consignee/i, 'var(--s-magenta)'],
+];
+
+const ID_RE = /\b(SCR-\d+|ERR-\d+|BR-\d+|FR-\d+|FRD|F\d{1,2}|EVT-\d+|ENT-\d+|PERM-\d+|EC-\d+|ROLE-\d+|API-\d+|DEC-[A-Z0-9/-]+|OS&D|TONU|HOS)\b/g;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+/** markdown-lite → html: `code`, **bold**, plus ID auto-coding */
+function rich(s) {
+  let t = esc(s);
+  t = t.replace(/`([^`]+)`/g, (_, m) => `<code>${m}</code>`);
+  t = t.replace(/\*\*([^*]+)\*\*/g, (_, m) => `<strong>${m}</strong>`);
+  t = t.replace(/(<code>.*?<\/code>)|([^<]+)/g, (m, code, txt) => code || txt.replace(ID_RE, (id) => `<code>${id}</code>`));
+  return t;
+}
+function plain(s) {
+  return String(s == null ? '' : s).replace(/[`*]/g, '');
+}
+const nonTrivial = (s) => { const t = plain(s).trim(); return t && !/^(—|-|n\/a|na|none)\.?$/i.test(t); };
+
+/* ── Node model ────────────────────────────────────────────────────── */
+let NODES = [];      // every clickable node with layout box
+let LANES = [];      // lane boxes
+let CLUSTERS = [];   // cluster boxes
+let EDGES = [];      // {from,to,kind}
+let W = 0, H = 0;
+
+const CARD_W = 244, CARD_H = 138, GAP_X = 20, GAP_Y = 18, ROWS = 3;
+const CL_PAD = 16, CL_GAP = 56, LANE_PAD = 22, LANE_GAP = 64, LANE_HD_W = 240;
+
+function stepTags(st) {
+  const blob = `${st.frame} ${st.sees} ${st.does} ${st.system} ${st.next} ${st.fails}`;
+  const tags = [];
+  if (/\[BUILT\]|\(built\)/i.test(st.frame) || /\[BUILT\]/i.test(blob)) tags.push('built');
+  if (/\[NEW/i.test(st.frame)) tags.push('new');
+  if (/NEEDS INPUT/i.test(blob)) tags.push('input');
+  if (nonTrivial(st.fails)) tags.push('fail');
+  if (st.prose) tags.push('prose');
+  return tags;
+}
+
+function layout() {
+  NODES = []; LANES = []; CLUSTERS = []; EDGES = [];
+  let y = 0;
+
+  /* Baton rail — D6 §1 lifecycle, the shared spine every lane hangs off */
+  const batonRow = DATA.lifecycle.map((lc, i) => ({ ...lc, i }));
+  const batonW = batonRow.length * (232 + 8);
+  LANES.push({ kind: 'baton', x: 0, y: 0, w: Math.max(batonW, 1200), h: 132, rows: batonRow });
+  y = 132 + LANE_GAP;
+
+  /* One lane per persona page */
+  DATA.flows.forEach((flow) => {
+    const laneY = y;
+    let x = LANE_HD_W + LANE_PAD;
+    let maxH = 0;
+    const laneClusters = [];
+
+    flow.sections.forEach((sec, si) => {
+      const items = [];
+      sec.steps.forEach((st) => items.push({ type: 'step', st }));
+      sec.branches.forEach((br, bi) => items.push({ type: 'fork', br, bi }));
+      sec.notes.slice(0, 2).forEach((nt, ni) => items.push({ type: 'note', nt, ni }));
+      if (!items.length) return;
+
+      const cols = Math.ceil(items.length / ROWS);
+      const clW = cols * CARD_W + (cols - 1) * GAP_X + CL_PAD * 2;
+      const rowsUsed = Math.min(items.length, ROWS);
+      const clH = rowsUsed * CARD_H + (rowsUsed - 1) * GAP_Y + CL_PAD * 2 + 30;
+      const cl = {
+        x, y: laneY + 74, w: clW, h: clH,
+        title: plain(sec.title), ix: `${flow.code} §${si + 1}`, flow: flow.code, key: sec.key,
+      };
+      CLUSTERS.push(cl);
+      laneClusters.push(cl);
+
+      let prevUid = null;
+      items.forEach((it, k) => {
+        const col = Math.floor(k / ROWS), row = k % ROWS;
+        const nx = cl.x + CL_PAD + col * (CARD_W + GAP_X);
+        const ny = cl.y + CL_PAD + 30 + row * (CARD_H + GAP_Y);
+        const base = { x: nx, y: ny, w: CARD_W, h: CARD_H, flow: flow.code, cluster: cl.key, section: sec.title };
+        if (it.type === 'step') {
+          const uid = it.st.uid;
+          NODES.push({ ...base, kind: 'step', uid, st: it.st, tags: stepTags(it.st), persona: flow.persona });
+          if (prevUid) EDGES.push({ from: prevUid, to: uid, kind: 'seq' });
+          prevUid = uid;
+        } else if (it.type === 'fork') {
+          const uid = `${flow.code}:${sec.key}:fork${it.bi}`;
+          NODES.push({ ...base, kind: 'fork', uid, br: it.br, tags: ['fork'], persona: flow.persona });
+          if (prevUid) EDGES.push({ from: prevUid, to: uid, kind: 'fork' });
+          prevUid = uid;
+        } else {
+          const uid = `${flow.code}:${sec.key}:note${it.ni}`;
+          NODES.push({ ...base, h: 96, kind: 'note', uid, nt: it.nt, tags: [], persona: flow.persona });
+        }
+      });
+      x += clW + CL_GAP;
+      maxH = Math.max(maxH, clH);
+    });
+
+    /* cluster → cluster handoff */
+    for (let i = 0; i < laneClusters.length - 1; i++) {
+      const a = laneClusters[i], b = laneClusters[i + 1];
+      const lastA = [...NODES].reverse().find((n) => n.cluster === a.key && n.kind !== 'note');
+      const firstB = NODES.find((n) => n.cluster === b.key && n.kind !== 'note');
+      if (lastA && firstB) EDGES.push({ from: lastA.uid, to: firstB.uid, kind: 'hand' });
+    }
+
+    const laneH = maxH + 96;
+    LANES.push({
+      kind: 'flow', x: 0, y: laneY, w: x - CL_GAP + LANE_PAD, h: laneH,
+      code: flow.code, persona: flow.persona, page: flow.page,
+      steps: flow.sections.reduce((n, s) => n + s.steps.length, 0), file: flow.file,
+    });
+    y = laneY + laneH + LANE_GAP;
+  });
+
+  /* Index blocks */
+  const frameBlock = { kind: 'frames', x: 0, y, w: 4 * 250 + 3 * 10, h: 140 + Math.ceil(DATA.frames.length / 4) * 82 };
+  LANES.push(frameBlock);
+  y += frameBlock.h + LANE_GAP;
+  const gapBlock = { kind: 'gaps', x: 0, y, w: 3 * 340 + 2 * 12, h: 140 + Math.ceil(DATA.gaps.length / 3) * 176 };
+  LANES.push(gapBlock);
+  y += gapBlock.h + LANE_GAP;
+  const decBlock = { kind: 'decisions', x: 0, y, w: 3 * 340 + 2 * 12, h: 150 + DATA.decisions.length * 150 };
+  LANES.push(decBlock);
+  y += decBlock.h + 80;
+
+  W = Math.max(...LANES.map((l) => l.x + l.w)) + 80;
+  H = y;
+}
+
+/* ── Render ────────────────────────────────────────────────────────── */
+const world = document.getElementById('world');
+const svg = document.getElementById('edges');
+
+function render() {
+  [...world.children].forEach((c) => { if (c !== svg) c.remove(); });
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const frag = document.createDocumentFragment();
+
+  LANES.forEach((l) => {
+    if (l.kind === 'baton') {
+      const d = document.createElement('div');
+      d.className = 'baton';
+      d.style.cssText = `left:0;top:${l.y}px`;
+      d.innerHTML = `<div class="hd">Load lifecycle — one baton, ${DATA.lifecycle.length} handovers <span style="color:var(--text-tertiary);text-transform:none;letter-spacing:0;font-weight:400">· D6 §1 · click a state to spotlight the screens that own it</span></div>
+        <div class="row">${l.rows.map((r) => {
+          const who = plain(r.who);
+          const hue = (WHO_HUE.find(([re]) => re.test(who)) || [null, 'var(--border-strong)'])[1];
+          return `<button class="bchip" style="--who:${hue}" data-baton="${esc(r.states)}">
+            <span class="st">${rich(r.states)}</span>
+            <span class="wh">${esc(who.split('(')[0].trim() || '—')}</span>
+            <span class="se">${rich(r.sees)}</span></button>`;
+        }).join('')}</div>`;
+      frag.appendChild(d);
+      return;
+    }
+    if (l.kind === 'flow') {
+      const lane = document.createElement('div');
+      lane.className = 'lane';
+      lane.style.cssText = `left:${l.x}px;top:${l.y}px;width:${l.w}px;height:${l.h}px`;
+      frag.appendChild(lane);
+      const hd = document.createElement('div');
+      hd.className = 'lane-hd';
+      hd.style.cssText = `left:${l.x + LANE_PAD}px;top:${l.y + LANE_PAD}px;width:${LANE_HD_W - 30}px`;
+      hd.innerHTML = `<span class="pill" style="background:${LANE[l.code].hue}">${esc(LANE[l.code].label)}</span>
+        <span class="ttl">${esc(l.persona)}</span>
+        <span class="sub">${l.steps} steps · ${esc(l.file)}</span>`;
+      frag.appendChild(hd);
+      return;
+    }
+    /* index blocks */
+    const blk = document.createElement('div');
+    blk.className = 'blk';
+    blk.style.cssText = `left:${l.x}px;top:${l.y}px;width:${l.w}px`;
+    if (l.kind === 'frames') {
+      blk.innerHTML = `<div class="blk-hd">Frame index</div>
+        <div class="blk-sub">${DATA.frames.length} frames — 31 canonical + 10 <code>[NEW]</code> · ${DATA.frames.filter((f) => /^\**built/i.test(f.status.trim()) && !/up to/i.test(f.status)).length} built and verified, 1 built only up to a blocked fork · every frame is one state (spine §3) · DESIGN-STRUCTURE.md §2</div>
+        <div class="fgrid">${DATA.frames.map((f, i) => {
+          // "Spec only — unreachable in built shell" contains the word built but is
+          // NOT built: only a status that STARTS with Built counts.
+          const built = /^\**built/i.test(f.status.trim()) && !/up to/i.test(f.status);
+          const partial = /^\**built/i.test(f.status.trim()) && /up to/i.test(f.status);
+          const blocked = /blocked|unfulfillable|no design coverage/i.test(f.status);
+          const isNew = /NEW/.test(f.scr) || /NEW/.test(f.source);
+          const hue = built ? 'var(--s-blue)' : (blocked || partial) ? 'var(--s-amber)' : 'var(--s-violet)';
+          return `<button class="fcard" style="--st:${hue}" data-frame="${i}">
+            <span class="id">SCR-${esc(plain(f.scr).replace(/\[NEW\]\s*/, ''))}${isNew ? ' · NEW' : ''}</span>
+            <span class="nm">${esc(f.screen)}</span>
+            <span class="st">${rich(f.status)}</span></button>`;
+        }).join('')}</div>`;
+    } else if (l.kind === 'gaps') {
+      blk.innerHTML = `<div class="blk-hd">Gap register</div>
+        <div class="blk-sub">${DATA.gaps.length} findings, ranked by consequence if shipped as-is · DESIGN-GAPS.md</div>
+        <div class="ggrid">${DATA.gaps.map((g, i) => {
+          const cls = /CLOSED|RECONCILED/i.test(g.gap) ? 'closed' : /SOURCE CONFLICT/i.test(g.gap) ? 'conflict' : '';
+          return `<button class="gcard ${cls}" data-gap="${i}">
+            <span class="rank">#${esc(g.n)}</span>
+            <span class="ttl">${rich(g.gap)}</span>
+            <span class="cons">${rich(g.consequence)}</span></button>`;
+        }).join('')}</div>`;
+    } else {
+      blk.innerHTML = `<div class="blk-hd">Build-blocking decisions</div>
+        <div class="blk-sub">${DATA.decisions.length} open — stated with options and consequences only, never decided here · DESIGN-STRUCTURE.md §4</div>
+        <div class="ggrid" style="grid-template-columns:repeat(3,340px)">${DATA.decisions.map((d, i) =>
+          `<button class="gcard conflict" data-dec="${i}"><span class="rank">Open decision</span>
+            <span class="ttl">${rich(d.title)}</span>
+            <span class="cons">${rich(d.body.slice(0, 220))}…</span></button>`).join('')}</div>`;
+    }
+    frag.appendChild(blk);
+  });
+
+  CLUSTERS.forEach((cl) => {
+    const d = document.createElement('div');
+    d.className = 'cl';
+    d.style.cssText = `left:${cl.x}px;top:${cl.y}px;width:${cl.w}px;height:${cl.h}px`;
+    frag.appendChild(d);
+    const t = document.createElement('div');
+    t.className = 'cl-ttl';
+    t.style.cssText = `left:${cl.x + CL_PAD}px;top:${cl.y + CL_PAD - 2}px;max-width:${cl.w - CL_PAD * 2}px`;
+    t.innerHTML = `<span class="ix">${esc(cl.ix)}</span> ${esc(cl.title)}`;
+    frag.appendChild(t);
+  });
+
+  NODES.forEach((n) => {
+    const b = document.createElement('button');
+    b.className = `card ${n.kind === 'fork' ? 'fork' : ''} ${n.kind === 'note' ? 'note' : ''}`;
+    b.style.cssText = `left:${n.x}px;top:${n.y}px;height:${n.h}px`;
+    b.dataset.uid = n.uid;
+    if (n.kind === 'step') {
+      const st = n.st;
+      b.innerHTML = `<span class="top"><span class="sid" style="background:${LANE[n.flow].hue}">${esc(st.id)}</span>
+          <span class="frame">${esc(plain(st.frame).replace(/\[(BUILT|NEW[^\]]*)\]/g, '').trim())}</span></span>
+        <span class="does">${rich(st.does || st.sees)}</span>
+        <span class="sys">${rich(st.system)}</span>
+        <span class="tags">${n.tags.map((t) => `<span class="tag ${t}">${t === 'fail' ? '✕ fail path' : t === 'built' ? '● built' : t === 'new' ? '◆ new' : t === 'input' ? '▲ needs input' : '¶ prose'}</span>`).join('')}</span>`;
+      b.setAttribute('aria-label', `Step ${plain(st.id)} — ${plain(st.frame)}`);
+    } else if (n.kind === 'fork') {
+      const hdr = n.br.header.map(plain);
+      b.innerHTML = `<span class="top"><span class="sid">fork</span><span class="frame">${esc(hdr.slice(0, 2).join(' → '))}</span></span>
+        <span class="rows">${n.br.rows.slice(0, 4).map((r) => `<span>${rich(`${plain(r[0])} → ${plain(r[1] || '')}`)}</span>`).join('')}</span>
+        <span class="tags"><span class="tag fork">⑃ ${n.br.rows.length} branches</span></span>`;
+      b.setAttribute('aria-label', `Branch table with ${n.br.rows.length} outcomes`);
+    } else {
+      b.innerHTML = `<span class="does">${rich(n.nt.slice(0, 220))}</span>`;
+      b.setAttribute('aria-label', 'Design note');
+    }
+    frag.appendChild(b);
+  });
+
+  world.appendChild(frag);
+  drawEdges();
+}
+
+function nodeByUid(uid) { return NODES.find((n) => n.uid === uid); }
+
+function drawEdges() {
+  const showFail = FILTERS.has('fail');
+  const parts = [];
+  parts.push(`<defs>
+    <marker id="ar" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="var(--accent)"/></marker>
+    <marker id="arf" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="var(--s-orange)"/></marker>
+  </defs>`);
+  EDGES.forEach((e) => {
+    const a = nodeByUid(e.from), b = nodeByUid(e.to);
+    if (!a || !b) return;
+    const col = e.kind === 'fork' ? 'var(--s-orange)' : 'var(--accent)';
+    const marker = e.kind === 'fork' ? 'arf' : 'ar';
+    let d;
+    if (Math.abs(a.x - b.x) < 4) {                    // same column, stacked
+      d = `M${a.x + a.w / 2} ${a.y + a.h} L${b.x + b.w / 2} ${b.y - 4}`;
+    } else if (b.x > a.x) {                            // next column / cluster
+      const ax = a.x + a.w, ay = a.y + a.h / 2, bx = b.x - 4, by = b.y + b.h / 2;
+      const mid = ax + Math.max(18, (bx - ax) / 2);
+      d = `M${ax} ${ay} H${mid} V${by} H${bx}`;
+    } else {
+      const ax = a.x + a.w / 2, ay = a.y + a.h, bx = b.x + b.w / 2, by = b.y - 4;
+      const mid = Math.max(ay, by) + 26;
+      d = `M${ax} ${ay} V${mid} H${bx} V${by}`;
+    }
+    parts.push(`<path d="${d}" fill="none" stroke="${col}" stroke-width="${e.kind === 'hand' ? 2 : 1.4}"
+      opacity="${e.kind === 'hand' ? .95 : .5}" marker-end="url(#${marker})"
+      ${e.kind === 'hand' ? '' : ''} />`);
+  });
+  if (showFail) {
+    NODES.forEach((n) => {
+      if (n.kind !== 'step' || !n.tags.includes('fail')) return;
+      const x = n.x + n.w - 26, y = n.y + n.h;
+      parts.push(`<path d="M${x} ${y} l0 14 l16 0" fill="none" stroke="var(--s-magenta)" stroke-width="1.6"
+        stroke-dasharray="4 3" opacity=".85"/><circle cx="${x + 18}" cy="${y + 14}" r="3" fill="var(--s-magenta)"/>`);
+    });
+  }
+  svg.innerHTML = parts.join('');
+}
+
+/* ── Rail ──────────────────────────────────────────────────────────── */
+function buildRail() {
+  const rail = document.getElementById('rail');
+  const flowItems = DATA.flows.map((f) => {
+    const lane = LANES.find((l) => l.code === f.code);
+    return `<button class="rail-item" data-goto="${f.code}"><span class="pg">${esc(f.page)}</span>
+      <span>Flow — ${esc(f.persona.replace(' (mobile)', ''))}</span><span class="n">${lane ? lane.steps : 0}</span></button>`;
+  }).join('');
+  rail.innerHTML = `
+    <h2>Pages</h2>
+    <button class="rail-item" data-goto="baton"><span class="pg">20</span><span>Cross-flow · lifecycle</span><span class="n">${DATA.lifecycle.length}</span></button>
+    ${flowItems}
+    <button class="rail-item" data-goto="frames"><span class="pg">02</span><span>Frame index</span><span class="n">${DATA.frames.length}</span></button>
+    <button class="rail-item" data-goto="gaps"><span class="pg">90</span><span>Gap register</span><span class="n">${DATA.gaps.length}</span></button>
+    <button class="rail-item" data-goto="decisions"><span class="pg">—</span><span>Open decisions</span><span class="n">${DATA.decisions.length}</span></button>
+    <h2>Sections</h2>
+    ${CLUSTERS.map((c) => `<button class="rail-item" data-cluster="${esc(c.key)}"><span class="pg">${esc(c.ix)}</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title.replace(/^\d+\.\s*/, ''))}</span></button>`).join('')}
+    <p class="rail-note">Every card is sourced — no step, branch or frame here was invented for the picture. Steps come from
+      <code>design/D2-D5</code>, the lifecycle from <code>D6 §1</code>, frames from <code>DESIGN-STRUCTURE.md §2</code>,
+      findings from <code>DESIGN-GAPS.md</code>. <code>SCR-924</code>'s seven POD sub-steps are transcribed from D4 §7 prose
+      and tagged <code>¶ prose</code>.</p>`;
+}
+
+/* ── Pan / zoom ────────────────────────────────────────────────────── */
+const stage = document.getElementById('stage');
+let scale = 1, tx = 0, ty = 0;
+
+function apply() {
+  world.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+  document.getElementById('lvl').textContent = Math.round(scale * 100) + '%';
+}
+function clampScale(s) { return Math.min(2.2, Math.max(0.08, s)); }
+function zoomAt(cx, cy, factor) {
+  const ns = clampScale(scale * factor);
+  const k = ns / scale;
+  tx = cx - (cx - tx) * k;
+  ty = cy - (cy - ty) * k;
+  scale = ns;
+  apply();
+}
+function fit(box) {
+  const r = stage.getBoundingClientRect();
+  const b = box || { x: 0, y: 0, w: W, h: H };
+  const pad = 40;
+  scale = clampScale(Math.min((r.width - pad * 2) / b.w, (r.height - pad * 2) / b.h));
+  tx = pad - b.x * scale + Math.max(0, (r.width - pad * 2 - b.w * scale) / 2);
+  ty = pad - b.y * scale;
+  apply();
+}
+function goTo(box, targetScale) {
+  const r = stage.getBoundingClientRect();
+  scale = clampScale(targetScale || Math.min(0.85, (r.width - 120) / box.w));
+  tx = 60 - box.x * scale;
+  ty = 80 - box.y * scale;
+  apply();
+}
+
+let dragging = false, sx = 0, sy = 0;
+stage.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.card, .bchip, .fcard, .gcard')) return;
+  dragging = true; sx = e.clientX - tx; sy = e.clientY - ty;
+  stage.classList.add('drag'); stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  tx = e.clientX - sx; ty = e.clientY - sy; apply();
+});
+stage.addEventListener('pointerup', (e) => { dragging = false; stage.classList.remove('drag'); try { stage.releasePointerCapture(e.pointerId); } catch (_) {} });
+stage.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const r = stage.getBoundingClientRect();
+  if (e.ctrlKey || e.metaKey) zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 0.89);
+  else { tx -= e.deltaX; ty -= e.deltaY; apply(); }
+}, { passive: false });
+
+document.getElementById('zin').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.2); };
+document.getElementById('zout').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 0.83); };
+document.getElementById('zfit').onclick = () => fit();
+document.getElementById('theme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+};
+
+/* ── Inspector ─────────────────────────────────────────────────────── */
+const app = document.getElementById('app');
+const insp = document.getElementById('insp');
+let selected = null;
+
+function fld(k, v, cls) {
+  if (!nonTrivial(v)) return '';
+  return `<div class="fld ${cls || ''}"><div class="k">${esc(k)}</div><div class="v">${rich(v)}</div></div>`;
+}
+function closeInsp() {
+  app.classList.remove('has-insp');
+  document.querySelectorAll('.card.sel').forEach((c) => c.classList.remove('sel'));
+  selected = null;
+}
+function openStep(n) {
+  selected = n.uid;
+  document.querySelectorAll('.card.sel').forEach((c) => c.classList.remove('sel'));
+  const el = world.querySelector(`[data-uid="${CSS.escape(n.uid)}"]`);
+  if (el) el.classList.add('sel');
+  app.classList.add('has-insp');
+
+  if (n.kind === 'step') {
+    const st = n.st;
+    insp.innerHTML = `
+      <div class="insp-hd">
+        <div class="row1"><span class="sid" style="background:${LANE[n.flow].hue}">${esc(st.id)}</span>
+          <span style="font-size:11px;color:var(--text-tertiary)">${esc(n.persona)}</span>
+          <button class="close" id="x" aria-label="Close inspector">×</button></div>
+        <div class="frame">${rich(st.frame)}</div>
+        <div class="where">${esc(plain(n.section))} · <code>${esc(st.src)}</code></div>
+        <div class="tags" style="display:flex;gap:4px;margin-top:8px">${n.tags.map((t) => `<span class="tag ${t}">${t}</span>`).join('')}</div>
+      </div>
+      <div class="fields">
+        ${fld('User sees', st.sees)}
+        ${fld('User does', st.does)}
+        ${fld('System does', st.system)}
+        ${fld('Goes to', st.next)}
+        ${fld('If it fails', st.fails, 'is-fail')}
+      </div>`;
+  } else if (n.kind === 'fork') {
+    const h = n.br.header;
+    insp.innerHTML = `
+      <div class="insp-hd"><div class="row1"><span class="sid" style="background:var(--s-orange)">fork</span>
+        <span style="font-size:11px;color:var(--text-tertiary)">${esc(n.persona)}</span>
+        <button class="close" id="x" aria-label="Close inspector">×</button></div>
+        <div class="frame">${n.br.rows.length} branches</div>
+        <div class="where">${esc(plain(n.section))}</div></div>
+      <div class="fields"><div class="fld"><div class="itbl-wrap"><table class="itbl">
+        <thead><tr>${h.map((c) => `<th>${esc(plain(c))}</th>`).join('')}</tr></thead>
+        <tbody>${n.br.rows.map((r) => `<tr>${r.map((c) => `<td>${rich(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div></div></div>`;
+  } else {
+    insp.innerHTML = `<div class="insp-hd"><div class="row1"><span class="sid" style="background:var(--border-strong)">note</span>
+      <button class="close" id="x" aria-label="Close inspector">×</button></div>
+      <div class="where">${esc(plain(n.section))}</div></div>
+      <div class="fields">${fld('Design note', n.nt)}</div>`;
+  }
+  insp.querySelector('#x').onclick = closeInsp;
+  insp.scrollTop = 0;
+}
+function openRecord(kind, i) {
+  app.classList.add('has-insp');
+  if (kind === 'frame') {
+    const f = DATA.frames[i];
+    insp.innerHTML = `<div class="insp-hd"><div class="row1"><span class="sid">SCR-${esc(plain(f.scr).replace(/\[NEW\]\s*/, ''))}</span>
+      <button class="close" id="x" aria-label="Close inspector">×</button></div>
+      <div class="frame">${esc(f.screen)}</div><div class="where">${rich(f.persona)}</div></div>
+      <div class="fields">${fld('Status', f.status)}${fld('Source', f.source)}
+      ${fld('Reminder', 'Every frame is one state — a screen with six states is six frames (spine §3). Core state set: `Default` · `Loading` · `Empty` · `Partial data` · `Stale data` · `Permission denied` · `Error` · `Offline`.')}</div>`;
+  } else if (kind === 'gap') {
+    const g = DATA.gaps[i];
+    insp.innerHTML = `<div class="insp-hd"><div class="row1"><span class="sid" style="background:var(--s-magenta);color:#fff">gap #${esc(g.n)}</span>
+      <button class="close" id="x" aria-label="Close inspector">×</button></div>
+      <div class="frame">${rich(g.gap)}</div><div class="where">DESIGN-GAPS.md</div></div>
+      <div class="fields">${fld('What is missing', g.missing)}${fld('Found by', g.found)}
+      ${fld('Consequence if shipped as-is', g.consequence, 'is-fail')}${fld('What closing it requires', g.closing)}</div>`;
+  } else {
+    const d = DATA.decisions[i];
+    insp.innerHTML = `<div class="insp-hd"><div class="row1"><span class="sid" style="background:var(--s-amber);color:#12151b">open</span>
+      <button class="close" id="x" aria-label="Close inspector">×</button></div>
+      <div class="frame">${rich(d.title)}</div><div class="where">DESIGN-STRUCTURE.md §4 — options only, not decided</div></div>
+      <div class="fields">${fld('Detail', d.body)}</div>`;
+  }
+  insp.querySelector('#x').onclick = closeInsp;
+  insp.scrollTop = 0;
+}
+
+world.addEventListener('click', (e) => {
+  const card = e.target.closest('.card');
+  if (card) { const n = nodeByUid(card.dataset.uid); if (n) openStep(n); return; }
+  const f = e.target.closest('.fcard'); if (f) return openRecord('frame', +f.dataset.frame);
+  const g = e.target.closest('.gcard');
+  if (g) {
+    if (g.dataset.gap !== undefined) return openRecord('gap', +g.dataset.gap);
+    if (g.dataset.dec !== undefined) return openRecord('dec', +g.dataset.dec);
+  }
+  const b = e.target.closest('.bchip');
+  if (b) { document.getElementById('q').value = plain(b.dataset.baton).split('→')[0].replace(/[`]/g, ''); runSearch(); }
+});
+
+/* ── Search + filters ──────────────────────────────────────────────── */
+const FILTERS = new Set(['fail']);
+function haystack(n) {
+  if (n.kind === 'step') {
+    const s = n.st;
+    return plain(`${s.id} ${s.frame} ${s.sees} ${s.does} ${s.system} ${s.next} ${s.fails} ${n.section} ${n.persona}`).toLowerCase();
+  }
+  if (n.kind === 'fork') return plain(`${n.br.header.join(' ')} ${n.br.rows.flat().join(' ')} ${n.section}`).toLowerCase();
+  return plain(`${n.nt} ${n.section}`).toLowerCase();
+}
+function runSearch() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const wantBuilt = FILTERS.has('built'), wantNew = FILTERS.has('new'),
+        wantFork = FILTERS.has('fork'), wantInput = FILTERS.has('input');
+  let hits = 0, first = null;
+  NODES.forEach((n) => {
+    const el = world.querySelector(`[data-uid="${CSS.escape(n.uid)}"]`);
+    if (!el) return;
+    let ok = true;
+    if (q) ok = haystack(n).includes(q);
+    if (ok && wantBuilt) ok = n.tags.includes('built');
+    if (ok && wantNew) ok = n.tags.includes('new');
+    if (ok && wantFork) ok = n.kind === 'fork';
+    if (ok && wantInput) ok = n.tags.includes('input');
+    const filtering = q || wantBuilt || wantNew || wantFork || wantInput;
+    el.classList.toggle('dim', filtering && !ok);
+    el.classList.toggle('hit', !!q && ok);
+    if (ok && filtering) { hits++; if (!first) first = n; }
+  });
+  const total = NODES.filter((n) => n.kind === 'step').length;
+  document.getElementById('counts').innerHTML = (q || wantBuilt || wantNew || wantFork || wantInput)
+    ? `<b>${hits}</b> match`
+    : `<b>${total}</b> steps · <b>${NODES.filter((n) => n.kind === 'fork').length}</b> branch tables · <b>${DATA.frames.length}</b> frames · <b>${DATA.gaps.length}</b> gaps`;
+  if (first && q) goTo({ x: first.x - 80, y: first.y - 120, w: 900, h: 600 }, Math.max(scale, 0.7));
+}
+document.getElementById('q').addEventListener('input', runSearch);
+document.getElementById('filters').addEventListener('click', (e) => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const f = b.dataset.f;
+  if (FILTERS.has(f)) FILTERS.delete(f); else FILTERS.add(f);
+  b.setAttribute('aria-pressed', FILTERS.has(f) ? 'true' : 'false');
+  if (f === 'fail') drawEdges(); else runSearch();
+});
+
+document.getElementById('rail').addEventListener('click', (e) => {
+  const b = e.target.closest('.rail-item'); if (!b) return;
+  document.querySelectorAll('.rail-item.on').forEach((x) => x.classList.remove('on'));
+  b.classList.add('on');
+  if (b.dataset.cluster) {
+    const cl = CLUSTERS.find((c) => c.key === b.dataset.cluster);
+    if (cl) goTo({ x: cl.x - 30, y: cl.y - 60, w: cl.w + 60, h: cl.h + 90 }, 0.9);
+    return;
+  }
+  const key = b.dataset.goto;
+  const lane = LANES.find((l) => l.code === key || l.kind === key);
+  if (lane) goTo({ x: lane.x, y: lane.y - 10, w: Math.min(lane.w, 2400), h: lane.h });
+});
+
+addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement.id !== 'q') { e.preventDefault(); document.getElementById('q').focus(); }
+  else if (e.key === 'Escape') { closeInsp(); if (document.activeElement.id === 'q') { document.getElementById('q').value = ''; runSearch(); } }
+  else if (e.key === '0') fit();
+  else if ((e.key === '+' || e.key === '=') && !e.ctrlKey) { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.2); }
+  else if (e.key === '-' && !e.ctrlKey) { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 0.83); }
+});
+addEventListener('resize', () => apply());
+
+/* ── Boot ──────────────────────────────────────────────────────────── */
+layout();
+render();
+buildRail();
+runSearch();
+const firstLane = LANES.find((l) => l.kind === 'flow');
+goTo({ x: 0, y: 0, w: 2200, h: (firstLane ? firstLane.y + firstLane.h : 900) }, 0.6);
+window.__map = { NODES, LANES, CLUSTERS, EDGES, DATA };
+</script>

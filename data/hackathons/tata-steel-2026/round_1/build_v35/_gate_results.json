@@ -1,0 +1,140 @@
+{
+  "oof_auc": 0.8699,
+  "ci_lower": 0.8247,
+  "ci_upper": 0.9112,
+  "oof_score_k170": 44.17,
+  "estimated_lb": 46.84,
+  "gates_passed": 2,
+  "total_gates": 5,
+  "recommendation": "DO NOT FIRE",
+  "reason": "Est LB 46.84 does not improve over banked V4 56.98.",
+  "gates_detail": [
+    {
+      "name": "OOF AUC >= 0.910",
+      "pass": false,
+      "value": "0.8699"
+    },
+    {
+      "name": "Bootstrap CI lower >= 0.8937",
+      "pass": false,
+      "value": "0.8247"
+    },
+    {
+      "name": "Est LB > 56.98 (V4 banked)",
+      "pass": false,
+      "value": "46.84"
+    },
+    {
+      "name": "K=170 sanity (exactly 170 pos)",
+      "pass": true,
+      "value": "170"
+    },
+    {
+      "name": "Stability std < 1.5",
+      "pass": true,
+      "value": "0.0501"
+    }
+  ],
+  "per_model_aucs": {
+    "LGB1": {
+      "mean_oof_auc": 0.8486,
+      "fold_std": 0.0641,
+      "fold_aucs": [
+        0.78,
+        0.9074,
+        0.7764,
+        0.9189,
+        0.8988
+      ]
+    },
+    "LGB2": {
+      "mean_oof_auc": 0.8382,
+      "fold_std": 0.0587,
+      "fold_aucs": [
+        0.7573,
+        0.8874,
+        0.7908,
+        0.8991,
+        0.8884
+      ]
+    },
+    "XGB1": {
+      "mean_oof_auc": 0.855,
+      "fold_std": 0.0549,
+      "fold_aucs": [
+        0.8077,
+        0.913,
+        0.7848,
+        0.9165,
+        0.8866
+      ]
+    },
+    "XGB2": {
+      "mean_oof_auc": 0.8574,
+      "fold_std": 0.05,
+      "fold_aucs": [
+        0.8238,
+        0.9038,
+        0.7923,
+        0.9276,
+        0.8749
+      ]
+    },
+    "CatBoost": {
+      "mean_oof_auc": 0.8646,
+      "fold_std": 0.0293,
+      "fold_aucs": [
+        0.8375,
+        0.9008,
+        0.8285,
+        0.8928,
+        0.8785
+      ]
+    },
+    "RF": {
+      "mean_oof_auc": 0.8603,
+      "fold_std": 0.0558,
+      "fold_aucs": [
+        0.8317,
+        0.9332,
+        0.7736,
+        0.8997,
+        0.8804
+      ]
+    },
+    "ET": {
+      "mean_oof_auc": 0.8717,
+      "fold_std": 0.0565,
+      "fold_aucs": [
+        0.8503,
+        0.914,
+        0.7739,
+        0.922,
+        0.9125
+      ]
+    },
+    "HGB": {
+      "mean_oof_auc": 0.8627,
+      "fold_std": 0.0413,
+      "fold_aucs": [
+        0.8286,
+        0.8972,
+        0.8177,
+        0.9228,
+        0.894
+      ]
+    },
+    "TabICL": {
+      "mean_oof_auc": 0.8752,
+      "fold_std": 0.0404,
+      "fold_aucs": [
+        0.8554,
+        0.9038,
+        0.8168,
+        0.9348,
+        0.8839
+      ]
+    }
+  },
+  "avg_fold_std": 0.0501
+}

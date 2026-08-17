@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+*.env.local
+*.env.*.local
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Trained model artifacts
+data/models/*.pkl
+data/models/*.joblib
+data/models/*.onnx
+data/models/*.pt
+data/models/*.bin
+data/models/*.safetensors
+
+# Vector stores
+data/lancedb/
+data/chromadb/
+
+# Knowledge graph exports (re-generable)
+data/kg/*.graphml
+data/kg/*.json
+
+# Synthetic generated data (re-generable)
+data/synthetic/
+
+# Quarantine
+data/quarantine/
+
+# Demo cache (regenerate before demo)
+data/demo_cache.json
+
+# LightRAG dynamic store
+data/lightrag/
+
+# Arize Phoenix local DB
+.phoenix/
+arize_phoenix.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+
+# Unsloth / fine-tune outputs
+outputs/
+runs/
+wandb/

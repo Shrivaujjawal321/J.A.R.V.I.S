@@ -40,7 +40,15 @@ import httpx
 from . import _telegram_notify
 
 CHROME_PORT = 9222
-CHROME_PROFILE = Path.home() / ".cache" / "jarvis-chrome"
+# Boss's real, logged-in Chrome profile (li_at cookie lives here).
+REAL_PROFILE = Path.home() / ".config" / "google-chrome"
+# Debug clone we actually launch on the port. Chrome 136+ REFUSES
+# --remote-debugging-port on the real profile dir, so we run off a same-machine
+# clone of the logged-in cookies/state (same OS keyring → cookies decrypt fine).
+CHROME_PROFILE = Path.home() / ".cache" / "jarvis-chrome-cdp"
+# Files that carry the logged-in session from the real profile into the clone.
+_CLONE_STATE_FILES = ("Local State", "Default/Preferences", "Default/Secure Preferences")
+_CLONE_COOKIE_CANDIDATES = ("Default/Cookies", "Default/Network/Cookies")
 CHROME_BIN_CANDIDATES = (
     "google-chrome",
     "google-chrome-stable",
@@ -101,12 +109,67 @@ def _wait_for_port(port: int, deadline_s: float) -> bool:
     return False
 
 
+def _clone_logged_in_profile() -> tuple[bool, str]:
+    """Copy the logged-in cookie + state bits from Boss's real Chrome profile
+    into the debug clone, so the port-9222 session is authenticated to LinkedIn.
+
+    Same machine + same user → same OS keyring → encrypted cookies decrypt fine
+    (a cross-machine copy would NOT — that's the known email-path failure mode).
+    li_at is long-lived (~360d), so a copy taken while the real Chrome is running
+    is still valid even if slightly behind the live WAL.
+    """
+    if not REAL_PROFILE.exists():
+        return False, f"Real Chrome profile not found at {REAL_PROFILE}"
+
+    (CHROME_PROFILE / "Default" / "Network").mkdir(parents=True, exist_ok=True)
+    copied: list[str] = []
+
+    cookie_copied = False
+    for rel in _CLONE_COOKIE_CANDIDATES:
+        src = REAL_PROFILE / rel
+        if not src.exists():
+            continue
+        dst = CHROME_PROFILE / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        # Copy the DB plus its WAL/SHM sidecars for a consistent snapshot.
+        for suffix in ("", "-wal", "-shm", "-journal"):
+            s = Path(str(src) + suffix)
+            if s.exists():
+                try:
+                    shutil.copy2(s, str(dst) + suffix)
+                except OSError:
+                    pass
+        copied.append(rel)
+        cookie_copied = True
+
+    if not cookie_copied:
+        return False, "No Cookies DB found in real profile — cannot clone a logged-in session"
+
+    for rel in _CLONE_STATE_FILES:
+        src = REAL_PROFILE / rel
+        if src.exists():
+            dst = CHROME_PROFILE / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copy2(src, dst)
+                copied.append(rel)
+            except OSError:
+                pass
+
+    return True, f"Cloned logged-in profile ({', '.join(copied)})"
+
+
 def _launch_chrome() -> tuple[bool, str]:
     binary = _find_chrome_binary()
     if not binary:
         return False, f"No Chrome binary found (tried {', '.join(CHROME_BIN_CANDIDATES)})"
 
     CHROME_PROFILE.mkdir(parents=True, exist_ok=True)
+
+    # Refresh the logged-in session into the clone before every launch.
+    cloned_ok, clone_msg = _clone_logged_in_profile()
+    if not cloned_ok:
+        return False, f"Profile clone failed: {clone_msg}"
 
     for lock_name in CHROME_LOCKFILES:
         lock_path = CHROME_PROFILE / lock_name
@@ -197,8 +260,12 @@ def _verify_session() -> str:
 
 def _check_li_at_cookie() -> Optional[int]:
     """Read Chrome's Cookies sqlite, return days remaining on li_at, or None."""
-    db_path = CHROME_PROFILE / "Default" / "Cookies"
-    if not db_path.exists():
+    db_path = next(
+        (CHROME_PROFILE / rel for rel in _CLONE_COOKIE_CANDIDATES
+         if (CHROME_PROFILE / rel).exists()),
+        None,
+    )
+    if db_path is None or not db_path.exists():
         return None
     tmp = Path(f"/tmp/jarvis-cookies-{int(time.time())}.db")
     try:

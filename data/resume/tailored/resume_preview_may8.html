@@ -1,0 +1,249 @@
+<style>
+  :root {
+    --ink: #111;
+    --muted: #555;
+    --accent: #0b3d91;
+    --rule: #cfd6e0;
+    --page-bg: #e7ebf1;
+    --sheet-bg: #ffffff;
+    --sheet-shadow: rgba(11, 61, 145, 0.14);
+    --bar: #0b3d91;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page-bg: #14171d;
+      --sheet-shadow: rgba(0, 0, 0, 0.55);
+      --bar: #6f9bff;
+    }
+  }
+  :root[data-theme="light"] {
+    --page-bg: #e7ebf1;
+    --sheet-shadow: rgba(11, 61, 145, 0.14);
+    --bar: #0b3d91;
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #14171d;
+    --sheet-shadow: rgba(0, 0, 0, 0.55);
+    --bar: #6f9bff;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    padding: 28px 16px 48px;
+  }
+
+  .doc-meta {
+    max-width: 820px;
+    margin: 0 auto 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .doc-meta .tag {
+    font-weight: 700;
+    color: #fff;
+    background: var(--bar);
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .doc-meta { color: #aab3c2; }
+    .doc-meta .tag { color: #0b0f16; }
+  }
+  :root[data-theme="light"] .doc-meta { color: #555; }
+  :root[data-theme="light"] .doc-meta .tag { color: #fff; }
+  :root[data-theme="dark"] .doc-meta { color: #aab3c2; }
+  :root[data-theme="dark"] .doc-meta .tag { color: #0b0f16; }
+
+  /* The resume sheet — always white paper, exactly as the source document */
+  .sheet {
+    max-width: 820px;
+    margin: 0 auto;
+    background: var(--sheet-bg);
+    color: var(--ink);
+    padding: 40px 46px;
+    border-radius: 4px;
+    box-shadow: 0 6px 30px var(--sheet-shadow);
+    font-size: 13.5px;
+    line-height: 1.32;
+  }
+  .sheet a { color: var(--accent); text-decoration: none; }
+  .sheet a:hover { text-decoration: underline; }
+
+  .sheet header { text-align: center; margin-bottom: 6px; }
+  .sheet h1 {
+    font-size: 27px;
+    margin: 0 0 2px 0;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .role { font-size: 14px; color: var(--muted); margin: 0 0 4px 0; font-weight: 500; }
+  .contact { font-size: 12.5px; }
+  .contact span { color: #b3bac6; margin: 0 4px; }
+
+  .sheet h2 {
+    font-size: 13px;
+    margin: 13px 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 2px;
+    font-weight: 700;
+  }
+
+  .summary { margin: 0; text-align: justify; }
+
+  .skills p { margin: 0; padding: 1px 0; }
+  .skills b { display: inline-block; min-width: 92px; color: var(--ink); }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 5px;
+  }
+  .row .title { font-weight: 700; font-size: 14px; }
+  .row .meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .sheet ul { margin: 2px 0 3px 18px; padding: 0; }
+  .sheet li { margin: 1.5px 0; }
+
+  .project { margin-top: 5px; }
+  .stack { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.28; }
+  .stack b { color: var(--ink); }
+
+  code {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 12px;
+    background: #f0f3f8;
+    padding: 0 3px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    .sheet { padding: 26px 20px; }
+    .row { flex-direction: column; gap: 1px; }
+    .row .meta { white-space: normal; }
+    .skills b { min-width: 0; display: block; }
+  }
+</style>
+
+<div class="doc-meta">
+  <span class="tag">8 MAY 2026</span>
+  <span>Ujjawal_Shrivastav_Resume.pdf — the version current when you registered for Tata (13 May)</span>
+</div>
+
+<div class="sheet">
+  <header>
+    <h1>UJJAWAL SHRIVASTAV</h1>
+    <p class="role">Full Stack Developer</p>
+    <p class="contact">
+      Ghaziabad, India
+      <span>•</span>
+      <a href="mailto:shriva.ujjawal@gmail.com">shriva.ujjawal@gmail.com</a>
+      <span>•</span>
+      <a href="tel:+919718732066">+91 97187 32066</a>
+      <span>•</span>
+      <a href="https://github.com/Shrivaujjawal321">GitHub</a>
+      <span>•</span>
+      <a href="https://ujjawal-shrivastav.vercel.app">Portfolio</a>
+    </p>
+  </header>
+
+  <section>
+    <h2>Professional Summary</h2>
+    <p class="summary">Full Stack Developer shipping production-grade web applications across React, Next.js, FastAPI, Spring Boot, and PostgreSQL. Solo end-to-end track record covering schema design, REST APIs, real-time systems, authentication, and Vercel deployment. Stack-agnostic engineer — six months of disciplined AI-pair programming with Claude Code and GitHub Copilot have built fluency across multiple frameworks, enabling rapid ramp-up on unfamiliar tooling. Hands-on with Anthropic Claude and OpenAI APIs and modern DevOps practices.</p>
+  </section>
+
+  <section class="skills">
+    <h2>Technical Skills</h2>
+    <p><b>Languages</b> TypeScript, Python, Java, SQL</p>
+    <p><b>Frontend</b> React, Next.js (App Router, Turbopack), Tailwind CSS, Framer Motion, ReactFlow, Monaco Editor, HTML5, CSS3</p>
+    <p><b>Backend</b> Node.js, FastAPI, Java Spring Boot, Hibernate, JPA, RESTful APIs, Server-Sent Events, WebSockets</p>
+    <p><b>Databases</b> PostgreSQL, MySQL, Drizzle ORM, Prisma ORM, Neon, Firebase, schema design, query tuning</p>
+    <p><b>Auth &amp; Pay</b> NextAuth / Auth.js v5, JWT, OAuth2, Email OTP, Stripe, Razorpay</p>
+    <p><b>AI / LLM</b> Anthropic Claude API, OpenAI API, LLM pipeline design, prompt engineering, Tree-sitter AST</p>
+    <p><b>DevOps</b> Git, GitHub Actions, Docker, Vercel, CI/CD, Sentry, Playwright e2e, Vitest unit testing</p>
+    <p><b>Tools</b> Postman, Claude Code, GitHub Copilot, Win32 API, Upstash Redis, Linux</p>
+  </section>
+
+  <section>
+    <h2>Professional Experience</h2>
+    <div class="row">
+      <div><span class="title">Full Stack Developer Intern</span> &nbsp;|&nbsp; <a href="https://amohacodes.com">Amoha Codes</a></div>
+      <div class="meta">4-Week Internship · 2025</div>
+    </div>
+    <ul>
+      <li>Architected production features in React + FastAPI for an enterprise SaaS platform.</li>
+      <li>Designed authentication and authorization layers with session security, role-based access, and protected API routes.</li>
+      <li>Shipped a real-time content management module with live progress tracking and granular state synchronization.</li>
+      <li>Lifted team velocity by 40% by integrating Claude Code and GitHub Copilot and authoring shared prompt patterns.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Key Projects</h2>
+
+    <div class="project">
+      <div class="row">
+        <span class="title"><a href="https://enginerd.vercel.app"><b>Demo</b></a> &nbsp; EngiNerd — Agentic Learning Platform</span>
+        <span class="meta">
+          <a href="https://enginerd.vercel.app">Live</a>
+          ·
+          <a href="https://github.com/Shrivaujjawal321/enginerd">Source</a>
+        </span>
+      </div>
+      <p class="stack"><b>Stack:</b> Next.js 16 (Turbopack), TypeScript, Drizzle ORM, PostgreSQL, NextAuth v5, Anthropic Claude API, Tailwind CSS, Framer Motion, Upstash Redis, Sentry, Playwright, Vercel</p>
+    </div>
+    <ul>
+      <li>Solo-founded India-focused learning platform — marketing site, multi-step auth, dashboard with roadmaps, subjects, practice, cohorts, careers, billing, plus public <code>/u/[username]</code> profile pages.</li>
+      <li>Modeled domain in Drizzle ORM with type-safe migrations and edge-compatible queries; wired NextAuth v5 with email OTP and Google OAuth via Drizzle adapter.</li>
+      <li>Streamed AI agent endpoints powered by Anthropic Claude, with token-bucket rate limiting on Upstash Redis and resilient SSE clients on the frontend.</li>
+      <li>Crafted glass-morphism UI with Framer Motion micro-interactions, WCAG 2.1 AA audits, Hinglish-aware form validation; tuned Turbopack production builds.</li>
+      <li>Owned the release loop: Playwright e2e + Vitest unit suites, Sentry traces, GitHub Actions CI, zero-downtime Vercel deploys.</li>
+    </ul>
+
+    <div class="project">
+      <div class="row">
+        <span class="title">AI Prompt Enhancer Widget</span>
+        <span class="meta">Windows desktop tool</span>
+      </div>
+      <p class="stack"><b>Stack:</b> Python, FastAPI, Win32 API, OpenAI / Anthropic LLM pipeline, Tkinter overlay</p>
+    </div>
+    <ul>
+      <li>Engineered a system-wide Windows overlay that rewrites prompts in real time, accessible from any active app without context-switching.</li>
+      <li>Authored an LLM enhancement engine that parses user intent, restructures vague prompts into role/task/constraint format, and ranks variants by clarity.</li>
+      <li>Implemented “Magic Paste” via Win32 keyboard hooks and clipboard injection — enhanced text lands directly into ChatGPT, Claude, Cursor, or any focused window.</li>
+      <li>Drove global hotkey handling and inter-app communication through Win32 message-loop integration plus a lightweight FastAPI background service.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Education</h2>
+    <div class="row">
+      <div><span class="title">B.Tech — Computer Science (AI &amp; ML)</span></div>
+      <div class="meta">Krishna Engineering College, Ghaziabad &nbsp;·&nbsp; 2022 – 2025</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Certifications &amp; Achievements</h2>
+    <ul>
+      <li>Java Full Stack Developer Certification — Ducat (8-month intensive program)</li>
+      <li>AI Certification — ICT Academy</li>
+      <li>Active open-source GitHub portfolio: a dozen+ self-shipped products spanning Next.js, FastAPI, Spring Boot, and Python desktop tooling</li>
+    </ul>
+  </section>
+</div>

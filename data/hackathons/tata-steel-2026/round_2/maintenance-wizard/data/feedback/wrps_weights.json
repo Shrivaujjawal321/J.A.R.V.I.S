@@ -1,0 +1,7 @@
+{
+  "process_criticality": 0.38411934600185904,
+  "delay_severity": 0.23687717461466962,
+  "spare_availability": 0.18950173969173562,
+  "lead_time": 0.11370104381504137,
+  "ml_signal": 0.07580069587669427
+}

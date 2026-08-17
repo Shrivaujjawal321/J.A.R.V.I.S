@@ -1,0 +1,26 @@
+[
+  {
+    "id": "aff68953-e7ad-4a4d-b07e-7c0a45615e79",
+    "scanner": "semgrep",
+    "rule_id": "python.jwt.security.unverified-jwt-decode.unverified-jwt-decode",
+    "cwe": "CWE-287: IMPROPER AUTHENTICATION",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "high",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/audit-workspace/litellm/litellm/proxy/auth/handle_jwt.py",
+    "line_start": 153,
+    "line_end": 153,
+    "endpoint": null,
+    "evidence": "Detected JWT token decoded with 'verify=False'. This bypasses any integrity checks for the token which means the token could be tampered with by malicious actors. Ensure that the JWT token is verified.",
+    "verification_status": "needs_manual",
+    "confidence": 0.4,
+    "dedupe_key": "f5f06876440adc85",
+    "remediation": null,
+    "related_finding_ids": [],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  }
+]

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tata JD — Simple Study Notes</title>
+<style>
+  :root{
+    --bg:#f5f7fa;--panel:#fff;--panel-2:#eef2f7;--ink:#1a1f28;--muted:#5b6672;--border:#d6dde6;
+    --accent:#1f6feb;--accent-soft:#e4eeff;
+    --good:#1a7f37;--good-bg:#e7f5ec;--bad:#cf222e;--bad-bg:#ffeaea;--warn:#9a6700;--warn-bg:#fcf3d9;
+    --violet:#8250df;--violet-bg:#f0e9ff;--teal:#137a6d;--teal-bg:#e0f5f1;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0b0e13;--panel:#141922;--panel-2:#1c222d;--ink:#e6edf3;--muted:#9aa5b3;--border:#29313d;
+    --accent:#58a6ff;--accent-soft:#15294a;
+    --good:#56d364;--good-bg:#11261b;--bad:#ff7b72;--bad-bg:#2d1416;--warn:#e3b341;--warn-bg:#2a2210;
+    --violet:#b083f0;--violet-bg:#1e1633;--teal:#3dd6c0;--teal-bg:#0d2723;
+  }}
+  :root[data-theme="light"]{--bg:#f5f7fa;--panel:#fff;--panel-2:#eef2f7;--ink:#1a1f28;--muted:#5b6672;--border:#d6dde6;--accent:#1f6feb;--accent-soft:#e4eeff;--good:#1a7f37;--good-bg:#e7f5ec;--bad:#cf222e;--bad-bg:#ffeaea;--warn:#9a6700;--warn-bg:#fcf3d9;--violet:#8250df;--violet-bg:#f0e9ff;--teal:#137a6d;--teal-bg:#e0f5f1;}
+  :root[data-theme="dark"]{--bg:#0b0e13;--panel:#141922;--panel-2:#1c222d;--ink:#e6edf3;--muted:#9aa5b3;--border:#29313d;--accent:#58a6ff;--accent-soft:#15294a;--good:#56d364;--good-bg:#11261b;--bad:#ff7b72;--bad-bg:#2d1416;--warn:#e3b341;--warn-bg:#2a2210;--violet:#b083f0;--violet-bg:#1e1633;--teal:#3dd6c0;--teal-bg:#0d2723;}
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:32px 15px 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;}
+  .themebtn{position:fixed;top:12px;right:12px;z-index:20;font-family:var(--mono);font-size:12px;cursor:pointer;background:var(--panel);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 11px;}
+
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);font-weight:600;}
+  h1{font-size:clamp(25px,5vw,38px);margin:6px 0 6px;font-weight:800;letter-spacing:-.5px;}
+  .sub{color:var(--muted);font-size:15px;max-width:64ch;}
+
+  .how{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:18px 0;font-size:13.5px;}
+  .how b{color:var(--accent);}
+  .how .keyrow{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--muted);}
+
+  nav.toc{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 6px;}
+  nav.toc a{font-family:var(--mono);font-size:11.5px;text-decoration:none;color:var(--accent);background:var(--accent-soft);padding:5px 9px;border-radius:6px;}
+
+  section{margin-top:40px;scroll-margin-top:14px;}
+  h2{font-size:21px;margin:0 0 4px;display:flex;align-items:baseline;gap:9px;}
+  h2 .n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:6px;font-weight:700;}
+  .sec-intro{color:var(--muted);font-size:13.5px;margin:4px 0 14px;border-bottom:2px solid var(--border);padding-bottom:12px;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .card .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px;}
+  .card .term{font-weight:800;font-size:17px;}
+  .tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;letter-spacing:.4px;}
+  .tag.str{background:var(--good-bg);color:var(--good);border:1px solid var(--good);}
+  .tag.gap{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad);}
+  .tag.mid{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);}
+
+  .row{display:flex;gap:8px;margin:7px 0;font-size:14px;}
+  .row .ic{flex-shrink:0;width:20px;text-align:center;}
+  .row .tx{flex:1;}
+  .row .tx b{color:var(--ink);}
+  .analogy{background:var(--violet-bg);border-left:3px solid var(--violet);border-radius:7px;padding:8px 11px;margin:8px 0;font-size:14px;}
+  .analogy b{color:var(--violet);}
+  .example{background:var(--teal-bg);border-left:3px solid var(--teal);border-radius:7px;padding:8px 11px;margin:8px 0;font-size:13.5px;}
+  .example b{color:var(--teal);}
+  .say{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:7px;padding:8px 11px;margin:8px 0;font-size:13.5px;}
+  .say b{color:var(--accent);}
+  .ask{background:var(--panel-2);border:1px dashed var(--border);border-radius:7px;padding:8px 11px;margin:8px 0;font-size:13px;}
+  .ask b{color:var(--muted);}
+  .proj{font-family:var(--mono);font-size:11.5px;color:var(--good);margin-top:7px;}
+  code{font-family:var(--mono);font-size:.85em;background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border);}
+
+  /* mini diagrams */
+  .diagram{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0;font-family:var(--mono);font-size:11.5px;}
+  .diagram .b{background:var(--panel-2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;text-align:center;}
+  .diagram .ar{color:var(--muted);}
+  .diagram .b.hl{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700;}
+
+  .cheat{overflow-x:auto;border:1px solid var(--border);border-radius:11px;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  th{background:var(--panel-2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+
+  footer{margin-top:50px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:14px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeToggle">◐ theme</button>
+<div class="wrap">
+  <div class="kicker">Tata Steel · Manager AI · Simple Notes</div>
+  <h1>Har JD Topic — Aasaan Bhasha Mein</h1>
+  <p class="sub">JD ka har technical word — bilkul simple Hinglish mein samjhaya. Har topic pe analogy, example, aur "ye poochh sakte hain" bhi. Padhte hi samajh aayega.</p>
+
+  <div class="how">
+    <b>Kaise padhein:</b> Har card mein 6 cheezein — 💡 analogy (yaad rakhne ke liye) · 📖 kya hai · 🎯 kab/kyun · 🔧 example · 🎤 interview mein bolne wali line · ❓ jo sawaal aa sakta hai.
+    <div class="keyrow">
+      <span><span class="tag str">STRENGTH</span> aapne kiya hai — yahan lead karo</span>
+      <span><span class="tag mid">PARTIAL</span> aata hai — thoda sharpen</span>
+      <span><span class="tag gap">GAP</span> honest raho + "seekh lunga"</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <a href="#a">A · Core ML</a><a href="#b">B · Deep Learning</a><a href="#c">C · GenAI / LLM</a>
+    <a href="#d">D · Data &amp; DB</a><a href="#e">E · Cloud &amp; MLOps</a><a href="#f">F · Responsible AI</a>
+    <a href="#g">G · IT-OT</a><a href="#cheat">★ Cheat Sheet</a>
+  </nav>
+
+  <!-- ============ A CORE ML ============ -->
+  <section id="a">
+    <h2><span class="n">A</span> Core Machine Learning</h2>
+    <p class="sec-intro">Machine learning = computer ko data se seekhna sikhaana, bina har rule khud likhe. 3 tarike se seekhta hai (supervised / unsupervised / RL), aur 2 kaam karta hai (classification / regression).</p>
+
+    <div class="card"><div class="top"><span class="term">Supervised Learning</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Bacche ko flashcards se padhaana — har photo ke saath naam bhi. "Ye aam hai, ye seb hai." Baad mein wo khud pehchaan leta hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Data ke saath sahi <b>answer (label)</b> bhi diya hota hai. Model input→output ka pattern seekh leta hai.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Jab past ka labelled data ho. Do type — <b>classification</b> (category) + <b>regression</b> (number).</span></div>
+      <div class="example">🔧 <b>Example:</b> 1300 coils ka data, har ek pe "defect: haan/nahi" likha — model seekh gaya kaunse readings pe defect aata hai.</div>
+      <div class="say">🎤 <b>Bolo:</b> "Both my Tata rounds were supervised — R1 classification, R2 RUL regression."</div>
+      <div class="ask">❓ <b>Poochh sakte hain:</b> "Supervised aur unsupervised mein farak?" → Supervised = labels hote hain; unsupervised = nahi.</div>
+      <div class="proj">→ Tata R1, R2</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Unsupervised Learning</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kapdo ka dher bina label ke — aap khud similar cheezein alag-alag dher mein baant dete ho. Koi batata nahi ki "ye shirt hai."</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Bina labels</b> ke — model khud data mein chhupa structure dhundta hai (grouping, anomaly).</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Labels na ho. Kaam: <b>clustering</b> (similar groups), <b>anomaly detection</b> (abnormal pakadna).</span></div>
+      <div class="example">🔧 <b>Example:</b> IsolationForest ne normal machine-behavior seekh liya; jab reading alag hui to "anomaly" flag kar diya — bina kisi ke bataye.</div>
+      <div class="say">🎤 <b>Bolo:</b> "I used IsolationForest — an unsupervised anomaly detector — in R2 to flag abnormal sensor readings."</div>
+      <div class="proj">→ Tata R2 (IsolationForest)</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Reinforcement Learning (RL)</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kutte ko trick sikhaana — sahi kiya to biscuit (reward), galat to kuch nahi. Dheere-dheere wo reward wala kaam seekh leta hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Ek <b>agent</b> try-and-error se seekhta hai — accha kaam pe <b>reward</b>, bura pe penalty. Total reward maximize karta hai.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Robotics, games, live process-control (furnace setpoint tuning). Fixed dataset nahi — live environment.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "I understand RL conceptually — reward-driven learning — though my shipped work has been supervised and agentic, not RL."</div>
+      <div class="ask">❓ <b>Poochh sakte hain:</b> "RL kaise supervised se alag hai?" → RL mein sahi answer nahi milta, sirf reward milta hai; khud explore karta hai.</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Classification</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Email ko "spam ya not-spam" ke dibbe mein daalna.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Output ek <b>category/label</b> hota hai. Binary (2 options) ya multi-class.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Metrics:</b> accuracy (imbalance mein dhoka deta), <b>precision, recall, F1, ROC-AUC</b>.</span></div>
+      <div class="example">🔧 <b>Example:</b> R1 — coil ka defect "haan/nahi". R2 — fault type (3 categories).</div>
+      <div class="proj">→ Tata R1, R2 fault</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Regression</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kal ka temperature batao — "spam/not" nahi, balki ek <b>number</b> (28.5°C).</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Output ek <b>continuous number</b> — price, temperature, ya <b>RUL (Remaining Useful Life)</b>.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Metrics:</b> MAE, RMSE, R². <b>Kya:</b> R2 mein LightGBM regressor se machine ki bachi hui zindagi (RUL) predict ki.</span></div>
+      <div class="proj">→ Tata R2 (RUL)</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Time Series</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek machine ka temperature-graph poore din ka — har second ka data, time ke saath badalta hua.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Data jo <b>time ke saath</b> aata hai. Ismein pattern hote hain: <b>trend</b> (upar/neeche jaana), <b>seasonality</b> (repeat hona), <b>autocorrelation</b> (aaj ka kal se juda).</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Forecasting, degradation-over-time, anomaly. Models: ARIMA (classic), LSTM (DL), ya <b>lag/rolling features + GBM</b> (jo aapne kiya).</span></div>
+      <div class="example">🔧 <b>Example:</b> Sensor ki pichle 5 readings ka average (rolling feature) banaya, taaki LightGBM samajh sake machine dheere-dheere kharab ho rahi hai.</div>
+      <div class="say">🎤 <b>Bolo:</b> "R2 works on time-series sensor streams — I engineered lag and rolling features so LightGBM could model degradation over time."</div>
+      <div class="proj">→ Tata R2</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Optimization</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kam se kam paise mein sabse achhi grocery — budget (constraint) ke andar best value (objective) dhundna.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Kisi <b>goal</b> ko max/min karna, kuch <b>rukaawaton (constraints)</b> ke andar rehke.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Hyperparameter tuning (Optuna), scheduling, resource allocation.</span></div>
+      <div class="example">🔧 <b>Example:</b> R2 Prioritizer — kaunsi machine pehle theek karni hai, risk + spares + lead-time ko weigh karke rank kiya.</div>
+      <div class="say">🎤 <b>Bolo:</b> "My R2 Prioritizer ranks actions by a weighted risk score under spares and lead-time constraints; I also used Optuna for hyperparameter optimization."</div>
+      <div class="proj">→ R2 Prioritizer, R1 Optuna</div>
+    </div>
+  </section>
+
+  <!-- ============ B DEEP LEARNING ============ -->
+  <section id="b">
+    <h2><span class="n">B</span> Deep Learning</h2>
+    <p class="sec-intro">Deep learning = neural networks ("dimaag jaise" layered models) jo bahut data se khud features seekh lete hain. Images, text, aur sequences mein sabse strong.</p>
+
+    <div class="card"><div class="top"><span class="term">Neural Network (basics)</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek factory ki assembly line — har station (layer) input ko thoda process karke aage bhejta hai, aur final product (answer) nikalta hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Bahut "neurons" layers mein jude. Har neuron: input × <b>weights</b> + bias → <b>activation function</b>. Input → hidden layers → output.</span></div>
+      <div class="diagram"><span class="b">Input</span><span class="ar">→</span><span class="b">Hidden</span><span class="ar">→</span><span class="b">Hidden</span><span class="ar">→</span><span class="b hl">Output</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Seekhna kaise:</b> <b>Backpropagation</b> — galti (loss) ko peeche bhej ke weights sudharta hai, <b>gradient descent</b> se. <b>Activation:</b> ReLU (hidden), softmax/sigmoid (output).</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "A neural net is layers of weighted neurons trained by backprop — it tweaks weights to minimize a loss via gradient descent."</div>
+      <div class="ask">❓ <b>Poochh sakte hain:</b> "Activation function kyun chahiye?" → Warna network sirf straight-line (linear) seekhega; activation non-linear patterns pakadne deta hai.</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">CNN — Convolutional Neural Network</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek chhoti torch (filter) se poori photo ko tukdo mein dekhna — pehle edges, phir shapes, phir poora object.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Images/grids</b> ke liye. Chhote <b>filters</b> image pe slide karke patterns pakadte hain (edges → shapes → objects).</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Image classification, <b>visual defect detection</b> (steel surface pe cracks/spots). Layers: convolution → pooling → dense.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "CNNs use sliding filters to catch spatial patterns — perfect for visual steel-surface defects. My R1 data was tabular, so I used gradient boosting instead of a CNN."</div>
+      <div class="ask">❓ <b>Poochh sakte hain:</b> "Steel defect detection mein CNN kaise use karoge?" → Camera images pe CNN train karke crack/scratch classify karo.</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">RNN — Recurrent Neural Network</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kahani padhte waqt aap pichle shabd yaad rakhte ho tabhi agla samajh aata hai — RNN bhi pichla step yaad rakhta hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Sequences</b> (text, time-series) ke liye. Har step ka result agle step mein jaata hai — yani "memory" of the past.</span></div>
+      <div class="row"><span class="ic">⚠️</span><span class="tx"><b>Problem:</b> <b>Vanishing gradient</b> — lambi sequence mein shuruaat bhool jaata hai. Isi liye LSTM aaya.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "An RNN processes a sequence step-by-step, carrying a hidden state — but plain RNNs forget long-range context due to vanishing gradients."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">LSTM — Long Short-Term Memory</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek smart diary jisme aap decide karte ho kya likhna (yaad), kya kaatna (bhoolna), kya padhna (use) — RNN se behtar memory.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> RNN ka upgrade. Ismein <b>gates</b> hote hain — <b>forget</b> (kya bhoolna), <b>input</b> (kya yaad rakhna), <b>output</b> (kya use karna). Lambi sequences sambhaal leta hai.</span></div>
+      <div class="diagram"><span class="b">seq in</span><span class="ar">→</span><span class="b hl">forget · input · output gates</span><span class="ar">→</span><span class="b">seq out</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Time-series forecasting, RUL, text. <b>Aapka angle:</b> R2 mein LSTM-AE socha, par LightGBM chuna — CPU pe fast + tabular pe behtar.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "LSTM adds gates to remember long sequences — good for sensor time-series. I evaluated an LSTM autoencoder for R2 but chose LightGBM: faster on CPU with no accuracy loss."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">TensorFlow / PyTorch</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Deep learning banane ke "power tools" — jaise construction ke liye drill machine. Do brands: PyTorch aur TensorFlow.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> DL models banane ke <b>frameworks</b>. <b>PyTorch</b> = research favourite (flexible, Pythonic). <b>TensorFlow</b> = production/mobile (Google).</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "My ML work has been tabular, so I used scikit-learn and LightGBM. I know PyTorch is the standard for deep learning and I can pick it up quickly when a problem needs CNNs or LSTMs."</div>
+    </div>
+  </section>
+
+  <!-- ============ C GENAI ============ -->
+  <section id="c">
+    <h2><span class="n">C</span> Generative AI / LLM <span style="font-size:12px;color:var(--good);font-family:var(--mono)">YOUR ZONE</span></h2>
+    <p class="sec-intro">Ye aapki sabse strong belt hai — aur JD ka dil (Agentic Design, RAG, GenAI). Yahan confidently, detail mein bolo.</p>
+
+    <div class="card"><div class="top"><span class="term">LLM — Large Language Model</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek insaan jisne poori library padh li — agla shabd guess karne mein master. Claude, GPT, Gemini.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Transformer-based model jo <b>agla token (word-piece)</b> predict karta hai. Bahut bade text pe train.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "An LLM is a transformer trained to predict the next token; scale gives it reasoning and language."</div>
+      <div class="proj">→ All projects (Claude)</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">SLM — Small Language Model</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Chhoti car — kam powerful par sasti, tez, aur ghar (device) pe hi chal jaati hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Chhota LLM (1B–7B). <b>Sasta, fast, on-device</b>. Thoda kam smart, par domain fine-tune se accha.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Cost/speed/privacy matter kare; offline/edge. <b>Aapka:</b> R2 mein Qwen2.5-3B QLoRA fine-tune.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I fine-tuned a 3B SLM with QLoRA for steel-maintenance — cheaper and on-prem deployable, which matters for plant data privacy."</div>
+      <div class="proj">→ Tata R2 (Qwen-3B)</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Diffusion Models</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Dhundli (noisy) TV screen ko dheere-dheere saaf karke ek photo bana dena.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Image generation</b> — random noise se shuru, step-by-step noise hataake clean image (DALL·E, Stable Diffusion).</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "Diffusion models generate images by iterative denoising. Not my focus, but useful for synthetic defect-image augmentation in steel."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Prompt Engineering</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kisi expert se sahi jawab paane ke liye <b>sahi tarike se sawaal poochna</b> — role do, kaam batao, example do.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> LLM se accha output paane ke liye input ko structure karna: role + task + constraints + <b>few-shot examples</b> + step-by-step (chain-of-thought).</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I structure prompts with role, task, constraints, and examples — my Jarvis critic and EDITH synthesis both rely on engineered prompts."</div>
+      <div class="proj">→ Jarvis, EDITH, EngiNerd</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Prompt-to-Template</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek fill-in-the-blanks form — fixed structure, sirf <code>{values}</code> badalte hain. Har baar consistent result.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Kaam ko ek <b>reusable template</b> banana (skeleton + variables), taaki output har baar consistent aur reliable ho.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "In EDITH the final call fills a fixed synthesis template from numbered facts — consistent and auditable output."</div>
+      <div class="proj">→ EDITH, EngiNerd</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Chunking Strategy</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek moti book ko chhote-chhote flashcards mein todna, taaki zarurat pe sahi card nikaal sako — poori book nahi.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> RAG ke liye documents ko <b>chhote pieces (chunks)</b> mein todna, phir embed karna. Poora doc prompt mein nahi aata.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Types:</b> fixed-size · <b>overlapping</b> (context na toote) · <b>semantic</b> (meaning-based). Chhota chunk = precise par context kam; bada = context zyada par noisy.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I chunk with overlap so context isn't cut mid-idea, and prefer semantic boundaries for manuals — chunk size directly drives retrieval precision."</div>
+      <div class="proj">→ EDITH, Jarvis</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">RAG — Retrieval-Augmented Generation</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Open-book exam — sawaal aaya, book se sahi page dhundo, phir dekh ke jawab likho. Ratna nahi padta.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> LLM ko train nahi karte — bahar se relevant docs <b>laake (retrieve)</b> prompt mein daalte hain, phir LLM answer <b>banata (generate)</b> hai.</span></div>
+      <div class="diagram"><span class="b">question</span><span class="ar">→</span><span class="b">embed</span><span class="ar">→</span><span class="b">vector search</span><span class="ar">→</span><span class="b">rerank</span><span class="ar">→</span><span class="b hl">LLM generate</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kyun:</b> Fresh/private/factual knowledge, source cite kar sakte ho, no re-training. <b>Aapka core.</b></span></div>
+      <div class="say">🎤 <b>Bolo:</b> "RAG grounds the LLM in retrieved documents — my EDITH RAG is bge-small → FlashRank rerank → ChromaDB → NLI faithfulness gate."</div>
+      <div class="ask">❓ <b>Poochh sakte hain:</b> "RAG vs Fine-tuning kab?" → RAG for knowledge (badalta rehta hai), fine-tune for behavior/style.</div>
+      <div class="proj">→ EDITH, Jarvis, McpIndex</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Fine-tuning</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek general doctor ko extra course karake <b>heart-specialist</b> banana — base knowledge upar naya skill.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Trained model ko thodi <b>specific data</b> pe aur train karke uske <b>weights badalna</b>. <b>LoRA/QLoRA</b> = sasta (sirf kuch parameters, kam memory).</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kab:</b> Behavior/tone/format change. RAG se knowledge, fine-tune se skill.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I fine-tuned Qwen-3B with QLoRA on ~1000 steel-maintenance examples — fine-tuning teaches behavior; RAG supplies facts."</div>
+      <div class="proj">→ Tata R2 QLoRA</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Pre-training</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> School + college — poori base education. Ye "graduation" hai; fine-tuning "job training" hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Base model ko <b>scratch se</b> internet-scale data pe train karna. Crores + mahine + huge GPUs.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "Pre-training builds the base model from scratch — a big-lab job. In industry we adapt via RAG or fine-tuning, not pre-train."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Agentic AI</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek personal assistant jo sirf jawab nahi deta — khud plan banata hai, tools use karta hai, kaam kar deta hai.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> LLM jo <b>plan karta, tools use karta, actions leta, multi-step kaam</b> karta hai. Patterns: ReAct, router, tool-use, reflection, multi-agent.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "Agentic AI plans and acts with tools, not just chats. EDITH routes intent to a 5-agent chain; Jarvis orchestrates ~90 agents."</div>
+      <div class="proj">→ EDITH, Jarvis (your core)</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">LangChain / LangGraph</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> LLM apps banane ke <b>ready-made LEGO blocks</b> — chains, agents, memory, tools jode-jodaye.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> LLM apps ka popular framework. LangGraph = graph/state-machine version for agents.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Aapka angle:</b> Concepts aate hain; EDITH mein LangGraph <b>try karke reject</b> kiya — custom deterministic orchestrator banaya. Strength ki tarah bolo.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I know LangChain/LangGraph — I prototyped a LangGraph supervisor for EDITH but chose a custom deterministic DAG for reliability on a single machine."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Google ADK (Agent Development Kit)</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> LangChain jaisa hi, par Google ke ghar ka (Gemini + Vertex AI ke saath).</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Google ka agent-building framework (2024–25) — multi-agent, tools, GCP pe deploy.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "I haven't used Google ADK specifically, but it's Google's agent framework — same agent + tool + orchestration ideas I've built by hand and with the Claude Agent SDK, so ramp-up is quick."</div>
+    </div>
+  </section>
+
+  <!-- ============ D DATA ============ -->
+  <section id="d">
+    <h2><span class="n">D</span> Data &amp; Databases</h2>
+    <p class="sec-intro">Data ko store, saaf, aur ready karne ka hissa. SQL/NoSQL/Postgres aapko aate hain; big-data (Spark) gap hai.</p>
+
+    <div class="card"><div class="top"><span class="term">SQL (relational DB)</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek achhi tarah se organised Excel — fixed columns, rows, aur aap query karke data nikalte ho.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Relational</b> databases ki language — tables, fixed schema. Commands: SELECT, JOIN, WHERE, GROUP BY.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I use SQL for structured data — schema design, joins, query tuning in Postgres."</div>
+      <div class="proj">→ EngiNerd</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">NoSQL</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek flexible drawer — chahe jo shape ka saman daalo, fixed dibbe nahi.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Non-relational</b> — flexible/no fixed schema. Types: document (MongoDB), key-value (Redis), <b>vector (ChromaDB)</b>, graph.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "NoSQL trades rigid schema for flexibility and scale — I use ChromaDB (vector store) for embeddings."</div>
+      <div class="proj">→ ChromaDB, Redis</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">PostgreSQL (+ pgvector)</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek powerful Excel jo embeddings bhi store kar sakta hai — SQL + vector search ek jagah.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Strong open-source relational DB. <b>pgvector</b> extension se embeddings + similarity search bhi.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I've used Postgres with pgvector for hybrid keyword + semantic search — one DB for relational and vector data."</div>
+      <div class="proj">→ McpIndex, EngiNerd</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Data Engineering (pipelines)</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Kacche sabziyon ko dho-kaat-ke cooking ke liye ready karna — data ko model ke liye ready karna.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Raw data ready banana — <b>cleaning</b> (missing/outliers), <b>preprocessing</b> (scaling/encoding), <b>feature engineering</b> (naye useful columns), <b>pipelines</b> (auto flow).</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "In R1 I did heavy feature engineering — SHAP selection, polynomial interactions, coil-neighbor temporal features — with leak-proof fold-isolated pipelines."</div>
+      <div class="proj">→ Tata R1</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Big Data — Hadoop / Spark</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek aadmi 1000 kitaabein padhe → mahine lagenge. 1000 log baant lein → ghante mein. Spark = kaam ko 1000 machines mein baantna.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Bahut bade data (TB+) ko <b>bahut machines pe baant ke</b> process karna. <b>Hadoop</b> = distributed storage + batch. <b>Spark</b> = fast in-memory (Hadoop se ~10–100× tez).</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "Spark is distributed in-memory processing for data too big for one machine. I've worked at single-machine scale, but the concepts — partitioning, map/reduce — are clear, and I'd ramp up on a cluster fast."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Decentralized Architecture</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Har mohalle ka apna chhota power-generator — ek central plant fail ho to sab band na ho.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> System jo <b>ek central point pe depend na kare</b> — kaam bahut nodes mein bata, no single point of failure, edge pe bhi chale.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "Decentralized means distributing compute with no single point of failure — my EDITH agents are modular services that could run per-plant instead of one central brain."</div>
+    </div>
+  </section>
+
+  <!-- ============ E CLOUD ============ -->
+  <section id="e">
+    <h2><span class="n">E</span> Cloud &amp; MLOps</h2>
+    <p class="sec-intro">Model ko internet pe reliably chalane ka hissa. Ye mostly GAP hai — honest raho, concepts samjho, "seekh lunga" attitude.</p>
+
+    <div class="card"><div class="top"><span class="term">Cloud — GCP / AWS / Azure</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Apna generator kharidne ke bajaye <b>bijli kiraye pe</b> lena — jitni chahiye utni, jab chahiye.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Internet pe <b>compute/storage/services rent</b> karna. AWS (Amazon), Azure (Microsoft), GCP (Google).</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>ML services:</b> AWS <b>SageMaker</b>, GCP <b>Vertex AI</b>, Azure ML — model train/deploy ready-made.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "My projects ran locally and on Vercel; I haven't done multi-cloud yet, but I understand renting scalable compute, and Vertex AI / SageMaker are managed ML platforms I'd learn quickly."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Serverless — Cloud Run / Lambda / Functions</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Automatic taxi jo sirf ride ke time aati hai aur utne ka hi paisa — server hamesha on rakhne ki zarurat nahi.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> Code chalao <b>bina server manage kiye</b> — cloud khud scale karta hai, sirf jitna chala utna paisa. Lambda (AWS), Cloud Run/Functions (GCP), Azure Functions.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "Serverless runs code on-demand with auto-scaling and pay-per-use. I've deployed on Vercel — which is serverless underneath — so the model carries over to Cloud Run / Lambda."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">Kubernetes (GKE)</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek traffic-manager jo bahut saari cars (containers) ko manage karta hai — kaunsi kahan chale, ek kharab ho to nayi laga do.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Containers (Docker)</b> ko bahut machines pe automatically chalane/scale/heal karne ka system. GKE = Google-managed Kubernetes.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "Kubernetes orchestrates containers across machines — auto-scaling, self-healing, rolling deploys. I've used Docker; K8s is the next layer up and I'm comfortable getting hands-on."</div>
+    </div>
+
+    <div class="card"><div class="top"><span class="term">MLOps</span><span class="tag mid">PARTIAL</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Model ko sirf banana kaafi nahi — usko production mein <b>zinda + healthy</b> rakhna (monitor, update). Jaise gaadi ki servicing.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> ML ka "DevOps" — model ko <b>deploy, version, monitor, retrain</b> karna reliably. Includes CI/CD, <b>drift monitoring</b>, retraining triggers.</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Drift:</b> jab real-world data training se badal jaaye → model kharab hone lage → monitor karke retrain.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "MLOps is deploy + monitor + retrain reliably. I've done the lightweight version — systemd services, cron retraining, CI/CD test gating — and I understand drift monitoring and model versioning."</div>
+      <div class="proj">→ Jarvis, EngiNerd</div>
+    </div>
+  </section>
+
+  <!-- ============ F RESPONSIBLE AI ============ -->
+  <section id="f">
+    <h2><span class="n">F</span> Responsible AI</h2>
+    <p class="sec-intro">AI ko fair, safe, private banana. Ye aapki STRENGTH hai — aapke projects mein already built hai.</p>
+    <div class="card"><div class="top"><span class="term">Bias · Privacy · Responsible AI</span><span class="tag str">STRENGTH</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Ek achha judge — fair (bias-free), private (secrets safe), aur apna faisla samjha sake (explainable).</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>Bias mitigation</b> — model kisi group ke against galat na ho. <b>Privacy</b> — PII protect (masking, on-prem). <b>Responsible AI</b> — guardrails, human oversight, transparency, no harmful/hallucinated output.</span></div>
+      <div class="say">🎤 <b>Bolo:</b> "I build responsible-AI guardrails directly — EDITH's NLI faithfulness gate stops hallucinated maintenance advice, Jarvis has a 4-tier safety model where irreversible actions need human approval, and on-prem SLMs keep plant data private."</div>
+      <div class="proj">→ EDITH NLI gate, Jarvis safety tiers</div>
+    </div>
+  </section>
+
+  <!-- ============ G IT-OT ============ -->
+  <section id="g">
+    <h2><span class="n">G</span> Domain — IT-OT Architecture</h2>
+    <p class="sec-intro">Manufacturing AI ka khaas hissa — computer-world (IT) aur machine-world (OT) ko jodna. Gap hai, par aapka R2 design iske liye ready tha.</p>
+    <div class="card"><div class="top"><span class="term">IT-OT Architecture</span><span class="tag gap">GAP</span></div>
+      <div class="analogy">💡 <b>Analogy:</b> Office (IT — computers, data) aur Factory-floor (OT — machines, sensors) ko ek pul se jodna, taaki AI machines ka data dekh sake.</div>
+      <div class="row"><span class="ic">📖</span><span class="tx"><b>Kya:</b> <b>IT</b> = business/data systems (DB, cloud, ERP). <b>OT</b> = plant-floor hardware — <b>sensors, PLCs, SCADA, DCS</b> jo actual machines chalate hain.</span></div>
+      <div class="diagram"><span class="b">OT: sensors/PLC</span><span class="ar">→</span><span class="b hl">OPC-UA / MQTT</span><span class="ar">→</span><span class="b">IT: cloud + AI</span></div>
+      <div class="row"><span class="ic">🎯</span><span class="tx"><b>Kaise jude:</b> OT ka live data protocols se (<b>OPC-UA, Modbus, MQTT</b>) IT/cloud mein aata hai, phir AI process karta hai. Challenge: OT purane, safety-critical, real-time.</span></div>
+      <div class="say">🎤 <b>Honest bolo:</b> "IT is the data/cloud layer, OT is plant-floor sensors and PLCs. Manufacturing AI must bridge them — I designed EDITH's sensor stream to swap to a live OPC-UA feed, so it's IT-OT-ready, even though I've worked on the IT side so far."</div>
+    </div>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section id="cheat">
+    <h2><span class="n">★</span> Cheat Sheet — 1-Line Har Topic</h2>
+    <p class="sec-intro">Interview se 10 min pehle isko padh lena — ek nazar mein sab revise.</p>
+    <div class="cheat">
+      <table>
+        <thead><tr><th>Topic</th><th>Ek line mein</th></tr></thead>
+        <tbody>
+          <tr><td>Supervised</td><td>labelled data se seekhna (class + regression)</td></tr>
+          <tr><td>Unsupervised</td><td>bina label, structure/anomaly dhundna</td></tr>
+          <tr><td>Reinforcement</td><td>reward/penalty se try-error seekhna</td></tr>
+          <tr><td>Classification / Regression</td><td>category / number predict karna</td></tr>
+          <tr><td>Time series</td><td>time ke saath data — trend, seasonality</td></tr>
+          <tr><td>Optimization</td><td>constraints ke andar best solution</td></tr>
+          <tr><td>Neural net</td><td>layered neurons, backprop se train</td></tr>
+          <tr><td>CNN / RNN / LSTM</td><td>image / sequence / long-sequence(gates)</td></tr>
+          <tr><td>LLM / SLM</td><td>bada / chhota language model (next-token)</td></tr>
+          <tr><td>Prompt eng / template</td><td>sahi input dena / reusable structured prompt</td></tr>
+          <tr><td>Chunking</td><td>docs ko RAG ke liye chhote pieces</td></tr>
+          <tr><td>RAG</td><td>retrieve docs → LLM answer (open-book)</td></tr>
+          <tr><td>Fine-tune / Pre-train</td><td>behavior sikhana / base model banana</td></tr>
+          <tr><td>Agentic AI</td><td>LLM jo plan+tools+action kare</td></tr>
+          <tr><td>LangChain / ADK</td><td>agent-app banane ke frameworks</td></tr>
+          <tr><td>SQL / NoSQL / Postgres</td><td>relational / flexible / powerful DB</td></tr>
+          <tr><td>Spark / Hadoop</td><td>bade data ko machines mein baant ke process</td></tr>
+          <tr><td>Cloud / Serverless / K8s</td><td>rent compute / no-server / container manager</td></tr>
+          <tr><td>MLOps</td><td>deploy + monitor + retrain reliably</td></tr>
+          <tr><td>Responsible AI</td><td>fair + private + explainable + safe</td></tr>
+          <tr><td>IT-OT</td><td>office-data + factory-sensors ko jodna</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Tata Steel Manager-AI · saare topics · aasaan bhasha<br>
+    🟢 strengths pe lead karo · 🟡 sharpen · 🔴 honest + "seekh lunga". Bluff kabhi nahi.
+  </footer>
+</div>
+<script>
+(function(){var b=document.getElementById('themeToggle'),r=document.documentElement;b.addEventListener('click',function(){var c=r.getAttribute('data-theme');if(!c)c=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',c==='dark'?'light':'dark');});})();
+</script>
+</body>
+</html>

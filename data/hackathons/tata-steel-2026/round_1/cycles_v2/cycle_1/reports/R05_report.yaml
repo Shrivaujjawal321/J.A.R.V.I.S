@@ -1,0 +1,437 @@
+agent_id: R05
+topic: imbalance-2024
+cycle: 1
+timestamp_utc: "2026-05-23T06:30:00Z"
+status: ok
+
+# DEDUP PASS (performed before drafting any recommendation)
+# From EXHAUSTED_v1_v22.md the following imbalance treatments are EXHAUSTED:
+#   - SMOTE(sampling_strategy=0.3, k_neighbors=3) - V2+
+#   - scale_pos_weight / is_unbalance / class_weight=balanced / auto_class_weights=Balanced
+#   - BCEWithLogitsLoss pos_weight=19.48
+#   - pos_weight=100 (Asymmetric loss PU M3) - explicitly HURT
+#   - Sample weights 19.5x (TabNet V19)
+#   - ADASYN - researched in Track B but marked NOT IMPLEMENTED / NOT EXHAUSTED => OPEN
+#   - Focal loss - researched but NOT implemented => OPEN for R06 (cost-sensitive, out of scope here)
+#   - Pseudo-negatives from test - TRIED AND REGRESSED V4
+#   - Co-training / self-training / PU learning (all 5 methods) - EXHAUSTED
+#
+# Techniques OPEN for this report:
+#   BorderlineSMOTE, ADASYN (unimplemented), SMOTETomek, SMOTEENN,
+#   KMeansSMOTE, CTGAN, TabDDPM, TVAE, Random-oversampling+noise, Mixup
+
+# BUILD PRIORITY (top-3 picks):
+#   Priority 1: R05_rec_3  (BorderlineSMOTE - highest signal:effort, best match to hard-7 profile)
+#   Priority 2: R05_rec_2  (SMOTEENN - reduces FP confusion, hardest-FP-10 attack vector)
+#   Priority 3: R05_rec_4  (KMeansSMOTE - manifold-safe synthesis, avoids mode collapse on 66 positives)
+
+recommendations:
+
+  - id: R05_rec_1
+    title: "ADASYN: density-adaptive minority synthesis"
+    technique_class: imbalance
+    description: |
+      ADASYN (He et al., IJCNN 2008) synthesises more samples near minority
+      instances that are hardest to learn - those surrounded by majority
+      neighbours. With 66 positives and a hard-to-learn cluster (the 7 barely-
+      above-threshold coils), ADASYN will focus synthesis budget on exactly the
+      stealth defects that are indistinguishable from negatives. This is a
+      strict improvement in synthesis intent vs vanilla SMOTE which allocates
+      synthesis uniformly. The imbalanced-learn implementation is a drop-in
+      replacement. NOTE: ADASYN was noted as "researched but NOT implemented"
+      in EXHAUSTED_v1_v22.md - it is explicitly NOT exhausted.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.6
+      low: 0.1
+      high: 1.5
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: ["imbalanced-learn>=0.11"]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        He, H., Bai, Y., Garcia, E.A., Li, S. (2008). "ADASYN: Adaptive
+        Synthetic Sampling Approach for Imbalanced Learning." IJCNN 2008.
+        https://sci2s.ugr.es/keel/pdf/algorithm/congreso/2008-He-ieee.pdf
+        Diva portal comparative study (diva2:1519153, Gustafsson & Lundqvist
+        2020) found ADASYN competitive with SMOTE across RF/LGB/XGB; winner
+        depends on dataset structure. On datasets where hard-to-learn minority
+        samples exist near the boundary (as in our hard-7 profile), ADASYN
+        tends to dominate. Expected +0.5 to +1.5 OOF (R+P)/2 over vanilla
+        SMOTE on similar industrial binary imbalance tasks.
+    failure_modes:
+      - "If hard-7 coils have NO majority neighbours (fully isolated in feature
+        space), ADASYN generates ZERO synthetics for them - identical to vanilla
+        SMOTE behaviour. Likely failure mode given AD methods showed hard
+        defects are stealth in X1-X49."
+      - "With 66 positives per full train (~53 per fold), density estimation
+        with k=5 is noisy - synthesis may concentrate on artefact regions of
+        the 51-feature manifold."
+      - "Generated samples have no physics constraint - check for impossible
+        coiling temperature / campaign position combinations post-generation."
+    code_sketch: |
+      from imblearn.over_sampling import ADASYN
+
+      def make_sampler():
+          return ADASYN(
+              sampling_strategy=0.3,  # match V4 ratio
+              n_neighbors=5,          # default; try 3 to match V4 k
+              random_state=42,
+          )
+      # Drop-in replace for SMOTE in V4 harness:
+      # X_res, y_res = make_sampler().fit_resample(X_train_fold, y_train_fold)
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R05_rec_2
+    title: "SMOTEENN: oversample + ENN underclean noise"
+    technique_class: imbalance
+    description: |
+      SMOTEENN combines vanilla SMOTE oversampling with Edited Nearest
+      Neighbours (ENN) undersampling: after SMOTE synthesis, ENN removes every
+      sample (majority or synthetic minority) whose 3-NN majority vote
+      disagrees with its label. This is a two-sided cleaning move - it strips
+      ambiguous majority samples from near the decision boundary and removes
+      badly-placed SMOTE synthetics. On our problem the 10 hardest FPs
+      (CoilIDs 689, 642, 247...) are Y=0 rows that look defect-like; ENN will
+      preferentially remove them from training, reducing the model's exposure
+      to confusing near-boundary negatives. This directly targets the FP
+      reduction path. SMOTETomek is the weaker sibling (Tomek pairs only remove
+      one pair at a time); SMOTEENN's ENN pass is more aggressive and generally
+      achieves higher F1 + AUC on noisy-boundary datasets.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.8
+      low: 0.2
+      high: 2.0
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: ["imbalanced-learn>=0.11"]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Batista, G.E.A.P.A., Prati, R.C., Monard, M.C. (2004). "A study of
+        the behaviour of several methods for balancing machine learning training
+        data." ACM SIGKDD Explorations 6(1):20-29.
+        MDPI Algorithms 18(1):37 (2025): "SMOTEENN consistently outperforms
+        SMOTE in accuracy and MSE across all sample sizes and models; achieves
+        higher mean accuracy and lower standard deviation."
+        https://www.mdpi.com/1999-4893/18/1/37
+        KDnuggets 2023 SMOTE variants summary: SMOTEENN ranked best for
+        noisy-boundary datasets where false positives dominate the error budget.
+        Confidence 4: well-documented on tabular binary imbalance; effect on
+        (R+P)/2 specifically depends on how aggressively ENN removes hard-FP-10.
+    failure_modes:
+      - "ENN aggressiveness: with 5% minority, ENN may over-clean, removing
+        too many majority samples and causing an artificially easy training set
+        that overfits - worse LB than OOF."
+      - "ENN removes synthetic minority samples too, possibly shrinking the
+        effective positive count below what SMOTE produced. Monitor n_positive
+        post-cleaning per fold."
+      - "If hard-FP-10 coils form their own tight cluster far from real
+        positives, ENN will NOT remove them - the FP attack angle fails."
+      - "Two-pass computation. Still fast (<5 sec/fold on 1352 rows)."
+    code_sketch: |
+      from imblearn.combine import SMOTEENN
+      from imblearn.over_sampling import SMOTE
+      from imblearn.under_sampling import EditedNearestNeighbours
+
+      def make_sampler():
+          return SMOTEENN(
+              sampling_strategy=0.3,
+              random_state=42,
+              smote=SMOTE(k_neighbors=3, random_state=42),
+              enn=EditedNearestNeighbours(n_neighbors=3),
+          )
+      # Drop-in inside fold:
+      # X_res, y_res = make_sampler().fit_resample(X_train_fold, y_train_fold)
+    test_case_impact:
+      hard7_recall: low
+      hard_fp_avoidance: high
+      easy59_regression_risk: low
+
+  - id: R05_rec_3
+    title: "BorderlineSMOTE-1: boundary-focused synthesis"
+    technique_class: imbalance
+    description: |
+      BorderlineSMOTE (Han et al., ICIC 2005) restricts synthesis to minority
+      samples classified as "in danger" - those whose m=10 nearest neighbours
+      include between 50% and 100% majority samples. Safe minority samples
+      (surrounded only by same-class neighbours) are excluded from synthesis;
+      noisy ones (all neighbours are majority) are also excluded. Only the
+      dangerous borderline cases get oversampled. For our hard-7 defects with
+      V4 OOF probas 0.0143-0.0269 (barely above threshold), these coils are
+      almost certainly in the "in danger" zone in feature space - they are
+      exactly the instances BorderlineSMOTE was designed to amplify.
+      BorderlineSMOTE-1 (kind=borderline-1) keeps synthetics within the
+      minority class; Type-2 allows cross-class extrapolation (riskier with
+      only 66 samples). Start with Type-1.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.0
+      low: 0.3
+      high: 2.5
+    feasibility:
+      score: 5
+      effort_hours: 0.5
+      dependencies: ["imbalanced-learn>=0.11"]
+    confidence:
+      score: 4
+      evidence_anchor: |
+        Han, H., Wang, W-Y., Mao, B-H. (2005). "Borderline-SMOTE: A New
+        Over-Sampling Method in Imbalanced Data Sets Learning." ICIC 2005,
+        LNCS 3644, pp. 878-887.
+        https://www.researchgate.net/publication/225129029
+        Springer 2023 Adaptive SV-Borderline SMOTE-SVM (ScienceDirect
+        S1568494623010049): "Borderline-SMOTE behaves better than SMOTE on
+        datasets with overlapping class boundaries - higher TP rate and F-value."
+        imbalanced-learn docs v0.14.1: kind=borderline-1 confirmed stable API.
+        Confidence 4: well-published; strong alignment with hard-7 profile
+        (borderline defects). Actual lift on anonymised 51-feature space
+        cannot be pre-confirmed but theory match is the strongest of all variants.
+    failure_modes:
+      - "If hard-7 coils are classified as NOISE (all m nearest neighbours are
+        majority) rather than 'in danger', BorderlineSMOTE will skip them
+        entirely - worst-case outcome. With X13 AUC 0.832, most positives are
+        somewhat separable so hard-7 likely land in 'in danger' zone, not certain."
+      - "With ~53 train positives per fold, m=10 NN estimation is noisy.
+        Consider reducing m_neighbors to 5 to match smaller sample counts."
+      - "kind=borderline-2 extrapolates into majority space - produces off-
+        manifold samples with only 66 positives. Avoid Type-2 in Cycle 1."
+      - "Same physics-bounds violation risk as ADASYN - no process constraint
+        on generated temperature/force values."
+    code_sketch: |
+      from imblearn.over_sampling import BorderlineSMOTE
+
+      def make_sampler(m_neighbors=10):
+          return BorderlineSMOTE(
+              sampling_strategy=0.3,
+              k_neighbors=3,           # match V4 k for fair comparison
+              m_neighbors=m_neighbors, # try 5 and 10
+              kind='borderline-1',     # safer: synthetics stay in minority space
+              random_state=42,
+          )
+      # Ablation: m_neighbors=5 (given ~53 train positives/fold)
+      # Drop-in inside fold:
+      # X_res, y_res = make_sampler().fit_resample(X_train_fold, y_train_fold)
+    test_case_impact:
+      hard7_recall: high
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R05_rec_4
+    title: "KMeansSMOTE: cluster-safe minority synthesis"
+    technique_class: imbalance
+    description: |
+      KMeansSMOTE (Douzas & Bacao 2018) runs k-means on the full feature space
+      first, then applies SMOTE only within clusters that contain minority
+      samples. This prevents mode collapse: if all 66 positives form a tight
+      cluster in the 51-feature space (plausible given V5 physics features
+      X13/X14/X18 cluster defects), vanilla SMOTE repeatedly interpolates
+      within that one cluster creating correlated duplicates. KMeansSMOTE
+      spreads synthesis across all minority-containing clusters proportionally
+      to their density. For hard-7 coils that may form their own sparse sub-
+      cluster (they are extreme borderline), this ensures they receive synthesis
+      budget rather than being dominated by the 59 easy positives. Best
+      manifold-preservation option given the data geometry.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 0.7
+      low: 0.1
+      high: 1.8
+    feasibility:
+      score: 4
+      effort_hours: 1.0
+      dependencies: ["imbalanced-learn>=0.11"]
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Douzas, G., Bacao, F. (2018). "Oversampling for Imbalanced Learning
+        Based on K-Means and SMOTE." Information Sciences 465:1-20.
+        https://www.researchgate.net/publication/320821366
+        PMC9546831 (SD-KMSMOTE, 2022): cluster-aware variants outperform
+        vanilla SMOTE on precision, recall, F1, G-mean, and AUC across medical
+        tabular datasets.
+        Confidence 3: well-founded in theory; fewer published head-to-head
+        results on industrial process data specifically.
+    failure_modes:
+      - "k-means Euclidean distance on 51 mixed features (temperatures ~890C
+        vs campaign counters 0-4380 vs chemistry proxies 0-0.055) requires
+        StandardScaler pre-processing. Must scale before KMeansSMOTE or
+        integrate scaler in the fold pipeline."
+      - "cluster_balance_threshold=auto may set too conservative a threshold,
+        preventing synthesis in sparse minority clusters (the hard-7 cluster).
+        Manual tuning adds an iteration."
+      - "k (n_clusters) must be tuned. Too small: all positives in one cluster
+        (degenerates to SMOTE). Too large: each positive is its own cluster
+        (no interpolation). Try k=10, 20, 30."
+    code_sketch: |
+      from imblearn.over_sampling import KMeansSMOTE
+      from sklearn.preprocessing import StandardScaler
+
+      def make_sampler(n_clusters=10):
+          return KMeansSMOTE(
+              sampling_strategy=0.3,
+              k_neighbors=3,
+              kmeans_estimator=n_clusters,     # tune: 10, 20, 30
+              cluster_balance_threshold=0.1,   # or 'auto'
+              density_exponent='auto',
+              random_state=42,
+          )
+
+      # CRITICAL: scale before KMeansSMOTE (k-means uses Euclidean distance)
+      # Inside fold:
+      # scaler = StandardScaler().fit(X_train_fold)
+      # X_scaled = scaler.transform(X_train_fold)
+      # X_res, y_res = make_sampler().fit_resample(X_scaled, y_train_fold)
+      # X_res = scaler.inverse_transform(X_res)  # restore for trees
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R05_rec_5
+    title: "TabDDPM class-conditional minority synthesis"
+    technique_class: imbalance
+    description: |
+      TabDDPM (Kotelnikov et al., ICML 2023) is the SOTA tabular generative
+      model. Unlike SMOTE variants that interpolate in raw feature space,
+      TabDDPM learns the full joint distribution using Gaussian diffusion for
+      continuous features and multinomial diffusion for categorical ones.
+      X11, X39, X40 are categorical in our dataset - a mode SMOTE handles
+      poorly (interpolating integer grade codes is nonsensical). Train a
+      TabDDPM conditioned only on Y=1 rows (66 positives) and sample synthetic
+      positives to augment training. The steel paper PMC12348153 (CTGAN+CatBoost
+      for HSLA crack defects) validates GAN-based synthesis on steel tabular
+      data; TabDDPM is the 2023 successor that outperforms CTGAN and TVAE on
+      15 benchmark datasets. Highest ceiling of all synthesis options but also
+      highest risk given only 66 minority samples.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with: []
+    expected_lift_oof:
+      point: 1.2
+      low: -0.5
+      high: 3.5
+    feasibility:
+      score: 2
+      effort_hours: 6.0
+      dependencies:
+        - "tab-ddpm (yandex-research/tab-ddpm, GitHub)"
+        - "torch>=2.0"
+        - "GPU recommended; CPU feasible for 66 samples <5min"
+    confidence:
+      score: 3
+      evidence_anchor: |
+        Kotelnikov, A., Baranchuk, D., Rubachev, I., Babenko, A. (2023).
+        "TabDDPM: Modelling Tabular Data with Diffusion Models." ICML 2023.
+        Proc. 40th ICML, PMLR 202.
+        https://proceedings.mlr.press/v202/kotelnikov23a/kotelnikov23a.pdf
+        MDPI Applied Sciences 16(8):3694 (April 2026): benchmark SMOTE vs
+        CTGAN vs TVAE vs TabDDPM on protein localisation - "TabDDPM best
+        qualitative fit; synthetic distribution resembles training data most
+        closely; outperforms GAN and VAE baselines on most datasets."
+        NIH PMC11961955 (2024): TabDDPM class-conditional minority synthesis
+        for fairness on tabular data - validates the workflow.
+        Confidence 3: published SOTA on 15 diverse datasets. No prior result
+        on Tata Steel-scale data (1352 rows, 66 positives). Low end (-0.5)
+        is realistic if diffusion model memorises rather than generalises
+        on 53 per-fold positives.
+    failure_modes:
+      - "SEVERE OVERFITTING RISK: 66 minority samples is extremely small for
+        a neural generative model. TabDDPM typically needs 500+ samples/class.
+        On 53 per-fold positives, the model may memorise training examples."
+      - "CV integration complexity: TabDDPM is a standalone training loop, not
+        a Pipeline-compatible sampler. Manual fold integration required."
+      - "Leakage risk: fitting TabDDPM on full train (not per-fold) for richer
+        data introduces label leakage into OOF evaluation."
+      - "Categorical column types (X11, X39, X40) must be manually specified
+        in TabDDPM config - no auto-detection."
+      - "Generated samples have no physics constraint."
+    code_sketch: |
+      # pip install git+https://github.com/yandex-research/tab-ddpm
+      # Per-fold workflow sketch:
+
+      # 1. Isolate minority class for this fold
+      # X_pos = X_train_fold[y_train_fold == 1]   # ~53 rows
+
+      # 2. Config: specify categorical vs numerical cols
+      # cat_cols = [idx_X11, idx_X39, idx_X40]
+      # num_cols = [all other 48 indices]
+
+      # 3. Train class-conditional TabDDPM on positives only
+      # model = TabDDPM(num_numerical=48, cat_cardinalities=[17,49,13], ...)
+      # model.fit(X_pos, n_epochs=1000)
+
+      # 4. Generate N synthetic positives
+      # N_syn = int(len(X_train_fold) * 0.3) - len(X_pos)
+      # X_syn = model.sample(N_syn)
+      # y_syn = np.ones(N_syn)
+
+      # 5. Augment and train normally
+      # X_aug = np.vstack([X_train_fold, X_syn])
+      # y_aug = np.concatenate([y_train_fold, y_syn])
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: medium
+
+cross_topic_links:
+  - R06: "Cost-sensitive learning (R06) and BorderlineSMOTE (R05_rec_3) are
+          complementary. BorderlineSMOTE improves synthesis quality near hard-7
+          borderline positives; cost-sensitive loss (focal loss, tuned
+          scale_pos_weight) forces the discriminative model to weight them
+          more highly. Running both together in Cycle 2 is the strongest
+          imbalance combination."
+  - R01: "If R01 identifies new physics features that better separate hard-7
+          from the majority, add those features BEFORE resampling. Better
+          feature space gives more accurate neighbourhood computation in all
+          SMOTE variants. R01 features should land first."
+  - R04: "If R04 recommends TabICL or TabPFN-v1 as a meta-feature generator,
+          synthetic data from BorderlineSMOTE / SMOTEENN could enrich the
+          minority context passed to the foundation model - potential Cycle 2
+          synergy."
+
+# BUILD ORDER RATIONALE
+# Priority 1 - BorderlineSMOTE (R05_rec_3):
+#   Strongest theory-problem alignment. Hard-7 coils with V4 OOF proba
+#   0.0143-0.0269 are by definition borderline minority samples. Their sensor
+#   readings sit close to the majority decision boundary. BorderlineSMOTE was
+#   designed for exactly this structure. Drop-in <1h. Highest point estimate
+#   (1.0) and confidence (4) of all synthesis variants. Build first.
+#
+# Priority 2 - SMOTEENN (R05_rec_2):
+#   The FP attack path. Hard-FP-10 (CoilIDs 689, 642, 247 etc., proba 0.52-0.78)
+#   are confusing boundary negatives. ENN cleaning removes them from training
+#   exposure. Only resampling approach that DIRECTLY attacks the precision half
+#   of the metric. Confidence 4. Under 1h.
+#
+# Priority 3 - KMeansSMOTE (R05_rec_4):
+#   Manifold-safe. If hard-7 form a sub-cluster separate from easy-59 cluster,
+#   KMeansSMOTE ensures they receive synthesis budget. Needs StandardScaler
+#   integration. 1h.
+#
+# SKIP in Cycle 1:
+#   ADASYN: Good theory but likely failure mode (hard-7 may have zero majority
+#     neighbours if truly isolated) means it may be identical to SMOTE. Build
+#     only if BorderlineSMOTE shows <+0.3 OOF lift.
+#   TabDDPM: Highest ceiling (+3.5) but feasibility=2, effort=6h, and severe
+#     overfitting risk on 53 per-fold positives. Reserve for Cycle 2.
+#   CTGAN/TVAE: TabDDPM strictly dominates both per 2023 ICML benchmarks.
+#     Not worth separate Cycle 1 iterations.
+#   Mixup: Mild benefit ("4/6 UCI datasets improved") but requires custom
+#     training loop. Likely +0.1-0.3 vs +1.0 for BorderlineSMOTE. Skip.
+#   Random oversample + noise: Strictly dominated by any SMOTE variant.

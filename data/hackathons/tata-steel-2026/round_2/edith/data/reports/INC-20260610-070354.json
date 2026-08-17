@@ -1,0 +1,259 @@
+{
+  "report_id": "INC-20260610-070354",
+  "kind": "incident",
+  "title": "Incident report \u2014 HSM.F3.WR.BRG01 (outer_race_fatigue_spall_BPFO)",
+  "markdown": "# VULCAN Maintenance Report \u00b7 INC-20260610-070354\n_Generated 2026-06-10 07:03 UTC \u00b7 persona EDITH \u00b7 grounded in the steel-maintenance-flagship dataset_\n\n## 1. Asset\n- **Asset**: `HSM.F3.WR.BRG01` \u2014 Hot strip mill finishing stand F3 work-roll chock bearing (oil-film/roller neck bearing)\n- **Equipment class**: rolling_mill_work_roll_bearing\n- **Process stage**: hot_rolling\n- **Process criticality**: 1 (1 = most critical)\n- **Manufacturer / model**: SKF / Oil-film bearing + 4-row cylindrical roller neck brg\n  \n  _source: SPEC/ground_truth_spine.json_\n\n## 2. Diagnosis\n- **Probable failure mode**: outer_race_fatigue_spall_BPFO (scenario `SCN-037`)\n- **Safety class**: P2 (P1 = most severe)\n- **ML fault classifier**: class `NORMAL` P(failure)=0.0\n  \n  _source: condition_monitoring/by_equipment + ML fault classifier_\n\n## 3. Root Cause Analysis\n- **Root cause**: Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accelerated by lube contamination.\n  \n  _source: SPEC/ground_truth_spine.json + failure_analysis_reports_\n\n## 4. Remaining Useful Life (RUL) & Early Warning\n- **Estimated RUL**: 1014.8 cycles (~42.3 days)\n- **RUL band**: monitor\n- **Anomaly score**: 0.4418 (is_anomaly=False)\n  \n  _source: condition_monitoring/rul_trajectories_long.csv (ML RUL regressor)_\n\n## 5. Risk Classification\n- **Risk band**: **MEDIUM**\n- **Risk score**: 5.0 / 14\n- **Contributing factors** (transparent scoring):\n    - process-criticality 1 -> +3\n    - safety-class P2 -> +2\n    - P(failure)=0.00 -> +0\n    - RUL band 'monitor' -> +0\n    - _(includes engineer-feedback adjustment: -0.42 pts \u2014 FR6)_\n  \n  _source: criticality \u00d7 safety \u00d7 ML \u00d7 RUL \u00d7 spares lead-time + feedback weight_\n\n## 6. Prioritized Recommended Actions\n- **1.** LOTO + confirm zero-energy (Playbook 01)\n- **2.** Controlled stop (Zone D / temp>100C), no emergency trip\n- **3.** Hydraulic bearing puller; never strike bearing\n- **4.** Inspect journal vs OEM H7/k6, regrind if worn\n- **5.** Induction-heat new bearing 80-100C, laser-align <0.05mm\n- **6.** Replace coupling element + labyrinth seal\n- **7.** Verify <2.3mm/s, temp <70C at 60min\n  \n  _source: SPEC correct_resolution + maintenance SOP_\n\n## 7. Spare-Procurement Strategy\n- ISSUE FROM STORE: BRG-LRG-300 (1 on hand)\n- ISSUE FROM STORE: SEAL-LAB-01 (2 on hand)\n- ISSUE FROM STORE: CPL-EL-01 (1 on hand)\n\n- **Total parts cost**: INR 1089675\n- **Max procurement lead-time**: 8.0 weeks\n- **Procurement action required**: False\n  \n  _source: knowledge_docs/spare_parts_catalog.csv + SPEC spares_required_\n\n## 8. Estimated Downtime & Cost Impact\n- **Downtime (hours)**: {'planned': 5, 'unplanned': 12}\n- **Cost impact**: {'inr': 7500000, 'usd': 90000, 'range_usd': [80000, 250000]}\n  \n  _source: SPEC/ground_truth_spine.json \u2014 scenario_\n\n## 9. EDITH Narrative (synthesised)\nEDITH \u00b7 Maintenance Report\n\nGrounded analysis from EDITH's knowledge base, live sensor models and the equipment spine. Every figure below is traceable to its source \u2014 see the citations.\n\nQuery:\n  Engineer query: Generate a full maintenance report for asset HSM.F3.WR.BRG01\nTarget asset: HSM.F3.WR.BRG01\nScenario: SCN-037\n\nEVIDENCE (cite these as [N]):\nSource [1] (SPEC/ground_truth_spine.json \u2014 scenario SCN-037):\nScenario SCN-037 on asset HSM.F3.WR.BRG01: failure_mode is outer_race_fatigue_spall_BPFO; safety_class is P2; root_cause: Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accelerated by lube contamination. Downtime hours: {'planned': 5, 'unplanned': 12}. Cost impact: {'inr': 7500000, 'usd': 90000, 'range_usd': [80000, 250000]}.\n\nSource [2] (cond\n\nGrounded context (verbatim from dataset):\nSource [1] (SPEC/ground_truth_spine.json \u2014 scenario SCN-037):\nScenario SCN-037 on asset HSM.F3.WR.BRG01: failure_mode is outer_race_fatigue_spall_BPFO; safety_class is P2; root_cause: Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accelerated by lube contamination. Downtime hours: {'planned': 5, 'unplanned': 12}. Cost impact: {'inr': 7500000, 'usd': 90000, 'range_usd': [80000, 250000]}.\n\nSource [2] (condition_monitoring + ML fault classifier):\nThe ML fault classifier predicts class NORMAL with probabilities {'NORMAL': 1.0, 'WARNING': 0.0, 'FAILURE': 0.0}. Sensor threshold status: no sensor threshold breaches.\n\nSource [3] (condition_monitoring/rul_trajectories_long.csv \u2014 ML RUL):\nEstimated remaining useful life is approximately 1014.8 cycles (~42.3 days). RUL band is monitor. Anomaly score is 0.4418 (is_anomaly=False).\n\nSource [4] (SPEC/ground_truth_spine.json \u2014 RCA):\nRoot cause: Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accelerated by lube contamination. Correct resolution steps: ['LOTO + confirm zero-energy (Playbook 01)', 'Controlled stop (Zone D / temp>100C), no emergency trip', 'Hydraulic bearing puller; never strike bearing', 'Inspect journal vs OEM H7/k6, regrind if worn', 'Induction-heat new bearing 80-100C, laser-align <0.05mm', 'Replace coupling element + labyrinth seal', 'Verify <2.3mm/s, temp <70C at 60min'].\n\nSource [5] (risk computation (criticality x safety x ML x RUL x spares)):\nThe risk classification is MEDIUM with a computed score of 5. The contributing factors are: process-criticality 1 -> +3; safety-class P2 -> +2; P(failure)=0.00 -> +0; RUL band 'monitor' -> +0.\n\nSource [6] (SOP + spare_parts_catalog.csv):\nRecommended action steps: ['LOTO + confirm zero-energy (Playbook 01)', 'Controlled stop (Zone D / temp>100C), no emergency trip', 'Hydraulic bearing puller; never strike bearing', 'Inspect journal vs OEM H7/k6, regrind if worn', 'Induction-heat new bearing 80-100C, \n\nNote: This is the deterministic floor of VULCAN's provider ladder. For full natural-language reasoning, run with the Claude subscription reachable.\n\n## 10. Explainability\n- **Confidence**: unverified (faithfulness 1.0)\n- **LLM rung**: template\n- **Reasoning-trace steps**: 14\n- **Grounded sources**: SPEC/ground_truth_spine.json, condition_monitoring/rul_trajectories_long.csv, SOP-01_bearing-replacement.md, SOP-06_caster-segment-change.md, knowledge_docs/spare_parts_catalog.csv",
+  "data": {
+    "asset_id": "HSM.F3.WR.BRG01",
+    "scenario_id": "SCN-037",
+    "risk_band": "MEDIUM",
+    "rul": {
+      "found": true,
+      "asset_id": "HSM.F3.WR.BRG01",
+      "equipment_class": "rolling_mill_work_roll_bearing",
+      "rul_cycles": 1014.8,
+      "rul_days_estimate": 42.3,
+      "model": "lightgbm_regressor"
+    },
+    "total_cost_inr": 1089675,
+    "procurement": [
+      "ISSUE FROM STORE: BRG-LRG-300 (1 on hand)",
+      "ISSUE FROM STORE: SEAL-LAB-01 (2 on hand)",
+      "ISSUE FROM STORE: CPL-EL-01 (1 on hand)"
+    ],
+    "trace": {
+      "query": "Generate a full maintenance report for asset HSM.F3.WR.BRG01",
+      "step_count": 14,
+      "total_latency_ms": 8231,
+      "sources": [
+        "SPEC/ground_truth_spine.json",
+        "condition_monitoring/by_equipment/*.csv",
+        "condition_monitoring/rul_trajectories_long.csv",
+        "SOP-01_bearing-replacement.md",
+        "SOP-06_caster-segment-change.md",
+        "operational_failure/incident_records.csv",
+        "knowledge_docs/historical_maintenance_records.csv",
+        "knowledge_docs/spare_parts_catalog.csv"
+      ],
+      "steps": [
+        {
+          "step": 1,
+          "kind": "plan",
+          "thought": "Classify intent='report', resolve target asset='HSM.F3.WR.BRG01'. Plan agent chain: diagnosis -> predictor -> rca -> prioritizer -> recommender.",
+          "action": "supervisor.plan",
+          "result_summary": "intent=report; asset=HSM.F3.WR.BRG01; agents=['diagnosis', 'predictor', 'rca', 'prioritizer', 'recommender']; fresh query",
+          "sources": [],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 2,
+          "kind": "tool",
+          "thought": "Identify asset HSM.F3.WR.BRG01 and its failure modes.",
+          "action": "get_asset",
+          "result_summary": "HSM.F3.WR.BRG01 = Hot strip mill finishing stand F3 work-roll chock bearing (o (criticality 1)",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 1,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 3,
+          "kind": "ml",
+          "thought": "Classify the latest reading for fault state.",
+          "action": "ml.predict_fault",
+          "result_summary": "class=NORMAL P(failure)=0.0 [latest reading]",
+          "sources": [
+            "condition_monitoring/by_equipment/*.csv"
+          ],
+          "latency_ms": 122,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F3.WR.BRG01",
+            "equipment_class": "rolling_mill_work_roll_bearing",
+            "predicted_class": "NORMAL",
+            "probabilities": {
+              "NORMAL": 1.0,
+              "WARNING": 0.0,
+              "FAILURE": 0.0
+            },
+            "calibrated": true,
+            "window_size": 24
+          },
+          "rung": null
+        },
+        {
+          "step": 4,
+          "kind": "tool",
+          "thought": "Match symptom + ML signal to the ground-truth scenario.",
+          "action": "get_scenario",
+          "result_summary": "SCN-037: outer_race_fatigue_spall_BPFO (safety P2)",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "scenario_id": "SCN-037"
+          },
+          "rung": null
+        },
+        {
+          "step": 5,
+          "kind": "ml",
+          "thought": "Estimate remaining useful life from sensor state.",
+          "action": "ml.estimate_rul",
+          "result_summary": "RUL\u22481014.8 cycles (~42.3 days)",
+          "sources": [
+            "condition_monitoring/rul_trajectories_long.csv"
+          ],
+          "latency_ms": 131,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F3.WR.BRG01",
+            "equipment_class": "rolling_mill_work_roll_bearing",
+            "rul_cycles": 1014.8,
+            "rul_days_estimate": 42.3,
+            "model": "lightgbm_regressor"
+          },
+          "rung": null
+        },
+        {
+          "step": 6,
+          "kind": "ml",
+          "thought": "Score the live window for anomaly (early warning).",
+          "action": "ml.anomaly_score",
+          "result_summary": "score=0.4418 is_anomaly=False",
+          "sources": [
+            "condition_monitoring/by_equipment/*.csv"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "found": true,
+            "asset_id": "HSM.F3.WR.BRG01",
+            "equipment_class": "rolling_mill_work_roll_bearing",
+            "anomaly_score": 0.4418,
+            "raw_decision_function": 0.0582,
+            "is_anomaly": false,
+            "window_size": 24
+          },
+          "rung": null
+        },
+        {
+          "step": 7,
+          "kind": "tool",
+          "thought": "Read the ground-truth root cause for the scenario.",
+          "action": "get_scenario.root_cause",
+          "result_summary": "Subsurface rolling-contact fatigue initiating outer-race spall (ISO 15243 fatigue); accele",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {
+            "scenario_id": "SCN-037"
+          },
+          "rung": null
+        },
+        {
+          "step": 8,
+          "kind": "rag",
+          "thought": "Retrieve the matching failure-analysis report + SOP.",
+          "action": "rag.retrieve(rca,sop)",
+          "result_summary": "top: [SOP-01_bearing-replacement.md \u00a7 TATA_JSR Maintenance Standard Operating Procedure]",
+          "sources": [
+            "SOP-01_bearing-replacement.md",
+            "SOP-06_caster-segment-change.md"
+          ],
+          "latency_ms": 4055,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 9,
+          "kind": "tool",
+          "thought": "Check whether this asset has a prior failure history.",
+          "action": "search_history",
+          "result_summary": "8 incidents, 41 work-orders",
+          "sources": [
+            "operational_failure/incident_records.csv",
+            "knowledge_docs/historical_maintenance_records.csv"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 10,
+          "kind": "tool",
+          "thought": "Read the ground-truth correct resolution steps.",
+          "action": "get_scenario.correct_resolution",
+          "result_summary": "7 prescribed steps",
+          "sources": [
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 11,
+          "kind": "rag",
+          "thought": "Retrieve the governing maintenance SOP.",
+          "action": "rag.retrieve(sop)",
+          "result_summary": "top: [SOP-01_bearing-replacement.md \u00a7 TATA_JSR Maintenance Standard Operating Procedure]",
+          "sources": [
+            "SOP-01_bearing-replacement.md",
+            "SOP-06_caster-segment-change.md"
+          ],
+          "latency_ms": 3922,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 12,
+          "kind": "tool",
+          "thought": "Resolve required spares to availability + procurement lead-time.",
+          "action": "get_spares_for_scenario",
+          "result_summary": "3 in-stock, 0 to ORDER (max lead 8.0wk)",
+          "sources": [
+            "knowledge_docs/spare_parts_catalog.csv",
+            "SPEC/ground_truth_spine.json"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 13,
+          "kind": "synthesis",
+          "thought": "Combine process-criticality, safety class, ML failure probability, RUL band and spares lead-time into a transparent risk score.",
+          "action": "prioritizer.score",
+          "result_summary": "score=5 -> MEDIUM  (process-criticality 1 -> +3; safety-class P2 -> +2; P(failure)=0.00 -> +0; RUL band 'monitor' -> +0; feedback weight 0.86 (engineer history) -> -0.42)",
+          "sources": [
+            "SPEC/ground_truth_spine.json",
+            "knowledge_docs/spare_parts_catalog.csv"
+          ],
+          "latency_ms": 0,
+          "detail": {},
+          "rung": null
+        },
+        {
+          "step": 14,
+          "kind": "llm",
+          "thought": "Synthesise the grounded findings into one cited natural-language answer (single model call; deterministic template floor if offline).",
+          "action": "subscription_llm",
+          "result_summary": "template \u00b7 2989 chars",
+          "sources": [],
+          "latency_ms": 0,
+          "detail": {
+            "model": null,
+            "is_template": true
+          },
+          "rung": "template"
+        }
+      ]
+    }
+  }
+}

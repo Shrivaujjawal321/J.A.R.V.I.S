@@ -1,0 +1,14 @@
+{
+  "chosen_variant": "v7_blend",
+  "chosen_score": 0.5346274921301154,
+  "chosen_threshold": 0.021485940093965053,
+  "meta_oof_auc_v7": 0.7977284509166314,
+  "recall_at_T": 1.0,
+  "precision_at_T": 0.06071757129714812,
+  "n_pos_test": 210,
+  "lb_estimate": 3.20462749213011,
+  "lb_ci_lo": 3.197306942244105,
+  "lb_ci_hi": 3.2277242132128294,
+  "bootstrap_mean": 0.5375349386335948,
+  "calibration_correction": 2.6699999999999946
+}

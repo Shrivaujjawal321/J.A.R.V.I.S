@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ujjawal Shrivastav — Full Stack Developer</title>
+<style>
+  @page { size: A4; margin: 0.4in; }
+  :root {
+    --ink: #111;
+    --muted: #555;
+    --accent: #0b3d91;
+    --rule: #cfd6e0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9.4pt;
+    line-height: 1.25;
+  }
+  body { padding: 0; }
+  a { color: var(--accent); text-decoration: none; }
+
+  header { text-align: center; margin-bottom: 4pt; }
+  h1 {
+    font-size: 19pt;
+    margin: 0 0 1pt 0;
+    letter-spacing: 0.6pt;
+    font-weight: 700;
+  }
+  .role { font-size: 10pt; color: var(--muted); margin: 0 0 2pt 0; font-weight: 500; }
+  .contact { font-size: 9pt; }
+  .contact span { color: #aaa; margin: 0 3pt; }
+
+  h2 {
+    font-size: 9.6pt;
+    margin: 6pt 0 2pt 0;
+    text-transform: uppercase;
+    letter-spacing: 0.8pt;
+    color: var(--accent);
+    border-bottom: 0.6pt solid var(--rule);
+    padding-bottom: 1pt;
+    font-weight: 700;
+  }
+
+  .summary { margin: 0; text-align: justify; }
+
+  .skills p { margin: 0; padding: 0.5pt 0; }
+  .skills b { display: inline-block; min-width: 70pt; color: var(--ink); }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 3pt;
+  }
+  .row .title { font-weight: 700; font-size: 10pt; }
+  .row .meta { font-size: 8.8pt; color: var(--muted); }
+
+  ul { margin: 1pt 0 2pt 14pt; padding: 0; }
+  li { margin: 0.6pt 0; }
+
+  .project { margin-top: 3pt; }
+  .stack {
+    font-size: 8.8pt;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.2;
+  }
+  .stack b { color: var(--ink); }
+
+  code {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 8.6pt;
+    background: #f0f3f8;
+    padding: 0 2pt;
+    border-radius: 2pt;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UJJAWAL SHRIVASTAV</h1>
+  <p class="role">Full Stack Developer</p>
+  <p class="contact">
+    Ghaziabad, India
+    <span>•</span>
+    <a href="mailto:shriva.ujjawal@gmail.com">shriva.ujjawal@gmail.com</a>
+    <span>•</span>
+    <a href="tel:+919718732066">+91 97187 32066</a>
+    <span>•</span>
+    <a href="https://github.com/Shrivaujjawal321">GitHub</a>
+    <span>•</span>
+    <a href="https://ujjawal-shrivastav.vercel.app">Portfolio</a>
+  </p>
+</header>
+
+<section>
+  <h2>Professional Summary</h2>
+  <p class="summary">Full Stack Developer shipping production-grade web applications across React, Next.js, FastAPI, Spring Boot, and PostgreSQL. Solo end-to-end track record covering schema design, REST APIs, real-time systems, authentication, and Vercel deployment. Stack-agnostic engineer — six months of disciplined AI-pair programming with Claude Code and GitHub Copilot have built fluency across multiple frameworks, enabling rapid ramp-up on unfamiliar tooling. Hands-on with Anthropic Claude and OpenAI APIs and modern DevOps practices.</p>
+</section>
+
+<section class="skills">
+  <h2>Technical Skills</h2>
+  <p><b>Languages</b> TypeScript, Python, Java, SQL</p>
+  <p><b>Frontend</b> React, Next.js (App Router, Turbopack), Tailwind CSS, Framer Motion, ReactFlow, Monaco Editor, HTML5, CSS3</p>
+  <p><b>Backend</b> Node.js, FastAPI, Java Spring Boot, Hibernate, JPA, RESTful APIs, Server-Sent Events, WebSockets</p>
+  <p><b>Databases</b> PostgreSQL, MySQL, Drizzle ORM, Prisma ORM, Neon, Firebase, schema design, query tuning</p>
+  <p><b>Auth &amp; Pay</b> NextAuth / Auth.js v5, JWT, OAuth2, Email OTP, Stripe, Razorpay</p>
+  <p><b>AI / LLM</b> Anthropic Claude API, OpenAI API, LLM pipeline design, prompt engineering, Tree-sitter AST</p>
+  <p><b>DevOps</b> Git, GitHub Actions, Docker, Vercel, CI/CD, Sentry, Playwright e2e, Vitest unit testing</p>
+  <p><b>Tools</b> Postman, Claude Code, GitHub Copilot, Win32 API, Upstash Redis, Linux</p>
+</section>
+
+<section>
+  <h2>Professional Experience</h2>
+  <div class="row">
+    <div><span class="title">Full Stack Developer Intern</span> &nbsp;|&nbsp; <a href="https://amohacodes.com">Amoha Codes</a></div>
+    <div class="meta">4-Week Internship · 2025</div>
+  </div>
+  <ul>
+    <li>Architected production features in React + FastAPI for an enterprise SaaS platform.</li>
+    <li>Designed authentication and authorization layers with session security, role-based access, and protected API routes.</li>
+    <li>Shipped a real-time content management module with live progress tracking and granular state synchronization.</li>
+    <li>Lifted team velocity by 40% by integrating Claude Code and GitHub Copilot and authoring shared prompt patterns.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Key Projects</h2>
+
+  <div class="project">
+    <div class="row">
+      <span class="title"><a href="https://enginerd.vercel.app"><b>Demo</b></a> &nbsp; EngiNerd — Agentic Learning Platform</span>
+      <span class="meta">
+        <a href="https://enginerd.vercel.app">Live</a>
+        ·
+        <a href="https://github.com/Shrivaujjawal321/enginerd">Source</a>
+      </span>
+    </div>
+    <p class="stack"><b>Stack:</b> Next.js 16 (Turbopack), TypeScript, Drizzle ORM, PostgreSQL, NextAuth v5, Anthropic Claude API, Tailwind CSS, Framer Motion, Upstash Redis, Sentry, Playwright, Vercel</p>
+  </div>
+  <ul>
+    <li>Solo-founded India-focused learning platform — marketing site, multi-step auth, dashboard with roadmaps, subjects, practice, cohorts, careers, billing, plus public <code>/u/[username]</code> profile pages.</li>
+    <li>Modeled domain in Drizzle ORM with type-safe migrations and edge-compatible queries; wired NextAuth v5 with email OTP and Google OAuth via Drizzle adapter.</li>
+    <li>Streamed AI agent endpoints powered by Anthropic Claude, with token-bucket rate limiting on Upstash Redis and resilient SSE clients on the frontend.</li>
+    <li>Crafted glass-morphism UI with Framer Motion micro-interactions, WCAG 2.1 AA audits, Hinglish-aware form validation; tuned Turbopack production builds.</li>
+    <li>Owned the release loop: Playwright e2e + Vitest unit suites, Sentry traces, GitHub Actions CI, zero-downtime Vercel deploys.</li>
+  </ul>
+
+  <div class="project">
+    <div class="row">
+      <span class="title">AI Prompt Enhancer Widget</span>
+      <span class="meta">Windows desktop tool</span>
+    </div>
+    <p class="stack"><b>Stack:</b> Python, FastAPI, Win32 API, OpenAI / Anthropic LLM pipeline, Tkinter overlay</p>
+  </div>
+  <ul>
+    <li>Engineered a system-wide Windows overlay that rewrites prompts in real time, accessible from any active app without context-switching.</li>
+    <li>Authored an LLM enhancement engine that parses user intent, restructures vague prompts into role/task/constraint format, and ranks variants by clarity.</li>
+    <li>Implemented “Magic Paste” via Win32 keyboard hooks and clipboard injection — enhanced text lands directly into ChatGPT, Claude, Cursor, or any focused window.</li>
+    <li>Drove global hotkey handling and inter-app communication through Win32 message-loop integration plus a lightweight FastAPI background service.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Education</h2>
+  <div class="row">
+    <div><span class="title">B.Tech — Computer Science (AI &amp; ML)</span></div>
+    <div class="meta">Krishna Engineering College, Ghaziabad &nbsp;·&nbsp; 2022 – 2025</div>
+  </div>
+</section>
+
+<section>
+  <h2>Certifications &amp; Achievements</h2>
+  <ul>
+    <li>Java Full Stack Developer Certification — Ducat (8-month intensive program)</li>
+    <li>AI Certification — ICT Academy</li>
+    <li>Active open-source GitHub portfolio: a dozen+ self-shipped products spanning Next.js, FastAPI, Spring Boot, and Python desktop tooling</li>
+  </ul>
+</section>
+
+</body>
+</html>

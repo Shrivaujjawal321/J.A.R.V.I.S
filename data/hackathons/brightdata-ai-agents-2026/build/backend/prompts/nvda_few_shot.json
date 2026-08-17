@@ -1,0 +1,87 @@
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "<example>\n<source_data>\n{\n  \"ticker\": \"NVDA\",\n  \"metadata\": {\"latency_seconds\": 28.4, \"cost_usd\": 0.031, \"confidence_score\": 0.73},\n  \"sec\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"bullish\",\n      \"confidence\": 0.87,\n      \"summary\": \"CEO Jensen Huang purchased 50K shares Form 4 filing 2026-04-15 — non-routine, no prior buys in 12 months\",\n      \"evidence\": \"Form 4 direct acquisition at $892/share. No prior Form 4 purchases in 12 months. Not a 10b5-1 plan.\",\n      \"url\": \"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=NVDA&type=4\"\n    }\n  },\n  \"yahoo\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"bullish\",\n      \"confidence\": 0.81,\n      \"summary\": \"Revenue beat Q1 2026 consensus by 12%; data center segment up 220% YoY\",\n      \"evidence\": \"Q1 rev $44.1B vs $39.3B consensus. EPS $0.96 vs $0.88 est. Short interest 1.2%.\",\n      \"url\": \"https://finance.yahoo.com/quote/NVDA\"\n    }\n  },\n  \"reddit\": {\n    \"status\": \"ok\",\n    \"data\": {\n      \"signal\": \"bearish\",\n      \"confidence\": 0.38,\n      \"summary\": \"WSB sentiment shifted negative: 73% bearish mentions in 48h — priced to perfection narrative\",\n      \"evidence\": \"wsb top posts 48h: 73% bearish mentions, avg upvote ratio 0.82\",\n      \"url\": \"https://reddit.com/r/wallstreetbets\"\n    }\n  },\n  \"linkedin\": {\"status\": \"timeout\", \"error_msg\": \"Timed out after 18s\"},\n  \"glassdoor\": {\"status\": \"rate_limited\", \"error_msg\": \"429 from BrightData\"},\n  \"news\": {\"status\": \"error\", \"error_msg\": \"SERP quota exceeded\"},\n  \"gdelt\": {\"status\": \"timeout\", \"error_msg\": \"Timed out after 18s\"},\n  \"satellite\": {\"status\": \"error\", \"error_msg\": \"NASA FIRMS API offline\"}\n}\n</source_data>\n</example>"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_example_nvda_01",
+        "name": "emit_investment_brief",
+        "input": {
+          "ticker": "NVDA",
+          "company_name": "NVIDIA Corporation",
+          "sector": "Semiconductors",
+          "generated_at": "2026-05-27T09:00:00Z",
+          "signals": [
+            {
+              "source": "sec",
+              "direction": "bullish",
+              "summary": "CEO insider buy 50K shares at $892 — non-routine, strong conviction signal",
+              "confidence": 0.87,
+              "raw_evidence": "Form 4 direct acquisition at $892/share. No prior Form 4 purchases in 12 months. Not a 10b5-1 plan.",
+              "citation_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=NVDA&type=4",
+              "research_anchor": "Cohen-Malloy-Pomorski JoF 2012: opportunistic insider buys → 82bps/mo alpha",
+              "alpha_tier": "gold"
+            },
+            {
+              "source": "yahoo",
+              "direction": "bullish",
+              "summary": "Q1 2026 revenue beat +12%, data center +220% YoY; EPS beat $0.08",
+              "confidence": 0.81,
+              "raw_evidence": "Q1 rev $44.1B vs $39.3B consensus. EPS $0.96 vs $0.88 est. Short interest 1.2%.",
+              "citation_url": "https://finance.yahoo.com/quote/NVDA",
+              "research_anchor": null,
+              "alpha_tier": "standard"
+            },
+            {
+              "source": "reddit",
+              "direction": "bearish",
+              "summary": "WSB sentiment 73% bearish over 48h — priced-to-perfection narrative dominant",
+              "confidence": 0.38,
+              "raw_evidence": "wsb top posts 48h: 73% bearish mentions, avg upvote ratio 0.82",
+              "citation_url": "https://reddit.com/r/wallstreetbets",
+              "research_anchor": "Alpha Architect 2024: WallStreetBets shows zero measurable alpha",
+              "alpha_tier": "caution"
+            }
+          ],
+          "risk_factors": [
+            "Retail sentiment diverges sharply from institutional signals — crowded long risk",
+            "Valuation elevated: any guidance miss could trigger outsized correction",
+            "Export control risks to China data center segment unquantified in filing",
+            "5 of 8 data sources unavailable — picture is incomplete, especially hiring and culture"
+          ],
+          "bull_thesis": [
+            "CEO insider buy at $892 signals insider conviction (82bps/mo alpha signal [Cohen-Malloy-Pomorski 2012])",
+            "Data center revenue +220% YoY confirms structural AI infrastructure demand thesis",
+            "12% Q1 revenue beat demonstrates pricing power and execution on backlog"
+          ],
+          "bear_case": [
+            "WSB sentiment 73% bearish — crowded institutional long creates downside fragility",
+            "Stock priced for perfection: multiple compression risk on any guidance miss",
+            "5 of 8 data sources unavailable — partial brief only, especially LinkedIn and Glassdoor"
+          ],
+          "overall_direction": "bullish",
+          "overall_confidence": 0.73,
+          "price_target_range": null,
+          "brief_narrative": "NVIDIA presents a compelling near-term bullish case underpinned by two high-quality signals: CEO insider buying at $892/share — a Cohen-Malloy-Pomorski tier signal carrying 82bps/month historical alpha — and a 12% Q1 2026 revenue beat driven by 220% data center growth. Institutional conviction is strong on both counts. However, retail sentiment on Reddit WSB has inverted sharply, with 73% bearish mentions over 48 hours, suggesting the stock is viewed as priced to perfection by the crowd. The divergence between SEC/Yahoo signals (bullish, high confidence) and Reddit (bearish, low weight) is the primary cross-source tension in this brief. Data quality is partial — LinkedIn hiring trends, Glassdoor reviews, GDELT news, and satellite data were unavailable, leaving operational health unassessed. Overall confidence: 0.73 (partial coverage penalty applied).",
+          "data_quality_flag": "minimal",
+          "sources_used": ["sec", "yahoo", "reddit"],
+          "sources_unavailable": ["linkedin", "glassdoor", "news", "gdelt", "satellite"],
+          "cross_source_contradictions": [
+            "sec (bullish) contradicts reddit (bearish): CEO buying at $892 signals insider conviction while retail WSB sentiment is 73% bearish — potential crowded-long fragility"
+          ],
+          "latency_seconds": 28.4,
+          "cost_usd": 0.031
+        }
+      }
+    ]
+  }
+]

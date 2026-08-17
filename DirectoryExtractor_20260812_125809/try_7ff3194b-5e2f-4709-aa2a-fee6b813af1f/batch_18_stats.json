@@ -1,0 +1,110 @@
+[
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Vans (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Flatbeds",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Reefers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Conestogas",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Containers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Decks (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Decks (Standard)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Dry Bulk",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Hazardous Materials",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Other Equipment",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Tankers",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  },
+  {
+    "origin": "Alabama",
+    "dest": "Maine",
+    "eq": "Vans (Specialized)",
+    "lt": "Full & Partial",
+    "records": 0,
+    "status": "failed",
+    "error": "Timeout waiting for search form to load in the DOM."
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "fold_metrics": [
+    {
+      "fold": 1,
+      "auc": 0.8038163387000596,
+      "best_round": 250,
+      "pos_before_smote": 53,
+      "pos_after_smote": 308,
+      "neg_before_smote": 1028,
+      "neg_after_smote": 1028,
+      "recall_at_05": 0.0,
+      "prec_at_05": 0.0
+    },
+    {
+      "fold": 2,
+      "auc": 0.886603668704836,
+      "best_round": 250,
+      "pos_before_smote": 52,
+      "pos_after_smote": 308,
+      "neg_before_smote": 1029,
+      "neg_after_smote": 1029,
+      "recall_at_05": 0.2857142857142857,
+      "prec_at_05": 1.0
+    },
+    {
+      "fold": 3,
+      "auc": 0.7671355881472613,
+      "best_round": 250,
+      "pos_before_smote": 53,
+      "pos_after_smote": 308,
+      "neg_before_smote": 1029,
+      "neg_after_smote": 1029,
+      "recall_at_05": 0.0,
+      "prec_at_05": 0.0
+    },
+    {
+      "fold": 4,
+      "auc": 0.9137982639928165,
+      "best_round": 250,
+      "pos_before_smote": 53,
+      "pos_after_smote": 308,
+      "neg_before_smote": 1029,
+      "neg_after_smote": 1029,
+      "recall_at_05": 0.23076923076923078,
+      "prec_at_05": 0.3333333333333333
+    },
+    {
+      "fold": 5,
+      "auc": 0.8847650404070637,
+      "best_round": 250,
+      "pos_before_smote": 53,
+      "pos_after_smote": 308,
+      "neg_before_smote": 1029,
+      "neg_after_smote": 1029,
+      "recall_at_05": 0.15384615384615385,
+      "prec_at_05": 0.5
+    }
+  ],
+  "oof_auc": 0.850275696309911,
+  "oof_proba_min": 5.2657087701488325e-05,
+  "oof_proba_max": 0.9895653155862926,
+  "mean_fold_auc": 0.8512237799904074,
+  "min_fold_iters": 250,
+  "fixed_rounds": 250,
+  "v1_oof_auc": 0.827
+}

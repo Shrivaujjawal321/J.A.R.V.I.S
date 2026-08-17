@@ -1,0 +1,103 @@
+{
+ "checked": [
+  {
+   "url": "https://overpass-api.de/api/interpreter",
+   "http_status": "200 (GET form); 406 on POST w/ non-browser UA; 504 under load",
+   "claim_holds": "CONFIRMED",
+   "evidence": "US shop=truck_repair count = exactly 272 (nodes 69, ways 203, relations 0). osm3s.timestamp_osm_base = 2026-07-23T10:51:37Z. Response carries \"data is made available under ODbL\". Full tag dump (104,936 bytes, N=272) reproduced every fill claim: name 259/272=95.2%, phone 110/272=40.4%, website 147/272=54.0%, email 5/272=1.8%, contact:email 0, contact:mobile 0/272, opening_hours 44/272=16.2% with exactly 2 equal to '24/7', brand 152/272=55.9%, brand:wikidata 107/272=39.3%, check_date 11/272=4.0%.",
+   "correction": "Sub-claim '1,015 in broader truck-service net' NOT independently verifiable \u2014 the researcher never stated the query. Operational note: main endpoint 406s on POST unless UA contains Mozilla/5.0; use --data-urlencode via GET. kumi.systems mirror returned 242 on a stale 2026-05-31 base \u2014 do not cross-check counts against mirrors."
+  },
+  {
+   "url": "https://taginfo.openstreetmap.org/api/4/keys/all?query=service%3Avehicle",
+   "http_status": "200 (204,040 bytes, application/json, data_until 2026-07-23T00:59:05Z)",
+   "claim_holds": "REFUTED",
+   "evidence": "API returns total=749 matching keys, of which 729 are exact service:vehicle:<one> subkeys \u2014 not '40+'. Only 49 have count>=100. Bare service:vehicle values_all=52 (that half is correct). Directly contradicting the unfillable-items claim, these EXIST: service:vehicle:towing=772, service:vehicle:welding=48, service:vehicle:roadside_assistance=32, service:vehicle:breakdown=30, service:vehicle:breakdown_recovery=7, service:vehicle:breakdown_service=2, service:vehicle:mobile_mechanic_service=1, service:vehicle:heavy_truck_towing=1.",
+   "correction": "The statement 'no OSM tag exists for mobile/roadside/welding, I enumerated all 40+ subkeys' is false on both counts \u2014 729 subkeys exist and named tags for all three are present. The practical conclusion survives on different evidence: within the 272 US shop=truck_repair rows the only service:vehicle:* hits are truck_repair=43, alignment=3, brakes/tyres/tyres_repair/truck_sales=2 each, towing=1, and zero welding/roadside/mobile. So the tags exist globally but are unusable at US truck-shop volume. Fix the reasoning, keep the recommendation."
+  },
+  {
+   "url": "https://pypi.org/project/opening-hours-py/",
+   "http_status": "200 (page is a JS/CSP shell; used https://pypi.org/pypi/opening-hours-py/json, 200)",
+   "claim_holds": "REFUTED",
+   "evidence": "PyPI JSON info.license = 'MIT OR Apache-2.0'. Name normalizes to opening_hours_py, version 2.1.4. Upstream repo github.com/remi-dupre/opening-hours-rs reports via GitHub API license spdx_id = 'Apache-2.0'. No AGPL anywhere in either record.",
+   "correction": "License is MIT OR Apache-2.0 (dual, permissive), NOT 'AGPL-3.0/MIT'. This matters operationally: the researcher flagged it as a bundling risk requiring confirmation before use. There is no copyleft risk \u2014 it is safe to vendor. An AGPL false-positive would have cost you the only maintained OSM opening_hours parser for no reason."
+  },
+  {
+   "url": "https://pypi.org/project/extruct/",
+   "http_status": "200 (shell); JSON API 200; GitHub API 200",
+   "claim_holds": "CONFIRMED",
+   "evidence": "PyPI classifier 'License :: OSI Approved :: BSD License', version 0.18.0. GitHub API for scrapinghub/extruct returns spdx_id 'BSD-3-Clause'. Raw LICENSE file opens 'Copyright (c) Scrapinghub / All rights reserved. / Redistribution and use in source and binary forms...' with the 3 numbered conditions.",
+   "correction": ""
+  },
+  {
+   "url": "https://raw.githubusercontent.com/OvertureMaps/schema/main/schema/places/place.yaml",
+   "http_status": "200 (6,137 bytes, text/plain, 139 lines)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Complete top-level property list is exactly: categories, basic_category, taxonomy, confidence, websites, socials, emails, phones, brand, addresses, operating_status. Zero matches for hours/opening_hours/rating/review/photo. License verified independently at https://docs.overturemaps.org/attribution/ (200): Places is the ONLY theme whose block has NO 'License for theme: ODbL' line (Base, Buildings, Divisions and Transportation all do). Places sources listed per-row: Meta, Microsoft, PinMeTo, Krick, RenderSEO, DAC, BrightQuery all CDLA Permissive 2.0; Foursquare 'Copyright 2024 Foursquare Labs, Inc. All rights reserved. Available under Apache 2.0'; AllThePlaces CC0 1.0.",
+   "correction": "This is the most consequential claim in the set and it holds exactly. Overture Places carries NO ODbL share-alike \u2014 confirmed by structural absence of the theme-license line that every other theme has. operating_status is explicitly documented as 'not an indication of opening hours', so it cannot be repurposed for the 24x7 field."
+  },
+  {
+   "url": "https://huggingface.co/datasets/foursquare/fsq-os-places",
+   "http_status": "200 on the dataset landing page and /api/datasets/; 401 on /resolve/ and /raw/",
+   "claim_holds": "REFUTED",
+   "evidence": "Two independent errors. (1) ACCESS IS NOT KEYLESS: API returns \"gated\":\"auto\". Fetching README.md, NOTICE.txt and release/dt=2026-07-09/places/parquet/places-00000.zstd.parquet all return HTTP 401 with body 'Access to dataset foursquare/fsq-os-places is restricted. You must have access to it and be authenticated to access it. Please log in.' (2) NOT STALE: siblings list 2,142 files across 20 monthly releases \u2014 dt=2024-12-03 through dt=2026-07-09, i.e. 14 days old today, not 19 months. License apache-2.0 confirmed via cardData and tags.",
+   "correction": "access=keyless is wrong (HF gating requires an account + token), and the '19 months stale, dt=2024-12-03' objection used to discount FSQ date_refreshed collapses entirely \u2014 the current release is dt=2026-07-09. FSQ is therefore a much stronger email/observed_at source than the researcher concluded. Use the keyless S3 origin instead of the HF mirror (see next row)."
+  },
+  {
+   "url": "https://fsq-os-places-us-east-1.s3.amazonaws.com/",
+   "http_status": "200 (public ListBucketResult, no credentials)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Not in the researcher's list \u2014 found while checking the HF gating. Anonymous list-type=2 returns a valid ListBucketResult for bucket fsq-os-places-us-east-1 with root keys LICENSE.txt (11,372 bytes) and NOTICE.txt (1,835 bytes) plus a release/ prefix. LICENSE.txt retrieved keyless = verbatim Apache License Version 2.0. NOTICE.txt retrieved keyless: '\u00a9 2025 Foursquare Labs, Inc... licensed under the Apache License, Version 2.0... you must: provide recipients with a copy of the License; if applicable, include prominent notices to the extent you've changed the Data; preserve attribution to Foursquare, including preserving the full content of this NOTICE.txt file.'",
+   "correction": "This is the keyless legal route the researcher missed. It repairs the FSQ recommendation: bulk parquet is obtainable without an HF account. Compliance requirement is concrete \u2014 you must ship a copy of Apache-2.0, mark your modifications, and preserve NOTICE.txt verbatim alongside any published FSQ-derived rows."
+  },
+  {
+   "url": "https://www.loves.com/en/terms-of-use",
+   "http_status": "200 (143,679 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim from the page: 'Without the prior written consent of Love's, you are not allowed (i) to modify, copy, mine, scrape, distribute, transmit, display, perform, reproduce, publish, license, create derivative works from, transfer or sell any information or material, products or services obtained from the Online Properties'. Prohibition is explicit and names both 'mine' and 'scrape'.",
+   "correction": "One nuance the researcher did not state: https://www.loves.com/robots.txt returns 200 with 'User-agent: * / Allow: /'. The prohibition rests entirely on ToS contract language, not on robots.txt. The verdict is unchanged (do not scrape) but the reason must be cited correctly. I deliberately did NOT re-fetch sitemap-locations.xml to verify the '730 location pages' figure, since the ToS forbids automated access and the count is moot once the source is unusable \u2014 treat 730 as unverified."
+  },
+  {
+   "url": "https://www.ta-petro.com/terms-conditions-web/",
+   "http_status": "200 (59,697 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim: 'You agree not to: ... Use any robot, spider or other automatic device, process or means to access this Website for any purpose, including monitoring or copying any of the material on this Website. Use any manual process to monitor or copy any of the material on this Website...'",
+   "correction": "robots.txt (200) only disallows /bin/, /config/, /install/, /umbraco/, /views/ \u2014 location pages are not robots-blocked, so again the bar is ToS-only. The '362 location leaf URLs' figure was deliberately not re-verified for the same ToS reason; treat as unverified and irrelevant."
+  },
+  {
+   "url": "https://www.ryder.com/en-us/terms-of-use",
+   "http_status": "200 (345,097 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim: 'Access and Interference \u2014 You agree that you will not use any robot, spider, scraper, deep link or other similar automated data gathering or extraction tools, program, algorithm or methodology to access, acquire, copy or monitor the Site or any portion of the Site or for any other purpose, without Ryder's express written permission'. Also: 'bypass Ryder's robot exclusion headers or other measures'; a narrow carve-out for public search engine spiders 'but not caches or archives'; and 'You shall not collect or harvest any personally identifiable information... from the Site.'",
+   "correction": "Strongest of the three prohibitions \u2014 it names 'scraper' explicitly, revokes any archive/cache right, and adds a separate PII-harvesting ban. The search-engine carve-out does not extend to you."
+  },
+  {
+   "url": "https://www.freightliner.com/sitemap.xml",
+   "http_status": "200 (371,471 bytes, text/xml)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Parsed: 1,525 total <loc> elements \u2014 exact match. Exactly 57 distinct URLs matching /dealer/<slug>/... \u2014 exact match. (A naive grep gives 1,234 'dealer-ish' hits because the bare string 'https://www.freightliner.com/dealer/' repeats 1,177 times; the researcher correctly de-duplicated.) All 57 sampled slugs are Mexican: camiones-vence-(tijuana), autotab-(canc\u00fan), camionera-de-chihuahua-(cd.-ju\u00e1rez), catrami-zamora-(uruapan), etc. robots.txt returns 200 with 'User-agent: * / Disallow:' \u2014 i.e. nothing disallowed.",
+   "correction": "Numbers and the Mexico-only finding are exactly right. PARTIAL only on the sub-claim 'no explicit anti-scrape ToS located' \u2014 I did not fetch Daimler Truck NA's separate terms page, so that remains [UNVERIFIED]. Do not treat empty-Disallow robots.txt as license to ingest until that ToS is read."
+  },
+  {
+   "url": "https://data.transportation.gov/resource/az4n-8mr2.json",
+   "http_status": "200 on $select=count(1), on $limit=1, and on /api/views/az4n-8mr2.json",
+   "claim_holds": "PARTIAL",
+   "evidence": "Row count 4,471,903 CONFIRMED exactly via $select=count(1). But the column claim is wrong: /api/views metadata lists 147 columns, not 57. email_address EXISTS and is populated \u2014 $select=count(email_address) returns 2,939,689 (65.7% fill). Live sample: {\"legal_name\":\"NORTH GEORGIA TEXTILE SUPPLY CO\",\"email_address\":\"NGTCALHOUN@GMAIL.COM\",\"phone\":\"7068597736\",\"cell_phone\":\"7063317296\",\"safety_rating\":\"C\"}. Also present and missed: fax, cell_phone, company_officer_1/2, safety_rating (53,668 non-null), safety_rating_date. Licence metadata: licenseId=null, license=null, custom_fields 'License' = https://project-open-data.cio.gov/unknown-license/, Public Access Level 'public', contact FMCSA.CDO@dot.gov.",
+   "correction": "'FMCSA has no email column \u2014 I enumerated all 57 columns on the wire' is REFUTED: the researcher enumerated the keys of ONE sampled row, and Socrata omits null fields per-row. The blanket 'No US government dataset publishes business contact emails in bulk' is therefore false \u2014 this one publishes 2.94M. Two honest caveats that keep the recommendation mostly intact: (a) these are DOT-registered motor carriers, not repair shops, so it fills shop email only for the subset of repair operations that also hold a DOT number \u2014 a join to be measured, not assumed; (b) many are sole-proprietor personal Gmail addresses, so bulk republication is a PII question, not just a licence question. Licence claim also PARTIAL: the dataset self-declares 'unknown-license', not public domain \u2014 17 USC 105 makes PD the sensible default but do not assert it as the publisher's stated terms."
+  },
+  {
+   "url": "https://www.openstreetmap.org/copyright",
+   "http_status": "200 (21,254 bytes)",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Verbatim: 'OpenStreetMap is open data, licensed under the Open Data Commons Open Database License (ODbL) by the OpenStreetMap Foundation (OSMF)... You are free to copy, distribute, transmit and adapt our data, as long as you credit OpenStreetMap and its contributors. If you alter or build upon our data, you may distribute the result only under the same license.' Page links to opendatacommons.org/licenses/odbl/1-0/ confirming version 1.0. Also verbatim: 'Our documentation is licensed under the Creative Commons Attribution-ShareAlike 2.0 license (CC BY-SA 2.0).'",
+   "correction": "Exactly as claimed, including the 1.0 version and the CC BY-SA 2.0 docs split. The share-alike sentence is the operative one for the schema_phase2 ruling: it triggers on distributing an altered/built-upon Database, which is why keeping OSM in osm.* and joining at query time is the correct posture."
+  },
+  {
+   "url": "https://www.alltheplaces.xyz/ (data) + https://github.com/alltheplaces/alltheplaces (spiders)",
+   "http_status": "200 on both; https://alltheplaces-data.openaddresses.io/runs/latest/info.json returned 404",
+   "claim_holds": "CONFIRMED",
+   "evidence": "Not in the researcher's list \u2014 a legal route to chain data he declared unobtainable. LICENSE file verbatim: 'The data generated by our spiders and posted on our website (https://www.alltheplaces.xyz) is released under Creative Commons' CC-0 waiver. The spider software that produces the data is licensed under the MIT license'. locations/spiders/loves_us.py returns 200 and exists (LovesUSSpider, item_attributes brand Love's / Q1872496, also emits Speedco Q112455073); pilot_flying_j.py returns 200. ta_petro.py, speedco.py, petro_us.py return 404. Independently corroborated by Overture's own attribution page, which lists 'Data from AllThePlaces. Available under CC0 1.0' as a Places source.",
+   "correction": "The researcher treated Love's as flatly unobtainable because loves.com ToS forbids scraping. That conflates the site with the fact: Love's/Speedco location data is already available to you under CC0 1.0, both directly from AllThePlaces and pre-merged into Overture Places, without you touching loves.com. Two caveats to state honestly in the source register: the loves_us spider sets ROBOTSTXT_OBEY=False (moot in practice, since loves.com robots.txt is 'Allow: /', but note it), and TA/Petro genuinely has no ATP spider so that chain stays unavailable. Consume ATP output; never run the spider yourself. The latest-run JSON path I guessed 404s, so the exact bulk download URL is [UNVERIFIED] \u2014 resolve it from the site before wiring ingestion."
+  }
+ ],
+ "verdict_summary": "All 12 claimed URLs resolve; none is fabricated. The researcher's OSM empirical work is excellent \u2014 I reproduced every fill rate to the decimal (272 rows exactly, brand 55.9%, brand:wikidata 39.3%, check_date 4.0%, email 5/272, contact:mobile 0/272, opening_hours 44/272 with exactly 2 = \"24/7\"). The single most important claim, that Overture Places carries no ODbL share-alike, is correct and I verified it structurally: Places is the only theme on the attribution page missing the \"License for theme: ODbL\" line every other theme has. The three ToS prohibitions (Love's, TA, Ryder) are confirmed with verbatim quotes.\n\nFour material errors, roughly in order of damage:\n\n1. FMCSA \"has no email column\" is wrong. The dataset has 147 columns, not 57 \u2014 the researcher read the keys of one sampled Socrata row, and Socrata drops nulls per-row. email_address has 2,939,689 non-null values. The blanket \"no US government dataset publishes business contact emails in bulk\" is false. Caveat that preserves most of his conclusion: these are motor carriers, not repair shops, and many are personal Gmail addresses, so it is a PII question as much as a licence one. His licence line is also loose \u2014 the dataset self-declares \"unknown-license\", not public domain.\n\n2. FSQ OS Places is gated, not keyless (401 on every file), and is not 19 months stale \u2014 there are 20 monthly releases through dt=2026-07-09. The staleness objection to date_refreshed collapses. I found the keyless replacement: the public S3 bucket fsq-os-places-us-east-1 serves Apache-2.0 LICENSE.txt and NOTICE.txt anonymously.\n\n3. opening-hours-py is MIT OR Apache-2.0, not AGPL. No copyleft risk; safe to vendor.\n\n4. service:vehicle:welding, :roadside_assistance, :towing, :breakdown and :mobile_mechanic_service all exist on taginfo (729 subkeys, not \"40+\"). His recommendation still stands, but on different evidence: those tags are absent from the US truck_repair set, not absent from OSM.\n\nOne gap: AllThePlaces (CC0 1.0, live loves_us spider, already an Overture Places source) makes Love's/Speedco locations legally obtainable without touching loves.com."
+}

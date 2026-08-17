@@ -1,0 +1,74 @@
+[
+  {
+    "id": "SCN-001",
+    "title": "Bearing Overheating on EAF-04 Primary Fan",
+    "equipment_class": "fan",
+    "equipment_id": "EAF-04",
+    "prompt": "EAF-04 Primary Fan bearing temperature has risen to 112°C over the last 30 minutes (normal operating range: 60–75°C). Vibration has also increased from 2.1 mm/s to 6.8 mm/s. The SCADA system has triggered a BRG-TEMP-HIGH alarm. Walk me through a systematic diagnosis: what are the most likely root causes, what immediate checks should I perform at the machine, and what is the recommended course of action to avoid unplanned shutdown?",
+    "difficulty": "medium",
+    "tags": ["bearing", "overheating", "vibration", "EAF", "fan"]
+  },
+  {
+    "id": "SCN-002",
+    "title": "Hydraulic Pressure Drop on Continuous Caster",
+    "equipment_class": "hydraulic_unit",
+    "equipment_id": "HPU-01",
+    "prompt": "HPU-01 Hydraulic Power Unit is showing a sustained 15% pressure drop (from 250 bar nominal to 212 bar) on the main circuit servicing the continuous caster strand guide rolls. Flow rate is unchanged. No visible external leaks. The control system logged fault code HYD-PRES-LOW-002 at 03:47. What should I check first? Walk through a structured troubleshooting sequence distinguishing internal vs external leak scenarios, and advise on safe isolation steps before I open any lines.",
+    "difficulty": "hard",
+    "tags": ["hydraulics", "pressure", "caster", "leak", "HYD"]
+  },
+  {
+    "id": "SCN-003",
+    "title": "Conveyor Drive Motor Overcurrent Trip — Hot Strip Mill",
+    "equipment_class": "conveyor",
+    "equipment_id": "CONV-HSM-01",
+    "prompt": "CONV-HSM-01 Hot Strip Mill conveyor drive tripped on overcurrent (I > 1.4 × FLA) during a coil transfer at 06:15. It has tripped twice in the last 8 hours. The drive was restarted successfully each time but the strip schedule is at risk. Motor winding temperature is 78°C (normal). SCADA shows no roller jam signal. Guide me through diagnosing whether this is a mechanical load issue, a drive parameter drift, or an early winding insulation fault — and recommend the safest restart criteria.",
+    "difficulty": "medium",
+    "tags": ["conveyor", "motor", "overcurrent", "trip", "HSM"]
+  },
+  {
+    "id": "SCN-004",
+    "title": "Pump Cavitation Suspected — Cooling Circuit CP-01",
+    "equipment_class": "pump",
+    "equipment_id": "PUMP-CP-01",
+    "prompt": "PUMP-CP-01 Cooling Circuit pump is producing an intermittent crackling/rattling noise that started 2 hours ago. Flow rate has dropped 8% and suction pressure is reading 0.3 bar below normal. Discharge pressure is stable. No temperature alarms yet but the cooling loop serving EAF bay is showing a 4°C rise. Is this cavitation? What are the immediate field checks to confirm, what operational adjustments can I make right now to reduce impeller damage, and when should I escalate to a planned shutdown for inspection?",
+    "difficulty": "medium",
+    "tags": ["pump", "cavitation", "cooling", "CP-01", "flow"]
+  },
+  {
+    "id": "SCN-005",
+    "title": "Rolling Mill Backup Bearing — Unusual Axial Play",
+    "equipment_class": "bearing",
+    "equipment_id": "BEAR-RM-01",
+    "prompt": "During a scheduled roll change on Rolling Mill Stand 3, the technician measured 0.45 mm axial play on backup roll bearing BEAR-RM-01 (allowable limit per SOP RM-BRG-003 is ≤ 0.25 mm). Vibration spectral data shows a slight increase in BPFO (ball pass frequency outer race) peaks from last month. The bearing was last replaced 14 months ago (designed life: 18 months). Spare SKF-6310-2RS1 stock is zero — lead time is 14 days. How do I risk-assess this bearing for continued operation vs immediate replacement? What monitoring frequency do you recommend if we decide to run?",
+    "difficulty": "hard",
+    "tags": ["bearing", "rolling-mill", "axial-play", "BPFO", "spares"]
+  },
+  {
+    "id": "SCN-006",
+    "title": "Blast Furnace Fan — Shaft Vibration Step-Change",
+    "equipment_class": "fan",
+    "equipment_id": "BF-FAN-01",
+    "prompt": "BF-FAN-01 Blast Furnace Fan A showed a step-change in shaft vibration from 1.8 mm/s to 5.2 mm/s at 22:30 last night (no gradual trend — abrupt). Speed and load are unchanged. Vibration is predominantly 1× running speed component. No balancing or maintenance was performed in the last 30 days. SCADA did not flag any process upset at that time. What failure modes produce a sudden 1× step increase? Prioritise your differential diagnosis, recommend the diagnostic measurements I should take now, and advise on whether to operate through the shift or initiate an emergency stop.",
+    "difficulty": "hard",
+    "tags": ["fan", "vibration", "blast-furnace", "imbalance", "step-change"]
+  },
+  {
+    "id": "SCN-007",
+    "title": "EAF Electrode Drive — Erratic Position Control",
+    "equipment_class": "hydraulic_unit",
+    "equipment_id": "HPU-01",
+    "prompt": "The EAF electrode positioning system is showing erratic position control — the electrode column oscillates ±12 mm around the setpoint instead of the normal ±2 mm. The PLC fault log shows sporadic encoder signal loss (fault E-ENC-042) but the encoder cable checks out visually. Hydraulic pressure at the servo valve is stable at 248 bar. This is causing arc instability and a 6% drop in power-on efficiency. Walk me through diagnosing whether this is a hydraulic servo valve issue, an encoder/feedback issue, or a PLC control-loop tuning drift — and what I can safely attempt without shutting the heat.",
+    "difficulty": "hard",
+    "tags": ["EAF", "electrode", "hydraulic", "servo", "encoder", "position-control"]
+  },
+  {
+    "id": "SCN-008",
+    "title": "Seal Leak — Cooling Water Ingress into Gearbox",
+    "equipment_class": "conveyor",
+    "equipment_id": "CONV-HSM-01",
+    "prompt": "Milky-white gear oil observed in CONV-HSM-01 drive gearbox oil sight glass during morning rounds — a classic sign of water ingress. The gearbox has a water-cooled bearing housing. Oil sample sent to lab but results won't be back for 24 hours. The HSM schedule cannot afford a 24-hour downtime window. What field tests can I run now to estimate the extent of contamination? What are the operational risk thresholds (temperature, vibration, noise) that should trigger an immediate stop? And what interim mitigation steps can reduce bearing damage while we plan the oil change?",
+    "difficulty": "medium",
+    "tags": ["gearbox", "seal", "water-ingress", "oil-contamination", "HSM"]
+  }
+]

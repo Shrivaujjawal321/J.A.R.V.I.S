@@ -1,0 +1,135 @@
+[
+  {
+    "id": "500006f5-9fdc-45d8-a5a9-cdd60c54921f",
+    "scanner": "semgrep",
+    "rule_id": "python.lang.security.audit.formatted-sql-query.formatted-sql-query",
+    "cwe": "CWE-89: IMPROPER NEUTRALIZATION OF SPECIAL ELEMENTS USED IN AN SQL COMMAND ('SQL INJECTION')",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "medium",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/api.py",
+    "line_start": 5,
+    "line_end": 5,
+    "endpoint": null,
+    "evidence": "Detected possible formatted SQL query. Use parameterized queries instead.",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "e60a24414386973c",
+    "remediation": null,
+    "related_finding_ids": [
+      "a6e372ef-d0fe-43a9-8227-e96da91922c3"
+    ],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "a6e372ef-d0fe-43a9-8227-e96da91922c3",
+    "scanner": "semgrep",
+    "rule_id": "python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query",
+    "cwe": "CWE-89: IMPROPER NEUTRALIZATION OF SPECIAL ELEMENTS USED IN AN SQL COMMAND ('SQL INJECTION')",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "high",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/api.py",
+    "line_start": 5,
+    "line_end": 5,
+    "endpoint": null,
+    "evidence": "Avoiding SQL string concatenation: untrusted input concatenated with raw SQL query can result in SQL Injection. In order to execute raw query safely, prepared statement should be used. SQLAlchemy provides TextualSQL to easily used prepared statement with named parameters. For complex SQL composition, use SQL Expression Language or Schema Definition Language. In most cases, SQLAlchemy ORM will be a better option.",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "12a7762bd547b762",
+    "remediation": null,
+    "related_finding_ids": [
+      "500006f5-9fdc-45d8-a5a9-cdd60c54921f"
+    ],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "eb179141-b7fa-412e-b765-0c1eba5180d5",
+    "scanner": "semgrep",
+    "rule_id": "generic.secrets.security.detected-aws-access-key-id-value.detected-aws-access-key-id-value",
+    "cwe": "CWE-798: USE OF HARD-CODED CREDENTIALS",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "high",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 2,
+    "line_end": 2,
+    "endpoint": null,
+    "evidence": "AWS Access Key ID Value detected. This is a sensitive credential and should not be hardcoded here. Instead, read this value from an environment variable or keep it in a separate, private file.",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "b1ce431c53417dce",
+    "remediation": null,
+    "related_finding_ids": [
+      "4f3fc105-9956-476f-bcc9-de7d78762a7e",
+      "ea41ae01-9610-415c-9b74-f8a8c299e9c9"
+    ],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "4f3fc105-9956-476f-bcc9-de7d78762a7e",
+    "scanner": "semgrep",
+    "rule_id": "generic.secrets.security.detected-aws-secret-access-key.detected-aws-secret-access-key",
+    "cwe": "CWE-798: USE OF HARD-CODED CREDENTIALS",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "high",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 3,
+    "line_end": 3,
+    "endpoint": null,
+    "evidence": "AWS Secret Access Key detected",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "dbb32fbd79aa8ea0",
+    "remediation": null,
+    "related_finding_ids": [
+      "eb179141-b7fa-412e-b765-0c1eba5180d5",
+      "ea41ae01-9610-415c-9b74-f8a8c299e9c9"
+    ],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  },
+  {
+    "id": "ea41ae01-9610-415c-9b74-f8a8c299e9c9",
+    "scanner": "semgrep",
+    "rule_id": "generic.secrets.security.detected-stripe-api-key.detected-stripe-api-key",
+    "cwe": "CWE-798: USE OF HARD-CODED CREDENTIALS",
+    "owasp_category": "UNKNOWN",
+    "cvss_vector": null,
+    "cvss_score": null,
+    "severity": "high",
+    "file_path": "/home/ujjwal/Documents/J.A.R.V.I.S./data/hackathons/tata-steel-2026/demo-target/config.py",
+    "line_start": 4,
+    "line_end": 4,
+    "endpoint": null,
+    "evidence": "Stripe API Key detected",
+    "verification_status": "needs_manual",
+    "confidence": 0.5,
+    "dedupe_key": "89aaae62830aab1c",
+    "remediation": null,
+    "related_finding_ids": [
+      "eb179141-b7fa-412e-b765-0c1eba5180d5",
+      "4f3fc105-9956-476f-bcc9-de7d78762a7e"
+    ],
+    "scanners_agreeing": [
+      "semgrep"
+    ],
+    "is_actionable": true
+  }
+]

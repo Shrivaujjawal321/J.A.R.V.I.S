@@ -1,0 +1,164 @@
+agent_id: R03
+topic: metallurgy-composition
+cycle: 1
+timestamp_utc: "2026-05-23T10:45:00Z"
+status: ok
+
+recommendations:
+
+  - id: R03_rec_1
+    title: "X43 within-grade test + Si-proxy ratios"
+    technique_class: feature_engineering
+    description: |
+      X43 passes all three composition-identification heuristics: CoV=0.246
+      (below the chemistry threshold of 0.30), zero missingness (100% populated,
+      consistent with per-heat chemistry measurement), and value range 0.030-0.410
+      matching silicon (0.10-0.50 wt pct HSLA specification window). Test: group
+      train rows by X11 (grade code, 17 levels) and compute within-grade variance
+      / overall variance for X43. If ratio < 0.10, X43 is almost certainly a
+      chemistry variable. If confirmed, build: (a) X13/X43 ratio (rolling force
+      over Si proxy), (b) X43 * v5_T_finish_dev_Ar3_sq (Si content amplifies the
+      two-phase window around Ar3), and (c) X43_grade_dev = X43 - grade-mean(X43),
+      detecting off-spec heats within a grade. PMC12348153 showed Mn/S ratio
+      (MI=0.4419) was the single highest-MI predictor in a comparable HSLA
+      internal crack dataset.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V7
+        - V11
+      note: |
+        V7 used X42 binary flags and a hard gate. This uses X43 identified by a
+        3-heuristic screen V7 did not apply. V11 used within-grade z-scores on
+        X42/X46 flag columns grouped by X39-grade. Neither used X43 grouped by
+        X11-grade. The X43 Si-proxy hypothesis is genuinely novel.
+    expected_lift_oof:
+      point: 1.2
+      low: 0.0
+      high: 3.5
+      reasoning: |
+        CONDITIONAL on X43 passing the within-grade variance test (~55% prob).
+        If confirmed: PMC12348153 Mn/S MI=0.4419 suggests 1-3 OOF pp lift for
+        an analogous composition ratio. If not: lift near zero. EV: 0.55 x 2.0
+        = 1.1 pp. Point estimate 1.2 with wide CI.
+    feasibility:
+      score: 4
+      effort_hours: 2.0
+      dependencies:
+        - pandas>=1.5
+        - numpy>=1.21
+        - scikit-learn>=1.4
+    confidence:
+      score: 3
+      evidence_anchor: |
+        PMC12348153 "A Data-Driven Approach for Internal Crack Prediction in
+        Continuous Casting of HSLA Steels Using CTGAN and CatBoost", Metals 2024:
+        Mn/S ratio MI=0.4419 highest of 25 selected features.
+        Toledo et al. (1993) Steel Research doi:10.1002/srin.199301025:
+        Mn/S > 3.5 required for crack-free rolling.
+        AZoM HSLA Steel: Si range 0.10-0.50 wt% matches X43 range 0.030-0.410.
+    failure_modes:
+      - "X43 fails within-grade variance test (ratio > 0.20) -- process variable"
+      - "X43 is Si not Mn or S -- cannot construct true Mn/S without both"
+      - "Some grades have <30 rows -- grade-mean in CV folds is noisy"
+      - "Hard-7 defects may be temperature-driven not chemistry-driven"
+    code_sketch: |
+      import pandas as pd, numpy as np
+      df = pd.read_csv("train.csv")
+      overall_var = df["X43"].var()
+      within_var = df.groupby("X11")["X43"].var().mean()
+      ratio = within_var / overall_var
+      print(f"X43 within-grade/overall variance ratio: {ratio:.4f}")
+      # Phase 2 features (CV-safe inside fold loop only):
+      # grade_mean = df_fold_train.groupby("X11")["X43"].mean()
+      # df["X43_grade_dev"] = df["X43"] - df["X11"].map(grade_mean)
+      # df["X13_div_X43"] = df["X13"] / (df["X43"] + 1e-6)
+      # df["X43_x_T_dev"] = df["X43"] * df["v5_T_finish_dev_Ar3_sq"]
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+  - id: R03_rec_2
+    title: "Systematic within-grade variance screen all X1-X49"
+    technique_class: feature_engineering
+    description: |
+      Run a within-grade variance screen across all 49 columns using X11 grouping.
+      Compute (within-grade variance) / (overall variance) for each column.
+      Columns with ratio < 0.15 form a candidate composition group. Build all
+      pairwise ratios within the top-5 candidates (10 ratios total). SHAP-select
+      top-2 for inclusion. Hedged search fixing the V7 failure of picking X42
+      manually by grounding column selection in statistical structure. Even
+      without knowing element identities, ratios between two grade-specific
+      columns have meaningful probability of capturing Mn/S, Si/Mn, or Nb/Ti
+      type interactions.
+    novel_vs_v1_v22: true
+    dedup_check:
+      conflicts_with:
+        - V5
+        - V11
+    expected_lift_oof:
+      point: 0.8
+      low: 0.1
+      high: 2.5
+      reasoning: |
+        Screen likely finds 3-7 low-variance columns. Of 10 ratios, probability
+        at least one genuine chemistry pair survives SHAP-top-2: ~40%. EV:
+        0.40 x 2.0 = 0.8 pp.
+    feasibility:
+      score: 5
+      effort_hours: 1.5
+      dependencies:
+        - pandas>=1.5
+        - numpy>=1.21
+        - lightgbm>=4.0
+    confidence:
+      score: 3
+      evidence_anchor: |
+        PMC12348153: Mn/S ratio MI=0.4419 in HSLA crack dataset.
+        Toledo (1993): Mn/S > 3.5 metallurgical hot-shortness threshold.
+        Int J Adv Manuf Technol 2017, doi:10.1007/s00170-017-0435-6:
+        within-grade variance as composition heuristic.
+    failure_modes:
+      - "All 5 lowest-variance columns are grade-correlated process setpoints"
+      - "Grade confounding: process setpoints also vary by grade"
+      - "10 new features risks SHAP overfitting on 53 fold-positives"
+    code_sketch: |
+      import pandas as pd, numpy as np
+      from itertools import combinations
+      X_cols = [f"X{i}" for i in range(1, 50)]
+      exclude = {"X11", "X34", "X35", "X36", "X39", "X40",
+                 "X4", "X5", "X6", "X14", "X17", "X18"}
+      screen_cols = [c for c in X_cols if c not in exclude]
+      overall_vars = df[screen_cols].var()
+      within_vars = df.groupby("X11")[screen_cols].var().mean()
+      var_ratios = (within_vars / overall_vars).sort_values()
+      candidates = var_ratios.iloc[:5].index.tolist()
+      for a, b in combinations(candidates, 2):
+          df[f"ratio_{a}_{b}"] = df[a] / (df[b].clip(lower=1e-6))
+    test_case_impact:
+      hard7_recall: medium
+      hard_fp_avoidance: low
+      easy59_regression_risk: low
+
+cross_topic_links:
+  - R01: |
+      Temperature-physics: rec_1 feature (b) needs X43 * v5_T_finish_dev_Ar3_sq.
+      Coordinate on Ar3 deviation feature to avoid duplication.
+  - R02: |
+      Grade-cluster: if R02 covers within-grade aggregations, share variance
+      ratios table to avoid duplicate computation.
+  - R04: |
+      TabPFN/TabICL: if rec_1 confirmed, inject X43_grade_dev into R04 inputs.
+
+notes_for_synthesis: |
+  KEY FINDING — V7 was wrong about X42 being chemistry: X42 has 20.4% missingness
+  and CoV=1.479. Real chemistry columns are 100% populated with CoV<0.50.
+  X42's zero-inflated distribution (20% exact zeros, median=0.0027) is consistent
+  with a process alarm flag.
+
+  X43 is the ONLY column with CoV<0.30 AND zero missing AND range matching
+  HSLA Si window. The within-grade variance test is a 10-line pandas gate
+  that must run before feature engineering — if X43 fails the test, both
+  recommendations near-zero. If X43 passes, rec_1 is the highest-conviction
+  feature_engineering recommendation across all 15 agents.

@@ -1,0 +1,101 @@
+# Broken Authentication / Authorization (CWE-287, CWE-285, CWE-862)
+#
+# CONSERVATIVE by design — authz is FP-heavy, so these only fire on patterns that
+# are almost always wrong: JWT signature verification disabled, hard-coded auth
+# bypass flags, and CORS wildcard + credentials. We do NOT try to detect "missing
+# authz decorator" (too noisy); the LLM verify layer handles the semantic cases.
+#
+# DEFENSIVE: flag the disabled/bypassed control so the auditor re-enables it.
+rules:
+  # ── JWT signature verification disabled (Python) ──────────────────────────
+  - id: jarvis-authz-python-jwt-verify-disabled
+    languages: [python]
+    severity: ERROR
+    message: >
+      JWT signature verification is DISABLED (verify=False / verify_signature:
+      False). Any attacker can forge a token with arbitrary claims (role=admin).
+      Always verify the signature with the expected algorithm and key.
+    metadata:
+      cwe: "CWE-287"
+      owasp: "A01:2025-BAC"
+      category: security
+      confidence: HIGH
+      references:
+        - https://cwe.mitre.org/data/definitions/287.html
+        - https://owasp.org/www-community/Broken_Authentication
+    patterns:
+      # Note: test-fixture suppression is handled by the verify layer (Haiku triage
+      # marks example/test code as false_positive), keeping this rule precise.
+      - pattern-either:
+          - pattern: jwt.decode(..., verify=False, ...)
+          - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+          - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...})'
+
+  # ── JWT signature verification disabled (Node jsonwebtoken) ───────────────
+  - id: jarvis-authz-node-jwt-none-algorithm
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      JWT verification accepts the 'none' algorithm or is decoded without
+      verification (jwt.decode instead of jwt.verify). 'none' lets an attacker strip
+      the signature and forge claims. Pin allowed algorithms (e.g. ['RS256']) and
+      use jwt.verify with the key.
+    metadata:
+      cwe: "CWE-287"
+      owasp: "A01:2025-BAC"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/287.html
+    patterns:
+      - pattern-either:
+          - pattern: 'jwt.verify($T, $K, {..., algorithms: [..., "none", ...], ...}, ...)'
+          - pattern: 'jwt.verify($T, $K, {..., algorithms: ["none"], ...}, ...)'
+
+  # ── Hard-coded auth bypass flag actually used in a guard ──────────────────
+  - id: jarvis-authz-python-auth-bypass-flag
+    languages: [python]
+    severity: WARNING
+    message: >
+      Authentication appears short-circuited by a constant/debug flag in a guard
+      condition (e.g. 'if DISABLE_AUTH or ...' / 'if True:  # skip auth'). Confirm
+      this cannot reach production; auth checks must not be bypassable by a flag.
+    metadata:
+      cwe: "CWE-285"
+      owasp: "A01:2025-BAC"
+      category: security
+      confidence: LOW
+      references:
+        - https://cwe.mitre.org/data/definitions/285.html
+    patterns:
+      - pattern-either:
+          - pattern: |
+              if $SKIP or ...:
+                  return $USER
+          - pattern: |
+              if DISABLE_AUTH:
+                  ...
+          - pattern: |
+              if SKIP_AUTH:
+                  ...
+          - pattern: |
+              if BYPASS_AUTH:
+                  ...
+
+  # ── CORS wildcard origin WITH credentials (Node/Express) ──────────────────
+  - id: jarvis-authz-node-cors-wildcard-credentials
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      CORS allows any origin (*) together with credentials, exposing authenticated
+      responses to any site. Reflecting '*' with credentials is invalid+dangerous;
+      use an explicit origin allowlist when credentials are enabled.
+    metadata:
+      cwe: "CWE-942"
+      owasp: "A02:2025-Misconfig"
+      category: security
+      confidence: MEDIUM
+      references:
+        - https://cwe.mitre.org/data/definitions/942.html
+    patterns:
+      - pattern: 'cors({ ..., origin: "*", ..., credentials: true, ... })'

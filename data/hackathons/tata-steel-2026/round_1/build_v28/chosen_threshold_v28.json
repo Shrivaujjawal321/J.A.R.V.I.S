@@ -1,0 +1,54 @@
+{
+  "chosen_threshold": 0.44,
+  "strategy": "safety-floor 0.440 on combined-rank scale (V4+V26 global blend)",
+  "argmax_threshold_oof_only": 0.4480783444198078,
+  "argmax_oof_score": 54.6875,
+  "safe_threshold": 0.44,
+  "safe_oof_score_oof_only_scale": 54.61538461538462,
+  "safe_oof_score_combined_scale": 54.48979591836734,
+  "argmax_threshold_combined": 0.4645390070921986,
+  "argmax_oof_score_combined": 54.6875,
+  "oof_recall_at_safe_T": 1.0,
+  "oof_precision_at_safe_T": 0.09230769230769231,
+  "oof_n_positives_at_safe_T": 715,
+  "oof_total": 1352,
+  "bootstrap_at_argmax": {
+    "mean": 54.68256606153366,
+    "std": 0.5581602284515614,
+    "ci_lower_95": 53.649364510988256,
+    "ci_upper_95": 55.766756046606794,
+    "n_boot": 1000,
+    "seed": 42
+  },
+  "bootstrap_at_safe_T": {
+    "mean": 54.61085302688721,
+    "std": 0.5504547493445376,
+    "ci_lower_95": 53.601058750200146,
+    "ci_upper_95": 55.666734972677595,
+    "n_boot": 1000,
+    "seed": 42
+  },
+  "v4_oof_score": 54.31,
+  "v23_oof_score": 54.41,
+  "delta_vs_v4_argmax": 0.3774999999999977,
+  "delta_vs_v23_argmax": 0.2775000000000034,
+  "delta_vs_v4_safe": 0.30538461538461803,
+  "delta_vs_v23_safe": 0.20538461538462371,
+  "v26_oof_reproduction_max_diff": 0.0,
+  "test_positives": 162,
+  "test_total": 339,
+  "fixture_diagnostics": {
+    "hard7": {
+      "caught_or_avoided": 7,
+      "total": 7
+    },
+    "easy59": {
+      "caught_or_avoided": 59,
+      "total": 59
+    },
+    "hard_fp10": {
+      "caught_or_avoided": 0,
+      "total": 10
+    }
+  }
+}
